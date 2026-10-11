@@ -102,12 +102,41 @@ CREATE TABLE IF NOT EXISTS measurements (
   chest REAL, waist REAL, hip REAL, arm REAL, thigh REAL, body_fat REAL, note TEXT, by_staff INTEGER DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS products (
-  id INTEGER PRIMARY KEY, name TEXT NOT NULL, price REAL NOT NULL, stock INTEGER DEFAULT 0, active INTEGER DEFAULT 1
+  id INTEGER PRIMARY KEY, name TEXT NOT NULL, price REAL NOT NULL, stock INTEGER DEFAULT 0, active INTEGER DEFAULT 1,
+  barcode TEXT, category TEXT DEFAULT 'general', min_stock INTEGER DEFAULT 5
 );
+CREATE TABLE IF NOT EXISTS daily_passes (
+  id INTEGER PRIMARY KEY, code TEXT UNIQUE NOT NULL, name TEXT NOT NULL, dni TEXT, phone TEXT,
+  price REAL NOT NULL, method TEXT NOT NULL, op_code TEXT, day TEXT NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP, user_id INTEGER, scans_count INTEGER DEFAULT 1,
+  last_scan TEXT, receipt_no TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_dp_day ON daily_passes(day);
+CREATE INDEX IF NOT EXISTS idx_dp_code ON daily_passes(code);
 CREATE TABLE IF NOT EXISTS audit (
   id INTEGER PRIMARY KEY, user_id INTEGER, action TEXT, detail TEXT, ts TEXT DEFAULT CURRENT_TIMESTAMP
 );
 `);
+
+// Migración segura de columnas en bases de datos existentes
+function ensureColumns() {
+  const addCol = (tbl, col, def) => {
+    const cols = q.all(`PRAGMA table_info(${tbl})`).map(c => c.name);
+    if (!cols.includes(col)) {
+      try { db.exec(`ALTER TABLE ${tbl} ADD COLUMN ${col} ${def}`); } catch (e) { console.error(`Error adding ${col} to ${tbl}:`, e.message); }
+    }
+  };
+  addCol('payments', 'op_code', 'TEXT');
+  addCol('payments', 'voucher_img', 'TEXT');
+  addCol('payments', 'receipt_no', 'TEXT');
+  addCol('payments', 'daily_pass_id', 'INTEGER');
+  addCol('payments', 'verified', 'INTEGER DEFAULT 0');
+
+  addCol('products', 'barcode', 'TEXT');
+  addCol('products', 'category', 'TEXT DEFAULT "general"');
+  addCol('products', 'min_stock', 'INTEGER DEFAULT 5');
+}
+ensureColumns();
 
 // ---------- Ajustes ----------
 const DEFAULT_SETTINGS = {
@@ -115,12 +144,16 @@ const DEFAULT_SETTINGS = {
   gym_slogan: 'Disciplina · Constancia · Resultados',
   gym_phone: '982404043',
   gym_address: 'Calle Antonio José de Sucre Lt. 10, Chivay (al costado de la discoteca Muya)',
+  gym_ruc: '10702548911',
+  receipt_prefix: 'B001',
+  daily_pass_price: '5',
   warn_days: '5',        // aviso amarillo de vencimiento
   grace_days: '0',       // días de gracia tras vencer
   passback_min: '3',     // minutos para considerar un reingreso duplicado
   stay_min: '120',       // minutos que se considera a alguien "dentro" del gimnasio
   opening: 'Lun a Sáb 6:00 a 21:00',
-  color: '#f5b400'
+  color: '#f5b400',
+  printer_width: '58mm'
 };
 for (const [k, v] of Object.entries(DEFAULT_SETTINGS)) {
   q.run('INSERT OR IGNORE INTO settings(key,value) VALUES(?,?)', k, v);
@@ -128,8 +161,23 @@ for (const [k, v] of Object.entries(DEFAULT_SETTINGS)) {
 const getSettings = () => Object.fromEntries(q.all('SELECT key,value FROM settings').map(r => [r.key, r.value]));
 const numSettings = () => {
   const s = getSettings();
-  return { ...s, warn_days: +s.warn_days, grace_days: +s.grace_days, passback_min: +s.passback_min, stay_min: +s.stay_min };
+  return { ...s, warn_days: +s.warn_days, grace_days: +s.grace_days, passback_min: +s.passback_min, stay_min: +s.stay_min, daily_pass_price: +s.daily_pass_price || 5 };
 };
+
+// Generador de correlativo de comprobante / boleta
+function nextReceiptNo() {
+  const prefix = q.get("SELECT value FROM settings WHERE key='receipt_prefix'")?.value || 'B001';
+  const last = q.get("SELECT MAX(id) n FROM payments")?.n || 0;
+  return `${prefix}-${String(last + 1).padStart(6, '0')}`;
+}
+
+// Generador de código único de pase diario
+function dailyPassCode(dayLima) {
+  const d = dayLima || L.limaDay();
+  const clean = d.replace(/-/g, '').slice(2);
+  const count = (q.get("SELECT COUNT(*) n FROM daily_passes WHERE day=?", d)?.n || 0) + 1;
+  return `RD-DAY-${clean}-${String(count).padStart(3, '0')}`;
+}
 
 // ---------- Datos iniciales ----------
 if (!q.get('SELECT 1 x FROM users LIMIT 1')) {
@@ -139,11 +187,19 @@ if (!q.get('SELECT 1 x FROM users LIMIT 1')) {
 if (!q.get('SELECT 1 x FROM plans LIMIT 1')) {
   [['1 mes', 1, 60, 1], ['3 meses', 3, 170, 2], ['6 meses', 6, 300, 3], ['1 año', 12, 500, 4]]
     .forEach(([n, m, p, s]) => q.run('INSERT INTO plans(name,months,price,sort) VALUES(?,?,?,?)', n, m, p, s));
-  q.run('INSERT INTO plans(name,days,price,sort) VALUES(?,?,?,?)', 'Pase diario', 1, 10, 5);
+  q.run('INSERT INTO plans(name,days,price,sort) VALUES(?,?,?,?)', 'Pase diario', 1, 5, 5);
 }
 if (!q.get('SELECT 1 x FROM products LIMIT 1')) {
-  [['Agua 625 ml', 2, 50], ['Bebida energética', 5, 24], ['Toalla RD', 15, 10], ['Proteína (porción)', 8, 30]]
-    .forEach(([n, p, s]) => q.run('INSERT INTO products(name,price,stock) VALUES(?,?,?)', n, p, s));
+  [['Agua 625 ml', 2, 50, '7750106001011', 'bebidas'], ['Bebida energética', 5, 24, '7750106002022', 'bebidas'], ['Toalla RD', 15, 10, '7750106003033', 'accesorios'], ['Proteína (porción)', 8, 30, '7750106004044', 'suplementos']]
+    .forEach(([n, p, s, bc, cat]) => q.run('INSERT INTO products(name,price,stock,barcode,category) VALUES(?,?,?,?,?)', n, p, s, bc, cat));
+} else {
+  // Asignar códigos de barra por defecto si están vacíos
+  try {
+    q.run("UPDATE products SET barcode='7750106001011', category='bebidas' WHERE name LIKE '%Agua%' AND (barcode IS NULL OR barcode='')");
+    q.run("UPDATE products SET barcode='7750106002022', category='bebidas' WHERE name LIKE '%energética%' AND (barcode IS NULL OR barcode='')");
+    q.run("UPDATE products SET barcode='7750106003033', category='accesorios' WHERE name LIKE '%Toalla%' AND (barcode IS NULL OR barcode='')");
+    q.run("UPDATE products SET barcode='7750106004044', category='suplementos' WHERE name LIKE '%Proteína%' AND (barcode IS NULL OR barcode='')");
+  } catch (e) { }
 }
 
 // Ejercicios (si faltan, se cargan desde data/exercises.json)
@@ -236,4 +292,4 @@ function backup() {
   return f;
 }
 
-module.exports = { db, q, DATA_DIR, getSettings, numSettings, backup, seedExercises };
+module.exports = { db, q, DATA_DIR, getSettings, numSettings, backup, seedExercises, nextReceiptNo, dailyPassCode };

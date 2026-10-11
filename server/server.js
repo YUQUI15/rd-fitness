@@ -3,7 +3,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
-const { q, db, DATA_DIR, getSettings, numSettings, backup } = require('./db');
+const { q, db, DATA_DIR, getSettings, numSettings, backup, nextReceiptNo, dailyPassCode } = require('./db');
 const L = require('./lib');
 
 const app = express();
@@ -132,17 +132,73 @@ function memberPublic(m, includeKey = false) {
 }
 const stripSecrets = m => { const { qr_key, ...rest } = m; return rest; };
 
-function activateMembership({ member_id, plan, start, price, userId, method, note, concept }) {
+function buildReceipt(paymentId) {
+  const p = q.get(`
+    SELECT p.*, m.name AS member_name, m.dni AS member_dni, m.phone AS member_phone, m.code AS member_code,
+      dp.code AS dp_code, dp.name AS dp_name, dp.dni AS dp_dni, dp.day AS dp_day,
+      ms.plan_name, ms.start_date, ms.end_date,
+      u.name AS user_name
+    FROM payments p
+    LEFT JOIN members m ON m.id=p.member_id
+    LEFT JOIN memberships ms ON ms.id=p.membership_id
+    LEFT JOIN daily_passes dp ON dp.id=p.daily_pass_id
+    LEFT JOIN users u ON u.id=p.user_id
+    WHERE p.id=?`, paymentId);
+  if (!p) return null;
+  const cfg = getSettings();
+  let clientName = p.member_name || p.dp_name || 'Cliente';
+  let clientDoc = p.member_dni || p.dp_dni || (p.member_code ? p.member_code : '—');
+  let clientPhone = p.member_phone || null;
+  let qrCode = null;
+  if (p.daily_pass_id && p.dp_code) {
+    qrCode = L.dailyPayload(p.dp_code, p.dp_day);
+  }
+  let validity = null;
+  if (p.start_date && p.end_date) {
+    validity = `Del ${p.start_date} al ${p.end_date}`;
+  } else if (p.daily_pass_id) {
+    validity = `Válido solo hoy (${p.day})`;
+  }
+  return {
+    payment_id: p.id,
+    receipt_no: p.receipt_no || `B001-${String(p.id).padStart(6, '0')}`,
+    date: p.created_at,
+    gym: {
+      name: cfg.gym_name || 'RD Fitness Club',
+      slogan: cfg.gym_slogan || 'Disciplina · Constancia · Resultados',
+      address: cfg.gym_address || 'Calle Antonio José de Sucre Lt. 10, Chivay',
+      phone: cfg.gym_phone || '982404043',
+      ruc: cfg.gym_ruc || '10702548911'
+    },
+    client: {
+      name: clientName,
+      doc: clientDoc,
+      phone: clientPhone
+    },
+    concept: p.concept,
+    validity,
+    amount: p.amount,
+    method: p.method,
+    op_code: p.op_code || null,
+    voucher_img: p.voucher_img || null,
+    qr_payload: qrCode,
+    is_daily_pass: !!p.daily_pass_id,
+    user_name: p.user_name || 'Recepción'
+  };
+}
+
+function activateMembership({ member_id, plan, start, price, userId, method, note, concept, op_code, voucher_img }) {
   const last = q.get("SELECT MAX(end_date) e FROM memberships WHERE member_id=? AND status='active'", member_id);
   const today = L.limaDay();
   let s = start || today;
   if (!start && last && last.e && last.e >= today) s = L.addDays(last.e, 1); // renovación anticipada: se suma a lo que queda
   const end = L.membershipEnd(s, plan.months, plan.days);
+  const receipt_no = nextReceiptNo();
   const ms = q.run('INSERT INTO memberships(member_id,plan_id,plan_name,start_date,end_date,price,created_by) VALUES(?,?,?,?,?,?,?)',
     member_id, plan.id, plan.name, s, end, price, userId);
-  const pay = q.run('INSERT INTO payments(member_id,membership_id,concept,amount,method,note,day,user_id) VALUES(?,?,?,?,?,?,?,?)',
-    member_id, ms.lastInsertRowid, concept || `Membresía ${plan.name}`, price, method, note || null, today, userId);
-  return { membership_id: Number(ms.lastInsertRowid), payment_id: Number(pay.lastInsertRowid), start: s, end };
+  const pay = q.run('INSERT INTO payments(member_id,membership_id,concept,amount,method,note,day,user_id,op_code,voucher_img,receipt_no) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
+    member_id, ms.lastInsertRowid, concept || `Membresía ${plan.name}`, price, method, note || null, today, userId, op_code || null, voucher_img || null, receipt_no);
+  return { membership_id: Number(ms.lastInsertRowid), payment_id: Number(pay.lastInsertRowid), start: s, end, receipt_no };
 }
 
 function checkMethod(m) { return METHODS.includes(m) ? m : null; }
@@ -150,12 +206,21 @@ function checkMethod(m) { return METHODS.includes(m) ? m : null; }
 // ---------------- Sincronización del escáner (modo sin internet) ----------------
 api.get('/sync/members', staff(), wrap((req, res) => {
   const cfg = numSettings();
+  const today = L.limaDay();
   const rows = q.all(MEMBER_SELECT + " WHERE m.status!='inactive' OR 1=1");
   const members = rows.map(m => ({
     id: m.id, code: m.code, name: m.name, dni: m.dni, phone: m.phone, photo: m.photo, key: m.qr_key, pv: m.phys_ver,
     end: m.end_date, plan: m.plan_name, status: m.status, frozen: !!m.frozen_from, last_in: m.last_in, goal: m.goal
   }));
-  res.json({ now: Date.now(), day: L.limaDay(), cfg: { warn_days: cfg.warn_days, grace_days: cfg.grace_days, passback_min: cfg.passback_min, gym_name: cfg.gym_name }, members });
+  const dailyPasses = q.all("SELECT id, code, name, dni, day, created_at, scans_count, last_scan FROM daily_passes WHERE day=?", today);
+  const products = q.all("SELECT id, name, price, stock, barcode, category FROM products WHERE active=1");
+  res.json({
+    now: Date.now(), day: today,
+    cfg: { warn_days: cfg.warn_days, grace_days: cfg.grace_days, passback_min: cfg.passback_min, gym_name: cfg.gym_name, daily_pass_price: cfg.daily_pass_price },
+    members,
+    dailyPasses,
+    products
+  });
 }));
 
 api.post('/sync/scans', staff('admin', 'recepcion'), wrap((req, res) => {
@@ -235,12 +300,13 @@ api.post('/members', staff('admin', 'recepcion'), wrap((req, res) => {
       ['principiante', 'intermedio', 'avanzado'].includes(b.level) ? b.level : 'principiante', L.randomKey(), b.consent ? 1 : 0, b.notes);
     const id = Number(r.lastInsertRowid);
     let ms = null;
-    if (plan) ms = activateMembership({ member_id: id, plan, price, userId: req.user.id, method: b.method, note: b.discount_note });
+    if (plan) ms = activateMembership({ member_id: id, plan, price, userId: req.user.id, method: b.method, note: b.discount_note, op_code: b.op_code, voucher_img: b.voucher_img });
     return { id, ms };
   });
   audit(req.user.id, 'member.create', { id: result.id, name });
   const m = q.get('SELECT * FROM members WHERE id=?', result.id);
-  res.json({ member: memberPublic(m, true), membership: result.ms });
+  const receipt = result.ms?.payment_id ? buildReceipt(result.ms.payment_id) : null;
+  res.json({ member: memberPublic(m, true), membership: result.ms, receipt });
 }));
 
 api.put('/members/:id', staff('admin', 'recepcion', 'entrenador'), wrap((req, res) => {
@@ -287,9 +353,14 @@ api.post('/members/:id/renew', staff('admin', 'recepcion'), wrap((req, res) => {
   const price = num(req.body?.price, plan.price);
   if (price < 0 || price > plan.price * 3) return bad(res, 'Monto inválido');
   if (price < plan.price && req.user.role !== 'admin' && !req.body?.discount_note) return bad(res, 'Escribe el motivo del descuento');
-  const r = q.tx(() => activateMembership({ member_id: id, plan, price, userId: req.user.id, method: req.body.method, note: req.body.discount_note }));
+  const r = q.tx(() => activateMembership({
+    member_id: id, plan, price, userId: req.user.id,
+    method: req.body.method, note: req.body.discount_note,
+    op_code: req.body.op_code, voucher_img: req.body.voucher_img
+  }));
   audit(req.user.id, 'member.renew', { id, plan: plan.name, price });
-  res.json({ ...r, member: memberPublic(m) });
+  const receipt = r.payment_id ? buildReceipt(r.payment_id) : null;
+  res.json({ ...r, member: memberPublic(m), receipt });
 }));
 
 api.post('/members/:id/freeze', staff('admin', 'recepcion'), wrap((req, res) => {
@@ -378,11 +449,16 @@ api.put('/plans/:id', staff('admin'), wrap((req, res) => {
 }));
 
 // ---------------- Pagos, caja, gastos ----------------
+// ---------------- Pagos, caja, gastos ----------------
 api.get('/payments', staff('admin', 'recepcion'), wrap((req, res) => {
   const day = req.query.day || L.limaDay();
   const from = req.query.from || day, to = req.query.to || day;
-  const rows = q.all(`SELECT p.*, m.name AS member_name, m.code AS member_code, u.name AS user_name
-    FROM payments p LEFT JOIN members m ON m.id=p.member_id LEFT JOIN users u ON u.id=p.user_id
+  const rows = q.all(`SELECT p.*, m.name AS member_name, m.code AS member_code,
+    dp.name AS dp_name, dp.code AS dp_code, u.name AS user_name
+    FROM payments p
+    LEFT JOIN members m ON m.id=p.member_id
+    LEFT JOIN daily_passes dp ON dp.id=p.daily_pass_id
+    LEFT JOIN users u ON u.id=p.user_id
     WHERE p.day BETWEEN ? AND ? ORDER BY p.id DESC LIMIT 1000`, from, to);
   res.json(rows);
 }));
@@ -390,9 +466,12 @@ api.post('/payments', staff('admin', 'recepcion'), wrap((req, res) => {
   const b = req.body || {};
   if (!checkMethod(b.method)) return bad(res, 'Elige el método de pago');
   if (!b.concept || num(b.amount) <= 0) return bad(res, 'Concepto y monto son obligatorios');
-  const r = q.run('INSERT INTO payments(member_id,concept,amount,method,note,day,user_id) VALUES(?,?,?,?,?,?,?)',
-    b.member_id || null, b.concept, num(b.amount), b.method, b.note, L.limaDay(), req.user.id);
-  res.json({ id: Number(r.lastInsertRowid) });
+  const receipt_no = nextReceiptNo();
+  const r = q.run('INSERT INTO payments(member_id,concept,amount,method,note,day,user_id,op_code,voucher_img,receipt_no) VALUES(?,?,?,?,?,?,?,?,?,?)',
+    b.member_id || null, b.concept, num(b.amount), b.method, b.note, L.limaDay(), req.user.id, b.op_code || null, b.voucher_img || null, receipt_no);
+  const payId = Number(r.lastInsertRowid);
+  const receipt = buildReceipt(payId);
+  res.json({ id: payId, receipt_no, receipt });
 }));
 api.post('/payments/:id/void', staff('admin'), wrap((req, res) => {
   const p = q.get('SELECT * FROM payments WHERE id=?', num(req.params.id));
@@ -406,18 +485,128 @@ api.post('/payments/:id/void', staff('admin'), wrap((req, res) => {
   audit(req.user.id, 'payment.void', { id: p.id, amount: p.amount, reason: req.body.reason });
   res.json({ ok: true });
 }));
+api.post('/payments/:id/verify', staff('admin'), wrap((req, res) => {
+  const id = num(req.params.id);
+  const p = q.get('SELECT * FROM payments WHERE id=?', id);
+  if (!p) return bad(res, 'Pago no encontrado', 404);
+  const nextVal = p.verified ? 0 : 1;
+  q.run('UPDATE payments SET verified=? WHERE id=?', nextVal, id);
+  audit(req.user.id, 'payment.verify', { id, verified: nextVal });
+  res.json({ ok: true, verified: nextVal });
+}));
+api.post('/payments/:id/voucher', staff('admin', 'recepcion'), wrap((req, res) => {
+  const id = num(req.params.id);
+  const p = q.get('SELECT * FROM payments WHERE id=?', id);
+  if (!p) return bad(res, 'Pago no encontrado', 404);
+  const { voucher_img, op_code } = req.body || {};
+  q.run('UPDATE payments SET voucher_img=COALESCE(?, voucher_img), op_code=COALESCE(?, op_code) WHERE id=?',
+    voucher_img || null, op_code || null, id);
+  res.json({ ok: true });
+}));
+api.get('/payments/:id/receipt', anyAuth, wrap((req, res) => {
+  const receipt = buildReceipt(num(req.params.id));
+  if (!receipt) return bad(res, 'Comprobante no encontrado', 404);
+  res.json(receipt);
+}));
+
+// ---------------- Pases Diarios (Visitantes S/ 5) ----------------
+api.get('/daily-passes', staff('admin', 'recepcion'), wrap((req, res) => {
+  const day = req.query.day || L.limaDay();
+  const rows = q.all(`SELECT dp.*, u.name AS user_name, p.id AS payment_id, p.voided
+    FROM daily_passes dp
+    LEFT JOIN payments p ON p.daily_pass_id=dp.id
+    LEFT JOIN users u ON u.id=dp.user_id
+    WHERE dp.day=? ORDER BY dp.id DESC`, day);
+  res.json(rows);
+}));
+api.post('/daily-passes', staff('admin', 'recepcion'), wrap((req, res) => {
+  const b = req.body || {};
+  const cfg = numSettings();
+  const name = String(b.name || 'Visitante casual').trim().replace(/\s+/g, ' ');
+  const dni = String(b.dni || '').trim() || null;
+  const phone = String(b.phone || '').trim() || null;
+  const price = num(b.price, cfg.daily_pass_price || 5);
+  const method = checkMethod(b.method) || 'efectivo';
+  const op_code = b.op_code ? String(b.op_code).trim() : null;
+  const voucher_img = b.voucher_img || null;
+  const today = L.limaDay();
+  const now = new Date();
+  const code = dailyPassCode(today);
+  const receipt_no = nextReceiptNo();
+
+  const result = q.tx(() => {
+    const dp = q.run(`INSERT INTO daily_passes(code,name,dni,phone,price,method,op_code,day,user_id,receipt_no,last_scan)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?)`,
+      code, name, dni, phone, price, method, op_code, today, req.user.id, receipt_no, now.toISOString());
+    const passId = Number(dp.lastInsertRowid);
+    const pay = q.run(`INSERT INTO payments(concept,amount,method,op_code,voucher_img,receipt_no,daily_pass_id,day,user_id)
+      VALUES(?,?,?,?,?,?,?,?,?)`,
+      `Pase Diario: ${name}`, price, method, op_code, voucher_img, receipt_no, passId, today, req.user.id);
+    const payId = Number(pay.lastInsertRowid);
+    q.run(`INSERT INTO attendance(uid,code,ts,day,hour,result,reason,kind,user_id)
+      VALUES(?,?,?,?,?,?,?,?,?)`,
+      'dp-' + L.randomKey(), code, now.toISOString(), today, L.limaHour(now), 'ok', 'Pase diario (1er ingreso)', 'D', req.user.id);
+    return { passId, payId };
+  });
+
+  audit(req.user.id, 'dailypass.create', { code, name, price, method, op_code });
+  const receipt = buildReceipt(result.payId);
+  res.json({
+    ok: true,
+    pass: { id: result.passId, code, name, dni, phone, price, method, day: today, receipt_no },
+    receipt
+  });
+}));
+api.post('/daily-passes/scan', staff('admin', 'recepcion'), wrap((req, res) => {
+  let { code } = req.body || {};
+  code = String(code || '').trim();
+  const match = /^RD1\.DAY\.([A-Za-z0-9\-]+)\.(\d{4}-\d{2}-\d{2})\.([0-9a-f]{12})$/.exec(code);
+  let passCode = match ? match[1] : code;
+  const today = L.limaDay();
+  const pass = q.get('SELECT * FROM daily_passes WHERE code=?', passCode);
+  if (!pass) return bad(res, 'Pase diario no encontrado', 404);
+  if (pass.day !== today) {
+    return res.status(400).json({ ok: false, level: 'denied', reason: `Pase diario vencido (era válido el ${pass.day})`, pass });
+  }
+  const now = new Date();
+  q.run('UPDATE daily_passes SET scans_count=scans_count+1, last_scan=? WHERE id=?', now.toISOString(), pass.id);
+  q.run(`INSERT INTO attendance(uid,code,ts,day,hour,result,reason,kind,user_id)
+    VALUES(?,?,?,?,?,?,?,?,?)`,
+    'dp-' + L.randomKey(), pass.code, now.toISOString(), today, L.limaHour(now), 'ok', `Pase diario (reingreso #${pass.scans_count + 1})`, 'D', req.user.id);
+  res.json({ ok: true, level: 'ok', reason: `Pase diario vigente (reingreso #${pass.scans_count + 1})`, pass });
+}));
+
+// ---------------- Caja y Arqueo Diario ----------------
 api.get('/cash', staff('admin', 'recepcion'), wrap((req, res) => {
   const day = req.query.day || L.limaDay();
-  const pays = q.all(`SELECT p.*, m.name member_name, m.code member_code, u.name user_name FROM payments p
-    LEFT JOIN members m ON m.id=p.member_id LEFT JOIN users u ON u.id=p.user_id WHERE p.day=? AND p.voided=0 ORDER BY p.id`, day);
+  const pays = q.all(`SELECT p.*, m.name member_name, m.code member_code,
+    dp.name dp_name, dp.code dp_code, u.name user_name
+    FROM payments p
+    LEFT JOIN members m ON m.id=p.member_id
+    LEFT JOIN daily_passes dp ON dp.id=p.daily_pass_id
+    LEFT JOIN users u ON u.id=p.user_id
+    WHERE p.day=? AND p.voided=0 ORDER BY p.id`, day);
   const exps = q.all('SELECT e.*, u.name user_name FROM expenses e LEFT JOIN users u ON u.id=e.user_id WHERE day=? AND voided=0 ORDER BY id', day);
+  const dailyPasses = q.all('SELECT * FROM daily_passes WHERE day=? ORDER BY id DESC', day);
   const byMethod = {};
   METHODS.forEach(m => byMethod[m] = 0);
   pays.forEach(p => byMethod[p.method] = (byMethod[p.method] || 0) + p.amount);
   const income = pays.reduce((a, p) => a + p.amount, 0);
   const expense = exps.reduce((a, e) => a + e.amount, 0);
-  res.json({ day, payments: pays, expenses: exps, byMethod, income, expense, net: income - expense,
-    cash_in_drawer: byMethod.efectivo - exps.filter(e => e.method === 'efectivo').reduce((a, e) => a + e.amount, 0) });
+  const expensesInCash = exps.filter(e => e.method === 'efectivo').reduce((a, e) => a + e.amount, 0);
+  const yapeList = pays.filter(p => p.method === 'yape' || p.method === 'plin');
+  const yapeVerifiedCount = yapeList.filter(p => p.verified).length;
+  res.json({
+    day, payments: pays, expenses: exps, dailyPasses, byMethod, income, expense, net: income - expense,
+    cash_in_drawer: byMethod.efectivo - expensesInCash,
+    digital_total: (byMethod.yape || 0) + (byMethod.plin || 0) + (byMethod.tarjeta || 0) + (byMethod.transferencia || 0),
+    yape_summary: {
+      total: (byMethod.yape || 0) + (byMethod.plin || 0),
+      count: yapeList.length,
+      verified_count: yapeVerifiedCount,
+      pending_count: yapeList.length - yapeVerifiedCount
+    }
+  });
 }));
 api.post('/expenses', staff('admin', 'recepcion'), wrap((req, res) => {
   const b = req.body || {};
@@ -431,31 +620,57 @@ api.post('/expenses/:id/void', staff('admin'), wrap((req, res) => {
   res.json({ ok: true });
 }));
 
-// Productos
+// ---------------- Productos y Tienda (POS con código de barras) ----------------
 api.get('/products', staff('admin', 'recepcion'), wrap((req, res) => res.json(q.all('SELECT * FROM products ORDER BY active DESC, name'))));
+api.get('/products/by-barcode/:code', staff('admin', 'recepcion'), wrap((req, res) => {
+  const code = String(req.params.code).trim();
+  const p = q.get('SELECT * FROM products WHERE barcode=? AND active=1', code);
+  if (!p) return bad(res, 'Producto no encontrado con este código de barras', 404);
+  res.json(p);
+}));
 api.post('/products', staff('admin'), wrap((req, res) => {
   const b = req.body || {}; if (!b.name || num(b.price) < 0) return bad(res, 'Datos incompletos');
-  const r = q.run('INSERT INTO products(name,price,stock) VALUES(?,?,?)', b.name, num(b.price), num(b.stock));
+  const r = q.run('INSERT INTO products(name,price,stock,barcode,category,min_stock) VALUES(?,?,?,?,?,?)',
+    b.name, num(b.price), num(b.stock), b.barcode || null, b.category || 'general', num(b.min_stock, 5));
   res.json({ id: Number(r.lastInsertRowid) });
 }));
 api.put('/products/:id', staff('admin'), wrap((req, res) => {
   const b = req.body || {}; const p = q.get('SELECT * FROM products WHERE id=?', num(req.params.id));
   if (!p) return bad(res, 'Producto no encontrado', 404);
-  q.run('UPDATE products SET name=?, price=?, stock=?, active=? WHERE id=?', b.name ?? p.name, b.price ?? p.price, b.stock ?? p.stock, b.active ?? p.active, p.id);
+  q.run('UPDATE products SET name=?, price=?, stock=?, barcode=?, category=?, min_stock=?, active=? WHERE id=?',
+    b.name ?? p.name, b.price ?? p.price, b.stock ?? p.stock, b.barcode ?? p.barcode, b.category ?? p.category, b.min_stock ?? p.min_stock, b.active ?? p.active, p.id);
   res.json({ ok: true });
 }));
-api.post('/sales', staff('admin', 'recepcion'), wrap((req, res) => {
-  const b = req.body || {}; const p = q.get('SELECT * FROM products WHERE id=? AND active=1', num(b.product_id));
-  const qty = Math.max(1, Math.floor(num(b.qty, 1)));
+api.post('/products/:id/stock', staff('admin', 'recepcion'), wrap((req, res) => {
+  const id = num(req.params.id);
+  const p = q.get('SELECT * FROM products WHERE id=?', id);
   if (!p) return bad(res, 'Producto no encontrado', 404);
+  const qty = num(req.body?.qty);
+  if (!qty) return bad(res, 'Indica la cantidad a sumar');
+  q.run('UPDATE products SET stock=stock+? WHERE id=?', qty, id);
+  audit(req.user.id, 'product.stock', { id, name: p.name, added: qty, note: req.body?.note });
+  res.json({ ok: true, stock: p.stock + qty });
+}));
+api.post('/sales', staff('admin', 'recepcion'), wrap((req, res) => {
+  const b = req.body || {};
+  let p = null;
+  if (b.product_id) p = q.get('SELECT * FROM products WHERE id=? AND active=1', num(b.product_id));
+  else if (b.barcode) p = q.get('SELECT * FROM products WHERE barcode=? AND active=1', String(b.barcode).trim());
+  if (!p) return bad(res, 'Producto no encontrado', 404);
+  const qty = Math.max(1, Math.floor(num(b.qty, 1)));
   if (!checkMethod(b.method)) return bad(res, 'Elige el método de pago');
   if (p.stock < qty) return bad(res, `Stock insuficiente (quedan ${p.stock})`);
+  const receipt_no = nextReceiptNo();
+  const total = p.price * qty;
+  let payId;
   q.tx(() => {
     q.run('UPDATE products SET stock=stock-? WHERE id=?', qty, p.id);
-    q.run('INSERT INTO payments(member_id,concept,amount,method,day,user_id) VALUES(?,?,?,?,?,?)',
-      b.member_id || null, `Venta: ${p.name} x${qty}`, p.price * qty, b.method, L.limaDay(), req.user.id);
+    const pay = q.run('INSERT INTO payments(member_id,concept,amount,method,op_code,voucher_img,receipt_no,day,user_id) VALUES(?,?,?,?,?,?,?,?,?)',
+      b.member_id || null, `Venta: ${p.name} x${qty}`, total, b.method, b.op_code || null, b.voucher_img || null, receipt_no, L.limaDay(), req.user.id);
+    payId = Number(pay.lastInsertRowid);
   });
-  res.json({ ok: true, total: p.price * qty });
+  const receipt = buildReceipt(payId);
+  res.json({ ok: true, total, receipt_no, payment_id: payId, receipt });
 }));
 
 // ---------------- Dashboard y reportes ----------------
@@ -480,15 +695,30 @@ api.get('/dashboard', staff(), wrap((req, res) => {
   const sum = (sql, ...a) => q.get(sql, ...a).s || 0;
   const days7 = Array.from({ length: 7 }, (_, i) => L.addDays(today, i - 6));
   const inc7 = Object.fromEntries(q.all('SELECT day, SUM(amount) s FROM payments WHERE voided=0 AND day>=? GROUP BY day', days7[0]).map(r => [r.day, r.s]));
-  const att7 = Object.fromEntries(q.all("SELECT day, COUNT(DISTINCT member_id) n FROM attendance WHERE result IN ('ok','warn') AND day>=? GROUP BY day", days7[0]).map(r => [r.day, r.n]));
+  const att7 = Object.fromEntries(q.all("SELECT day, COUNT(DISTINCT CASE WHEN kind='D' THEN code ELSE member_id END) n FROM attendance WHERE result IN ('ok','warn') AND day>=? GROUP BY day", days7[0]).map(r => [r.day, r.n]));
   const hours = q.all("SELECT hour, COUNT(*) n FROM attendance WHERE result IN ('ok','warn') AND day=? GROUP BY hour", today);
-  const lastScans = q.all(`SELECT a.ts,a.result,a.reason,a.kind,m.name,m.code FROM attendance a LEFT JOIN members m ON m.id=a.member_id ORDER BY a.ts DESC LIMIT 12`);
+  const lastScans = q.all(`SELECT a.ts, a.result, a.reason, a.kind,
+    COALESCE(m.name, dp.name, 'Visitante') AS name,
+    COALESCE(m.code, a.code) AS code
+    FROM attendance a
+    LEFT JOIN members m ON m.id=a.member_id
+    LEFT JOIN daily_passes dp ON dp.code=a.code
+    ORDER BY a.ts DESC LIMIT 12`);
+
+  const visitsMembersToday = q.get("SELECT COUNT(DISTINCT member_id) n FROM attendance WHERE result IN ('ok','warn') AND kind!='D' AND day=?", today).n || 0;
+  const visitsDailyToday = q.get("SELECT COUNT(DISTINCT code) n FROM attendance WHERE result IN ('ok','warn') AND kind='D' AND day=?", today).n || 0;
+
   res.json({
     today,
     income_today: sum('SELECT SUM(amount) s FROM payments WHERE voided=0 AND day=?', today),
     income_month: sum('SELECT SUM(amount) s FROM payments WHERE voided=0 AND day>=?', monthStart),
+    income_memberships_today: sum('SELECT SUM(amount) s FROM payments WHERE voided=0 AND membership_id IS NOT NULL AND day=?', today),
+    income_daily_today: sum('SELECT SUM(amount) s FROM payments WHERE voided=0 AND daily_pass_id IS NOT NULL AND day=?', today),
+    income_store_today: sum("SELECT SUM(amount) s FROM payments WHERE voided=0 AND concept LIKE 'Venta:%' AND day=?", today),
     expense_today: sum('SELECT SUM(amount) s FROM expenses WHERE voided=0 AND day=?', today),
-    visits_today: q.get("SELECT COUNT(DISTINCT member_id) n FROM attendance WHERE result IN ('ok','warn') AND day=?", today).n,
+    visits_today: visitsMembersToday + visitsDailyToday,
+    visits_members_today: visitsMembersToday,
+    visits_daily_today: visitsDailyToday,
     denied_today: q.get("SELECT COUNT(*) n FROM attendance WHERE result IN ('denied','invalid') AND day=?", today).n,
     members_total: members.length,
     members_active: active.length,
@@ -509,7 +739,7 @@ api.get('/reports', staff('admin', 'recepcion'), wrap((req, res) => {
   const byConcept = q.all(`SELECT concept, SUM(amount) total, COUNT(*) n FROM payments WHERE voided=0 AND day BETWEEN ? AND ? GROUP BY concept ORDER BY total DESC`, from, to);
   const byPlan = q.all(`SELECT plan_name, COUNT(*) n, SUM(price) total FROM memberships WHERE status='active' AND date(created_at) BETWEEN ? AND ? GROUP BY plan_name ORDER BY n DESC`, from, to);
   const expenses = q.get('SELECT SUM(amount) s FROM expenses WHERE voided=0 AND day BETWEEN ? AND ?', from, to).s || 0;
-  const attDay = q.all("SELECT day, COUNT(DISTINCT member_id) n FROM attendance WHERE result IN ('ok','warn') AND day BETWEEN ? AND ? GROUP BY day ORDER BY day", from, to);
+  const attDay = q.all("SELECT day, COUNT(DISTINCT CASE WHEN kind='D' THEN code ELSE member_id END) n FROM attendance WHERE result IN ('ok','warn') AND day BETWEEN ? AND ? GROUP BY day ORDER BY day", from, to);
   const peak = q.all("SELECT hour, COUNT(*) n FROM attendance WHERE result IN ('ok','warn') AND day BETWEEN ? AND ? GROUP BY hour ORDER BY hour", from, to);
   const newMembers = q.get('SELECT COUNT(*) n FROM members WHERE date(created_at) BETWEEN ? AND ?', from, to).n;
   const renewals = q.get(`SELECT COUNT(*) n FROM memberships ms WHERE status='active' AND date(created_at) BETWEEN ? AND ?
@@ -518,7 +748,17 @@ api.get('/reports', staff('admin', 'recepcion'), wrap((req, res) => {
     AND NOT EXISTS (SELECT 1 FROM memberships o WHERE o.member_id=ms.member_id AND o.id>ms.id)`, from, to).n;
   const dow = q.all("SELECT strftime('%w', day) d, COUNT(*) n FROM attendance WHERE result IN ('ok','warn') AND day BETWEEN ? AND ? GROUP BY d", from, to);
   const totalIncome = income.reduce((a, r) => a + r.total, 0);
-  res.json({ from, to, income, totalIncome, expenses, net: totalIncome - expenses, byMethod, byConcept, byPlan, attDay, peak, dow, newMembers, renewals, expiredPeriod });
+
+  // Desglose por categoría de ingreso
+  const sumCat = (where) => q.get(`SELECT SUM(amount) s FROM payments WHERE voided=0 AND day BETWEEN ? AND ? AND ${where}`, from, to).s || 0;
+  const catIncome = {
+    memberships: sumCat('membership_id IS NOT NULL'),
+    daily_passes: sumCat('daily_pass_id IS NOT NULL'),
+    store: sumCat("concept LIKE 'Venta:%'"),
+    others: sumCat("membership_id IS NULL AND daily_pass_id IS NULL AND concept NOT LIKE 'Venta:%'")
+  };
+
+  res.json({ from, to, income, totalIncome, expenses, net: totalIncome - expenses, byMethod, byConcept, byPlan, catIncome, attDay, peak, dow, newMembers, renewals, expiredPeriod });
 }));
 
 // ---------------- Ejercicios ----------------

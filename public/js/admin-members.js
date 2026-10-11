@@ -88,7 +88,10 @@
       <div class="chips mb" id="plans">${plans.map((p, i) => `<span class="chip ${i === 0 ? 'on' : ''}" data-id="${p.id}">${esc(p.name)} · ${money(p.price)}</span>`).join('')}<span class="chip" data-id="">Sin plan (solo registrar)</span></div>
       <div id="paybox">
         <div class="grid g2 keep"><label class="field"><span>Monto a cobrar (S/)</span><input name="price" type="number" step="0.5" min="0"></label>
-        <label class="field"><span>Método de pago *</span><select name="method"><option value="efectivo">Efectivo</option><option value="yape">Yape</option><option value="plin">Plin</option><option value="tarjeta">Tarjeta</option><option value="transferencia">Transferencia</option></select></label></div>
+        <label class="field"><span>Método de pago *</span><select name="method" id="nfmeth"><option value="efectivo">💵 Efectivo</option><option value="yape">🟣 Yape</option><option value="plin">🔵 Plin</option><option value="tarjeta">💳 Tarjeta</option><option value="transferencia">🏦 Transferencia</option></select></label></div>
+        <div class="yape-box hidden mb mt" id="nf_yape">
+          <label class="field"><span>N° de Operación Yape/Plin (4-6 dígitos)</span><input name="op_code" id="nfop" placeholder="Ej. 182940" inputmode="numeric"></label>
+        </div>
         <label class="field hidden" id="dn"><span>Motivo del descuento</span><input name="discount_note" placeholder="Promoción de inauguración, convenio…"></label>
         <div class="banner" id="prev"></div>
       </div>
@@ -112,6 +115,11 @@
       plan = plans.find(p => String(p.id) === c.dataset.id) || null; refresh();
     };
     f.price.oninput = () => { if (plan) m.el.querySelector('#dn').classList.toggle('hidden', +f.price.value >= plan.price); };
+    m.el.querySelector('#nfmeth').onchange = e => {
+      const isYape = e.target.value === 'yape' || e.target.value === 'plin';
+      m.el.querySelector('#nf_yape').classList.toggle('hidden', !isYape);
+      if (isYape) setTimeout(() => m.el.querySelector('#nfop')?.focus(), 50);
+    };
     m.el.querySelector('#pbox').onclick = () => m.el.querySelector('#photo').click();
     m.el.querySelector('#photo').onchange = async e => {
       const file = e.target.files[0]; if (!file) return;
@@ -122,7 +130,8 @@
       await RD.busy(f.querySelector('button[type=submit]'), async () => {
         try {
           const body = Object.fromEntries(new FormData(f).entries());
-          body.consent = f.consent.checked; body.plan_id = plan ? plan.id : null; if (!plan) { delete body.price; delete body.method; }
+          body.consent = f.consent.checked; body.plan_id = plan ? plan.id : null;
+          if (!plan) { delete body.price; delete body.method; delete body.op_code; }
           const r = await RD.api.post('/members', body);
           if (photoData) { try { await RD.api.post(`/members/${r.member.id}/photo`, { data: photoData }); r.member.photo = (await RD.api.get('/members/' + r.member.id)).member.photo; } catch { RD.toast('Socio creado, pero la foto no se pudo subir', 'warn'); } }
           m.close(); RD.syncMembers().catch(() => { });
@@ -143,10 +152,14 @@
       <h2>${esc(mem.name)}</h2><div class="gold" style="font-size:1.6rem;font-weight:800">${esc(mem.code)}</div>
       ${r.membership ? `<p>Membresía vigente hasta <b>${RD.fmtDate(r.membership.end)}</b></p>` : '<p class="muted">Sin membresía activa todavía.</p>'}</div>
       <div class="grid mt">
+        ${r.receipt ? `<button class="btn ok" id="rcptbtn">🧾 Ver e Imprimir Boleta</button>` : ''}
         <a class="btn primary" target="_blank" href="/admin/cards.html?ids=${mem.id}">🖨 Imprimir tarjeta QR</a>
         ${wa ? `<a class="btn ok" target="_blank" rel="noopener" href="${wa}">📲 Enviar acceso por WhatsApp</a>` : ''}
         <button class="btn" id="prof">Ver ficha</button>
       </div>`);
+    if (r.receipt) {
+      d.el.querySelector('#rcptbtn').onclick = () => RD.receiptModal(r.receipt);
+    }
     d.el.querySelector('#prof').onclick = () => { d.close(); RD.openMember(mem.id); };
   }
 
@@ -161,7 +174,10 @@
       <div class="chips mb" id="plans">${act.map(p => `<span class="chip ${p === plan ? 'on' : ''}" data-id="${p.id}">${esc(p.name)} · ${money(p.price)}</span>`).join('')}</div>
       <form id="rf">
         <div class="grid g2 keep"><label class="field"><span>Monto (S/)</span><input name="price" type="number" step="0.5" min="0" required></label>
-        <label class="field"><span>Método de pago</span><select name="method"><option value="efectivo">Efectivo</option><option value="yape">Yape</option><option value="plin">Plin</option><option value="tarjeta">Tarjeta</option><option value="transferencia">Transferencia</option></select></label></div>
+        <label class="field"><span>Método de pago</span><select name="method" id="rfmeth"><option value="efectivo">💵 Efectivo</option><option value="yape">🟣 Yape</option><option value="plin">🔵 Plin</option><option value="tarjeta">💳 Tarjeta</option><option value="transferencia">🏦 Transferencia</option></select></label></div>
+        <div class="yape-box hidden mb mt" id="rf_yape">
+          <label class="field"><span>N° de Operación Yape/Plin (4-6 dígitos)</span><input name="op_code" id="rfop" placeholder="Ej. 182940" inputmode="numeric"></label>
+        </div>
         <label class="field hidden" id="dn"><span>Motivo del descuento</span><input name="discount_note"></label>
         <div class="banner" id="prev"></div>
         <button class="btn primary block">Cobrar y renovar</button>
@@ -175,17 +191,29 @@
     refresh();
     m.el.querySelector('#plans').onclick = e => {
       const c = e.target.closest('[data-id]'); if (!c) return;
-      m.el.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === c));
+      m.el.querySelectorAll('#plans .chip').forEach(x => x.classList.toggle('on', x === c));
       plan = act.find(p => String(p.id) === c.dataset.id); refresh();
     };
     f.price.oninput = () => m.el.querySelector('#dn').classList.toggle('hidden', +f.price.value >= plan.price);
+    m.el.querySelector('#rfmeth').onchange = e => {
+      const isYape = e.target.value === 'yape' || e.target.value === 'plin';
+      m.el.querySelector('#rf_yape').classList.toggle('hidden', !isYape);
+      if (isYape) setTimeout(() => m.el.querySelector('#rfop')?.focus(), 50);
+    };
     f.onsubmit = async e => {
       e.preventDefault();
       await RD.busy(f.querySelector('button'), async () => {
         try {
-          const r = await RD.api.post(`/members/${memberId}/renew`, { plan_id: plan.id, price: +f.price.value, method: f.method.value, discount_note: f.discount_note.value });
+          const r = await RD.api.post(`/members/${memberId}/renew`, {
+            plan_id: plan.id,
+            price: +f.price.value,
+            method: f.method.value,
+            discount_note: f.discount_note.value,
+            op_code: f.op_code?.value.trim() || null
+          });
           m.close(); RD.beep('done'); RD.toast(`Renovado hasta ${RD.fmtDate(r.end)} ✔`);
           await RD.syncMembers().catch(() => { });
+          if (r.receipt) RD.receiptModal(r.receipt);
           onDone && onDone(r);
         } catch (err) { RD.toast(err.message, 'err', 5000); }
       });
@@ -231,7 +259,7 @@
       <h3 class="mt">Rutinas asignadas</h3>
       <div class="list">${d.routines.map(r => `<div class="item"><div class="grow"><b>${esc(r.name)}</b><div class="muted tiny">desde ${RD.fmtDate(r.assigned_at)}</div></div>${can('admin', 'entrenador') ? `<button class="btn sm ghost" data-unassign="${r.assignment_id}">Quitar</button>` : ''}</div>`).join('') || '<div class="muted small">Sin rutina asignada</div>'}</div>
       ${can('admin', 'recepcion') ? `<h3 class="mt">Pagos</h3>
-      <div class="tbl-wrap"><table><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Método</th></tr>${d.payments.map(p => `<tr style="${p.voided ? 'opacity:.4;text-decoration:line-through' : ''}"><td>${RD.fmtDate(p.day)}</td><td>${esc(p.concept)}</td><td>${money(p.amount)}</td><td>${esc(p.method)}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">Sin pagos</td></tr>'}</table></div>` : ''}
+      <div class="tbl-wrap"><table><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Método</th><th>Boleta</th></tr>${d.payments.map(p => `<tr style="${p.voided ? 'opacity:.4;text-decoration:line-through' : ''}"><td>${RD.fmtDate(p.day)}</td><td>${esc(p.concept)}</td><td>${money(p.amount)}</td><td>${esc(p.method)}${p.op_code ? ` <span class="tiny" style="color:#c084fc">#${esc(p.op_code)}</span>` : ''}</td><td><button class="icon-btn" data-rcpt="${p.id}" title="Ver e imprimir boleta">🧾</button></td></tr>`).join('') || '<tr><td colspan="5" class="muted">Sin pagos</td></tr>'}</table></div>` : ''}
       <h3 class="mt">Membresías</h3>
       <div class="tbl-wrap"><table><tr><th>Plan</th><th>Desde</th><th>Hasta</th><th>Precio</th></tr>${d.memberships.map(s => `<tr style="${s.status !== 'active' ? 'opacity:.4' : ''}"><td>${esc(s.plan_name)}</td><td>${RD.fmtDate(s.start_date)}</td><td>${RD.fmtDate(s.end_date)}</td><td>${money(s.price)}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">—</td></tr>'}</table></div>
       <h3 class="mt">Medidas y progreso</h3>
@@ -249,6 +277,15 @@
     }
     function wire(m) {
       const el = modal.el, redraw = () => draw().catch(e => RD.toast(e.message, 'err'));
+      el.addEventListener('click', async e => {
+        const rc = e.target.closest('[data-rcpt]');
+        if (rc) {
+          try {
+            const r = await RD.api.get(`/payments/${rc.dataset.rcpt}/receipt`);
+            RD.receiptModal(r);
+          } catch (err) { RD.toast(err.message, 'err'); }
+        }
+      });
       el.querySelector('#acts').onclick = async e => {
         const a = e.target.closest('[data-a]')?.dataset.a; if (!a) return;
         try {

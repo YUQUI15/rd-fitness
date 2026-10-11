@@ -59,10 +59,15 @@ function accessState(m, today, cfg = {}) {
   return { level: 'denied', reason: `Vencida hace ${-left} día${-left === 1 ? '' : 's'}`, daysLeft: left };
 }
 
+const dailySign = (code, day, secret = 'rd-daily-secret-2026') =>
+  crypto.createHmac('sha256', secret).update(`${code}|${day}`).digest('hex').slice(0, 12);
+const dailyPayload = (code, day) => `RD1.DAY.${code}.${day}.${dailySign(code, day)}`;
+
 const randomKey = () => crypto.randomBytes(16).toString('hex');
 const randomToken = () => crypto.randomBytes(24).toString('hex');
 
 module.exports = {
   TZ, limaDay, limaHour, addDays, addMonths, diffDays, membershipEnd,
-  sign, physicalPayload, digitalPayload, accessState, randomKey, randomToken
+  sign, physicalPayload, digitalPayload, accessState, randomKey, randomToken,
+  dailySign, dailyPayload
 };

@@ -413,12 +413,17 @@
   // ============================================================
   // 2. CAJA DIARIA, VENTAS Y GASTOS (ARQUEO)
   // ============================================================
+  // ============================================================
+  // 2. CAJA DIARIA, VENTAS Y GASTOS (ARQUEO Y CONCILIACIÓN)
+  // ============================================================
   RD.views.cash = {
     async render(view) {
       let day = RD.limaDay();
 
       async function load() {
         const [cash, prods] = await Promise.all([RD.api.get(`/cash?day=${day}`), RD.api.get('/products')]);
+        const yapeList = cash.payments.filter(p => p.method === 'yape' || p.method === 'plin');
+        const dailyPassesToday = cash.dailyPasses || [];
 
         view.innerHTML = `
         <div class="row between wrap gap mb">
@@ -426,48 +431,130 @@
             <label class="small muted">Fecha de caja: <input type="date" id="cday" value="${day}" style="min-height:36px;width:auto"></label>
             <button class="btn sm" id="todaybtn">Hoy</button>
           </div>
-          <div class="row gap">
-            <button class="btn sm ok" id="posbtn">🛒 Venta rápida</button>
+          <div class="row gap wrap">
+            <button class="btn sm ok" id="dpbtn">🎟️ Pase Diario (S/ 5)</button>
+            <button class="btn sm primary" id="posbtn">🛒 Venta rápida tienda</button>
             <button class="btn sm danger" id="expbtn">💸 Registrar Gasto</button>
           </div>
         </div>
 
         <div class="grid g4 mb">
-          <div class="stat gold"><div class="v">${money(cash.income)}</div><div class="l">Ingresos del día</div></div>
-          <div class="stat"><div class="v">${money(cash.byMethod.efectivo || 0)}</div><div class="l">Efectivo en caja</div></div>
-          <div class="stat"><div class="v">${money((cash.byMethod.yape || 0) + (cash.byMethod.plin || 0))}</div><div class="l">Yape / Plin</div></div>
-          <div class="stat"><div class="v">${money(cash.net)}</div><div class="l">Neto (Ingresos - Gastos)</div></div>
+          <div class="stat gold">
+            <div class="v">${money(cash.income)}</div>
+            <div class="l">Ingresos totales del día</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:#4ade80">${money(cash.cash_in_drawer)}</div>
+            <div class="l">💵 Efectivo físico en gaveta</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:#a78bfa">${money((cash.byMethod.yape || 0) + (cash.byMethod.plin || 0))}</div>
+            <div class="l">📱 Yape / Plin (${cash.yape_summary?.count || 0} op · ${cash.yape_summary?.verified_count || 0} verificadas)</div>
+          </div>
+          <div class="stat">
+            <div class="v">${money(cash.net)}</div>
+            <div class="l">Utilidad Neta (Ingresos - Gastos)</div>
+          </div>
         </div>
 
         <div class="card mb">
-          <h3>Desglose por método de pago</h3>
+          <h3>Resumen de Arqueo de Caja</h3>
           <div class="grid g4 mt2">
-            <div class="small">💵 Efectivo: <b>${money(cash.byMethod.efectivo || 0)}</b></div>
+            <div class="small">💵 Efectivo cobrado: <b>${money(cash.byMethod.efectivo || 0)}</b></div>
+            <div class="small">💸 Gastos en efectivo: <b class="bad">-${money(cash.expenses.filter(e => e.method === 'efectivo').reduce((a, e) => a + e.amount, 0))}</b></div>
             <div class="small">🟣 Yape: <b>${money(cash.byMethod.yape || 0)}</b></div>
-            <div class="small">🔵 Plin: <b>${money(cash.byMethod.plin || 0)}</b></div>
-            <div class="small">💳 Tarjeta / Banco: <b>${money((cash.byMethod.tarjeta || 0) + (cash.byMethod.transferencia || 0))}</b></div>
+            <div class="small">🔵 Plin / Bancos: <b>${money((cash.byMethod.plin || 0) + (cash.byMethod.tarjeta || 0) + (cash.byMethod.transferencia || 0))}</b></div>
+          </div>
+          <div class="tip small mt">
+            <b>Regla de Arqueo para el Dueño:</b> Al cerrar caja, debe haber exactamente <b>${money(cash.cash_in_drawer)}</b> en monedas y billetes dentro del cajón físico. En tu aplicación de celular debes tener <b>${money((cash.byMethod.yape || 0) + (cash.byMethod.plin || 0))}</b> entre Yape y Plin.
+          </div>
+        </div>
+
+        <!-- MÓDULO DE AUDITORÍA Y CONCILIACIÓN YAPE / PLIN -->
+        <div class="card mb yape-box">
+          <div class="row between wrap gap">
+            <div>
+              <h3 style="color:#c084fc">📱 Auditoría y Conciliación Yape & Plin (${yapeList.length} cobros)</h3>
+              <p class="muted small">Coteja con tu celular las notificaciones bancarias. Al verificar el N° de Operación, márcalo como cotejado.</p>
+            </div>
+            <span class="badge ${cash.yape_summary?.pending_count ? 'warn' : 'ok'}">
+              ${cash.yape_summary?.pending_count ? `⏳ ${cash.yape_summary.pending_count} por cotejar` : '✔ 100% Cotejado'}
+            </span>
+          </div>
+
+          <div class="tbl-wrap mt">
+            <table>
+              <thead>
+                <tr>
+                  <th>Hora</th>
+                  <th>Cliente</th>
+                  <th>Concepto</th>
+                  <th>Monto</th>
+                  <th>N° Operación</th>
+                  <th>Cotejo</th>
+                  <th>Boleta</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${yapeList.map(p => `
+                <tr>
+                  <td class="small muted">${RD.fmtTime(p.created_at)}</td>
+                  <td><b>${esc(p.member_name || p.dp_name || 'Cliente')}</b></td>
+                  <td class="small">${esc(p.concept)}</td>
+                  <td style="font-weight:700;color:#c084fc">${money(p.amount)}</td>
+                  <td>
+                    ${p.op_code ? `<span class="badge warn" style="font-family:monospace;font-size:.85rem">#${esc(p.op_code)}</span>` : '<span class="muted small">Sin código</span>'}
+                  </td>
+                  <td>
+                    <button class="btn sm ${p.verified ? 'ok' : 'warn'}" data-verify="${p.id}">
+                      ${p.verified ? '✔ Cotejado' : '⏳ Marcar Cotejado'}
+                    </button>
+                  </td>
+                  <td>
+                    <button class="icon-btn" data-receipt="${p.id}" title="Ver e Imprimir Boleta">🧾</button>
+                  </td>
+                </tr>`).join('') || '<tr><td colspan="7" class="empty">No hay pagos por Yape o Plin en este día</td></tr>'}
+              </tbody>
+            </table>
           </div>
         </div>
 
         <div class="grid g2">
           <div class="card">
-            <h3>Cobros e Ingresos (${cash.payments.length})</h3>
+            <h3>Todos los Cobros e Ingresos (${cash.payments.length})</h3>
             <div class="tbl-wrap">
               <table>
-                <thead><tr><th>Hora</th><th>Concepto / Socio</th><th>Monto</th><th>Método</th>${can('admin') ? '<th></th>' : ''}</tr></thead>
+                <thead>
+                  <tr>
+                    <th>Hora</th>
+                    <th>Boleta</th>
+                    <th>Concepto / Cliente</th>
+                    <th>Monto</th>
+                    <th>Método</th>
+                    <th></th>
+                  </tr>
+                </thead>
                 <tbody>
                   ${cash.payments.map(p => `
                   <tr>
                     <td class="small muted">${RD.fmtTime(p.created_at)}</td>
+                    <td class="small muted" style="font-family:monospace">${esc(p.receipt_no || ('B001-' + p.id))}</td>
                     <td>
                       <b>${esc(p.concept)}</b>
                       ${p.member_name ? `<div class="muted tiny">${esc(p.member_name)} (${esc(p.member_code)})</div>` : ''}
+                      ${p.dp_name ? `<div class="gold tiny">🎟️ Pase Diario: ${esc(p.dp_name)} (${esc(p.dp_code || '')})</div>` : ''}
+                      ${p.op_code ? `<div class="tiny" style="color:#c084fc">Op: #${esc(p.op_code)}</div>` : ''}
                       ${p.note ? `<div class="gold tiny">${esc(p.note)}</div>` : ''}
                     </td>
                     <td style="font-weight:700">${money(p.amount)}</td>
-                    <td><span class="badge ${p.method === 'yape' ? 'warn' : p.method === 'plin' ? 'info' : 'ok'}">${esc(p.method)}</span></td>
-                    ${can('admin') ? `<td><button class="icon-btn" data-voidpay="${p.id}" title="Anular cobro">✕</button></td>` : ''}
-                  </tr>`).join('') || '<tr><td colspan="5" class="empty">Sin cobros en este día</td></tr>'}
+                    <td>
+                      <span class="badge ${p.method === 'yape' ? 'warn' : p.method === 'plin' ? 'info' : 'ok'}">${esc(p.method)}</span>
+                    </td>
+                    <td class="row gap">
+                      <button class="icon-btn" data-receipt="${p.id}" title="Ver / Imprimir Boleta">🧾</button>
+                      ${can('admin') ? `<button class="icon-btn" data-voidpay="${p.id}" title="Anular cobro">✕</button>` : ''}
+                    </td>
+                  </tr>`).join('') || '<tr><td colspan="6" class="empty">Sin cobros en este día</td></tr>'}
                 </tbody>
               </table>
             </div>
@@ -497,14 +584,38 @@
         view.querySelector('#cday').onchange = e => { day = e.target.value; load(); };
         view.querySelector('#todaybtn').onclick = () => { day = RD.limaDay(); load(); };
 
-        // Botón venta rápida (agua, suplemento)
+        // Botón pase diario rápido
+        view.querySelector('#dpbtn').onclick = () => {
+          if (RD.dailyPassDialog) RD.dailyPassDialog(load);
+        };
+
+        // Botón venta rápida (tienda con escáner)
         view.querySelector('#posbtn').onclick = () => posSaleModal(prods, load);
 
         // Botón gasto
         view.querySelector('#expbtn').onclick = () => addExpenseModal(load);
 
-        // Anular pagos / gastos (solo admin)
+        // Acciones sobre pagos (Ver comprobante, verificar cotejo, anular)
         view.onclick = async e => {
+          const rc = e.target.closest('[data-receipt]');
+          if (rc) {
+            try {
+              const receipt = await RD.api.get(`/payments/${rc.dataset.receipt}/receipt`);
+              RD.receiptModal(receipt);
+            } catch (err) { RD.toast(err.message, 'err'); }
+            return;
+          }
+
+          const vf = e.target.closest('[data-verify]');
+          if (vf) {
+            try {
+              await RD.api.post(`/payments/${vf.dataset.verify}/verify`);
+              RD.toast('Estado de cotejo actualizado ✔');
+              load();
+            } catch (err) { RD.toast(err.message, 'err'); }
+            return;
+          }
+
           const vp = e.target.closest('[data-voidpay]');
           if (vp) {
             const reason = await RD.prompt('Anular cobro', 'Motivo de la anulación', 'Error de digitación, devolución, etc.');
@@ -515,6 +626,7 @@
             }
             return;
           }
+
           const ve = e.target.closest('[data-voidexp]');
           if (ve) {
             if (await RD.confirm('Anular gasto', '¿Deseas anular este gasto registrado?', 'Anular', true)) {
@@ -534,30 +646,42 @@
     const act = prods.filter(p => p.active);
     const d = RD.openModal('Venta Rápida (Recepción / Tienda)', `
       <form id="posf">
+        <label class="field">
+          <span>Escanear código de barras o buscar</span>
+          <input id="bcinput" placeholder="Escanea la botella con el lector USB o escribe…" autocomplete="off" autofocus>
+        </label>
         <label class="field"><span>Producto *</span>
           <select name="product_id" id="posprod">
-            ${act.map(p => `<option value="${p.id}" data-p="${p.price}" data-s="${p.stock}">${esc(p.name)} - ${money(p.price)} (Stock: ${p.stock})</option>`).join('')}
+            ${act.map(p => `<option value="${p.id}" data-p="${p.price}" data-s="${p.stock}" data-bc="${esc(p.barcode || '')}">${esc(p.name)} - ${money(p.price)} (Stock: ${p.stock}) ${p.barcode ? `[BC: ${esc(p.barcode)}]` : ''}</option>`).join('')}
           </select>
         </label>
         <div class="grid g2 keep">
           <label class="field"><span>Cantidad</span><input name="qty" type="number" min="1" value="1" id="posqty" required></label>
           <label class="field"><span>Método de pago *</span>
-            <select name="method">
-              <option value="efectivo">Efectivo</option>
-              <option value="yape">Yape</option>
-              <option value="plin">Plin</option>
-              <option value="tarjeta">Tarjeta</option>
+            <select name="method" id="posmeth">
+              <option value="efectivo">💵 Efectivo</option>
+              <option value="yape">🟣 Yape</option>
+              <option value="plin">🔵 Plin</option>
+              <option value="tarjeta">💳 Tarjeta</option>
             </select>
           </label>
         </div>
+        <div class="yape-box hidden mb mt" id="pos_yape">
+          <label class="field"><span>N° de Operación Yape/Plin (4-6 dígitos)</span>
+            <input name="op_code" id="posop" placeholder="Ej. 182940" inputmode="numeric">
+          </label>
+        </div>
         <div class="stat gold mt mb"><div class="v" id="postotal">S/ 0.00</div><div class="l">Total a cobrar</div></div>
-        <button class="btn primary block">Cobrar Venta</button>
+        <button class="btn primary block">Cobrar Venta y Emitir Boleta</button>
       </form>
     `);
 
     const f = d.el.querySelector('#posf');
+    const bcInp = f.querySelector('#bcinput');
     const prodSel = f.querySelector('#posprod');
     const qtyInp = f.querySelector('#posqty');
+    const methSel = f.querySelector('#posmeth');
+    const yBox = d.el.querySelector('#pos_yape');
     const totalEl = d.el.querySelector('#postotal');
 
     function updateTotal() {
@@ -570,17 +694,46 @@
     prodSel.onchange = updateTotal;
     qtyInp.oninput = updateTotal;
 
+    // Escáner de código de barras dentro del modal
+    bcInp.oninput = () => {
+      const val = bcInp.value.trim().toLowerCase();
+      if (!val) return;
+      const matchOpt = Array.from(prodSel.options).find(opt =>
+        (opt.dataset.bc && opt.dataset.bc.toLowerCase() === val) ||
+        opt.textContent.toLowerCase().includes(val)
+      );
+      if (matchOpt) {
+        prodSel.value = matchOpt.value;
+        updateTotal();
+        RD.beep('tick');
+      }
+    };
+    bcInp.onkeydown = e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        qtyInp.focus();
+      }
+    };
+
+    methSel.onchange = () => {
+      const isYape = methSel.value === 'yape' || methSel.value === 'plin';
+      yBox.classList.toggle('hidden', !isYape);
+      if (isYape) setTimeout(() => d.el.querySelector('#posop')?.focus(), 50);
+    };
+
     f.onsubmit = async e => {
       e.preventDefault();
       try {
-        await RD.api.post('/sales', {
+        const res = await RD.api.post('/sales', {
           product_id: +prodSel.value,
           qty: +qtyInp.value,
-          method: f.method.value
+          method: methSel.value,
+          op_code: f.op_code?.value.trim() || null
         });
         RD.beep('done');
         RD.toast('Venta registrada con éxito ✔');
         d.close();
+        if (res.receipt) RD.receiptModal(res.receipt);
         onDone && onDone();
       } catch (err) {
         RD.toast(err.message, 'err');
@@ -656,6 +809,26 @@
           <div class="stat"><div class="v">-${money(d.expenses)}</div><div class="l">Gastos del período</div></div>
           <div class="stat"><div class="v">${money(d.net)}</div><div class="l">Utilidad Neta</div></div>
           <div class="stat"><div class="v">${d.newMembers}</div><div class="l">Socios Nuevos</div></div>
+        <div class="card mb">
+          <h3>📊 Desglose de Ingresos por Categoría</h3>
+          <div class="grid g4 mt2">
+            <div class="stat">
+              <div class="v" style="font-size:1.35rem">${money(d.catIncome?.memberships || 0)}</div>
+              <div class="l">🏋️ Membresías de Socios</div>
+            </div>
+            <div class="stat">
+              <div class="v" style="font-size:1.35rem;color:#f5b400">${money(d.catIncome?.daily_passes || 0)}</div>
+              <div class="l">🎟️ Pases Diarios (Visitantes)</div>
+            </div>
+            <div class="stat">
+              <div class="v" style="font-size:1.35rem;color:#60a5fa">${money(d.catIncome?.store || 0)}</div>
+              <div class="l">🛒 Ventas Tienda (Bebidas/Supl.)</div>
+            </div>
+            <div class="stat">
+              <div class="v" style="font-size:1.35rem">${money(d.catIncome?.others || 0)}</div>
+              <div class="l">📄 Otros Conceptos</div>
+            </div>
+          </div>
         </div>
 
         <div class="grid g2 mb">
@@ -910,21 +1083,28 @@
   function renderProdsSettings(el, prods) {
     el.innerHTML = `
     <div class="card">
-      <div class="row between mb">
-        <h3>Productos para Venta</h3>
+      <div class="row between wrap gap mb">
+        <div>
+          <h3>Productos e Inventario de Tienda</h3>
+          <p class="muted small">Asigna códigos de barra para que el escáner de recepción venda aguas y suplementos al instante.</p>
+        </div>
         <button class="btn sm primary" id="addprd">＋ Nuevo Producto</button>
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Nombre</th><th>Precio</th><th>Stock</th><th>Estado</th><th></th></tr></thead>
+          <thead><tr><th>Nombre</th><th>Código Barras</th><th>Precio</th><th>Stock</th><th>Estado</th><th>Acciones</th></tr></thead>
           <tbody>
             ${prods.map(p => `
             <tr>
-              <td><b>${esc(p.name)}</b></td>
+              <td><b>${esc(p.name)}</b><div class="muted tiny">${esc(p.category || 'general')}</div></td>
+              <td><span class="badge" style="font-family:monospace;font-size:.8rem">${esc(p.barcode || 'Sin código')}</span></td>
               <td class="gold" style="font-weight:700">${money(p.price)}</td>
-              <td><span class="badge ${p.stock <= 5 ? 'bad' : 'info'}">${p.stock} unid.</span></td>
+              <td><span class="badge ${p.stock <= (p.min_stock || 5) ? 'bad' : 'info'}">${p.stock} unid.</span></td>
               <td><span class="badge ${p.active ? 'ok' : 'bad'}">${p.active ? 'Disponible' : 'Oculto'}</span></td>
-              <td><button class="btn sm" data-editprd="${p.id}">Editar</button></td>
+              <td class="row gap">
+                <button class="btn sm ok" data-addstock="${p.id}" title="Reabastecer mercadería">＋ Stock</button>
+                <button class="btn sm" data-editprd="${p.id}">Editar</button>
+              </td>
             </tr>`).join('')}
           </tbody>
         </table>
@@ -932,11 +1112,24 @@
     </div>`;
 
     el.querySelector('#addprd').onclick = () => productEditorModal(null, () => RD.go('settings'));
-    el.onclick = e => {
+    el.onclick = async e => {
       const ep = e.target.closest('[data-editprd]');
       if (ep) {
         const p = prods.find(x => x.id === +ep.dataset.editprd);
         productEditorModal(p, () => RD.go('settings'));
+        return;
+      }
+      const as = e.target.closest('[data-addstock]');
+      if (as) {
+        const p = prods.find(x => x.id === +as.dataset.addstock);
+        const qty = await RD.prompt(`Reabastecer: ${p.name}`, `Unidades compradas a sumar (Stock actual: ${p.stock}):`, '24');
+        if (qty && +qty > 0) {
+          try {
+            await RD.api.post(`/products/${p.id}/stock`, { qty: +qty });
+            RD.toast(`Stock actualizado (+${qty} unidades) ✔`);
+            RD.go('settings');
+          } catch (err) { RD.toast(err.message, 'err'); }
+        }
       }
     };
   }
@@ -944,12 +1137,25 @@
   function productEditorModal(p, done) {
     const d = RD.openModal(p ? 'Editar Producto' : 'Nuevo Producto', `
       <form id="prf">
-        <label class="field"><span>Nombre del producto *</span><input name="name" value="${esc(p?.name || '')}" required placeholder="Ej. Agua 625 ml, Proteína scoop"></label>
+        <label class="field"><span>Nombre del producto *</span><input name="name" value="${esc(p?.name || '')}" required placeholder="Ej. Agua 625 ml, Bebida energizante"></label>
         <div class="grid g2 keep">
-          <label class="field"><span>Precio (S/) *</span><input name="price" type="number" step="0.5" min="0" value="${p?.price ?? 2}" required></label>
-          <label class="field"><span>Stock disponible</span><input name="stock" type="number" min="0" value="${p?.stock ?? 10}"></label>
+          <label class="field"><span>Código de barras (EAN-13 / Lector)</span>
+            <input name="barcode" value="${esc(p?.barcode || '')}" placeholder="Escanea con el lector USB…">
+          </label>
+          <label class="field"><span>Categoría</span>
+            <select name="category">
+              <option value="bebidas" ${p?.category === 'bebidas' ? 'selected' : ''}>Bebidas / Hidratación</option>
+              <option value="suplementos" ${p?.category === 'suplementos' ? 'selected' : ''}>Suplementos / Proteína</option>
+              <option value="accesorios" ${p?.category === 'accesorios' ? 'selected' : ''}>Accesorios / Toallas</option>
+              <option value="general" ${p?.category === 'general' ? 'selected' : ''}>General / Snacks</option>
+            </select>
+          </label>
         </div>
-        <label class="check"><input type="checkbox" name="active" ${p ? (p.active ? 'checked' : '') : 'checked'}> <span>Activo para venta rápida</span></label>
+        <div class="grid g2 keep">
+          <label class="field"><span>Precio de venta (S/) *</span><input name="price" type="number" step="0.5" min="0" value="${p?.price ?? 2}" required></label>
+          <label class="field"><span>Stock actual</span><input name="stock" type="number" min="0" value="${p?.stock ?? 10}"></label>
+        </div>
+        <label class="check"><input type="checkbox" name="active" ${p ? (p.active ? 'checked' : '') : 'checked'}> <span>Activo para venta en recepción</span></label>
         <button class="btn primary block mt">Guardar Producto</button>
       </form>
     `);
@@ -960,6 +1166,8 @@
       try {
         const body = {
           name: f.name.value.trim(),
+          barcode: f.barcode.value.trim() || null,
+          category: f.category.value,
           price: +f.price.value,
           stock: +f.stock.value || 0,
           active: f.active.checked ? 1 : 0
@@ -967,7 +1175,7 @@
         if (p) await RD.api.put('/products/' + p.id, body);
         else await RD.api.post('/products', body);
         d.close();
-        RD.toast('Producto guardado ✔');
+        RD.toast('Producto guardado con éxito ✔');
         done && done();
       } catch (err) {
         RD.toast(err.message, 'err');

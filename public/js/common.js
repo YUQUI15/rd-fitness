@@ -146,13 +146,114 @@
     const sig = new Uint8Array(await crypto.subtle.sign('HMAC', k, enc.encode(msg)));
     return Array.from(sig).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 12);
   };
+  // ---------- Parseo de códigos para lector 2D (Socio, Pase Diario, Código de Barras Tienda) ----------
   RD.parsePayload = text => {
-    const m = /^RD1\.(RD-\d{1,8})\.([PD])(\d+)\.([0-9a-f]{12})$/.exec(String(text || '').trim());
-    return m ? { code: m[1], kind: m[2], n: Number(m[3]), sig: m[4] } : null;
+    const s = String(text || '').trim();
+    if (!s) return null;
+    // Socio formal firmado: RD1.RD-0001.P1.xxxx o RD1.RD-0001.Dxxx.xxxx
+    const m = /^RD1\.(RD-\d{1,8})\.([PD])(\d+)\.([0-9a-f]{12})$/.exec(s);
+    if (m) return { type: 'member', code: m[1], kind: m[2], n: Number(m[3]), sig: m[4] };
+
+    // Pase diario firmado: RD1.DAY.RD-DAY-xxxx.2026-10-12.xxxx
+    const d = /^RD1\.DAY\.(RD-DAY-[A-Za-z0-9\-]+)\.(\d{4}-\d{2}-\d{2})\.([0-9a-f]{12})$/.exec(s);
+    if (d) return { type: 'daily', code: d[1], day: d[2], sig: d[3] };
+
+    // Pase diario directo: RD-DAY-xxxx
+    if (/^RD-DAY-[A-Za-z0-9\-]+$/i.test(s)) return { type: 'daily_code', code: s.toUpperCase() };
+
+    // Socio directo: RD-0001 o RD0001
+    const mc = /^(RD-?\d{1,8})$/i.exec(s);
+    if (mc) return { type: 'member_code', code: mc[1].toUpperCase().replace(/^RD(?=\d)/, 'RD-') };
+
+    // Código de barras de producto de la tienda (EAN-13, UPC, Code 128: 4 a 20 caracteres)
+    if (/^[0-9A-Za-z\-]{4,20}$/.test(s)) return { type: 'barcode', code: s };
+
+    return null;
   };
   RD.digitalPayload = async (code, key) => {
     const n = Math.floor(RD.now() / 60000);
     return `RD1.${code}.D${n}.${await RD.hmac(key, `${code}|D${n}`)}`;
+  };
+
+  // ---------- Generador de Boletas / Tickets (Térmico 58mm/80mm y WhatsApp) ----------
+  RD.waReceiptText = (r) => {
+    return [
+      `🏋️ *${r.gym?.name || 'RD FITNESS CLUB'}*`,
+      `📍 ${r.gym?.address || 'Chivay, Colca'}`,
+      `📞 Cel: ${r.gym?.phone || '982404043'}`,
+      `--------------------------------`,
+      `🧾 *COMPROBANTE:* ${r.receipt_no}`,
+      `📅 *Fecha:* ${RD.fmtDateTime(r.date || new Date().toISOString())}`,
+      `👤 *Cliente:* ${r.client?.name || 'Cliente'}${r.client?.doc ? ` (Doc: ${r.client.doc})` : ''}`,
+      `--------------------------------`,
+      `*Detalle:*`,
+      `• ${r.concept}: ${RD.money(r.amount)}`,
+      r.validity ? `  _${r.validity}_` : '',
+      `--------------------------------`,
+      `💰 *TOTAL PAGADO:* ${RD.money(r.amount)}`,
+      `💳 *Método:* ${(r.method || 'Efectivo').toUpperCase()}${r.op_code ? ` (Op: #${r.op_code})` : ''}`,
+      r.is_daily_pass ? `\n🎟️ *PASE DIARIO:* Válido para reingreso hoy mostrando este comprobante o su QR en la puerta.` : '',
+      `\n💪 _${r.gym?.slogan || 'Disciplina · Constancia · Resultados'}_`,
+      `¡Gracias por tu preferencia!`
+    ].filter(Boolean).join('\n');
+  };
+
+  RD.receiptModal = (r) => {
+    const waText = RD.waReceiptText(r);
+    const waUrl = RD.waLink(r.client?.phone, waText);
+    const qrSvg = r.qr_payload ? RD.qrSvg(r.qr_payload, { margin: 1 }) : null;
+
+    const modal = RD.openModal('🧾 Comprobante de Pago', `
+      <div class="receipt-wrap" id="rprint">
+        <div class="receipt-ticket">
+          <div class="r-center r-bold" style="font-size:1.15rem">${RD.esc(r.gym?.name || 'RD FITNESS CLUB')}</div>
+          <div class="r-center r-small muted">${RD.esc(r.gym?.slogan || '')}</div>
+          <div class="r-center r-small">${RD.esc(r.gym?.address || '')}</div>
+          <div class="r-center r-small">RUC: ${RD.esc(r.gym?.ruc || '10702548911')} · Cel: ${RD.esc(r.gym?.phone || '982404043')}</div>
+          <div class="r-line">================================</div>
+          <div class="r-row"><span class="r-bold">BOLETA:</span> <span class="r-bold">${RD.esc(r.receipt_no)}</span></div>
+          <div class="r-row"><span>FECHA:</span> <span>${RD.fmtDateTime(r.date || new Date().toISOString())}</span></div>
+          <div class="r-row"><span>CLIENTE:</span> <span>${RD.esc(r.client?.name || 'Cliente')}</span></div>
+          ${r.client?.doc ? `<div class="r-row"><span>DOC / CÓDIGO:</span> <span>${RD.esc(r.client.doc)}</span></div>` : ''}
+          <div class="r-line">--------------------------------</div>
+          <div class="r-row r-bold"><span>CONCEPTO</span><span>IMPORTE</span></div>
+          <div class="r-row"><span>${RD.esc(r.concept)}</span><span>${RD.money(r.amount)}</span></div>
+          ${r.validity ? `<div class="r-small muted" style="padding-left:4px">${RD.esc(r.validity)}</div>` : ''}
+          <div class="r-line">--------------------------------</div>
+          <div class="r-row r-bold" style="font-size:1.1rem"><span>TOTAL:</span><span>${RD.money(r.amount)}</span></div>
+          <div class="r-row"><span>FORMA DE PAGO:</span><span class="r-bold">${RD.esc((r.method || 'efectivo').toUpperCase())}</span></div>
+          ${r.op_code ? `<div class="r-row"><span>N° OPERACIÓN:</span><span class="r-bold">#${RD.esc(r.op_code)}</span></div>` : ''}
+          <div class="r-row r-small muted"><span>ATENDIDO POR:</span><span>${RD.esc(r.user_name || 'Recepción')}</span></div>
+          ${qrSvg ? `
+            <div class="r-line">--------------------------------</div>
+            <div class="r-center r-small r-bold">QR DE ACCESO / REINGRESO HOY:</div>
+            <div class="r-center mt mb" style="max-width:140px;margin:8px auto">${qrSvg}</div>
+            <div class="r-center r-tiny muted">Presenta este QR en el escáner al entrar</div>
+          ` : ''}
+          <div class="r-line">================================</div>
+          <div class="r-center r-small r-bold">¡DISCIPLINA · CONSTANCIA · RESULTADOS!</div>
+          <div class="r-center r-tiny muted">¡Gracias por entrenar con nosotros!</div>
+        </div>
+      </div>
+      <div class="grid g2 mt gap no-print">
+        <button class="btn primary" id="btnprint">🖨️ Imprimir Ticket (58mm / 80mm)</button>
+        ${waUrl ? `<a class="btn ok" target="_blank" rel="noopener" href="${waUrl}">📲 Enviar por WhatsApp</a>` : `<button class="btn ok" id="btnwa">📲 Enviar por WhatsApp</button>`}
+      </div>
+    `, { wide: false });
+
+    modal.el.querySelector('#btnprint').onclick = () => {
+      window.print();
+    };
+    const bwa = modal.el.querySelector('#btnwa');
+    if (bwa) {
+      bwa.onclick = async () => {
+        const ph = await RD.prompt('WhatsApp del cliente', 'Número de WhatsApp (9 dígitos)', '9XXXXXXXX');
+        if (ph) {
+          const u = RD.waLink(ph, waText);
+          if (u) window.open(u, '_blank');
+        }
+      };
+    }
   };
 
   RD.registerSW = () => { if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => { }); };
