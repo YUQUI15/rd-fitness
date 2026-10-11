@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impresión de Tarjetas PVC - RD Fitness Club</title>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body { background: #1a1a1e; color: #fff; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    .toolbar { position: sticky; top: 0; z-index: 100; background: #0b0b0d; border-bottom: 1px solid #2b2b32; padding: .8rem 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .sheet { max-width: 1000px; margin: 20px auto; padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 20px; justify-content: center; }
+
+    /* Medidas exactas de tarjeta CR-80 (PVC): 85.6mm x 53.98mm (~324px x 204px a 96dpi, o 1011x638 a 300dpi) */
+    .pvc-card {
+      width: 340px; height: 215px;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #1b1b1f 0%, #0c0c0e 60%, #17150f 100%);
+      border: 1.5px solid #d4a017;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      box-sizing: border-box;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: #fff;
+      page-break-inside: avoid;
+    }
+    .pvc-card::before {
+      content: "";
+      position: absolute;
+      top: -30px; right: -30px;
+      width: 110px; height: 110px;
+      background: radial-gradient(circle, rgba(245,180,0,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .card-top { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(245,180,0,0.3); padding-bottom: 6px; }
+    .card-logo { display: flex; align-items: center; gap: 8px; }
+    .card-logo img { height: 28px; }
+    .card-logo .brand-txt { font-size: 13px; font-weight: 900; letter-spacing: 0.5px; color: #f5b400; line-height: 1.1; }
+    .card-logo .slogan { font-size: 7px; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.8px; }
+    .tag-loc { font-size: 8px; font-weight: 700; background: rgba(245,180,0,0.18); border: 1px solid rgba(245,180,0,0.4); color: #ffd24a; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+
+    .card-body { display: flex; align-items: center; gap: 12px; margin: 6px 0; }
+    .card-avatar {
+      width: 60px; height: 60px; border-radius: 50%;
+      border: 2px solid #f5b400;
+      background: #27272a;
+      flex: none; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; font-weight: 800; color: #f5b400;
+    }
+    .card-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .card-details { flex: 1; min-width: 0; }
+    .card-name { font-size: 14px; font-weight: 800; color: #fff; line-height: 1.2; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-code { font-size: 18px; font-weight: 900; color: #f5b400; letter-spacing: 1px; margin-top: 2px; }
+    .card-role { font-size: 8.5px; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+    .card-qr-box {
+      width: 66px; height: 66px;
+      background: #fff;
+      border-radius: 6px;
+      padding: 3px;
+      flex: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .card-qr-box svg { width: 100%; height: 100%; display: block; }
+
+    .card-footer {
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 7.5px;
+      color: #71717a;
+    }
+
+    /* REVERSO DE LA TARJETA */
+    .pvc-card.back {
+      text-align: center;
+      padding: 14px;
+    }
+    .back-rules { font-size: 8px; color: #a1a1aa; line-height: 1.35; margin: 8px 0; }
+    .back-contacts { font-size: 8.5px; color: #ffd24a; font-weight: 600; line-height: 1.4; border: 1px solid rgba(245,180,0,0.3); padding: 6px; border-radius: 6px; background: rgba(0,0,0,0.3); }
+
+    /* ESTILOS PARA IMPRESIÓN (Ctrl + P) */
+    @media print {
+      body { background: #fff!important; color: #000!important; margin: 0!important; }
+      .toolbar, .noprint { display: none!important; }
+      .sheet {
+        max-width: none!important;
+        margin: 0!important;
+        padding: 0!important;
+        display: grid!important;
+        grid-template-columns: repeat(2, 85.6mm)!important;
+        gap: 6mm!important;
+        justify-content: flex-start!important;
+      }
+      .pvc-card {
+        width: 85.6mm!important;
+        height: 53.98mm!important;
+        border: 1px solid #c99300!important;
+        box-shadow: none!important;
+        break-inside: avoid!important;
+        -webkit-print-color-adjust: exact!important;
+        print-color-adjust: exact!important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar noprint">
+    <div class="row gap">
+      <img src="/logo.svg" style="height:32px" alt="">
+      <div>
+        <b>Impresión de Tarjetas PVC</b>
+        <div class="muted small" id="status">Cargando datos…</div>
+      </div>
+    </div>
+    <div class="row gap wrap">
+      <label class="check small"><input type="checkbox" id="showback"> <span>Mostrar reverso</span></label>
+      <button class="btn sm" onclick="window.close()">Cerrar</button>
+      <button class="btn primary sm" onclick="window.print()">🖨 IMPRIMIR TARJETAS</button>
+    </div>
+  </div>
+
+  <div class="sheet" id="cards"></div>
+
+  <script src="/vendor/qrcode.js"></script>
+  <script src="/js/common.js"></script>
+  <script>
+    (async () => {
+      const RD = window.RD;
+      const cardsEl = document.getElementById('cards');
+      const statusEl = document.getElementById('status');
+      const showBackCb = document.getElementById('showback');
+
+      const params = new URLSearchParams(location.search);
+      const ids = params.get('ids') || '';
+
+      const token = localStorage.getItem('rd_staff_token');
+      if (!token) {
+        cardsEl.innerHTML = '<div class="empty">Inicia sesión en el panel de administración primero.</div>';
+        return;
+      }
+
+      let data;
+      try {
+        const res = await fetch('/api/cards?ids=' + encodeURIComponent(ids), {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!res.ok) throw new Error('Error al cargar tarjetas');
+        data = await res.json();
+      } catch (err) {
+        cardsEl.innerHTML = `<div class="empty bad">Error: ${err.message}</div>`;
+        return;
+      }
+
+      const cards = data.cards || [];
+      const gym = data.settings || {};
+      statusEl.textContent = `${cards.length} tarjeta(s) lista(s) para imprimir`;
+
+      function render() {
+        if (!cards.length) {
+          cardsEl.innerHTML = '<div class="empty">No se seleccionó ningún socio.</div>';
+          return;
+        }
+
+        const showBack = showBackCb.checked;
+        cardsEl.innerHTML = cards.map(c => {
+          // Generar QR en formato SVG limpio
+          const qrSvg = RD.qrSvg(c.payload, { margin: 1 });
+
+          const front = `
+          <div class="pvc-card">
+            <div class="card-top">
+              <div class="card-logo">
+                <img src="/logo.svg" alt="RD">
+                <div>
+                  <div class="brand-txt">${RD.esc(gym.gym_name || 'RD FITNESS CLUB')}</div>
+                  <div class="slogan">${RD.esc(gym.gym_slogan || 'Disciplina · Constancia · Resultados')}</div>
+                </div>
+              </div>
+              <div class="tag-loc">CHIVAY</div>
+            </div>
+
+            <div class="card-body">
+              <div class="card-avatar">
+                ${c.photo ? `<img src="${RD.esc(c.photo)}" alt="">` : RD.esc(c.name[0] || 'RD')}
+              </div>
+              <div class="card-details">
+                <div class="card-name">${RD.esc(c.name)}</div>
+                <div class="card-code">${RD.esc(c.code)}</div>
+                <div class="card-role">SOCIO OFICIAL</div>
+              </div>
+              <div class="card-qr-box">
+                ${qrSvg}
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <span>Calle Sucre Lt. 10 · Chivay</span>
+              <span>WhatsApp: ${RD.esc(gym.gym_phone || '982 404 043')}</span>
+            </div>
+          </div>`;
+
+          const back = `
+          <div class="pvc-card back">
+            <div class="card-logo" style="justify-content:center;margin-bottom:6px">
+              <img src="/logo.svg" style="height:24px" alt="RD">
+              <div class="brand-txt">${RD.esc(gym.gym_name || 'RD FITNESS CLUB')}</div>
+            </div>
+            <div class="back-rules">
+              Esta credencial es <b>personal e intransferible</b>.<br>
+              Debe presentarse al escáner al ingresar a la sala.<br>
+              En caso de pérdida o deterioro, comuníquese con recepción para su anulación inmediata.
+            </div>
+            <div class="back-contacts">
+              📍 ${RD.esc(gym.gym_address || 'Calle Antonio José de Sucre Lt. 10, Chivay')}<br>
+              📲 Atención: ${RD.esc(gym.gym_phone || '982 404 043')}<br>
+              ⏰ ${RD.esc(gym.opening || 'Lun a Sáb 6:00 a 21:00')}
+            </div>
+            <div class="card-footer" style="justify-content:center;margin-top:6px">
+              <span>TU MEJOR VERSIÓN EMPIEZA AQUÍ</span>
+            </div>
+          </div>`;
+
+          return front + (showBack ? back : '');
+        }).join('');
+      }
+
+      showBackCb.onchange = render;
+      render();
+    })();
+  </script>
+</body>
+</html>

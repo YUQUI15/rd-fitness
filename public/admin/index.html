@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0b0b0d">
+  <title>RD Fitness Club - Panel de Gestión</title>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="manifest" href="/admin/manifest.json">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="root">
+    <div class="empty" style="padding-top:35vh">Iniciando sistema…</div>
+  </div>
+
+  <!-- Librerías locales incluidas -->
+  <script src="/vendor/qrcode.js"></script>
+  <script src="/vendor/jsQR.js"></script>
+  <!-- Módulos de la aplicación -->
+  <script src="/js/common.js"></script>
+  <script src="/js/workout.js"></script>
+  <script src="/js/admin-core.js"></script>
+  <script src="/js/admin-scan.js"></script>
+  <script src="/js/admin-members.js"></script>
+  <script src="/js/admin-other.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.RDboot) window.RDboot();
+    });
+  </script>
+</body>
+</html>

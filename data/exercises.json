@@ -1,0 +1,1357 @@
+[
+ {
+  "id": "Bodyweight_Squat",
+  "nombre": "Sentadilla con peso corporal",
+  "grupo": "Piernas",
+  "tipo": "fuerza",
+  "equipo": "Sin equipo",
+  "nivel": "principiante",
+  "musculos": "Cuádriceps, glúteos, isquios",
+  "efecto": "Base de la fuerza de piernas. Mejora movilidad de cadera y tobillo y prepara para sentadillas con carga.",
+  "pasos": [
+   "Párate con los pies al ancho de los hombros y las puntas ligeramente hacia afuera.",
+   "Estira los brazos al frente para equilibrarte y mantén el pecho alto.",
+   "Inhala y empuja la cadera hacia atrás como si te sentaras en una silla, doblando rodillas.",
+   "Baja hasta que los muslos queden paralelos al suelo (o hasta donde mantengas la espalda recta).",
+   "Empuja el suelo con todo el pie y sube exhalando hasta quedar de pie, apretando glúteos."
+  ],
+  "errores": [
+   "Rodillas que se van hacia adentro.",
+   "Talones que se levantan del suelo.",
+   "Espalda redondeada o mirada al piso."
+  ],
+  "consejo": "Inhala al bajar, exhala al subir. Las rodillas siguen la dirección de las puntas de los pies.",
+  "variante": "Más fácil: sentarte y pararte de una silla. Más difícil: sentadilla con pausa de 3 s abajo.",
+  "imagenes": [
+   "/ex/Bodyweight_Squat/0.jpg",
+   "/ex/Bodyweight_Squat/1.jpg"
+  ],
+  "ingles": "Bodyweight Squat"
+ },
+ {
+  "id": "Goblet_Squat",
+  "nombre": "Sentadilla goblet (con mancuerna)",
+  "grupo": "Piernas",
+  "tipo": "fuerza",
+  "equipo": "Mancuerna / pesa rusa",
+  "nivel": "principiante",
+  "musculos": "Cuádriceps, glúteos, core",
+  "efecto": "Enseña la sentadilla correcta con carga frontal; la carga al frente ayuda a mantener el torso erguido.",
+  "pasos": [
+   "Sostén una mancuerna vertical contra el pecho con ambas manos, codos hacia abajo.",
+   "Pies al ancho de hombros, puntas algo abiertas.",
+   "Inhala, abre las rodillas y baja el torso entre las piernas con la espalda recta.",
+   "Baja hasta que los codos rocen por dentro de las rodillas o los muslos queden paralelos.",
+   "Exhala y sube empujando con los talones y el medio pie."
+  ],
+  "errores": [
+   "Soltar la mancuerna hacia adelante y encorvar la espalda.",
+   "Subir primero la cadera y luego el pecho."
+  ],
+  "consejo": "Mantén el abdomen firme todo el recorrido. Usa un peso con el que hagas 10 repeticiones limpias.",
+  "variante": "Más fácil: sin peso. Más difícil: con pausa abajo o más peso.",
+  "imagenes": [
+   "/ex/Goblet_Squat/0.jpg",
+   "/ex/Goblet_Squat/1.jpg"
+  ],
+  "ingles": "Goblet Squat"
+ },
+ {
+  "id": "Barbell_Squat",
+  "nombre": "Sentadilla con barra",
+  "grupo": "Piernas",
+  "tipo": "fuerza",
+  "equipo": "Barra y rack",
+  "nivel": "intermedio",
+  "musculos": "Cuádriceps, glúteos, isquios, core",
+  "efecto": "El ejercicio más completo para fuerza y masa muscular de piernas y glúteos. Requiere técnica sólida.",
+  "pasos": [
+   "Coloca la barra en el rack a la altura de la mitad del pecho y ponte debajo, con la barra sobre la parte alta de la espalda (trapecios), no sobre el cuello.",
+   "Agarra la barra con las manos algo más anchas que los hombros, saca la barra del rack y da dos pasos atrás.",
+   "Pies al ancho de hombros, pecho alto, abdomen apretado.",
+   "Inhala profundo, empuja la cadera atrás y baja controlado hasta que los muslos queden paralelos.",
+   "Sin rebotar, empuja el suelo y sube exhalando al pasar el punto más difícil.",
+   "Al terminar, camina hacia adelante y apoya la barra en el rack."
+  ],
+  "errores": [
+   "Encorvar la espalda baja al bajar.",
+   "Rodillas hacia adentro.",
+   "Cargar demasiado peso con mala técnica."
+  ],
+  "consejo": "Usa siempre topes de seguridad del rack y, con cargas altas, un compañero. Aprende primero la técnica con poco peso.",
+  "variante": "Más fácil: sentadilla goblet. Más difícil: pausa de 2 s abajo.",
+  "imagenes": [
+   "/ex/Barbell_Squat/0.jpg",
+   "/ex/Barbell_Squat/1.jpg"
+  ],
+  "ingles": "Barbell Squat"
+ },
+ {
+  "id": "Leg_Press",
+  "nombre": "Prensa de piernas",
+  "grupo": "Piernas",
+  "tipo": "fuerza",
+  "equipo": "Máquina",
+  "nivel": "principiante",
+  "musculos": "Cuádriceps, glúteos",
+  "efecto": "Desarrolla fuerza y volumen de piernas con apoyo de espalda; ideal para principiantes y para sumar volumen.",
+  "pasos": [
+   "Siéntate con la espalda y la cadera bien pegadas al respaldo.",
+   "Pies sobre la plataforma al ancho de hombros, a media altura.",
+   "Suelta los seguros y baja la plataforma controlando hasta que las rodillas formen unos 90°.",
+   "Empuja la plataforma con todo el pie y exhala, sin bloquear las rodillas arriba.",
+   "Repite y, al terminar, vuelve a poner los seguros."
+  ],
+  "errores": [
+   "Bloquear las rodillas de golpe arriba.",
+   "Despegar la cadera y redondear la espalda baja al bajar demasiado.",
+   "Rodillas hacia adentro."
+  ],
+  "consejo": "Movimiento lento (2 s bajar, 1 s subir). No uses un peso con el que tengas que rebotar.",
+  "variante": "Más fácil: menos peso. Más difícil: una pierna a la vez con poco peso.",
+  "imagenes": [
+   "/ex/Leg_Press/0.jpg",
+   "/ex/Leg_Press/1.jpg"
+  ],
+  "ingles": "Leg Press"
+ },
+ {
+  "id": "Dumbbell_Lunges",
+  "nombre": "Zancadas con mancuernas",
+  "grupo": "Piernas",
+  "tipo": "fuerza",
+  "equipo": "Mancuernas",
+  "nivel": "principiante",
+  "musculos": "Cuádriceps, glúteos, isquios",
+  "efecto": "Fuerza unilateral, equilibrio y glúteos; corrige diferencias entre una pierna y la otra.",
+  "pasos": [
+   "Con una mancuerna en cada mano, pies juntos y espalda recta.",
+   "Da un paso largo hacia adelante con una pierna.",
+   "Baja la cadera hasta que ambas rodillas formen unos 90°; la rodilla de atrás casi roza el suelo.",
+   "Empuja con el pie delantero y vuelve a la posición inicial.",
+   "Alterna las piernas o termina todas las repeticiones de un lado y luego cambia."
+  ],
+  "errores": [
+   "Paso demasiado corto (carga la rodilla).",
+   "Inclinar el torso hacia adelante.",
+   "Rodilla delantera que pasa mucho la punta del pie."
+  ],
+  "consejo": "Mira al frente y mantén el abdomen firme. Controla la bajada.",
+  "variante": "Más fácil: sin peso con apoyo en pared. Más difícil: zancada caminando.",
+  "imagenes": [
+   "/ex/Dumbbell_Lunges/0.jpg",
+   "/ex/Dumbbell_Lunges/1.jpg"
+  ],
+  "ingles": "Dumbbell Lunges"
+ },
+ {
+  "id": "Romanian_Deadlift",
+  "nombre": "Peso muerto rumano",
+  "grupo": "Piernas",
+  "tipo": "fuerza",
+  "equipo": "Barra o mancuernas",
+  "nivel": "intermedio",
+  "musculos": "Isquiotibiales, glúteos, espalda baja",
+  "efecto": "Fortalece isquios y glúteos y enseña a doblarse desde la cadera (bisagra de cadera).",
+  "pasos": [
+   "Sostén la barra o mancuernas frente a los muslos, pies al ancho de caderas, rodillas ligeramente flexionadas.",
+   "Con la espalda recta y el pecho alto, empuja la cadera hacia atrás.",
+   "Desliza el peso pegado a las piernas hasta sentir estiramiento en la parte de atrás del muslo (por debajo de las rodillas).",
+   "Mantén la espalda neutra; no bajes más si se redondea.",
+   "Exhala, aprieta glúteos y empuja la cadera hacia adelante para subir."
+  ],
+  "errores": [
+   "Redondear la espalda.",
+   "Doblar demasiado las rodillas (se vuelve sentadilla).",
+   "Separar el peso del cuerpo."
+  ],
+  "consejo": "Piensa en “cerrar una puerta con el trasero”. Mantén la barra pegada a las piernas.",
+  "variante": "Más fácil: mancuernas ligeras. Más difícil: más peso o pausa abajo.",
+  "imagenes": [
+   "/ex/Romanian_Deadlift/0.jpg",
+   "/ex/Romanian_Deadlift/1.jpg"
+  ],
+  "ingles": "Romanian Deadlift"
+ },
+ {
+  "id": "Barbell_Deadlift",
+  "nombre": "Peso muerto convencional",
+  "grupo": "Piernas",
+  "tipo": "fuerza",
+  "equipo": "Barra",
+  "nivel": "intermedio",
+  "musculos": "Glúteos, isquios, espalda, core",
+  "efecto": "Gran ejercicio de fuerza total del cuerpo, especialmente cadena posterior. Requiere buena técnica.",
+  "pasos": [
+   "Pies al ancho de caderas con la barra sobre el medio del pie.",
+   "Agáchate y agarra la barra con las manos fuera de las rodillas.",
+   "Baja la cadera, pecho alto, espalda neutra y brazos estirados.",
+   "Inhala, aprieta el abdomen y empuja el suelo con las piernas, manteniendo la barra pegada al cuerpo.",
+   "Termina de pie con glúteos apretados, sin hiperextender la espalda.",
+   "Baja con control llevando la cadera atrás y deslizando la barra por los muslos."
+  ],
+  "errores": [
+   "Redondear la espalda baja.",
+   "Tirar de la barra con los brazos o con tirón brusco.",
+   "Barra alejada del cuerpo."
+  ],
+  "consejo": "Empieza con poco peso y aprende la técnica con ayuda del entrenador. No dejes caer la barra desde arriba.",
+  "variante": "Más fácil: peso muerto rumano. Más difícil: más peso con técnica perfecta.",
+  "imagenes": [
+   "/ex/Barbell_Deadlift/0.jpg",
+   "/ex/Barbell_Deadlift/1.jpg"
+  ],
+  "ingles": "Barbell Deadlift"
+ },
+ {
+  "id": "Leg_Extensions",
+  "nombre": "Extensión de cuádriceps",
+  "grupo": "Piernas",
+  "tipo": "fuerza",
+  "equipo": "Máquina",
+  "nivel": "principiante",
+  "musculos": "Cuádriceps",
+  "efecto": "Aísla el cuádriceps y ayuda a ganar volumen y fortalecer la rodilla con buen control.",
+  "pasos": [
+   "Ajusta el respaldo para que las rodillas queden alineadas con el eje de la máquina.",
+   "Coloca los tobillos bajo el rodillo acolchado.",
+   "Exhala y extiende las piernas hasta casi estirarlas, apretando el cuádriceps un segundo.",
+   "Baja lentamente sin dejar caer las pesas."
+  ],
+  "errores": [
+   "Usar impulso con el cuerpo.",
+   "Bajar rápido y golpear la pila de pesas.",
+   "Bloquear las rodillas con fuerza."
+  ],
+  "consejo": "Evita pesos excesivos; si sientes dolor en la rodilla, detente y avisa al entrenador.",
+  "variante": "Más fácil: menos peso. Más difícil: una pierna a la vez.",
+  "imagenes": [
+   "/ex/Leg_Extensions/0.jpg",
+   "/ex/Leg_Extensions/1.jpg"
+  ],
+  "ingles": "Leg Extensions"
+ },
+ {
+  "id": "Lying_Leg_Curls",
+  "nombre": "Curl de pierna tumbado",
+  "grupo": "Piernas",
+  "tipo": "fuerza",
+  "equipo": "Máquina",
+  "nivel": "principiante",
+  "musculos": "Isquiotibiales",
+  "efecto": "Aísla isquiotibiales (parte de atrás del muslo); equilibra la fuerza con el cuádriceps y protege la rodilla.",
+  "pasos": [
+   "Acuéstate boca abajo, con las rodillas justo en el borde del banco y el rodillo sobre los tobillos.",
+   "Agarra las manijas y mantén la cadera pegada al banco.",
+   "Exhala y dobla las rodillas llevando los talones hacia los glúteos.",
+   "Pausa 1 s arriba y baja lento en 2-3 s sin dejar caer el peso."
+  ],
+  "errores": [
+   "Levantar la cadera del banco.",
+   "Usar impulso.",
+   "Recorrido incompleto."
+  ],
+  "consejo": "Controla la bajada; esa fase construye mucha fuerza.",
+  "variante": "Más fácil: menos peso. Más difícil: bajada de 4 s.",
+  "imagenes": [
+   "/ex/Lying_Leg_Curls/0.jpg",
+   "/ex/Lying_Leg_Curls/1.jpg"
+  ],
+  "ingles": "Lying Leg Curls"
+ },
+ {
+  "id": "Standing_Calf_Raises",
+  "nombre": "Elevación de talones de pie",
+  "grupo": "Piernas",
+  "tipo": "fuerza",
+  "equipo": "Máquina",
+  "nivel": "principiante",
+  "musculos": "Gemelos (pantorrillas)",
+  "efecto": "Desarrolla las pantorrillas y mejora estabilidad del tobillo. Resultados con recorrido completo y constancia.",
+  "pasos": [
+   "Coloca los hombros bajo las almohadillas y la parte delantera de los pies en el borde de la plataforma.",
+   "Baja los talones lo más posible hasta sentir estiramiento.",
+   "Sube lo más alto que puedas sobre las puntas, apretando las pantorrillas 1-2 s.",
+   "Baja lento y repite."
+  ],
+  "errores": [
+   "Rebotar rápido sin recorrido completo.",
+   "Doblar las rodillas."
+  ],
+  "consejo": "Las pantorrillas responden bien a repeticiones altas (12-20) y pausa arriba.",
+  "variante": "Más fácil: en el suelo sin peso. Más difícil: una pierna a la vez.",
+  "imagenes": [
+   "/ex/Standing_Calf_Raises/0.jpg",
+   "/ex/Standing_Calf_Raises/1.jpg"
+  ],
+  "ingles": "Standing Calf Raises"
+ },
+ {
+  "id": "Barbell_Hip_Thrust",
+  "nombre": "Empuje de cadera con barra (hip thrust)",
+  "grupo": "Glúteos",
+  "tipo": "fuerza",
+  "equipo": "Barra y banco",
+  "nivel": "intermedio",
+  "musculos": "Glúteos, isquios",
+  "efecto": "Uno de los mejores ejercicios para activar y fortalecer glúteos; mejora potencia de cadera.",
+  "pasos": [
+   "Siéntate en el suelo con la parte alta de la espalda apoyada en el borde de un banco y la barra sobre la cadera (usa almohadilla).",
+   "Pies apoyados al ancho de caderas, rodillas dobladas.",
+   "Baja un poco la cadera y sube empujando con los talones.",
+   "Arriba, el torso y los muslos forman una línea recta; aprieta glúteos 1-2 s.",
+   "Baja controlado y repite."
+  ],
+  "errores": [
+   "Arquear mucho la espalda baja arriba.",
+   "Empujar con la punta de los pies.",
+   "Mirar hacia arriba con el cuello (mantén el mentón recogido)."
+  ],
+  "consejo": "Exhala al subir. Empieza con poco peso para sentir el glúteo.",
+  "variante": "Más fácil: puente de glúteo en el suelo. Más difícil: más peso o una pierna.",
+  "imagenes": [
+   "/ex/Barbell_Hip_Thrust/0.jpg",
+   "/ex/Barbell_Hip_Thrust/1.jpg"
+  ],
+  "ingles": "Barbell Hip Thrust"
+ },
+ {
+  "id": "Butt_Lift_Bridge",
+  "nombre": "Puente de glúteos",
+  "grupo": "Glúteos",
+  "tipo": "fuerza",
+  "equipo": "Sin equipo",
+  "nivel": "principiante",
+  "musculos": "Glúteos, isquios, core",
+  "efecto": "Activa los glúteos y fortalece la zona lumbar de forma segura; ideal como calentamiento y para principiantes.",
+  "pasos": [
+   "Acuéstate boca arriba con rodillas dobladas y pies al ancho de caderas, brazos a los lados.",
+   "Aprieta el abdomen y empuja con los talones.",
+   "Eleva la cadera hasta que hombros, cadera y rodillas formen una línea recta.",
+   "Aprieta los glúteos 2 s arriba.",
+   "Baja despacio hasta casi tocar el suelo y repite."
+  ],
+  "errores": [
+   "Empujar con la espalda baja en vez de los glúteos.",
+   "Separar mucho los pies de los glúteos."
+  ],
+  "consejo": "Exhala al subir. Siente el trabajo en los glúteos, no en la espalda.",
+  "variante": "Más difícil: una pierna a la vez o con peso sobre la cadera.",
+  "imagenes": [
+   "/ex/Butt_Lift_Bridge/0.jpg",
+   "/ex/Butt_Lift_Bridge/1.jpg"
+  ],
+  "ingles": "Butt Lift (Bridge)"
+ },
+ {
+  "id": "Pushups",
+  "nombre": "Flexiones de pecho",
+  "grupo": "Pecho",
+  "tipo": "fuerza",
+  "equipo": "Sin equipo",
+  "nivel": "principiante",
+  "musculos": "Pecho, hombros, tríceps, core",
+  "efecto": "Fortalece pecho, hombros y tríceps y todo el core con tu propio peso; se puede hacer en cualquier lugar.",
+  "pasos": [
+   "Manos en el suelo un poco más anchas que los hombros, cuerpo recto de cabeza a talones.",
+   "Aprieta abdomen y glúteos para que la cadera no caiga.",
+   "Inhala y baja el pecho flexionando los codos (a unos 45° del cuerpo, no abiertos).",
+   "Baja hasta casi tocar el suelo con el pecho.",
+   "Exhala y empuja el suelo hasta estirar los brazos."
+  ],
+  "errores": [
+   "Cadera caída o levantada.",
+   "Codos muy abiertos (daña los hombros).",
+   "Recorrido corto."
+  ],
+  "consejo": "Si aún no puedes con el cuerpo recto, apoya las rodillas o las manos sobre un banco alto.",
+  "variante": "Más fácil: manos en banco. Más difícil: pies elevados.",
+  "imagenes": [
+   "/ex/Pushups/0.jpg",
+   "/ex/Pushups/1.jpg"
+  ],
+  "ingles": "Pushups"
+ },
+ {
+  "id": "Dumbbell_Bench_Press",
+  "nombre": "Press de pecho con mancuernas",
+  "grupo": "Pecho",
+  "tipo": "fuerza",
+  "equipo": "Mancuernas y banco",
+  "nivel": "principiante",
+  "musculos": "Pecho, hombros, tríceps",
+  "efecto": "Desarrolla fuerza y masa del pecho con mayor rango y estabilidad que la barra.",
+  "pasos": [
+   "Acuéstate en el banco con una mancuerna en cada mano apoyada en los muslos y llévalas a la altura del pecho.",
+   "Pies firmes en el suelo, espalda ligeramente arqueada y omóplatos juntos.",
+   "Empuja las mancuernas hacia arriba hasta casi estirar los brazos, exhalando.",
+   "Baja lento hasta que los codos queden a la altura del pecho (unos 45° del tronco).",
+   "Repite y, al terminar, baja las mancuernas sobre los muslos antes de sentarte."
+  ],
+  "errores": [
+   "Codos muy abiertos a 90°.",
+   "Rebotar las mancuernas en el pecho.",
+   "Despegar los glúteos del banco."
+  ],
+  "consejo": "Escoge un peso que controles. Pide ayuda para levantar mancuernas pesadas.",
+  "variante": "Más fácil: menos peso. Más difícil: pausa de 1 s abajo.",
+  "imagenes": [
+   "/ex/Dumbbell_Bench_Press/0.jpg",
+   "/ex/Dumbbell_Bench_Press/1.jpg"
+  ],
+  "ingles": "Dumbbell Bench Press"
+ },
+ {
+  "id": "Barbell_Bench_Press_-_Medium_Grip",
+  "nombre": "Press de banca con barra",
+  "grupo": "Pecho",
+  "tipo": "fuerza",
+  "equipo": "Barra y banco",
+  "nivel": "intermedio",
+  "musculos": "Pecho, hombros, tríceps",
+  "efecto": "El clásico para fuerza y masa del tren superior. Usa un compañero o topes de seguridad.",
+  "pasos": [
+   "Acuéstate con los ojos bajo la barra, pies firmes en el suelo, omóplatos juntos.",
+   "Agarra la barra un poco más ancho que los hombros y sácala del soporte.",
+   "Inhala y baja la barra controlada hasta rozar la parte media del pecho.",
+   "Exhala y empuja hasta estirar los brazos.",
+   "Al terminar, devuelve la barra al soporte con ayuda."
+  ],
+  "errores": [
+   "Rebotar la barra en el pecho.",
+   "Despegar la cadera.",
+   "Muñecas dobladas hacia atrás."
+  ],
+  "consejo": "Nunca entrenes pesado sin compañero o topes de seguridad.",
+  "variante": "Más fácil: press con mancuernas. Más difícil: pausa de 1-2 s en el pecho.",
+  "imagenes": [
+   "/ex/Barbell_Bench_Press_-_Medium_Grip/0.jpg",
+   "/ex/Barbell_Bench_Press_-_Medium_Grip/1.jpg"
+  ],
+  "ingles": "Barbell Bench Press - Medium Grip"
+ },
+ {
+  "id": "Incline_Dumbbell_Press",
+  "nombre": "Press inclinado con mancuernas",
+  "grupo": "Pecho",
+  "tipo": "fuerza",
+  "equipo": "Mancuernas y banco inclinado",
+  "nivel": "principiante",
+  "musculos": "Pecho superior, hombros, tríceps",
+  "efecto": "Enfatiza la parte superior del pecho y complementa el press plano.",
+  "pasos": [
+   "Ajusta el banco entre 30° y 45° y siéntate con mancuernas apoyadas en los muslos.",
+   "Lleva las mancuernas a la altura del pecho con las palmas hacia adelante.",
+   "Empuja hacia arriba hasta casi estirar los brazos, exhalando.",
+   "Baja lento hasta sentir estiramiento en el pecho."
+  ],
+  "errores": [
+   "Inclinación excesiva (se vuelve press de hombros).",
+   "Codos muy abiertos."
+  ],
+  "consejo": "Mantén la espalda apoyada en el banco y los pies firmes.",
+  "variante": "Más fácil: menos peso. Más difícil: pausa abajo.",
+  "imagenes": [
+   "/ex/Incline_Dumbbell_Press/0.jpg",
+   "/ex/Incline_Dumbbell_Press/1.jpg"
+  ],
+  "ingles": "Incline Dumbbell Press"
+ },
+ {
+  "id": "Cable_Crossover",
+  "nombre": "Cruce de poleas",
+  "grupo": "Pecho",
+  "tipo": "fuerza",
+  "equipo": "Poleas",
+  "nivel": "principiante",
+  "musculos": "Pecho",
+  "efecto": "Aísla el pecho y mejora la contracción en el centro del músculo.",
+  "pasos": [
+   "Coloca las poleas altas, toma una manija en cada mano y da un paso adelante con un pie.",
+   "Inclina ligeramente el torso y flexiona un poco los codos.",
+   "Exhala y junta las manos al frente, abajo, haciendo un arco.",
+   "Aprieta el pecho 1 s y regresa lento hasta sentir estiramiento."
+  ],
+  "errores": [
+   "Doblar y estirar los codos (se vuelve press).",
+   "Usar impulso con el tronco."
+  ],
+  "consejo": "Mantén los codos con ligera flexión fija durante todo el movimiento.",
+  "variante": "Más fácil: menos peso. Más difícil: pausa y bajada lenta.",
+  "imagenes": [
+   "/ex/Cable_Crossover/0.jpg",
+   "/ex/Cable_Crossover/1.jpg"
+  ],
+  "ingles": "Cable Crossover"
+ },
+ {
+  "id": "Dumbbell_Flyes",
+  "nombre": "Aperturas con mancuernas",
+  "grupo": "Pecho",
+  "tipo": "fuerza",
+  "equipo": "Mancuernas y banco",
+  "nivel": "principiante",
+  "musculos": "Pecho",
+  "efecto": "Estira y aísla el pecho; complementa los press.",
+  "pasos": [
+   "Acuéstate en el banco con las mancuernas arriba, palmas enfrentadas y codos ligeramente flexionados.",
+   "Abre los brazos en arco hasta sentir estiramiento en el pecho (no más abajo de la línea del hombro).",
+   "Exhala y vuelve a juntarlas arriba como si abrazaras un árbol."
+  ],
+  "errores": [
+   "Peso demasiado alto.",
+   "Bajar demasiado (riesgo en el hombro).",
+   "Estirar los codos."
+  ],
+  "consejo": "Usa poco peso y controla. Si el hombro molesta, detén el ejercicio.",
+  "variante": "Más fácil: cruce de poleas. Más difícil: pausa abajo.",
+  "imagenes": [
+   "/ex/Dumbbell_Flyes/0.jpg",
+   "/ex/Dumbbell_Flyes/1.jpg"
+  ],
+  "ingles": "Dumbbell Flyes"
+ },
+ {
+  "id": "Wide-Grip_Lat_Pulldown",
+  "nombre": "Jalón al pecho agarre ancho",
+  "grupo": "Espalda",
+  "tipo": "fuerza",
+  "equipo": "Polea",
+  "nivel": "principiante",
+  "musculos": "Dorsales, bíceps, espalda alta",
+  "efecto": "Construye ancho de espalda y es la mejor preparación para hacer dominadas.",
+  "pasos": [
+   "Siéntate y fija los muslos bajo los rodillos.",
+   "Agarra la barra más ancho que los hombros con las palmas hacia adelante.",
+   "Pecho alto, ligeramente inclinado hacia atrás.",
+   "Exhala y jala la barra hacia la parte alta del pecho llevando los codos hacia abajo y atrás.",
+   "Sube lento hasta estirar los brazos sin que el peso te levante del asiento."
+  ],
+  "errores": [
+   "Jalar detrás de la nuca.",
+   "Balancear el tronco.",
+   "Usar solo los brazos."
+  ],
+  "consejo": "Piensa en llevar los codos al bolsillo trasero. No jales detrás del cuello.",
+  "variante": "Más fácil: menos peso. Más difícil: pausa 1 s abajo.",
+  "imagenes": [
+   "/ex/Wide-Grip_Lat_Pulldown/0.jpg",
+   "/ex/Wide-Grip_Lat_Pulldown/1.jpg"
+  ],
+  "ingles": "Wide-Grip Lat Pulldown"
+ },
+ {
+  "id": "Seated_Cable_Rows",
+  "nombre": "Remo en polea sentado",
+  "grupo": "Espalda",
+  "tipo": "fuerza",
+  "equipo": "Polea",
+  "nivel": "principiante",
+  "musculos": "Espalda media, dorsales, bíceps",
+  "efecto": "Fortalece la espalda media y mejora la postura (contrarresta hombros hacia adelante).",
+  "pasos": [
+   "Siéntate con los pies en el apoyo, rodillas ligeramente dobladas y espalda recta.",
+   "Agarra la manija con los brazos estirados.",
+   "Exhala y jala la manija hacia el abdomen juntando los omóplatos.",
+   "Pausa 1 s apretando la espalda y vuelve lento sin encorvarte."
+  ],
+  "errores": [
+   "Balancear el torso hacia atrás.",
+   "Encoger los hombros hacia las orejas.",
+   "Redondear la espalda al estirar."
+  ],
+  "consejo": "El movimiento sale de la espalda, no del impulso del cuerpo.",
+  "variante": "Más fácil: menos peso. Más difícil: pausa de 2 s.",
+  "imagenes": [
+   "/ex/Seated_Cable_Rows/0.jpg",
+   "/ex/Seated_Cable_Rows/1.jpg"
+  ],
+  "ingles": "Seated Cable Rows"
+ },
+ {
+  "id": "One-Arm_Dumbbell_Row",
+  "nombre": "Remo con mancuerna a una mano",
+  "grupo": "Espalda",
+  "tipo": "fuerza",
+  "equipo": "Mancuerna y banco",
+  "nivel": "principiante",
+  "musculos": "Dorsales, espalda media, bíceps",
+  "efecto": "Fortalece cada lado de la espalda por separado y corrige desequilibrios.",
+  "pasos": [
+   "Apoya una rodilla y la mano del mismo lado en el banco, espalda paralela al suelo.",
+   "Con la otra mano toma la mancuerna con el brazo estirado.",
+   "Exhala y lleva el codo hacia la cadera, pegado al cuerpo.",
+   "Aprieta la espalda 1 s arriba y baja controlado."
+  ],
+  "errores": [
+   "Girar el tronco.",
+   "Jalar con el brazo en vez de la espalda.",
+   "Redondear la espalda."
+  ],
+  "consejo": "Mantén la espalda recta y el cuello neutro.",
+  "variante": "Más fácil: menos peso. Más difícil: pausa arriba.",
+  "imagenes": [
+   "/ex/One-Arm_Dumbbell_Row/0.jpg",
+   "/ex/One-Arm_Dumbbell_Row/1.jpg"
+  ],
+  "ingles": "One-Arm Dumbbell Row"
+ },
+ {
+  "id": "Bent_Over_Barbell_Row",
+  "nombre": "Remo con barra inclinado",
+  "grupo": "Espalda",
+  "tipo": "fuerza",
+  "equipo": "Barra",
+  "nivel": "intermedio",
+  "musculos": "Espalda media, dorsales, bíceps",
+  "efecto": "Gran constructor de espalda gruesa y fuerte, pero exige técnica.",
+  "pasos": [
+   "Pies al ancho de hombros, agarra la barra con las manos algo más anchas que los hombros.",
+   "Dobla la cadera hasta que el torso esté a unos 45° con la espalda recta.",
+   "Exhala y jala la barra hacia el abdomen bajo, codos cerca del cuerpo.",
+   "Aprieta la espalda y baja lento hasta estirar los brazos."
+  ],
+  "errores": [
+   "Redondear la espalda.",
+   "Subir y bajar el torso para ayudarte.",
+   "Usar demasiado peso."
+  ],
+  "consejo": "Si la espalda baja se cansa antes que la espalda alta, baja el peso o usa el remo en polea.",
+  "variante": "Más fácil: remo con mancuerna. Más difícil: más peso con técnica estricta.",
+  "imagenes": [
+   "/ex/Bent_Over_Barbell_Row/0.jpg",
+   "/ex/Bent_Over_Barbell_Row/1.jpg"
+  ],
+  "ingles": "Bent Over Barbell Row"
+ },
+ {
+  "id": "Pullups",
+  "nombre": "Dominadas",
+  "grupo": "Espalda",
+  "tipo": "fuerza",
+  "equipo": "Barra fija",
+  "nivel": "intermedio",
+  "musculos": "Dorsales, bíceps, core",
+  "efecto": "Mide y desarrolla fuerza de espalda con peso corporal. Se progresa con ayuda y repeticiones negativas.",
+  "pasos": [
+   "Cuelga de la barra con agarre algo más ancho que los hombros, palmas hacia adelante.",
+   "Activa los hombros hacia abajo y aprieta el abdomen.",
+   "Exhala y sube llevando el pecho hacia la barra, codos hacia abajo.",
+   "Pasa el mentón por encima de la barra.",
+   "Baja lento (3 s) hasta estirar los brazos."
+  ],
+  "errores": [
+   "Balancearte con las piernas.",
+   "Recorrido incompleto.",
+   "Encoger los hombros."
+  ],
+  "consejo": "Si no puedes, haz “negativas” (baja en 4-5 s) o usa la máquina asistida.",
+  "variante": "Más fácil: jalón al pecho o dominadas asistidas. Más difícil: lastre.",
+  "imagenes": [
+   "/ex/Pullups/0.jpg",
+   "/ex/Pullups/1.jpg"
+  ],
+  "ingles": "Pullups"
+ },
+ {
+  "id": "Hyperextensions_Back_Extensions",
+  "nombre": "Extensión lumbar (hiperextensión)",
+  "grupo": "Espalda",
+  "tipo": "fuerza",
+  "equipo": "Banco romano",
+  "nivel": "principiante",
+  "musculos": "Lumbares, glúteos, isquios",
+  "efecto": "Fortalece la zona lumbar y los glúteos, ayuda a prevenir dolor de espalda baja.",
+  "pasos": [
+   "Ajusta el banco para que las caderas queden justo en el borde de la almohadilla.",
+   "Cruza los brazos sobre el pecho y mantén el cuerpo recto.",
+   "Baja el torso con la espalda recta hasta sentir estiramiento en isquios.",
+   "Sube exhalando hasta que el cuerpo quede alineado, sin hiperextender."
+  ],
+  "errores": [
+   "Subir demasiado y arquear la espalda.",
+   "Movimientos bruscos."
+  ],
+  "consejo": "Sube solo hasta la línea recta del cuerpo. Hazlo lento.",
+  "variante": "Más fácil: Superman en el suelo. Más difícil: con disco al pecho.",
+  "imagenes": [
+   "/ex/Hyperextensions_Back_Extensions/0.jpg",
+   "/ex/Hyperextensions_Back_Extensions/1.jpg"
+  ],
+  "ingles": "Hyperextensions (Back Extensions)"
+ },
+ {
+  "id": "Superman",
+  "nombre": "Superman",
+  "grupo": "Espalda",
+  "tipo": "fuerza",
+  "equipo": "Sin equipo",
+  "nivel": "principiante",
+  "musculos": "Lumbares, glúteos, espalda alta",
+  "efecto": "Fortalece lumbar y glúteos sin equipo; muy útil para postura y prevención.",
+  "pasos": [
+   "Acuéstate boca abajo con brazos estirados al frente.",
+   "Eleva a la vez brazos, pecho y piernas del suelo (pocos centímetros).",
+   "Mantén 2-3 s apretando glúteos y espalda.",
+   "Baja con control y repite."
+  ],
+  "errores": [
+   "Levantar el cuello mirando hacia arriba.",
+   "Hacerlo con movimientos bruscos."
+  ],
+  "consejo": "Mantén la mirada al suelo. Respira de forma normal.",
+  "variante": "Más fácil: levantar solo un brazo y la pierna contraria.",
+  "imagenes": [
+   "/ex/Superman/0.jpg",
+   "/ex/Superman/1.jpg"
+  ],
+  "ingles": "Superman"
+ },
+ {
+  "id": "Face_Pull",
+  "nombre": "Face pull (jalón a la cara)",
+  "grupo": "Espalda",
+  "tipo": "fuerza",
+  "equipo": "Polea con cuerda",
+  "nivel": "intermedio",
+  "musculos": "Deltoides posterior, espalda alta, manguito rotador",
+  "efecto": "Mejora la postura y la salud del hombro; compensa el exceso de press.",
+  "pasos": [
+   "Coloca la polea a la altura de la cara y toma la cuerda con las palmas enfrentadas.",
+   "Da un paso atrás con los brazos estirados.",
+   "Jala la cuerda hacia la cara separando las manos, codos altos.",
+   "Aprieta los omóplatos 1 s y vuelve controlado."
+  ],
+  "errores": [
+   "Peso muy alto y jalar con el cuerpo.",
+   "Codos caídos."
+  ],
+  "consejo": "Usa poco peso y repeticiones altas (12-15).",
+  "variante": "Más fácil: menos peso.",
+  "imagenes": [
+   "/ex/Face_Pull/0.jpg",
+   "/ex/Face_Pull/1.jpg"
+  ],
+  "ingles": "Face Pull"
+ },
+ {
+  "id": "Dumbbell_Shoulder_Press",
+  "nombre": "Press de hombros con mancuernas",
+  "grupo": "Hombros",
+  "tipo": "fuerza",
+  "equipo": "Mancuernas",
+  "nivel": "intermedio",
+  "musculos": "Deltoides, tríceps",
+  "efecto": "Desarrolla fuerza y tamaño de hombros.",
+  "pasos": [
+   "Sentado con respaldo, mancuernas a la altura de los hombros con palmas hacia adelante.",
+   "Abdomen firme y espalda apoyada.",
+   "Exhala y empuja hacia arriba hasta casi juntar las mancuernas sin chocarlas.",
+   "Baja lento hasta la altura de las orejas."
+  ],
+  "errores": [
+   "Arquear mucho la espalda.",
+   "Bajar poco el recorrido."
+  ],
+  "consejo": "Si sientes molestia en el hombro, reduce el peso o consulta al entrenador.",
+  "variante": "Más fácil: menos peso. Más difícil: de pie.",
+  "imagenes": [
+   "/ex/Dumbbell_Shoulder_Press/0.jpg",
+   "/ex/Dumbbell_Shoulder_Press/1.jpg"
+  ],
+  "ingles": "Dumbbell Shoulder Press"
+ },
+ {
+  "id": "Side_Lateral_Raise",
+  "nombre": "Elevaciones laterales",
+  "grupo": "Hombros",
+  "tipo": "fuerza",
+  "equipo": "Mancuernas",
+  "nivel": "principiante",
+  "musculos": "Deltoides lateral",
+  "efecto": "Da amplitud al hombro; muy efectivo con peso ligero y control.",
+  "pasos": [
+   "De pie con una mancuerna en cada mano a los lados, codos ligeramente flexionados.",
+   "Exhala y eleva los brazos hacia los lados hasta la altura de los hombros.",
+   "Pausa breve y baja lento en 3 s."
+  ],
+  "errores": [
+   "Subir con impulso del cuerpo.",
+   "Elevar más de la altura de los hombros.",
+   "Encoger hombros."
+  ],
+  "consejo": "Usa poco peso; lo importante es el control.",
+  "variante": "Más fácil: sentado. Más difícil: pausa arriba.",
+  "imagenes": [
+   "/ex/Side_Lateral_Raise/0.jpg",
+   "/ex/Side_Lateral_Raise/1.jpg"
+  ],
+  "ingles": "Side Lateral Raise"
+ },
+ {
+  "id": "Front_Dumbbell_Raise",
+  "nombre": "Elevaciones frontales",
+  "grupo": "Hombros",
+  "tipo": "fuerza",
+  "equipo": "Mancuernas",
+  "nivel": "principiante",
+  "musculos": "Deltoides anterior",
+  "efecto": "Refuerza la parte frontal del hombro.",
+  "pasos": [
+   "De pie con las mancuernas al frente de los muslos.",
+   "Eleva un brazo al frente hasta la altura del hombro, exhalando.",
+   "Baja lento y alterna."
+  ],
+  "errores": [
+   "Balancear el tronco.",
+   "Peso excesivo."
+  ],
+  "consejo": "El deltoides frontal ya trabaja mucho en los press; no abuses.",
+  "variante": "Más fácil: sin peso.",
+  "imagenes": [
+   "/ex/Front_Dumbbell_Raise/0.jpg",
+   "/ex/Front_Dumbbell_Raise/1.jpg"
+  ],
+  "ingles": "Front Dumbbell Raise"
+ },
+ {
+  "id": "Dumbbell_Bicep_Curl",
+  "nombre": "Curl de bíceps con mancuernas",
+  "grupo": "Bíceps",
+  "tipo": "fuerza",
+  "equipo": "Mancuernas",
+  "nivel": "principiante",
+  "musculos": "Bíceps",
+  "efecto": "Aumenta fuerza y tamaño del bíceps.",
+  "pasos": [
+   "De pie con una mancuerna en cada mano, palmas hacia adelante.",
+   "Codos pegados al cuerpo.",
+   "Exhala y dobla los codos subiendo las mancuernas hacia los hombros.",
+   "Aprieta el bíceps 1 s y baja lento en 2-3 s."
+  ],
+  "errores": [
+   "Balancear el cuerpo.",
+   "Adelantar los codos.",
+   "Bajar demasiado rápido."
+  ],
+  "consejo": "Si necesitas balancearte, el peso es muy alto.",
+  "variante": "Más fácil: sentado. Más difícil: alternado con pausa.",
+  "imagenes": [
+   "/ex/Dumbbell_Bicep_Curl/0.jpg",
+   "/ex/Dumbbell_Bicep_Curl/1.jpg"
+  ],
+  "ingles": "Dumbbell Bicep Curl"
+ },
+ {
+  "id": "Barbell_Curl",
+  "nombre": "Curl con barra",
+  "grupo": "Bíceps",
+  "tipo": "fuerza",
+  "equipo": "Barra",
+  "nivel": "principiante",
+  "musculos": "Bíceps",
+  "efecto": "Permite usar más carga para ganar fuerza en bíceps.",
+  "pasos": [
+   "De pie, agarra la barra con las palmas hacia arriba, al ancho de hombros.",
+   "Codos pegados al cuerpo.",
+   "Exhala y sube la barra hasta el pecho.",
+   "Baja lento hasta estirar casi del todo."
+  ],
+  "errores": [
+   "Balancear la espalda.",
+   "Subir los hombros."
+  ],
+  "consejo": "Mantén las muñecas rectas. Puedes usar barra Z si te molestan las muñecas.",
+  "variante": "Más fácil: mancuernas. Más difícil: más peso estricto.",
+  "imagenes": [
+   "/ex/Barbell_Curl/0.jpg",
+   "/ex/Barbell_Curl/1.jpg"
+  ],
+  "ingles": "Barbell Curl"
+ },
+ {
+  "id": "Hammer_Curls",
+  "nombre": "Curl martillo",
+  "grupo": "Bíceps",
+  "tipo": "fuerza",
+  "equipo": "Mancuernas",
+  "nivel": "principiante",
+  "musculos": "Bíceps, braquial, antebrazo",
+  "efecto": "Trabaja braquial y antebrazo, aportando grosor al brazo.",
+  "pasos": [
+   "De pie con las mancuernas a los lados y las palmas enfrentadas.",
+   "Codos pegados al cuerpo.",
+   "Exhala y sube las mancuernas sin girar las muñecas.",
+   "Baja lento."
+  ],
+  "errores": [
+   "Balancear.",
+   "Separar los codos."
+  ],
+  "consejo": "Mantén las muñecas neutras.",
+  "variante": "Más fácil: alterna brazos.",
+  "imagenes": [
+   "/ex/Hammer_Curls/0.jpg",
+   "/ex/Hammer_Curls/1.jpg"
+  ],
+  "ingles": "Hammer Curls"
+ },
+ {
+  "id": "Triceps_Pushdown_-_Rope_Attachment",
+  "nombre": "Extensión de tríceps en polea con cuerda",
+  "grupo": "Tríceps",
+  "tipo": "fuerza",
+  "equipo": "Polea con cuerda",
+  "nivel": "principiante",
+  "musculos": "Tríceps",
+  "efecto": "Aísla el tríceps de forma segura y es excelente para dar volumen al brazo.",
+  "pasos": [
+   "Frente a la polea alta, toma la cuerda con las palmas enfrentadas.",
+   "Codos pegados al cuerpo y ligeramente adelante.",
+   "Exhala y extiende los brazos hacia abajo separando la cuerda al final.",
+   "Aprieta el tríceps 1 s y sube controlado hasta 90° en los codos."
+  ],
+  "errores": [
+   "Mover los codos.",
+   "Inclinar el cuerpo para empujar con el peso."
+  ],
+  "consejo": "Solo se mueve el antebrazo; los codos quedan fijos.",
+  "variante": "Más fácil: menos peso. Más difícil: pausa abajo.",
+  "imagenes": [
+   "/ex/Triceps_Pushdown_-_Rope_Attachment/0.jpg",
+   "/ex/Triceps_Pushdown_-_Rope_Attachment/1.jpg"
+  ],
+  "ingles": "Triceps Pushdown - Rope Attachment"
+ },
+ {
+  "id": "Dips_-_Triceps_Version",
+  "nombre": "Fondos de tríceps",
+  "grupo": "Tríceps",
+  "tipo": "fuerza",
+  "equipo": "Paralelas / banco",
+  "nivel": "intermedio",
+  "musculos": "Tríceps, pecho, hombros",
+  "efecto": "Fuerza del tríceps con peso corporal.",
+  "pasos": [
+   "Apóyate en las paralelas con los brazos estirados y el torso erguido.",
+   "Baja flexionando los codos pegados al cuerpo hasta unos 90°.",
+   "Exhala y empuja hasta estirar los brazos sin bloquear."
+  ],
+  "errores": [
+   "Bajar demasiado (daña el hombro).",
+   "Abrir mucho los codos."
+  ],
+  "consejo": "Si el hombro molesta, usa la máquina asistida o fondos en banco con las piernas dobladas.",
+  "variante": "Más fácil: fondos en banco con rodillas dobladas. Más difícil: con lastre.",
+  "imagenes": [
+   "/ex/Dips_-_Triceps_Version/0.jpg",
+   "/ex/Dips_-_Triceps_Version/1.jpg"
+  ],
+  "ingles": "Dips - Triceps Version"
+ },
+ {
+  "id": "Cable_Rope_Overhead_Triceps_Extension",
+  "nombre": "Extensión de tríceps sobre la cabeza (polea)",
+  "grupo": "Tríceps",
+  "tipo": "fuerza",
+  "equipo": "Polea con cuerda",
+  "nivel": "principiante",
+  "musculos": "Tríceps (cabeza larga)",
+  "efecto": "Estira y trabaja la cabeza larga del tríceps, dando mayor volumen.",
+  "pasos": [
+   "De espaldas a la polea baja, toma la cuerda y llévala sobre la cabeza con los codos hacia adelante.",
+   "Da un paso adelante con un pie y mantén el torso firme.",
+   "Exhala y extiende los brazos hacia adelante y arriba.",
+   "Baja lento hasta sentir el estiramiento."
+  ],
+  "errores": [
+   "Abrir los codos.",
+   "Arquear la espalda."
+  ],
+  "consejo": "Mantén los codos apuntando al frente y el abdomen firme.",
+  "variante": "Más fácil: menos peso.",
+  "imagenes": [
+   "/ex/Cable_Rope_Overhead_Triceps_Extension/0.jpg",
+   "/ex/Cable_Rope_Overhead_Triceps_Extension/1.jpg"
+  ],
+  "ingles": "Cable Rope Overhead Triceps Extension"
+ },
+ {
+  "id": "EZ-Bar_Skullcrusher",
+  "nombre": "Press francés con barra Z",
+  "grupo": "Tríceps",
+  "tipo": "fuerza",
+  "equipo": "Barra Z y banco",
+  "nivel": "intermedio",
+  "musculos": "Tríceps",
+  "efecto": "Gran constructor de masa de tríceps; exige control.",
+  "pasos": [
+   "Acostado en el banco, sostén la barra Z sobre el pecho con brazos estirados.",
+   "Mantén los codos fijos apuntando al techo.",
+   "Inhala y baja la barra hacia la frente doblando solo los codos.",
+   "Exhala y extiende los brazos de nuevo."
+  ],
+  "errores": [
+   "Abrir los codos.",
+   "Bajar muy rápido.",
+   "Peso excesivo."
+  ],
+  "consejo": "Usa peso moderado y, si es posible, un compañero.",
+  "variante": "Más fácil: extensión en polea. Más difícil: más peso controlado.",
+  "imagenes": [
+   "/ex/EZ-Bar_Skullcrusher/0.jpg",
+   "/ex/EZ-Bar_Skullcrusher/1.jpg"
+  ],
+  "ingles": "EZ-Bar Skullcrusher"
+ },
+ {
+  "id": "Plank",
+  "nombre": "Plancha",
+  "grupo": "Core",
+  "tipo": "core",
+  "equipo": "Sin equipo",
+  "nivel": "principiante",
+  "musculos": "Abdomen, core, hombros",
+  "efecto": "Fortalece el core y mejora estabilidad y postura. No quema “grasa abdominal” localizada, pero protege la espalda.",
+  "pasos": [
+   "Apoya los antebrazos en el suelo con los codos bajo los hombros.",
+   "Estira las piernas con las puntas de los pies apoyadas.",
+   "Cuerpo recto de cabeza a talones; aprieta abdomen y glúteos.",
+   "Mira al suelo y respira de forma constante.",
+   "Mantén el tiempo indicado."
+  ],
+  "errores": [
+   "Cadera caída o muy elevada.",
+   "Aguantar la respiración."
+  ],
+  "consejo": "Mejor 3 series de 20-30 s con buena técnica que una larga mal hecha. Apoya las rodillas si hace falta.",
+  "variante": "Más fácil: rodillas apoyadas. Más difícil: elevar un pie.",
+  "imagenes": [
+   "/ex/Plank/0.jpg",
+   "/ex/Plank/1.jpg"
+  ],
+  "ingles": "Plank"
+ },
+ {
+  "id": "Crunches",
+  "nombre": "Abdominales (crunch)",
+  "grupo": "Core",
+  "tipo": "core",
+  "equipo": "Sin equipo",
+  "nivel": "principiante",
+  "musculos": "Recto abdominal",
+  "efecto": "Fortalece el abdomen; para ver el abdomen hay que combinarlo con alimentación y cardio.",
+  "pasos": [
+   "Acuéstate boca arriba con rodillas dobladas y pies en el suelo.",
+   "Manos suaves detrás de la cabeza o cruzadas al pecho.",
+   "Exhala y despega los hombros del suelo contrayendo el abdomen.",
+   "Pausa 1 s arriba y baja lento sin relajar del todo."
+  ],
+  "errores": [
+   "Jalar el cuello con las manos.",
+   "Subir todo el torso con impulso."
+  ],
+  "consejo": "Mira al techo y piensa en acercar el pecho a la cadera.",
+  "variante": "Más fácil: recorrido corto. Más difícil: con pausa o con peso.",
+  "imagenes": [
+   "/ex/Crunches/0.jpg",
+   "/ex/Crunches/1.jpg"
+  ],
+  "ingles": "Crunches"
+ },
+ {
+  "id": "Russian_Twist",
+  "nombre": "Giros rusos",
+  "grupo": "Core",
+  "tipo": "core",
+  "equipo": "Sin equipo / disco",
+  "nivel": "intermedio",
+  "musculos": "Oblicuos, abdomen",
+  "efecto": "Trabaja oblicuos y estabilidad del tronco.",
+  "pasos": [
+   "Siéntate con rodillas dobladas e inclina el torso hacia atrás unos 45° con espalda recta.",
+   "Junta las manos al frente (o sostén un disco).",
+   "Gira el torso hacia un lado y luego al otro, exhalando en cada giro.",
+   "Mantén el abdomen firme."
+  ],
+  "errores": [
+   "Redondear la espalda.",
+   "Mover solo los brazos sin girar el torso."
+  ],
+  "consejo": "Con pies apoyados en el suelo es más fácil y seguro.",
+  "variante": "Más fácil: pies en el suelo. Más difícil: pies elevados con peso.",
+  "imagenes": [
+   "/ex/Russian_Twist/0.jpg",
+   "/ex/Russian_Twist/1.jpg"
+  ],
+  "ingles": "Russian Twist"
+ },
+ {
+  "id": "Dead_Bug",
+  "nombre": "Bicho muerto (dead bug)",
+  "grupo": "Core",
+  "tipo": "core",
+  "equipo": "Sin equipo",
+  "nivel": "principiante",
+  "musculos": "Abdomen profundo, estabilidad",
+  "efecto": "Enseña a estabilizar la zona lumbar y es muy seguro para la espalda.",
+  "pasos": [
+   "Acuéstate boca arriba con brazos hacia el techo y piernas con rodillas a 90°.",
+   "Pega la espalda baja al suelo apretando el abdomen.",
+   "Baja lentamente el brazo derecho y la pierna izquierda sin que la espalda se despegue.",
+   "Vuelve y alterna."
+  ],
+  "errores": [
+   "Arquear la espalda baja.",
+   "Hacerlo rápido."
+  ],
+  "consejo": "Respira con calma; la clave es mantener la espalda pegada al suelo.",
+  "variante": "Más fácil: mover solo las piernas. Más difícil: con pausa.",
+  "imagenes": [
+   "/ex/Dead_Bug/0.jpg",
+   "/ex/Dead_Bug/1.jpg"
+  ],
+  "ingles": "Dead Bug"
+ },
+ {
+  "id": "Hanging_Leg_Raise",
+  "nombre": "Elevación de piernas colgado",
+  "grupo": "Core",
+  "tipo": "core",
+  "equipo": "Barra fija",
+  "nivel": "avanzado",
+  "musculos": "Abdomen inferior, flexores de cadera",
+  "efecto": "Ejercicio avanzado de abdomen y agarre.",
+  "pasos": [
+   "Cuélgate de la barra con agarre firme y hombros activos.",
+   "Aprieta el abdomen y eleva las piernas juntas hasta la altura de la cadera o más.",
+   "Baja lento sin balancearte."
+  ],
+  "errores": [
+   "Balancear el cuerpo.",
+   "Usar solo impulso."
+  ],
+  "consejo": "Si es muy difícil, empieza elevando las rodillas al pecho.",
+  "variante": "Más fácil: elevación de rodillas. Más difícil: piernas rectas hasta la barra.",
+  "imagenes": [
+   "/ex/Hanging_Leg_Raise/0.jpg",
+   "/ex/Hanging_Leg_Raise/1.jpg"
+  ],
+  "ingles": "Hanging Leg Raise"
+ },
+ {
+  "id": "Mountain_Climbers",
+  "nombre": "Escaladores",
+  "grupo": "Core",
+  "tipo": "cardio",
+  "equipo": "Sin equipo",
+  "nivel": "principiante",
+  "musculos": "Core, hombros, piernas",
+  "efecto": "Mezcla de core y cardio, eleva las pulsaciones en poco tiempo.",
+  "pasos": [
+   "Posición de plancha con manos bajo los hombros.",
+   "Lleva una rodilla hacia el pecho.",
+   "Cambia de pierna rápido, como corriendo.",
+   "Mantén la cadera baja y el abdomen firme."
+  ],
+  "errores": [
+   "Cadera muy alta.",
+   "Perder la posición de plancha."
+  ],
+  "consejo": "Empieza lento y sube la velocidad cuando domines la técnica.",
+  "variante": "Más fácil: ritmo lento. Más difícil: ritmo rápido.",
+  "imagenes": [
+   "/ex/Mountain_Climbers/0.jpg",
+   "/ex/Mountain_Climbers/1.jpg"
+  ],
+  "ingles": "Mountain Climbers"
+ },
+ {
+  "id": "Bicycling_Stationary",
+  "nombre": "Bicicleta estática",
+  "grupo": "Cardio",
+  "tipo": "cardio",
+  "equipo": "Máquina",
+  "nivel": "principiante",
+  "musculos": "Piernas, sistema cardiovascular",
+  "efecto": "Mejora resistencia cardiovascular con bajo impacto articular; útil para quemar calorías y para recuperarse.",
+  "pasos": [
+   "Ajusta el asiento para que la rodilla quede casi estirada al pedalear.",
+   "Siéntate con la espalda recta y manos suaves en el manubrio.",
+   "Empieza 3-5 min a ritmo suave de calentamiento.",
+   "Aumenta la resistencia hasta un esfuerzo moderado (puedes hablar entrecortado).",
+   "Termina con 3-5 min suaves para enfriar."
+  ],
+  "errores": [
+   "Asiento muy bajo (carga la rodilla).",
+   "Mucha resistencia con pedaleo lento."
+  ],
+  "consejo": "Entre 20 y 40 min a ritmo moderado es una buena base. Bebe agua.",
+  "variante": "Más fácil: baja resistencia. Más difícil: intervalos 30 s rápido / 60 s suave.",
+  "imagenes": [
+   "/ex/Bicycling_Stationary/0.jpg",
+   "/ex/Bicycling_Stationary/1.jpg"
+  ],
+  "ingles": "Bicycling, Stationary"
+ },
+ {
+  "id": "Running_Treadmill",
+  "nombre": "Trote en cinta",
+  "grupo": "Cardio",
+  "tipo": "cardio",
+  "equipo": "Cinta",
+  "nivel": "principiante",
+  "musculos": "Piernas, sistema cardiovascular",
+  "efecto": "Mejora la resistencia y ayuda a gastar energía.",
+  "pasos": [
+   "Empieza caminando 3-5 min para calentar.",
+   "Aumenta gradualmente la velocidad hasta un trote cómodo.",
+   "Mantén el torso erguido, mirada al frente y pasos suaves.",
+   "Termina con 3-5 min caminando."
+  ],
+  "errores": [
+   "Agarrarte a las barandas.",
+   "Pasos muy largos."
+  ],
+  "consejo": "En altura (Chivay) empieza con menos intensidad y aumenta poco a poco. Hidrátate.",
+  "variante": "Más fácil: caminata rápida con inclinación. Más difícil: intervalos.",
+  "imagenes": [
+   "/ex/Running_Treadmill/0.jpg",
+   "/ex/Running_Treadmill/1.jpg"
+  ],
+  "ingles": "Running, Treadmill"
+ },
+ {
+  "id": "Walking_Treadmill",
+  "nombre": "Caminata en cinta",
+  "grupo": "Cardio",
+  "tipo": "cardio",
+  "equipo": "Cinta",
+  "nivel": "principiante",
+  "musculos": "Piernas, sistema cardiovascular",
+  "efecto": "Cardio de bajo impacto, ideal para principiantes, adultos mayores y días de recuperación.",
+  "pasos": [
+   "Empieza a velocidad baja.",
+   "Aumenta a un ritmo que te haga respirar más rápido pero puedas hablar.",
+   "Si quieres más intensidad, sube la inclinación (3-8%).",
+   "No te agarres de las barandas."
+  ],
+  "errores": [
+   "Apoyarte en las barandas.",
+   "Inclinar el torso hacia adelante."
+  ],
+  "consejo": "Camina 20-40 min, 3-5 veces por semana para ver resultados.",
+  "variante": "Más difícil: más inclinación o intervalos.",
+  "imagenes": [
+   "/ex/Walking_Treadmill/0.jpg",
+   "/ex/Walking_Treadmill/1.jpg"
+  ],
+  "ingles": "Walking, Treadmill"
+ },
+ {
+  "id": "Rope_Jumping",
+  "nombre": "Salto de cuerda",
+  "grupo": "Cardio",
+  "tipo": "cardio",
+  "equipo": "Cuerda",
+  "nivel": "intermedio",
+  "musculos": "Pantorrillas, hombros, sistema cardiovascular",
+  "efecto": "Cardio muy eficiente, mejora coordinación y resistencia.",
+  "pasos": [
+   "Sostén la cuerda con las manos a la altura de la cadera.",
+   "Gira con las muñecas, no con los brazos.",
+   "Salta con ambos pies unos pocos centímetros.",
+   "Aterriza suave sobre la punta de los pies."
+  ],
+  "errores": [
+   "Saltar muy alto.",
+   "Brazos muy abiertos."
+  ],
+  "consejo": "Empieza con 20-30 s y descansa. Usa calzado con amortiguación.",
+  "variante": "Más fácil: saltos sin cuerda. Más difícil: cuerda doble.",
+  "imagenes": [
+   "/ex/Rope_Jumping/0.jpg",
+   "/ex/Rope_Jumping/1.jpg"
+  ],
+  "ingles": "Rope Jumping"
+ },
+ {
+  "id": "Air_Bike",
+  "nombre": "Bicicleta de aire / abdominales bicicleta",
+  "grupo": "Core",
+  "tipo": "core",
+  "equipo": "Sin equipo",
+  "nivel": "principiante",
+  "musculos": "Abdomen, oblicuos",
+  "efecto": "Trabaja abdomen y oblicuos con movimiento continuo.",
+  "pasos": [
+   "Acuéstate boca arriba con las manos suaves detrás de la cabeza.",
+   "Eleva los hombros y lleva un codo hacia la rodilla contraria mientras estiras la otra pierna.",
+   "Alterna lado a lado con control."
+  ],
+  "errores": [
+   "Jalar el cuello.",
+   "Ir demasiado rápido y sin control."
+  ],
+  "consejo": "Mejor lento y controlado que rápido.",
+  "variante": "Más fácil: sin elevar los hombros.",
+  "imagenes": [
+   "/ex/Air_Bike/0.jpg",
+   "/ex/Air_Bike/1.jpg"
+  ],
+  "ingles": "Air Bike"
+ },
+ {
+  "id": "Cat_Stretch",
+  "nombre": "Gato-camello (movilidad de columna)",
+  "grupo": "Movilidad",
+  "tipo": "movilidad",
+  "equipo": "Sin equipo",
+  "nivel": "principiante",
+  "musculos": "Columna, core",
+  "efecto": "Calienta y moviliza la columna, útil antes de entrenar y para aliviar tensión.",
+  "pasos": [
+   "Ponte a cuatro apoyos: manos bajo hombros, rodillas bajo caderas.",
+   "Inhala y arquea la espalda hacia abajo mirando al frente (camello).",
+   "Exhala y redondea la espalda hacia el techo metiendo la cabeza (gato).",
+   "Alterna despacio 8-10 veces."
+  ],
+  "errores": [
+   "Moverse muy rápido.",
+   "Forzar el rango de movimiento."
+  ],
+  "consejo": "Haz el movimiento suave, sin dolor.",
+  "variante": "Más fácil: reducir el rango.",
+  "imagenes": [
+   "/ex/Cat_Stretch/0.jpg",
+   "/ex/Cat_Stretch/1.jpg"
+  ],
+  "ingles": "Cat Stretch"
+ },
+ {
+  "id": "Childs_Pose",
+  "nombre": "Postura del niño",
+  "grupo": "Movilidad",
+  "tipo": "movilidad",
+  "equipo": "Sin equipo",
+  "nivel": "principiante",
+  "musculos": "Espalda baja, glúteos",
+  "efecto": "Estiramiento suave de espalda y cadera, útil para relajarse al terminar.",
+  "pasos": [
+   "Arrodíllate y siéntate sobre los talones.",
+   "Inclina el torso hacia adelante y estira los brazos en el suelo.",
+   "Relaja la frente y respira profundo.",
+   "Mantén 30-60 s."
+  ],
+  "errores": [
+   "Forzar si hay dolor de rodilla."
+  ],
+  "consejo": "Respira profundo y suelta tensión. Puedes poner una toalla bajo las rodillas.",
+  "variante": "Más fácil: apoyar la frente en un cojín.",
+  "imagenes": [
+   "/ex/Childs_Pose/0.jpg",
+   "/ex/Childs_Pose/1.jpg"
+  ],
+  "ingles": "Child's Pose"
+ }
+]

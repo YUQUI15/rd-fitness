@@ -1,0 +1,8 @@
+node_modules/
+storage/backups/
+storage/*.db-journal
+storage/*.db-wal
+storage/*.db-shm
+.env
+.DS_Store
+Thumbs.db

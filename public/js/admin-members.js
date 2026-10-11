@@ -1,0 +1,328 @@
+/* RD Fitness Club - Panel: socios, fichas, altas y renovaciones */
+(function () {
+  const RD = window.RD;
+  const { esc, money } = RD;
+
+  const addMonths = (s, n) => {
+    const [y, m, d] = s.split('-').map(Number); const tm = m - 1 + n;
+    const ty = y + Math.floor(tm / 12), mm = ((tm % 12) + 12) % 12;
+    const last = new Date(Date.UTC(ty, mm + 1, 0)).getUTCDate();
+    return new Date(Date.UTC(ty, mm, Math.min(d, last))).toISOString().slice(0, 10);
+  };
+  RD.previewEnd = (curEnd, plan) => {
+    const today = RD.limaDay();
+    const start = curEnd && curEnd >= today ? RD.addDays(curEnd, 1) : today;
+    const end = plan.days && !plan.months ? RD.addDays(start, plan.days - 1) : RD.addDays(addMonths(start, plan.months), -1);
+    return { start, end };
+  };
+  RD.resizeImage = (file, max = 480) => new Promise((res, rej) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const s = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = () => rej(new Error('No se pudo leer la imagen')); img.src = url;
+  });
+  const badge = m => {
+    if (m.status === 'blocked') return '<span class="badge denied">Bloqueado</span>';
+    if (m.status === 'inactive') return '<span class="badge">De baja</span>';
+    if (m.frozen) return '<span class="badge info">Congelado</span>';
+    if (m.access === 'ok') return '<span class="badge ok">Vigente</span>';
+    if (m.access === 'warn') return '<span class="badge warn">' + esc(m.access_reason) + '</span>';
+    return '<span class="badge denied">' + (m.end_date ? 'Vencido' : 'Sin plan') + '</span>';
+  };
+  const avatar = (m, lg) => `<div class="avatar ${lg ? 'lg' : ''}">${m.photo ? `<img src="${esc(m.photo)}" alt="">` : esc((m.name || '?')[0])}</div>`;
+  const can = (...roles) => roles.includes(RD.user.role);
+
+  // ---------- Lista de socios ----------
+  const FILTERS = [['all', 'Todos'], ['active', 'Activos'], ['expiring', 'Por vencer'], ['expired', 'Vencidos'], ['frozen', 'Congelados'], ['blocked', 'Bloqueados/Baja']];
+  RD.views.members = {
+    async render(view) {
+      let filter = 'all', term = '';
+      view.innerHTML = `
+      <div class="row gap wrap mb">
+        <input id="q" class="grow" placeholder="Buscar por nombre, DNI, celular o código" style="min-width:200px">
+        ${can('admin', 'recepcion') ? '<button class="btn primary" id="new">＋ Nuevo socio</button>' : ''}
+      </div>
+      <div class="chips mb" id="chips">${FILTERS.map(([k, l]) => `<span class="chip ${k === 'all' ? 'on' : ''}" data-f="${k}">${l}</span>`).join('')}</div>
+      <div class="card"><div class="muted small mb" id="cnt"></div><div class="list" id="list"></div></div>`;
+      const list = view.querySelector('#list');
+      async function load() {
+        const d = await RD.api.get(`/members?filter=${filter}&q=${encodeURIComponent(term)}&limit=200`);
+        view.querySelector('#cnt').textContent = `${d.total} socio${d.total === 1 ? '' : 's'}${d.total > 200 ? ' (mostrando 200, usa el buscador)' : ''}`;
+        list.innerHTML = d.members.map(m => `<div class="item click" data-id="${m.id}">${avatar(m)}<div class="grow"><b>${esc(m.name)}</b>
+          <div class="muted small">${esc(m.code)} · DNI ${esc(m.dni || '—')}${m.plan_name ? ' · ' + esc(m.plan_name) : ''}</div></div>
+          <div class="right">${badge(m)}<div class="muted tiny mt2">${m.end_date ? 'vence ' + RD.fmtDate(m.end_date) : ''}</div></div></div>`).join('') || '<div class="empty">No hay socios con ese criterio</div>';
+      }
+      view.querySelector('#q').oninput = RD.debounce(e => { term = e.target.value.trim(); load().catch(err => RD.toast(err.message, 'err')); }, 250);
+      view.querySelector('#chips').onclick = e => {
+        const c = e.target.closest('[data-f]'); if (!c) return; filter = c.dataset.f;
+        view.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === c)); load();
+      };
+      list.onclick = e => { const it = e.target.closest('[data-id]'); if (it) RD.openMember(+it.dataset.id, () => load()); };
+      const nb = view.querySelector('#new'); if (nb) nb.onclick = () => RD.newMemberDialog(() => load());
+      await load();
+    }
+  };
+
+  // ---------- Alta de socio ----------
+  const GOALS = ['Bajar de peso', 'Ganar masa muscular', 'Tonificar', 'Mejorar condición física', 'Salud y bienestar', 'Rendimiento deportivo'];
+  RD.newMemberDialog = async function (onDone) {
+    const plans = (await RD.getPlans()).filter(p => p.active);
+    let photoData = null;
+    const m = RD.openModal('Nuevo socio', `
+    <form id="nf">
+      <div class="row gap2 mb"><label class="avatar lg" id="pbox" style="cursor:pointer">📷</label><div class="grow muted small">Toca para tomar o elegir una foto. Ayuda a validar la identidad en la puerta.<input id="photo" type="file" accept="image/*" capture="user" class="hidden"></div></div>
+      <label class="field"><span>Nombres y apellidos *</span><input name="name" required autocomplete="off"></label>
+      <div class="grid g2 keep"><label class="field"><span>DNI *</span><input name="dni" inputmode="numeric" maxlength="12" required autocomplete="off"></label>
+      <label class="field"><span>Celular (WhatsApp)</span><input name="phone" inputmode="tel" placeholder="9XXXXXXXX" autocomplete="off"></label></div>
+      <div class="grid g2 keep"><label class="field"><span>Fecha de nacimiento</span><input name="birth" type="date"></label>
+      <label class="field"><span>Sexo</span><select name="gender"><option value="">—</option><option>Femenino</option><option>Masculino</option></select></label></div>
+      <div class="grid g2 keep"><label class="field"><span>Objetivo</span><select name="goal"><option value="">—</option>${GOALS.map(g => `<option>${g}</option>`).join('')}</select></label>
+      <label class="field"><span>Nivel</span><select name="level"><option value="principiante">Principiante</option><option value="intermedio">Intermedio</option><option value="avanzado">Avanzado</option></select></label></div>
+      <label class="field"><span>Contacto de emergencia (nombre y teléfono)</span><input name="emergency"></label>
+      <label class="field"><span>Lesiones o condiciones de salud</span><textarea name="health" placeholder="Ninguna / hipertensión / rodilla / etc."></textarea></label>
+      <hr style="border-color:var(--line)">
+      <h3>Plan y pago</h3>
+      <div class="chips mb" id="plans">${plans.map((p, i) => `<span class="chip ${i === 0 ? 'on' : ''}" data-id="${p.id}">${esc(p.name)} · ${money(p.price)}</span>`).join('')}<span class="chip" data-id="">Sin plan (solo registrar)</span></div>
+      <div id="paybox">
+        <div class="grid g2 keep"><label class="field"><span>Monto a cobrar (S/)</span><input name="price" type="number" step="0.5" min="0"></label>
+        <label class="field"><span>Método de pago *</span><select name="method"><option value="efectivo">Efectivo</option><option value="yape">Yape</option><option value="plin">Plin</option><option value="tarjeta">Tarjeta</option><option value="transferencia">Transferencia</option></select></label></div>
+        <label class="field hidden" id="dn"><span>Motivo del descuento</span><input name="discount_note" placeholder="Promoción de inauguración, convenio…"></label>
+        <div class="banner" id="prev"></div>
+      </div>
+      <label class="check"><input type="checkbox" name="consent" required> <span>El socio autoriza el uso de sus datos personales y de salud para la gestión del gimnasio y declara estar apto para realizar actividad física.</span></label>
+      <button class="btn primary block" type="submit">Registrar socio</button>
+    </form>`, { wide: true, sticky: true });
+    const f = m.el.querySelector('#nf');
+    let plan = plans[0] || null;
+    const refresh = () => {
+      m.el.querySelector('#paybox').classList.toggle('hidden', !plan);
+      if (!plan) return;
+      f.price.value = plan.price;
+      const pv = RD.previewEnd(null, plan);
+      m.el.querySelector('#prev').innerHTML = `Plan <b>${esc(plan.name)}</b>: del ${RD.fmtDate(pv.start)} al <b>${RD.fmtDate(pv.end)}</b>`;
+      m.el.querySelector('#dn').classList.add('hidden');
+    };
+    refresh();
+    m.el.querySelector('#plans').onclick = e => {
+      const c = e.target.closest('[data-id]'); if (!c) return;
+      m.el.querySelectorAll('#plans .chip').forEach(x => x.classList.toggle('on', x === c));
+      plan = plans.find(p => String(p.id) === c.dataset.id) || null; refresh();
+    };
+    f.price.oninput = () => { if (plan) m.el.querySelector('#dn').classList.toggle('hidden', +f.price.value >= plan.price); };
+    m.el.querySelector('#pbox').onclick = () => m.el.querySelector('#photo').click();
+    m.el.querySelector('#photo').onchange = async e => {
+      const file = e.target.files[0]; if (!file) return;
+      try { photoData = await RD.resizeImage(file); m.el.querySelector('#pbox').innerHTML = `<img src="${photoData}" alt="">`; } catch (err) { RD.toast(err.message, 'err'); }
+    };
+    f.onsubmit = async e => {
+      e.preventDefault();
+      await RD.busy(f.querySelector('button[type=submit]'), async () => {
+        try {
+          const body = Object.fromEntries(new FormData(f).entries());
+          body.consent = f.consent.checked; body.plan_id = plan ? plan.id : null; if (!plan) { delete body.price; delete body.method; }
+          const r = await RD.api.post('/members', body);
+          if (photoData) { try { await RD.api.post(`/members/${r.member.id}/photo`, { data: photoData }); r.member.photo = (await RD.api.get('/members/' + r.member.id)).member.photo; } catch { RD.toast('Socio creado, pero la foto no se pudo subir', 'warn'); } }
+          m.close(); RD.syncMembers().catch(() => { });
+          onDone && onDone();
+          successDialog(r);
+        } catch (err) {
+          if (err.status === 409 && err.data?.existing) { RD.toast(err.message, 'err', 5000); } else RD.toast(err.message, 'err', 5000);
+        }
+      });
+    };
+  };
+  function successDialog(r) {
+    const mem = r.member;
+    const msg = `¡Bienvenido a ${RD.pub.gym_name || 'RD Fitness Club'}! 💪 Tu código de socio es ${mem.code}. Abre ${location.origin} e ingresa con tu código y tu DNI para ver tu QR de acceso, tus rutinas y tu progreso.`;
+    const wa = RD.waLink(mem.phone, msg);
+    const d = RD.openModal('✅ Socio registrado', `
+      <div class="center"><div class="row" style="justify-content:center;margin-bottom:8px">${avatar(mem, true)}</div>
+      <h2>${esc(mem.name)}</h2><div class="gold" style="font-size:1.6rem;font-weight:800">${esc(mem.code)}</div>
+      ${r.membership ? `<p>Membresía vigente hasta <b>${RD.fmtDate(r.membership.end)}</b></p>` : '<p class="muted">Sin membresía activa todavía.</p>'}</div>
+      <div class="grid mt">
+        <a class="btn primary" target="_blank" href="/admin/cards.html?ids=${mem.id}">🖨 Imprimir tarjeta QR</a>
+        ${wa ? `<a class="btn ok" target="_blank" rel="noopener" href="${wa}">📲 Enviar acceso por WhatsApp</a>` : ''}
+        <button class="btn" id="prof">Ver ficha</button>
+      </div>`);
+    d.el.querySelector('#prof').onclick = () => { d.close(); RD.openMember(mem.id); };
+  }
+
+  // ---------- Renovación ----------
+  RD.renewDialog = async function (memberId, name, onDone) {
+    const [plans, det] = await Promise.all([RD.getPlans(), RD.api.get('/members/' + memberId)]);
+    const act = plans.filter(p => p.active);
+    let plan = act.find(p => p.months === 1) || act[0];
+    const curEnd = det.member.end_date;
+    const m = RD.openModal('Renovar membresía', `
+      <p><b>${esc(name)}</b> ${curEnd ? `<span class="muted">· vence ${RD.fmtDate(curEnd)}</span>` : ''}</p>
+      <div class="chips mb" id="plans">${act.map(p => `<span class="chip ${p === plan ? 'on' : ''}" data-id="${p.id}">${esc(p.name)} · ${money(p.price)}</span>`).join('')}</div>
+      <form id="rf">
+        <div class="grid g2 keep"><label class="field"><span>Monto (S/)</span><input name="price" type="number" step="0.5" min="0" required></label>
+        <label class="field"><span>Método de pago</span><select name="method"><option value="efectivo">Efectivo</option><option value="yape">Yape</option><option value="plin">Plin</option><option value="tarjeta">Tarjeta</option><option value="transferencia">Transferencia</option></select></label></div>
+        <label class="field hidden" id="dn"><span>Motivo del descuento</span><input name="discount_note"></label>
+        <div class="banner" id="prev"></div>
+        <button class="btn primary block">Cobrar y renovar</button>
+      </form>`);
+    const f = m.el.querySelector('#rf');
+    const refresh = () => {
+      f.price.value = plan.price; const pv = RD.previewEnd(curEnd, plan);
+      m.el.querySelector('#prev').innerHTML = `Nuevo período: ${RD.fmtDate(pv.start)} → <b>${RD.fmtDate(pv.end)}</b>`;
+      m.el.querySelector('#dn').classList.add('hidden');
+    };
+    refresh();
+    m.el.querySelector('#plans').onclick = e => {
+      const c = e.target.closest('[data-id]'); if (!c) return;
+      m.el.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === c));
+      plan = act.find(p => String(p.id) === c.dataset.id); refresh();
+    };
+    f.price.oninput = () => m.el.querySelector('#dn').classList.toggle('hidden', +f.price.value >= plan.price);
+    f.onsubmit = async e => {
+      e.preventDefault();
+      await RD.busy(f.querySelector('button'), async () => {
+        try {
+          const r = await RD.api.post(`/members/${memberId}/renew`, { plan_id: plan.id, price: +f.price.value, method: f.method.value, discount_note: f.discount_note.value });
+          m.close(); RD.beep('done'); RD.toast(`Renovado hasta ${RD.fmtDate(r.end)} ✔`);
+          await RD.syncMembers().catch(() => { });
+          onDone && onDone(r);
+        } catch (err) { RD.toast(err.message, 'err', 5000); }
+      });
+    };
+  };
+
+  // ---------- Ficha del socio ----------
+  RD.openMember = async function (id, onChange) {
+    let modal = null;
+    async function draw() {
+      const d = await RD.api.get('/members/' + id);
+      const m = d.member;
+      const html = `
+      <div class="row gap2 mb">${avatar(m, true)}<div class="grow"><h2 style="margin-bottom:.1rem">${esc(m.name)}</h2>
+        <div class="gold" style="font-weight:800">${esc(m.code)}</div><div class="mt2">${badge(m)}</div></div></div>
+      <div class="statusbar ${m.access}">${esc(m.access_reason)}${m.end_date ? ` · vence ${RD.fmtDate(m.end_date)}` : ''}${m.plan_name ? ` · ${esc(m.plan_name)}` : ''}</div>
+      <div class="grid g2 keep mt">
+        <div class="stat"><div class="v">${d.attendance_30}</div><div class="l">Visitas últimos 30 días</div></div>
+        <div class="stat"><div class="v">${d.attendance[0] ? RD.ago(d.attendance.find(a => a.result === 'ok' || a.result === 'warn')?.ts) : 'nunca'}</div><div class="l">Última visita</div></div>
+      </div>
+      <div class="row gap wrap mt" id="acts">
+        ${can('admin', 'recepcion') && m.status !== 'inactive' ? '<button class="btn primary sm" data-a="renew">💳 Renovar</button>' : ''}
+        ${can('admin', 'recepcion') ? `<a class="btn sm" target="_blank" href="/admin/cards.html?ids=${m.id}">🖨 Tarjeta QR</a>` : ''}
+        ${RD.waLink(m.phone, '') ? `<a class="btn sm ok" target="_blank" rel="noopener" href="${RD.waLink(m.phone, 'Hola ' + m.name.split(' ')[0] + ', te escribimos de ' + (RD.pub.gym_name || 'RD Fitness Club') + '. ')}">WhatsApp</a>` : ''}
+        ${can('admin', 'recepcion', 'entrenador') ? '<button class="btn sm" data-a="edit">✏️ Editar</button>' : ''}
+        ${can('admin', 'recepcion', 'entrenador') ? '<button class="btn sm" data-a="routine">🏋️ Asignar rutina</button>' : ''}
+        ${can('admin', 'recepcion') ? '<button class="btn sm" data-a="checkin">Ingreso manual</button>' : ''}
+        ${can('admin', 'recepcion') ? `<button class="btn sm" data-a="freeze">${m.frozen ? '▶ Reanudar membresía' : '❄ Congelar'}</button>` : ''}
+        ${can('admin', 'recepcion') ? '<button class="btn sm" data-a="reissue">♻ Reemitir tarjeta</button>' : ''}
+        ${can('admin', 'recepcion') ? `<button class="btn sm danger" data-a="${m.status === 'blocked' ? 'unblock' : 'block'}">${m.status === 'blocked' ? 'Desbloquear' : 'Bloquear'}</button>` : ''}
+        ${can('admin') ? `<button class="btn sm ghost" data-a="${m.status === 'inactive' ? 'reactivate' : 'inactive'}">${m.status === 'inactive' ? 'Reactivar' : 'Dar de baja'}</button>` : ''}
+      </div>
+      <h3 class="mt">Datos</h3>
+      <div class="small">
+        <div>📱 ${esc(m.phone || '—')} · ✉️ ${esc(m.email || '—')}</div>
+        <div>🪪 DNI ${esc(m.dni || '—')} · 🎂 ${RD.fmtDate(m.birth)} · ${esc(m.gender || '')}</div>
+        <div>🎯 ${esc(m.goal || '—')} · Nivel: ${esc(m.level || '—')}</div>
+        <div>🚑 ${esc(m.emergency || '—')}</div>
+        <div>🩺 ${esc(m.health || 'Sin observaciones')}</div>
+        ${m.block_reason ? `<div class="bad">Motivo de bloqueo/baja: ${esc(m.block_reason)}</div>` : ''}
+        <div class="muted">Socio desde ${RD.fmtDate(m.created_at)}</div>
+      </div>
+      <h3 class="mt">Rutinas asignadas</h3>
+      <div class="list">${d.routines.map(r => `<div class="item"><div class="grow"><b>${esc(r.name)}</b><div class="muted tiny">desde ${RD.fmtDate(r.assigned_at)}</div></div>${can('admin', 'entrenador') ? `<button class="btn sm ghost" data-unassign="${r.assignment_id}">Quitar</button>` : ''}</div>`).join('') || '<div class="muted small">Sin rutina asignada</div>'}</div>
+      ${can('admin', 'recepcion') ? `<h3 class="mt">Pagos</h3>
+      <div class="tbl-wrap"><table><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Método</th></tr>${d.payments.map(p => `<tr style="${p.voided ? 'opacity:.4;text-decoration:line-through' : ''}"><td>${RD.fmtDate(p.day)}</td><td>${esc(p.concept)}</td><td>${money(p.amount)}</td><td>${esc(p.method)}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">Sin pagos</td></tr>'}</table></div>` : ''}
+      <h3 class="mt">Membresías</h3>
+      <div class="tbl-wrap"><table><tr><th>Plan</th><th>Desde</th><th>Hasta</th><th>Precio</th></tr>${d.memberships.map(s => `<tr style="${s.status !== 'active' ? 'opacity:.4' : ''}"><td>${esc(s.plan_name)}</td><td>${RD.fmtDate(s.start_date)}</td><td>${RD.fmtDate(s.end_date)}</td><td>${money(s.price)}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">—</td></tr>'}</table></div>
+      <h3 class="mt">Medidas y progreso</h3>
+      <form class="grid g4" id="mf" style="align-items:end">
+        <label class="field"><span>Peso kg</span><input name="weight" type="number" step="0.1"></label>
+        <label class="field"><span>Cintura cm</span><input name="waist" type="number" step="0.1"></label>
+        <label class="field"><span>Pecho cm</span><input name="chest" type="number" step="0.1"></label>
+        <button class="btn sm" style="margin-bottom:.8rem">Guardar</button></form>
+      <div class="tbl-wrap"><table><tr><th>Fecha</th><th>Peso</th><th>Cintura</th><th>Pecho</th></tr>${d.measurements.map(x => `<tr><td>${RD.fmtDate(x.day)}</td><td>${x.weight ?? '—'}</td><td>${x.waist ?? '—'}</td><td>${x.chest ?? '—'}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">Sin medidas</td></tr>'}</table></div>
+      <h3 class="mt">Asistencia reciente</h3>
+      <div class="list small">${d.attendance.slice(0, 12).map(a => `<div class="item"><span class="badge ${a.result === 'ok' ? 'ok' : a.result === 'warn' ? 'warn' : 'denied'}">${a.result === 'ok' || a.result === 'warn' ? 'Entró' : 'Rechazado'}</span><div class="grow">${RD.fmtDateTime(a.ts)}<div class="muted tiny">${esc(a.reason || '')}${a.kind === 'M' ? ' · manual' : ''}</div></div></div>`).join('') || '<div class="muted">Sin asistencias</div>'}</div>`;
+      if (!modal) modal = RD.openModal('Ficha del socio', html, { wide: true, onClose: () => onChange && onChange() });
+      else modal.el.innerHTML = html;
+      wire(m);
+    }
+    function wire(m) {
+      const el = modal.el, redraw = () => draw().catch(e => RD.toast(e.message, 'err'));
+      el.querySelector('#acts').onclick = async e => {
+        const a = e.target.closest('[data-a]')?.dataset.a; if (!a) return;
+        try {
+          if (a === 'renew') RD.renewDialog(id, m.name, redraw);
+          else if (a === 'edit') editDialog(m, redraw);
+          else if (a === 'routine') assignRoutineDialog(id, redraw);
+          else if (a === 'checkin') {
+            if (await RD.confirm('Ingreso manual', `¿Registrar ingreso de ${m.name} sin QR?`, 'Registrar')) {
+              const r = await RD.api.post(`/members/${id}/checkin`); RD.toast(r.access === 'denied' ? '❌ ' + r.reason : '✔ Ingreso registrado: ' + r.reason, r.access === 'denied' ? 'err' : 'ok'); redraw();
+            }
+          } else if (a === 'freeze') {
+            if (await RD.confirm(m.frozen ? 'Reanudar' : 'Congelar', m.frozen ? 'Se reanudará la membresía y se sumarán a su vencimiento los días que estuvo congelada.' : 'Mientras esté congelada no podrá ingresar. Al reanudar se extiende su vencimiento por los días congelados.', 'Aceptar')) {
+              const r = await RD.api.post(`/members/${id}/freeze`, { action: m.frozen ? 'end' : 'start' });
+              RD.toast(m.frozen ? `Reanudada: +${r.days_added} días` : 'Membresía congelada'); await RD.syncMembers().catch(() => { }); redraw();
+            }
+          } else if (a === 'reissue') {
+            if (await RD.confirm('Reemitir tarjeta', 'La tarjeta física anterior dejará de funcionar. Luego imprime la nueva. El QR digital de la app no cambia.', 'Anular y reemitir', true)) {
+              await RD.api.post(`/members/${id}/reissue-card`); await RD.syncMembers().catch(() => { });
+              RD.toast('Tarjeta anterior anulada'); window.open('/admin/cards.html?ids=' + id, '_blank'); redraw();
+            }
+          } else if (a === 'block' || a === 'inactive') {
+            const reason = await RD.prompt(a === 'block' ? 'Bloquear socio' : 'Dar de baja', 'Motivo', 'Ej. conducta, deuda, retiro voluntario');
+            if (reason) { await RD.api.post(`/members/${id}/status`, { status: a === 'block' ? 'blocked' : 'inactive', reason }); await RD.syncMembers().catch(() => { }); redraw(); }
+          } else if (a === 'unblock' || a === 'reactivate') {
+            await RD.api.post(`/members/${id}/status`, { status: 'active' }); await RD.syncMembers().catch(() => { }); redraw();
+          }
+        } catch (err) { RD.toast(err.message, 'err', 5000); }
+      };
+      el.querySelectorAll('[data-unassign]').forEach(b => b.onclick = async () => { await RD.api.del('/assignments/' + b.dataset.unassign); redraw(); });
+      el.querySelector('#mf').onsubmit = async e => {
+        e.preventDefault(); const f = e.target;
+        if (!f.weight.value && !f.waist.value && !f.chest.value) return RD.toast('Ingresa al menos un dato', 'warn');
+        try { await RD.api.post(`/members/${id}/measurements`, { weight: f.weight.value || null, waist: f.waist.value || null, chest: f.chest.value || null }); RD.toast('Medidas guardadas'); redraw(); } catch (err) { RD.toast(err.message, 'err'); }
+      };
+    }
+    try { await draw(); } catch (e) { RD.toast(e.message, 'err'); }
+  };
+
+  function editDialog(m, done) {
+    const full = m;
+    const d = RD.openModal('Editar socio', `<form id="ef">
+      <div class="row gap2 mb"><label class="avatar lg" id="pbox" style="cursor:pointer">${full.photo ? `<img src="${esc(full.photo)}" alt="">` : '📷'}</label><div class="grow muted small">Cambiar foto<input id="photo" type="file" accept="image/*" capture="user" class="hidden"></div></div>
+      <label class="field"><span>Nombre</span><input name="name" value="${esc(full.name)}" required ${can('entrenador') ? 'disabled' : ''}></label>
+      <div class="grid g2 keep"><label class="field"><span>DNI</span><input name="dni" value="${esc(full.dni || '')}" ${can('entrenador') ? 'disabled' : ''}></label>
+      <label class="field"><span>Celular</span><input name="phone" value="${esc(full.phone || '')}" ${can('entrenador') ? 'disabled' : ''}></label></div>
+      <div class="grid g2 keep"><label class="field"><span>Nacimiento</span><input name="birth" type="date" value="${esc(full.birth || '')}" ${can('entrenador') ? 'disabled' : ''}></label>
+      <label class="field"><span>Nivel</span><select name="level">${['principiante', 'intermedio', 'avanzado'].map(l => `<option ${l === full.level ? 'selected' : ''}>${l}</option>`).join('')}</select></label></div>
+      <label class="field"><span>Objetivo</span><input name="goal" value="${esc(full.goal || '')}"></label>
+      <label class="field"><span>Emergencia</span><input name="emergency" value="${esc(full.emergency || '')}" ${can('entrenador') ? 'disabled' : ''}></label>
+      <label class="field"><span>Salud / lesiones</span><textarea name="health">${esc(full.health || '')}</textarea></label>
+      <button class="btn primary block">Guardar cambios</button></form>`);
+    const f = d.el.querySelector('#ef'); let photo = null;
+    d.el.querySelector('#pbox').onclick = () => d.el.querySelector('#photo').click();
+    d.el.querySelector('#photo').onchange = async e => { const file = e.target.files[0]; if (!file) return; photo = await RD.resizeImage(file); d.el.querySelector('#pbox').innerHTML = `<img src="${photo}" alt="">`; };
+    f.onsubmit = async e => {
+      e.preventDefault();
+      await RD.busy(f.querySelector('button'), async () => {
+        try {
+          const body = {}; for (const [k, v] of new FormData(f).entries()) body[k] = v;
+          await RD.api.put('/members/' + full.id, body);
+          if (photo && can('admin', 'recepcion')) await RD.api.post(`/members/${full.id}/photo`, { data: photo });
+          d.close(); RD.toast('Datos guardados'); RD.syncMembers().catch(() => { }); done();
+        } catch (err) { RD.toast(err.message, 'err'); }
+      });
+    };
+  }
+
+  async function assignRoutineDialog(memberId, done) {
+    const routines = await RD.api.get('/routines');
+    const d = RD.openModal('Asignar rutina', `<p class="muted small">La rutina aparecerá en la app del socio. Reemplaza la anterior asignada.</p>
+      <div class="list">${routines.map(r => `<div class="item click" data-id="${r.id}"><div class="grow"><b>${esc(r.name)}</b><div class="muted small">${esc(r.goal || '')} · ${r.days} día(s) · ${esc(r.level || '')}</div></div><button class="btn sm primary">Asignar</button></div>`).join('')}</div>`);
+    d.el.onclick = async e => {
+      const it = e.target.closest('[data-id]'); if (!it) return;
+      try { await RD.api.post(`/routines/${it.dataset.id}/assign`, { member_ids: [memberId], replace: true }); RD.toast('Rutina asignada ✔'); d.close(); done(); } catch (err) { RD.toast(err.message, 'err'); }
+    };
+  }
+})();
