@@ -256,6 +256,87 @@
     }
   };
 
+  RD.shiftTicketModal = (data) => {
+    const s = data.shift || {};
+    const t = data.totals || {};
+    const settings = data.settings || {};
+    const diff = Number(s.diff_cash ?? data.diff_cash ?? 0);
+    let diffLabel = '✔ CUADRADO EXACTO (S/ 0.00)';
+    let diffClass = 'ok';
+    if (diff > 0) {
+      diffLabel = `🟢 SOBRANTE EN CAJA: +${RD.money(diff)}`;
+      diffClass = 'ok';
+    } else if (diff < 0) {
+      diffLabel = `🔴 FALTANTE EN CAJA: -${RD.money(Math.abs(diff))}`;
+      diffClass = 'bad';
+    }
+
+    const modal = RD.openModal('🧾 Acta de Cierre de Turno', `
+      <div class="receipt-wrap" id="rprint">
+        <div class="receipt-ticket">
+          <div class="r-center r-bold" style="font-size:1.15rem">${RD.esc(settings.gym_name || 'RD FITNESS CLUB')}</div>
+          <div class="r-center r-small muted">${RD.esc(settings.gym_slogan || 'Disciplina · Constancia · Resultados')}</div>
+          <div class="r-center r-small">${RD.esc(settings.gym_address || 'Calle Antonio José de Sucre Lt. 10, Chivay')}</div>
+          <div class="r-center r-small">RUC: ${RD.esc(settings.gym_ruc || '10702548911')} · Cel: ${RD.esc(settings.gym_phone || '982404043')}</div>
+          <div class="r-line">================================</div>
+          <div class="r-center r-bold" style="font-size:1.05rem">ACTA DE CIERRE DE TURNO</div>
+          <div class="r-center r-small r-bold">ARQUEO DE CAJA FÍSICA Y DIGITAL</div>
+          <div class="r-line">--------------------------------</div>
+          <div class="r-row"><span class="r-bold">TURNO:</span> <span>#${s.id} - ${RD.esc(s.shift_name || 'General')}</span></div>
+          <div class="r-row"><span>CAJERO(A):</span> <span class="r-bold">${RD.esc(s.user_name || 'Personal')}</span></div>
+          <div class="r-row"><span>FECHA:</span> <span>${s.day}</span></div>
+          <div class="r-row"><span>APERTURA:</span> <span>${RD.fmtDateTime(s.opened_at)}</span></div>
+          <div class="r-row"><span>CIERRE:</span> <span>${RD.fmtDateTime(s.closed_at || new Date().toISOString())}</span></div>
+          <div class="r-line">================================</div>
+          <div class="r-center r-small r-bold">1. MOVIMIENTO DE EFECTIVO (CAJÓN)</div>
+          <div class="r-line">--------------------------------</div>
+          <div class="r-row"><span>(+) Fondo inicial (Vuelto):</span> <span>${RD.money(s.initial_cash || 0)}</span></div>
+          <div class="r-row"><span>(+) Cobros Gym (Efectivo):</span> <span>${RD.money(t.gymCash || 0)}</span></div>
+          <div class="r-row"><span>(+) Cobros Tienda (Efectivo):</span> <span>${RD.money(t.storeCash || 0)}</span></div>
+          <div class="r-row"><span>(-) Gastos en Efectivo:</span> <span class="bad">-${RD.money(t.cashExpenses || 0)}</span></div>
+          <div class="r-line">--------------------------------</div>
+          <div class="r-row r-bold" style="font-size:1.05rem">
+            <span>EFECTIVO ESPERADO:</span>
+            <span>${RD.money(s.expected_cash || t.expectedCashInDrawer || 0)}</span>
+          </div>
+          <div class="r-row r-bold" style="font-size:1.05rem">
+            <span>EFECTIVO CONTADO:</span>
+            <span style="color:#2563eb">${RD.money(s.actual_cash || 0)}</span>
+          </div>
+          <div class="r-line">--------------------------------</div>
+          <div class="r-center r-bold ${diffClass}" style="font-size:1rem;padding:4px 0">${diffLabel}</div>
+          <div class="r-line">================================</div>
+          <div class="r-center r-small r-bold">2. COBROS DIGITALES (VERIFICAR EN APPS)</div>
+          <div class="r-line">--------------------------------</div>
+          <div class="r-row"><span>🟣 Yape:</span> <span>${RD.money(t.digitalBreakdown?.yape || 0)}</span></div>
+          <div class="r-row"><span>🔵 Plin:</span> <span>${RD.money(t.digitalBreakdown?.plin || 0)}</span></div>
+          <div class="r-row"><span>💳 Tarjeta / Transferencia:</span> <span>${RD.money((t.digitalBreakdown?.card || 0) + (t.digitalBreakdown?.transfer || 0))}</span></div>
+          <div class="r-line">--------------------------------</div>
+          <div class="r-row r-bold"><span>TOTAL DIGITAL ESPERADO:</span> <span>${RD.money(s.expected_digital || t.expectedDigital || 0)}</span></div>
+          <div class="r-line">================================</div>
+          <div class="r-row"><span>TOTAL INGRESOS TURNO:</span> <span class="r-bold">${RD.money(t.totalIncome || 0)}</span></div>
+          <div class="r-row"><span>N° OPERACIONES:</span> <span>${t.paymentsCount || 0} cobros</span></div>
+          ${s.notes ? `
+          <div class="r-line">--------------------------------</div>
+          <div class="r-small"><b>OBSERVACIONES:</b> ${RD.esc(s.notes)}</div>
+          ` : ''}
+          <div class="r-line">================================</div>
+          <br><br>
+          <div class="r-center" style="font-size:.75rem">_____________________________<br>FIRMA DEL CAJERO(A)<br>${RD.esc(s.user_name || '')}</div>
+          <br><br>
+          <div class="r-center" style="font-size:.75rem">_____________________________<br>CONFORMIDAD ADMINISTRACIÓN<br>RD FITNESS CLUB</div>
+        </div>
+      </div>
+      <div class="row end gap mt no-print">
+        <button class="btn primary" id="btnprintshift">🖨️ Imprimir Acta / Ticket</button>
+      </div>
+    `, { wide: false });
+
+    modal.el.querySelector('#btnprintshift').onclick = () => {
+      window.print();
+    };
+  };
+
   RD.registerSW = () => { if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => { }); };
   RD.GROUP_ICON = { Piernas: '🦵', Glúteos: '🍑', Pecho: '💪', Espalda: '🧗', Hombros: '🏋️', Bíceps: '💪', Tríceps: '💪', Core: '🔥', Cardio: '🏃', Movilidad: '🧘', Otros: '⭐' };
 })();

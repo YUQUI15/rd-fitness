@@ -425,7 +425,38 @@
         const yapeList = cash.payments.filter(p => p.method === 'yape' || p.method === 'plin');
         const dailyPassesToday = cash.dailyPasses || [];
 
+        const actShift = cash.active_shift;
+        const actTotals = cash.active_shift_totals;
+
         view.innerHTML = `
+        <!-- WIDGET DE TURNO DE CAJA -->
+        <div class="card mb shift-banner" style="background:linear-gradient(135deg, #1e293b, #0f172a); border-left:4px solid ${actShift ? '#4ade80' : '#f59e0b'};">
+          <div class="row between wrap gap">
+            <div>
+              <span class="badge ${actShift ? 'ok' : 'warn'}">${actShift ? '🟢 Turno Activo' : '⚠️ Sin Turno Abierto'}</span>
+              <h3 style="margin:.3rem 0;color:#fff">${actShift ? esc(actShift.shift_name) : 'No hay un turno de caja abierto'}</h3>
+              ${actShift ? `
+                <div class="small muted">
+                  Cajero(a): <b style="color:#fff">${esc(actShift.user_name)}</b> · Abierto: <b>${RD.fmtTime(actShift.opened_at)}</b> · Fondo inicial (vuelto): <b style="color:#f5b400">${money(actShift.initial_cash)}</b>
+                </div>
+                <div class="row gap wrap mt2 small">
+                  <span style="color:#4ade80">💵 Efectivo esperado en gaveta: <b>${money(actTotals?.expectedCashInDrawer || 0)}</b></span>
+                  <span style="color:#a78bfa">📱 Cobros Digitales (Yape/Plin): <b>${money(actTotals?.expectedDigital || 0)}</b></span>
+                </div>
+              ` : `
+                <p class="small muted" style="margin:.2rem 0">Abre un turno antes de cobrar para registrar tu fondo de sencillo (vuelto) y auditar tu arqueo.</p>
+              `}
+            </div>
+            <div class="row gap">
+              ${actShift ? `
+                <button class="btn sm danger" id="closeshiftbtn">🔒 Cerrar Turno / Arqueo</button>
+              ` : `
+                <button class="btn sm ok" id="openshiftbtn">🔓 Abrir Turno de Caja</button>
+              `}
+            </div>
+          </div>
+        </div>
+
         <div class="row between wrap gap mb">
           <div class="row gap">
             <label class="small muted">Fecha de caja: <input type="date" id="cday" value="${day}" style="min-height:36px;width:auto"></label>
@@ -438,27 +469,43 @@
           </div>
         </div>
 
+        <!-- TARJETAS DE ARQUEO SEPARADAS: GIMNASIO VS TIENDITA -->
         <div class="grid g4 mb">
           <div class="stat gold">
             <div class="v">${money(cash.income)}</div>
-            <div class="l">Ingresos totales del día</div>
+            <div class="l">Total Ingresos del Día</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:#f5b400">${money(cash.gym_income || 0)}</div>
+            <div class="l">🏋️ Ingresos Gimnasio (Membresías + Pases)</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:#60a5fa">${money(cash.store_income || 0)}</div>
+            <div class="l">🛒 Ventas Tiendita (Aguas / Bebidas)</div>
           </div>
           <div class="stat">
             <div class="v" style="color:#4ade80">${money(cash.cash_in_drawer)}</div>
             <div class="l">💵 Efectivo físico en gaveta</div>
           </div>
+        </div>
+
+        <div class="grid g3 mb">
           <div class="stat">
             <div class="v" style="color:#a78bfa">${money((cash.byMethod.yape || 0) + (cash.byMethod.plin || 0))}</div>
             <div class="l">📱 Yape / Plin (${cash.yape_summary?.count || 0} op · ${cash.yape_summary?.verified_count || 0} verificadas)</div>
           </div>
           <div class="stat">
-            <div class="v">${money(cash.net)}</div>
+            <div class="v" style="color:#f87171">-${money(cash.expense)}</div>
+            <div class="l">💸 Gastos Totales del Día</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:${cash.net >= 0 ? '#4ade80' : '#f87171'}">${money(cash.net)}</div>
             <div class="l">Utilidad Neta (Ingresos - Gastos)</div>
           </div>
         </div>
 
         <div class="card mb">
-          <h3>Resumen de Arqueo de Caja</h3>
+          <h3>Resumen de Arqueo de Caja del Día</h3>
           <div class="grid g4 mt2">
             <div class="small">💵 Efectivo cobrado: <b>${money(cash.byMethod.efectivo || 0)}</b></div>
             <div class="small">💸 Gastos en efectivo: <b class="bad">-${money(cash.expenses.filter(e => e.method === 'efectivo').reduce((a, e) => a + e.amount, 0))}</b></div>
@@ -594,6 +641,12 @@
 
         // Botón gasto
         view.querySelector('#expbtn').onclick = () => addExpenseModal(load);
+
+        // Botones de turno
+        const openBtn = view.querySelector('#openshiftbtn');
+        if (openBtn) openBtn.onclick = () => openShiftModal(load);
+        const closeBtn = view.querySelector('#closeshiftbtn');
+        if (closeBtn) closeBtn.onclick = () => closeShiftModal(actShift, actTotals, load);
 
         // Acciones sobre pagos (Ver comprobante, verificar cotejo, anular)
         view.onclick = async e => {
@@ -744,14 +797,20 @@
   function addExpenseModal(onDone) {
     const d = RD.openModal('Registrar Gasto de Caja', `
       <form id="expf">
-        <label class="field"><span>Concepto del gasto *</span><input name="concept" required placeholder="Ej. Compra de agua para recepción, limpieza, pasajes"></label>
-        <div class="grid g2 keep">
+        <label class="field"><span>Concepto del gasto *</span><input name="concept" required placeholder="Ej. Compra de pack de agua para tienda, limpieza gym, mantenimiento máquinas"></label>
+        <div class="grid g3 keep">
           <label class="field"><span>Monto (S/) *</span><input name="amount" type="number" step="0.5" min="0.5" required placeholder="0.00"></label>
+          <label class="field"><span>Canal Contable *</span>
+            <select name="category">
+              <option value="gym">🏋️ Gimnasio (Operativo)</option>
+              <option value="store">🛒 Tiendita (Mercadería / Stock)</option>
+            </select>
+          </label>
           <label class="field"><span>Método</span>
             <select name="method">
-              <option value="efectivo">Efectivo de caja</option>
-              <option value="yape">Yape</option>
-              <option value="transferencia">Transferencia</option>
+              <option value="efectivo">💵 Efectivo de gaveta</option>
+              <option value="yape">🟣 Yape</option>
+              <option value="transferencia">🏦 Transferencia</option>
             </select>
           </label>
         </div>
@@ -765,6 +824,7 @@
         await RD.api.post('/expenses', {
           concept: f.concept.value.trim(),
           amount: +f.amount.value,
+          category: f.category.value,
           method: f.method.value
         });
         RD.toast('Gasto registrado ✔');
@@ -776,6 +836,186 @@
     };
   }
 
+  function openShiftModal(onDone) {
+    const d = RD.openModal('🔓 Apertura de Turno de Caja', `
+      <form id="shiftopenf">
+        <label class="field">
+          <span>Nombre del Turno *</span>
+          <select name="shift_name" required>
+            <option value="Turno Mañana (6:00 am - 2:00 pm)">Turno Mañana (6:00 am - 2:00 pm)</option>
+            <option value="Turno Tarde / Noche (2:00 pm - 9:00 pm)">Turno Tarde / Noche (2:00 pm - 9:00 pm)</option>
+            <option value="Turno Completo (6:00 am - 9:00 pm)">Turno Completo (6:00 am - 9:00 pm)</option>
+            <option value="Turno Fin de Semana">Turno Fin de Semana</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Fondo Inicial de Efectivo (S/ para dar vuelto en gaveta) *</span>
+          <input name="initial_cash" type="number" step="0.5" min="0" value="50.00" required placeholder="50.00" style="font-size:1.15rem;font-weight:700">
+        </label>
+        <label class="field">
+          <span>Notas u Observaciones iniciales</span>
+          <textarea name="notes" rows="2" placeholder="Ej. Se reciben 50 soles en sencillo: monedas de 1, 2 y billetes de 10..."></textarea>
+        </label>
+        <div class="tip small mt mb">
+          <b>Control de Arqueo:</b> Este dinero inicial no cuenta como ganancia; es la base para asegurar que al cerrar el turno el efectivo físico coincida sin faltantes ni confusiones.
+        </div>
+        <button class="btn ok block">✔ Iniciar y Abrir Turno</button>
+      </form>
+    `);
+    const f = d.el.querySelector('#shiftopenf');
+    f.onsubmit = async e => {
+      e.preventDefault();
+      try {
+        await RD.api.post('/shifts/open', {
+          shift_name: f.shift_name.value.trim(),
+          initial_cash: +f.initial_cash.value,
+          notes: f.notes.value.trim()
+        });
+        RD.toast('Turno de caja abierto correctamente ✔');
+        d.close();
+        onDone && onDone();
+      } catch (err) {
+        RD.toast(err.message, 'err');
+      }
+    };
+  }
+
+  function closeShiftModal(activeShift, shiftTotals, onDone) {
+    const expCash = shiftTotals?.expectedCashInDrawer || 0;
+    const expDig = shiftTotals?.expectedDigital || 0;
+
+    const d = RD.openModal('🔒 Cierre de Turno y Arqueo de Caja', `
+      <form id="shiftclosef">
+        <div class="card mb" style="background:#0f172a;border:1px solid #334155">
+          <div class="row between">
+            <span class="badge ok">Turno #${activeShift.id}</span>
+            <span class="small muted">${activeShift.day}</span>
+          </div>
+          <h4 style="margin:.3rem 0;color:#fff">${esc(activeShift.shift_name)}</h4>
+          <div class="small muted">Atendido por: <b style="color:#fff">${esc(activeShift.user_name)}</b></div>
+        </div>
+
+        <div class="grid g2 keep mb">
+          <div class="stat">
+            <div class="v" style="font-size:1.3rem;color:#4ade80">${money(expCash)}</div>
+            <div class="l">💵 Efectivo esperado en gaveta</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="font-size:1.3rem;color:#a78bfa">${money(expDig)}</div>
+            <div class="l">📱 Digital esperado (Yape/Plin)</div>
+          </div>
+        </div>
+
+        <div class="card mb small">
+          <div class="row between"><span>Fondo inicial (vuelto):</span> <b>${money(activeShift.initial_cash)}</b></div>
+          <div class="row between"><span>(+) Cobros Gym en efectivo:</span> <b>+${money(shiftTotals?.gymCash || 0)}</b></div>
+          <div class="row between"><span>(+) Cobros Tienda en efectivo:</span> <b>+${money(shiftTotals?.storeCash || 0)}</b></div>
+          <div class="row between"><span>(-) Gastos en efectivo:</span> <b class="bad">-${money(shiftTotals?.cashExpenses || 0)}</b></div>
+        </div>
+
+        <label class="field">
+          <span>Efectivo Físico Contado en Gaveta (Billetes + Monedas) *</span>
+          <input name="actual_cash" id="inpactual" type="number" step="0.10" min="0" required placeholder="0.00" style="font-size:1.3rem;font-weight:700">
+        </label>
+
+        <div id="diffpreview" class="p-2 mb" style="border-radius:6px;font-weight:700;text-align:center;background:#1e293b;padding:10px;margin:8px 0">
+          Ingresa el dinero físico para verificar si la caja cuadra
+        </div>
+
+        <label class="field">
+          <span>Observaciones / Justificación de discrepancias</span>
+          <textarea name="notes" rows="2" placeholder="Ej. Todo cuadrado / Faltó S/ 1 por falta de cambio de 10 céntimos..."></textarea>
+        </label>
+
+        <button class="btn danger block mt">🔒 Guardar Cierre y Emitir Acta</button>
+      </form>
+    `);
+
+    const f = d.el.querySelector('#shiftclosef');
+    const inp = d.el.querySelector('#inpactual');
+    const prev = d.el.querySelector('#diffpreview');
+
+    inp.oninput = () => {
+      const val = parseFloat(inp.value) || 0;
+      const diff = +(val - expCash).toFixed(2);
+      if (Math.abs(diff) < 0.05) {
+        prev.style.color = '#4ade80';
+        prev.style.background = '#064e3b';
+        prev.innerHTML = '✔ ¡CAJA CUADRADA EXACTA! (Diferencia S/ 0.00)';
+      } else if (diff > 0) {
+        prev.style.color = '#60a5fa';
+        prev.style.background = '#1e3a8a';
+        prev.innerHTML = `🟢 SOBRANTE EN CAJA: +${money(diff)}`;
+      } else {
+        prev.style.color = '#f87171';
+        prev.style.background = '#7f1d1d';
+        prev.innerHTML = `🔴 FALTANTE EN CAJA: -${money(Math.abs(diff))}`;
+      }
+    };
+
+    f.onsubmit = async e => {
+      e.preventDefault();
+      try {
+        const res = await RD.api.post('/shifts/close', {
+          shift_id: activeShift.id,
+          actual_cash: +inp.value,
+          notes: f.notes.value.trim()
+        });
+        RD.toast('Turno cerrado correctamente ✔');
+        d.close();
+        onDone && onDone();
+        try {
+          const full = await RD.api.get(`/shifts/${activeShift.id}`);
+          RD.shiftTicketModal(full);
+        } catch (err) {}
+      } catch (err) {
+        RD.toast(err.message, 'err');
+      }
+    };
+  }
+
+  function googleSheetsSyncModal() {
+    const origin = window.location.origin;
+    const key = 'RD-CHIVAY-2026';
+    const formUrl = `${origin}/api/reports/live-feed.csv?type=consolidated&key=${key}`;
+    const formula = `=IMPORTDATA("${formUrl}")`;
+
+    const d = RD.openModal('📊 Sincronización en Vivo con Google Sheets', `
+      <p class="small muted">
+        Puedes vincular tu hoja de cálculo de <b>Google Sheets</b> para que se actualice <b>automáticamente y en tiempo real</b> cada vez que abras tu Google Drive, sin copiar ni exportar a mano.
+      </p>
+
+      <div class="card mt mb" style="background:#0f172a">
+        <label class="small muted"><b>Fórmula para pegar en la celda A1 de Google Sheets:</b></label>
+        <div class="row gap mt2">
+          <input type="text" id="gsformula" value='${formula}' readonly style="font-family:monospace;font-size:.85rem;background:#1e293b;color:#4ade80">
+          <button class="btn primary sm" id="btncopy">📋 Copiar Fórmula</button>
+        </div>
+      </div>
+
+      <div class="tip small mb">
+        <b>¿Cómo vincularlo en 3 sencillos pasos?</b><br>
+        1. Abre una nueva hoja en <a href="https://sheets.new" target="_blank" rel="noopener">Google Sheets</a>.<br>
+        2. Haz clic en la celda <b>A1</b>.<br>
+        3. Pega la fórmula copiada y presiona <b>Enter</b>.<br>
+        <i>¡Listo! Todas las fechas, ingresos del gimnasio, ventas de la tiendita y utilidad neta se cargarán automáticamente.</i>
+      </div>
+
+      <div class="row between wrap gap">
+        <a class="btn ghost sm" href="${origin}/api/reports/live-feed.csv?type=gym&key=${key}" target="_blank">📥 Feed Caja Gimnasio (CSV)</a>
+        <a class="btn ghost sm" href="${origin}/api/reports/live-feed.csv?type=store&key=${key}" target="_blank">📥 Feed Ventas Tienda (CSV)</a>
+        <a class="btn ghost sm" href="${origin}/api/reports/live-feed.csv?type=shifts&key=${key}" target="_blank">📥 Feed Historial Turnos (CSV)</a>
+      </div>
+    `);
+
+    d.el.querySelector('#btncopy').onclick = () => {
+      const inp = d.el.querySelector('#gsformula');
+      inp.select();
+      navigator.clipboard.writeText(inp.value);
+      RD.toast('¡Fórmula copiada al portapapeles! Pégala en la celda A1 de tu Google Sheets.');
+    };
+  }
+
   // ============================================================
   // 3. REPORTES Y ANÁLISIS
   // ============================================================
@@ -783,58 +1023,220 @@
     async render(view) {
       const today = RD.limaDay();
       let to = today, from = RD.addDays(today, -29);
+      let channel = 'consolidated'; // 'consolidated' | 'gym' | 'store' | 'shifts'
 
       async function load() {
-        const d = await RD.api.get(`/reports?from=${from}&to=${to}`);
-        const maxH = Math.max(1, ...d.peak.map(x => x.n));
-        const hoursMap = Object.fromEntries(d.peak.map(x => [x.hour, x.n]));
-        const hoursAll = Array.from({ length: 16 }, (_, i) => i + 6); // 6am a 21pm
+        const d = await RD.api.get(`/reports?from=${from}&to=${to}&scope=${channel}`);
+        const settings = await RD.api.get('/settings').catch(() => ({}));
 
         view.innerHTML = `
+        <!-- NAVEGACIÓN DE CANALES SEPARADOS -->
         <div class="row between wrap gap mb">
+          <div class="chips" id="reptabs">
+            <span class="chip ${channel === 'consolidated' ? 'on' : ''}" data-ch="consolidated">📊 Consolidado General</span>
+            <span class="chip ${channel === 'gym' ? 'on' : ''}" data-ch="gym">🏋️ Caja Gimnasio</span>
+            <span class="chip ${channel === 'store' ? 'on' : ''}" data-ch="store">🛒 Tiendita y POS</span>
+            <span class="chip ${channel === 'shifts' ? 'on' : ''}" data-ch="shifts">🕒 Historial de Turnos</span>
+          </div>
+
+          <div class="row gap wrap no-print">
+            <a class="btn sm ok" id="btnexcel" href="/api/reports/export/excel?from=${from}&to=${to}" download>📥 Descargar Excel (.xls con fórmulas)</a>
+            <button class="btn sm primary" id="btnprint">🖨️ Imprimir / Guardar PDF</button>
+            <button class="btn sm ghost" id="btngsheets">📊 Conectar Google Sheets</button>
+          </div>
+        </div>
+
+        <!-- FILTROS DE FECHAS -->
+        <div class="row between wrap gap mb no-print">
           <div class="row gap wrap">
             <label class="small muted">Desde: <input type="date" id="rf" value="${from}" style="min-height:36px;width:auto"></label>
             <label class="small muted">Hasta: <input type="date" id="rt" value="${to}" style="min-height:36px;width:auto"></label>
             <button class="btn sm" id="apply">Filtrar</button>
           </div>
-          <div class="chips">
-            <span class="chip" data-r="7">Últimos 7 días</span>
-            <span class="chip on" data-r="30">Últimos 30 días</span>
-            <span class="chip" data-r="90">Últimos 3 meses</span>
+          <div class="chips" id="quickchips">
+            <span class="chip" data-r="1">Hoy</span>
+            <span class="chip" data-r="7">7 días</span>
+            <span class="chip on" data-r="30">30 días</span>
+            <span class="chip" data-r="90">3 meses</span>
           </div>
         </div>
 
+        <!-- MEMBRETE OFICIAL PARA IMPRESIÓN (Visible al imprimir) -->
+        <div class="print-header mb">
+          <h2>${esc(settings.gym_name || 'RD FITNESS CLUB')} - CHIVAY</h2>
+          <p class="small muted">RUC: ${esc(settings.gym_ruc || '10702548911')} · ${esc(settings.gym_address || 'Calle Antonio José de Sucre Lt. 10, Chivay')} · Tel: ${esc(settings.gym_phone || '982404043')}</p>
+          <h3>REPORTE: ${channel === 'consolidated' ? 'CONSOLIDADO GENERAL EJECUTIVO' : channel === 'gym' ? 'INGRESOS EXCLUSIVOS DEL GIMNASIO' : channel === 'store' ? 'VENTAS DE TIENDITA Y POS' : 'HISTORIAL Y AUDITORÍA DE TURNOS'}</h3>
+          <p class="small"><b>Período:</b> ${from} al ${to} · <b>Generado el:</b> ${new Date().toLocaleString('es-PE')}</p>
+          <hr class="mt mb">
+        </div>
+
+        <div id="repcontent"></div>`;
+
+        const repcontent = view.querySelector('#repcontent');
+        if (channel === 'consolidated') renderConsolidated(repcontent, d);
+        else if (channel === 'gym') renderGym(repcontent, d);
+        else if (channel === 'store') renderStore(repcontent, d);
+        else if (channel === 'shifts') renderShifts(repcontent, d);
+
+        // Handlers de pestañas
+        view.querySelector('#reptabs').onclick = e => {
+          const ch = e.target.closest('[data-ch]')?.dataset.ch;
+          if (ch && ch !== channel) {
+            channel = ch;
+            load();
+          }
+        };
+
+        // Handlers de fechas
+        view.querySelector('#apply').onclick = () => {
+          from = view.querySelector('#rf').value;
+          to = view.querySelector('#rt').value;
+          load();
+        };
+
+        view.querySelector('#quickchips').onclick = e => {
+          const c = e.target.closest('[data-r]');
+          if (!c) return;
+          const days = +c.dataset.r;
+          to = RD.limaDay();
+          from = RD.addDays(to, -days + 1);
+          view.querySelectorAll('#quickchips .chip').forEach(x => x.classList.toggle('on', x === c));
+          load();
+        };
+
+        // Handlers de botones de exportación
+        view.querySelector('#btnprint').onclick = () => window.print();
+        view.querySelector('#btngsheets').onclick = () => googleSheetsSyncModal();
+      }
+
+      // ---------------- 1. CANAL CONSOLIDADO GENERAL ----------------
+      function renderConsolidated(el, d) {
+        const c = d.consolidated || {};
+        const maxDay = Math.max(1, ...(c.dailyComparison || []).map(x => x.total));
+
+        el.innerHTML = `
         <div class="grid g4 mb">
-          <div class="stat gold"><div class="v">${money(d.totalIncome)}</div><div class="l">Ingresos del período</div></div>
-          <div class="stat"><div class="v">-${money(d.expenses)}</div><div class="l">Gastos del período</div></div>
-          <div class="stat"><div class="v">${money(d.net)}</div><div class="l">Utilidad Neta</div></div>
-          <div class="stat"><div class="v">${d.newMembers}</div><div class="l">Socios Nuevos</div></div>
+          <div class="stat gold">
+            <div class="v">${money(c.totalIncome || 0)}</div>
+            <div class="l">Total Ingresos Consolidados</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:#f5b400">${money(c.totalGymIncome || 0)}</div>
+            <div class="l">🏋️ Ingresos Gimnasio (Membresías + Pases)</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:#60a5fa">${money(c.totalStoreIncome || 0)}</div>
+            <div class="l">🛒 Ventas Tiendita (Aguas, Bebidas)</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:${(c.netProfit || 0) >= 0 ? '#4ade80' : '#f87171'}">${money(c.netProfit || 0)}</div>
+            <div class="l">Utilidad Neta (Ingresos - Gastos)</div>
+          </div>
+        </div>
+
         <div class="card mb">
-          <h3>📊 Desglose de Ingresos por Categoría</h3>
+          <div class="row between wrap gap">
+            <div>
+              <h3>Resumen de Arqueo Global del Período</h3>
+              <p class="muted small">Separación estricta entre efectivo físico en caja y dinero digital en cuentas bancarias.</p>
+            </div>
+            <span class="badge ok">Balance Auditado</span>
+          </div>
           <div class="grid g4 mt2">
-            <div class="stat">
-              <div class="v" style="font-size:1.35rem">${money(d.catIncome?.memberships || 0)}</div>
-              <div class="l">🏋️ Membresías de Socios</div>
-            </div>
-            <div class="stat">
-              <div class="v" style="font-size:1.35rem;color:#f5b400">${money(d.catIncome?.daily_passes || 0)}</div>
-              <div class="l">🎟️ Pases Diarios (Visitantes)</div>
-            </div>
-            <div class="stat">
-              <div class="v" style="font-size:1.35rem;color:#60a5fa">${money(d.catIncome?.store || 0)}</div>
-              <div class="l">🛒 Ventas Tienda (Bebidas/Supl.)</div>
-            </div>
-            <div class="stat">
-              <div class="v" style="font-size:1.35rem">${money(d.catIncome?.others || 0)}</div>
-              <div class="l">📄 Otros Conceptos</div>
-            </div>
+            <div class="small">💵 Efectivo neto en gaveta: <b style="color:#4ade80">${money(c.cashInDrawer || 0)}</b></div>
+            <div class="small">📱 Dinero digital (Yape/Plin): <b style="color:#a78bfa">${money(c.digitalTotal || 0)}</b></div>
+            <div class="small">💸 Gastos operativos totales: <b class="bad">-${money(c.totalExpense || 0)}</b></div>
+            <div class="small">🕒 Turnos auditados: <b>${(c.shifts || []).length} turnos</b></div>
+          </div>
+        </div>
+
+        <!-- GRÁFICO COMPARATIVO DÍA POR DÍA -->
+        <div class="card mb">
+          <h3>📈 Comparativa Diaria: Gimnasio vs Tiendita</h3>
+          <p class="muted small mb">Evolución de recaudación por día durante el período seleccionado.</p>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Gimnasio (S/)</th>
+                  <th>Tiendita (S/)</th>
+                  <th>Ingreso Total (S/)</th>
+                  <th>Gastos (S/)</th>
+                  <th>Utilidad Neta (S/)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(c.dailyComparison || []).map(row => `
+                <tr>
+                  <td><b>${row.day}</b></td>
+                  <td style="color:#f5b400;font-weight:700">${money(row.gym)}</td>
+                  <td style="color:#60a5fa;font-weight:700">${money(row.store)}</td>
+                  <td style="font-weight:700">${money(row.total)}</td>
+                  <td class="bad">${row.expense > 0 ? '-' + money(row.expense) : 'S/ 0'}</td>
+                  <td style="font-weight:700;color:${row.net >= 0 ? '#4ade80' : '#f87171'}">${money(row.net)}</td>
+                </tr>`).join('') || '<tr><td colspan="6" class="empty">Sin movimientos en este período</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+      }
+
+      // ---------------- 2. CANAL CAJA GIMNASIO ----------------
+      function renderGym(el, d) {
+        const g = d.gym || {};
+        const hoursAll = Array.from({ length: 16 }, (_, i) => i + 6);
+        const hoursMap = Object.fromEntries((d.peak || []).map(x => [x.hour, x.n]));
+        const maxH = Math.max(1, ...(d.peak || []).map(x => x.n));
+
+        el.innerHTML = `
+        <div class="grid g4 mb">
+          <div class="stat gold">
+            <div class="v">${money(g.income || 0)}</div>
+            <div class="l">Total Recaudado Gimnasio</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:#f5b400">${(g.dailyPasses || []).length} pases</div>
+            <div class="l">🎟️ Pases Diarios (S/ 5.00)</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:#4ade80">${d.newMembers || 0} nuevos</div>
+            <div class="l">👥 Socios Nuevos Inscritos</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:#60a5fa">${d.renewals || 0} renovados</div>
+            <div class="l">🔄 Renovaciones de Socios</div>
           </div>
         </div>
 
         <div class="grid g2 mb">
+          <!-- VENTAS POR PLAN -->
           <div class="card">
-            <h3>⏰ Horas Pico del Gimnasio (Asistencias)</h3>
-            <p class="muted small mb">Muestra a qué hora asisten más personas para gestionar el aforo y la atención.</p>
+            <h3>Membresías por Plan Vendido</h3>
+            <div class="tbl-wrap mt">
+              <table>
+                <thead><tr><th>Plan</th><th>Ventas</th><th>Total Recaudado</th></tr></thead>
+                <tbody>
+                  ${(g.byPlan || []).map(p => `
+                  <tr>
+                    <td><b>${esc(p.plan_name)}</b></td>
+                    <td>${p.n} membresías</td>
+                    <td class="gold" style="font-weight:700">${money(p.total)}</td>
+                  </tr>`).join('') || '<tr><td colspan="3" class="empty">Sin membresías vendidas</td></tr>'}
+                  <tr style="background:rgba(245,180,0,.08)">
+                    <td><b>🎟️ Pase Diario (S/ 5.00)</b></td>
+                    <td>${(g.dailyPasses || []).length} pases</td>
+                    <td class="gold" style="font-weight:700">${money((g.dailyPasses || []).reduce((a, b) => a + b.price, 0))}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- HORAS PICO DE ENTRENAMIENTO -->
+          <div class="card">
+            <h3>⏰ Horas Pico de Entrenamiento (Asistencias)</h3>
+            <p class="muted small mb">Afluencia de personas en el salón de máquinas de Chivay.</p>
             <div class="bars" style="height:140px">
               ${hoursAll.map(h => {
                 const count = hoursMap[h] || 0;
@@ -843,69 +1245,236 @@
             </div>
             <div class="bars-l">${hoursAll.map(h => `<span>${h}h</span>`).join('')}</div>
           </div>
-
-          <div class="card">
-            <h3>Membresías por Plan Vendido</h3>
-            <div class="tbl-wrap">
-              <table>
-                <thead><tr><th>Plan</th><th>Ventas</th><th>Total Recaudado</th></tr></thead>
-                <tbody>
-                  ${d.byPlan.map(p => `
-                  <tr>
-                    <td><b>${esc(p.plan_name)}</b></td>
-                    <td>${p.n} membresías</td>
-                    <td class="gold" style="font-weight:700">${money(p.total)}</td>
-                  </tr>`).join('') || '<tr><td colspan="3" class="empty">Sin membresías vendidas</td></tr>'}
-                </tbody>
-              </table>
-            </div>
-          </div>
         </div>
 
-        <div class="grid g2">
-          <div class="card">
-            <h3>Ingresos por Método de Pago</h3>
-            <div class="list">
-              ${d.byMethod.map(m => `
-              <div class="item">
-                <span class="badge ${m.method === 'yape' ? 'warn' : m.method === 'plin' ? 'info' : 'ok'}">${esc(m.method)}</span>
-                <span class="grow">${m.n} transacciones</span>
-                <b>${money(m.total)}</b>
-              </div>`).join('') || '<div class="empty">Sin transacciones</div>'}
-            </div>
-          </div>
-
-          <div class="card">
-            <h3>Retención y Renovaciones</h3>
-            <div class="list">
-              <div class="item">
-                <span class="grow">Socios nuevos en el período:</span>
-                <b>${d.newMembers}</b>
-              </div>
-              <div class="item">
-                <span class="grow">Renovaciones de socios antiguos:</span>
-                <b class="ok">${d.renewals}</b>
-              </div>
-              <div class="item">
-                <span class="grow">Membresías vencidas sin renovar:</span>
-                <b class="bad">${d.expiredPeriod}</b>
-              </div>
-            </div>
+        <!-- DETALLE DE PAGOS DEL GIMNASIO -->
+        <div class="card mb">
+          <h3>Detalle de Cobros del Gimnasio (${(g.payments || []).length} registros)</h3>
+          <div class="tbl-wrap mt">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Boleta</th>
+                  <th>Socio / Visitante</th>
+                  <th>Concepto</th>
+                  <th>Método</th>
+                  <th>Monto</th>
+                  <th class="no-print"></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(g.payments || []).map(p => `
+                <tr>
+                  <td class="small muted">${p.day} ${p.created_at ? p.created_at.slice(11, 16) : ''}</td>
+                  <td class="small muted" style="font-family:monospace">${esc(p.receipt_no || ('REC-' + p.id))}</td>
+                  <td><b>${esc(p.member_name || p.dp_name || 'Visitante')}</b> ${p.member_code ? `<span class="badge">${esc(p.member_code)}</span>` : ''}</td>
+                  <td class="small">${esc(p.concept)}</td>
+                  <td><span class="badge ${p.method === 'yape' ? 'warn' : p.method === 'plin' ? 'info' : 'ok'}">${esc(p.method)}</span></td>
+                  <td style="font-weight:700;color:#f5b400">${money(p.amount)}</td>
+                  <td class="no-print"><button class="icon-btn" data-receipt="${p.id}" title="Ver e Imprimir Boleta">🧾</button></td>
+                </tr>`).join('') || '<tr><td colspan="7" class="empty">Sin cobros de membresías o pases</td></tr>'}
+              </tbody>
+            </table>
           </div>
         </div>`;
 
-        view.querySelector('#apply').onclick = () => {
-          from = view.querySelector('#rf').value;
-          to = view.querySelector('#rt').value;
-          load();
-        };
+        attachReceiptButtons(el);
+      }
 
-        view.querySelectorAll('[data-r]').forEach(c => c.onclick = () => {
-          const days = +c.dataset.r;
-          to = RD.limaDay();
-          from = RD.addDays(to, -days + 1);
-          view.querySelectorAll('[data-r]').forEach(x => x.classList.toggle('on', x === c));
-          load();
+      // ---------------- 3. CANAL TIENDITA Y POS ----------------
+      function renderStore(el, d) {
+        const s = d.store || {};
+        const prods = s.productStats || [];
+        const lowStock = s.lowStock || [];
+        const totalUnits = prods.reduce((a, b) => a + (b.sold_qty || 0), 0);
+
+        el.innerHTML = `
+        <div class="grid g3 mb">
+          <div class="stat gold">
+            <div class="v">${money(s.income || 0)}</div>
+            <div class="l">Total Ventas Tiendita</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:#60a5fa">${totalUnits} unidades</div>
+            <div class="l">🛒 Productos Vendidos en el Período</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:${lowStock.length ? '#f87171' : '#4ade80'}">${lowStock.length} productos</div>
+            <div class="l">⚠️ Alerta de Stock Bajo (Reabastecer)</div>
+          </div>
+        </div>
+
+        <!-- CONTROL DE INVENTARIO Y STOCK -->
+        <div class="card mb">
+          <h3>📦 Control de Inventario y Ventas por Producto</h3>
+          <p class="muted small mb">Seguimiento de existencias de aguas, bebidas hidratantes y suplementos.</p>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Categoría</th>
+                  <th>Precio Venta</th>
+                  <th>Stock Actual</th>
+                  <th>Stock Mínimo</th>
+                  <th>Unidades Vendidas</th>
+                  <th>Total Recaudado</th>
+                  <th class="no-print">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${prods.map(p => `
+                <tr class="${p.stock <= p.min_stock ? 'row-warn' : ''}">
+                  <td><b>${esc(p.name)}</b> ${p.barcode ? `<div class="tiny muted">BC: ${esc(p.barcode)}</div>` : ''}</td>
+                  <td><span class="badge">${esc(p.category)}</span></td>
+                  <td>${money(p.price)}</td>
+                  <td>
+                    <b style="color:${p.stock <= p.min_stock ? '#f87171' : '#4ade80'}">${p.stock} un.</b>
+                    ${p.stock <= p.min_stock ? '<span class="badge warn tiny">¡Bajo!</span>' : ''}
+                  </td>
+                  <td class="muted">${p.min_stock} un.</td>
+                  <td style="font-weight:700">${p.sold_qty || 0} un.</td>
+                  <td style="font-weight:700;color:#60a5fa">${money(p.sold_total || 0)}</td>
+                  <td class="no-print">
+                    <button class="btn sm" data-addstock="${p.id}" data-pname="${esc(p.name)}">＋ Stock</button>
+                  </td>
+                </tr>`).join('') || '<tr><td colspan="8" class="empty">Sin productos registrados</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- DETALLE DE VENTAS DE TIENDA -->
+        <div class="card mb">
+          <h3>Tickets de Venta de Tienda (${(s.payments || []).length} ventas)</h3>
+          <div class="tbl-wrap mt">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Boleta</th>
+                  <th>Detalle / Producto</th>
+                  <th>Método</th>
+                  <th>Monto</th>
+                  <th class="no-print"></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(s.payments || []).map(p => `
+                <tr>
+                  <td class="small muted">${p.day} ${p.created_at ? p.created_at.slice(11, 16) : ''}</td>
+                  <td class="small muted" style="font-family:monospace">${esc(p.receipt_no || ('TICK-' + p.id))}</td>
+                  <td><b>${esc(p.concept)}</b></td>
+                  <td><span class="badge ${p.method === 'yape' ? 'warn' : p.method === 'plin' ? 'info' : 'ok'}">${esc(p.method)}</span></td>
+                  <td style="font-weight:700;color:#60a5fa">${money(p.amount)}</td>
+                  <td class="no-print"><button class="icon-btn" data-receipt="${p.id}" title="Ver e Imprimir Ticket">🧾</button></td>
+                </tr>`).join('') || '<tr><td colspan="6" class="empty">Sin ventas de tienda en este período</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+
+        attachReceiptButtons(el);
+
+        // Handler sumar stock rápido
+        el.querySelectorAll('[data-addstock]').forEach(btn => {
+          btn.onclick = async () => {
+            const pid = btn.dataset.addstock;
+            const pname = btn.dataset.pname;
+            const qty = await RD.prompt(`Sumar Stock: ${pname}`, 'Cantidad de unidades que ingresaron', '12');
+            if (qty && parseInt(qty, 10) > 0) {
+              await RD.api.post(`/products/${pid}/stock`, { qty: parseInt(qty, 10), note: 'Ingreso rápido desde reporte' });
+              RD.toast('Stock actualizado ✔');
+              load();
+            }
+          };
+        });
+      }
+
+      // ---------------- 4. CANAL HISTORIAL DE TURNOS ----------------
+      function renderShifts(el, d) {
+        const shifts = d.consolidated?.shifts || [];
+
+        el.innerHTML = `
+        <div class="card mb">
+          <div class="row between wrap gap">
+            <div>
+              <h3>🕒 Historial de Turnos y Auditoría de Arqueos (${shifts.length} turnos)</h3>
+              <p class="muted small">Control riguroso por turno y cajero. Cada cierre registra la diferencia física (sobrante o faltante).</p>
+            </div>
+            <span class="badge ok">Arqueo Seguro</span>
+          </div>
+
+          <div class="tbl-wrap mt">
+            <table>
+              <thead>
+                <tr>
+                  <th>N° Turno</th>
+                  <th>Cajero(a)</th>
+                  <th>Turno</th>
+                  <th>Fecha</th>
+                  <th>Apertura</th>
+                  <th>Cierre</th>
+                  <th>Fondo Inicial</th>
+                  <th>Efectivo Esperado</th>
+                  <th>Efectivo Contado</th>
+                  <th>Diferencia</th>
+                  <th>Digital Esperado</th>
+                  <th>Estado</th>
+                  <th class="no-print">Acta</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${shifts.map(s => {
+                  const diff = Number(s.diff_cash || 0);
+                  const diffBadge = diff === 0 ? '<span class="badge ok">S/ 0.00 Cuadrado</span>' : (diff > 0 ? `<span class="badge info">+${money(diff)} Sobrante</span>` : `<span class="badge warn">-${money(Math.abs(diff))} Faltante</span>`);
+                  return `
+                  <tr>
+                    <td><b>#${s.id}</b></td>
+                    <td><b>${esc(s.user_name || s.user_id)}</b></td>
+                    <td class="small">${esc(s.shift_name || 'General')}</td>
+                    <td>${s.day}</td>
+                    <td class="small muted">${s.opened_at ? RD.fmtTime(s.opened_at) : '—'}</td>
+                    <td class="small muted">${s.closed_at ? RD.fmtTime(s.closed_at) : '—'}</td>
+                    <td style="color:#f5b400">${money(s.initial_cash || 0)}</td>
+                    <td style="font-weight:700">${money(s.expected_cash || 0)}</td>
+                    <td style="font-weight:700;color:#2563eb">${money(s.actual_cash || 0)}</td>
+                    <td>${diffBadge}</td>
+                    <td style="color:#a78bfa">${money(s.expected_digital || 0)}</td>
+                    <td><span class="badge ${s.status === 'open' ? 'ok' : 'ghost'}">${s.status === 'open' ? '🟢 Abierto' : '🔒 Cerrado'}</span></td>
+                    <td class="no-print">
+                      <button class="btn sm" data-viewshift="${s.id}">🧾 Acta</button>
+                    </td>
+                  </tr>`;
+                }).join('') || '<tr><td colspan="13" class="empty">No hay turnos registrados en este período</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+
+        // Handler ver acta de turno
+        el.querySelectorAll('[data-viewshift]').forEach(btn => {
+          btn.onclick = async () => {
+            const sid = btn.dataset.viewshift;
+            try {
+              const full = await RD.api.get(`/shifts/${sid}`);
+              RD.shiftTicketModal(full);
+            } catch (err) {
+              RD.toast(err.message, 'err');
+            }
+          };
+        });
+      }
+
+      function attachReceiptButtons(container) {
+        container.querySelectorAll('[data-receipt]').forEach(btn => {
+          btn.onclick = async () => {
+            try {
+              const receipt = await RD.api.get(`/payments/${btn.dataset.receipt}/receipt`);
+              RD.receiptModal(receipt);
+            } catch (err) { RD.toast(err.message, 'err'); }
+          };
         });
       }
 

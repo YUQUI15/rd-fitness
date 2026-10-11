@@ -113,6 +113,25 @@ CREATE TABLE IF NOT EXISTS daily_passes (
 );
 CREATE INDEX IF NOT EXISTS idx_dp_day ON daily_passes(day);
 CREATE INDEX IF NOT EXISTS idx_dp_code ON daily_passes(code);
+CREATE TABLE IF NOT EXISTS cash_shifts (
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  user_name TEXT,
+  shift_name TEXT DEFAULT 'Turno General',
+  day TEXT NOT NULL,
+  opened_at TEXT NOT NULL,
+  closed_at TEXT,
+  initial_cash REAL NOT NULL DEFAULT 0,
+  expected_cash REAL DEFAULT 0,
+  actual_cash REAL DEFAULT 0,
+  diff_cash REAL DEFAULT 0,
+  expected_digital REAL DEFAULT 0,
+  status TEXT DEFAULT 'open',
+  notes TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_shifts_user ON cash_shifts(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_shifts_day ON cash_shifts(day);
 CREATE TABLE IF NOT EXISTS audit (
   id INTEGER PRIMARY KEY, user_id INTEGER, action TEXT, detail TEXT, ts TEXT DEFAULT CURRENT_TIMESTAMP
 );
@@ -131,10 +150,22 @@ function ensureColumns() {
   addCol('payments', 'receipt_no', 'TEXT');
   addCol('payments', 'daily_pass_id', 'INTEGER');
   addCol('payments', 'verified', 'INTEGER DEFAULT 0');
+  addCol('payments', 'shift_id', 'INTEGER');
+  addCol('payments', 'category', 'TEXT');
+
+  addCol('expenses', 'shift_id', 'INTEGER');
+  addCol('expenses', 'category', 'TEXT DEFAULT "gym"');
 
   addCol('products', 'barcode', 'TEXT');
   addCol('products', 'category', 'TEXT DEFAULT "general"');
   addCol('products', 'min_stock', 'INTEGER DEFAULT 5');
+
+  // Asignar categorías iniciales para pagos existentes
+  try {
+    q.run("UPDATE payments SET category='gym' WHERE category IS NULL AND (membership_id IS NOT NULL OR daily_pass_id IS NOT NULL)");
+    q.run("UPDATE payments SET category='store' WHERE category IS NULL AND concept LIKE 'Venta:%'");
+    q.run("UPDATE payments SET category='gym' WHERE category IS NULL");
+  } catch (e) { }
 }
 ensureColumns();
 
@@ -153,7 +184,8 @@ const DEFAULT_SETTINGS = {
   stay_min: '120',       // minutos que se considera a alguien "dentro" del gimnasio
   opening: 'Lun a Sáb 6:00 a 21:00',
   color: '#f5b400',
-  printer_width: '58mm'
+  printer_width: '58mm',
+  google_sheets_key: 'RD-CHIVAY-2026'
 };
 for (const [k, v] of Object.entries(DEFAULT_SETTINGS)) {
   q.run('INSERT OR IGNORE INTO settings(key,value) VALUES(?,?)', k, v);
@@ -292,4 +324,68 @@ function backup() {
   return f;
 }
 
-module.exports = { db, q, DATA_DIR, getSettings, numSettings, backup, seedExercises, nextReceiptNo, dailyPassCode };
+// ---------- Gestión de Turnos de Caja ----------
+function getActiveShift(userId) {
+  if (userId) {
+    const s = q.get("SELECT * FROM cash_shifts WHERE user_id=? AND status='open' ORDER BY id DESC LIMIT 1", userId);
+    if (s) return s;
+  }
+  return q.get("SELECT * FROM cash_shifts WHERE status='open' ORDER BY id DESC LIMIT 1") || null;
+}
+
+function computeShiftTotals(shiftId) {
+  const shift = q.get('SELECT * FROM cash_shifts WHERE id=?', shiftId);
+  if (!shift) return null;
+  const pays = q.all('SELECT * FROM payments WHERE shift_id=? AND voided=0', shiftId);
+  const exps = q.all('SELECT * FROM expenses WHERE shift_id=? AND voided=0', shiftId);
+
+  let gymCash = 0, storeCash = 0, otherCash = 0;
+  let yape = 0, plin = 0, card = 0, transfer = 0;
+
+  pays.forEach(p => {
+    const isStore = p.category === 'store' || (p.concept && p.concept.startsWith('Venta:'));
+    if (p.method === 'efectivo') {
+      if (isStore) storeCash += p.amount;
+      else gymCash += p.amount;
+    } else if (p.method === 'yape') {
+      yape += p.amount;
+    } else if (p.method === 'plin') {
+      plin += p.amount;
+    } else if (p.method === 'tarjeta') {
+      card += p.amount;
+    } else if (p.method === 'transferencia') {
+      transfer += p.amount;
+    }
+  });
+
+  const cashExpenses = exps.filter(e => e.method === 'efectivo').reduce((a, e) => a + e.amount, 0);
+  const totalExpenses = exps.reduce((a, e) => a + e.amount, 0);
+  const totalCashCollected = gymCash + storeCash + otherCash;
+  const initialCash = shift.initial_cash || 0;
+  const expectedCashInDrawer = initialCash + totalCashCollected - cashExpenses;
+  const expectedDigital = yape + plin + card + transfer;
+
+  return {
+    shift,
+    initialCash,
+    gymCash,
+    storeCash,
+    otherCash,
+    totalCashCollected,
+    cashExpenses,
+    totalExpenses,
+    expectedCashInDrawer,
+    expectedDigital,
+    digitalBreakdown: { yape, plin, card, transfer },
+    totalIncome: pays.reduce((a, p) => a + p.amount, 0),
+    paymentsCount: pays.length,
+    expensesCount: exps.length,
+    payments: pays,
+    expenses: exps
+  };
+}
+
+module.exports = {
+  db, q, DATA_DIR, getSettings, numSettings, backup, seedExercises, nextReceiptNo, dailyPassCode,
+  getActiveShift, computeShiftTotals
+};

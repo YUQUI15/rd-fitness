@@ -3,7 +3,8 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
-const { q, db, DATA_DIR, getSettings, numSettings, backup, nextReceiptNo, dailyPassCode } = require('./db');
+const { q, db, DATA_DIR, getSettings, numSettings, backup, nextReceiptNo, dailyPassCode, getActiveShift, computeShiftTotals } = require('./db');
+const { getScopedReportData, buildExcelXmlReport, buildCsvLiveFeed } = require('./reports');
 const L = require('./lib');
 
 const app = express();
@@ -194,10 +195,12 @@ function activateMembership({ member_id, plan, start, price, userId, method, not
   if (!start && last && last.e && last.e >= today) s = L.addDays(last.e, 1); // renovación anticipada: se suma a lo que queda
   const end = L.membershipEnd(s, plan.months, plan.days);
   const receipt_no = nextReceiptNo();
+  const curShift = getActiveShift(userId);
+  const shift_id = curShift ? curShift.id : null;
   const ms = q.run('INSERT INTO memberships(member_id,plan_id,plan_name,start_date,end_date,price,created_by) VALUES(?,?,?,?,?,?,?)',
     member_id, plan.id, plan.name, s, end, price, userId);
-  const pay = q.run('INSERT INTO payments(member_id,membership_id,concept,amount,method,note,day,user_id,op_code,voucher_img,receipt_no) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
-    member_id, ms.lastInsertRowid, concept || `Membresía ${plan.name}`, price, method, note || null, today, userId, op_code || null, voucher_img || null, receipt_no);
+  const pay = q.run('INSERT INTO payments(member_id,membership_id,concept,amount,method,note,day,user_id,op_code,voucher_img,receipt_no,shift_id,category) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
+    member_id, ms.lastInsertRowid, concept || `Membresía ${plan.name}`, price, method, note || null, today, userId, op_code || null, voucher_img || null, receipt_no, shift_id, 'gym');
   return { membership_id: Number(ms.lastInsertRowid), payment_id: Number(pay.lastInsertRowid), start: s, end, receipt_no };
 }
 
@@ -467,8 +470,11 @@ api.post('/payments', staff('admin', 'recepcion'), wrap((req, res) => {
   if (!checkMethod(b.method)) return bad(res, 'Elige el método de pago');
   if (!b.concept || num(b.amount) <= 0) return bad(res, 'Concepto y monto son obligatorios');
   const receipt_no = nextReceiptNo();
-  const r = q.run('INSERT INTO payments(member_id,concept,amount,method,note,day,user_id,op_code,voucher_img,receipt_no) VALUES(?,?,?,?,?,?,?,?,?,?)',
-    b.member_id || null, b.concept, num(b.amount), b.method, b.note, L.limaDay(), req.user.id, b.op_code || null, b.voucher_img || null, receipt_no);
+  const curShift = getActiveShift(req.user.id);
+  const shift_id = curShift ? curShift.id : null;
+  const category = b.category || (b.member_id ? 'gym' : 'other');
+  const r = q.run('INSERT INTO payments(member_id,concept,amount,method,note,day,user_id,op_code,voucher_img,receipt_no,shift_id,category) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
+    b.member_id || null, b.concept, num(b.amount), b.method, b.note, L.limaDay(), req.user.id, b.op_code || null, b.voucher_img || null, receipt_no, shift_id, category);
   const payId = Number(r.lastInsertRowid);
   const receipt = buildReceipt(payId);
   res.json({ id: payId, receipt_no, receipt });
@@ -533,15 +539,17 @@ api.post('/daily-passes', staff('admin', 'recepcion'), wrap((req, res) => {
   const now = new Date();
   const code = dailyPassCode(today);
   const receipt_no = nextReceiptNo();
+  const curShift = getActiveShift(req.user.id);
+  const shift_id = curShift ? curShift.id : null;
 
   const result = q.tx(() => {
     const dp = q.run(`INSERT INTO daily_passes(code,name,dni,phone,price,method,op_code,day,user_id,receipt_no,last_scan)
       VALUES(?,?,?,?,?,?,?,?,?,?,?)`,
       code, name, dni, phone, price, method, op_code, today, req.user.id, receipt_no, now.toISOString());
     const passId = Number(dp.lastInsertRowid);
-    const pay = q.run(`INSERT INTO payments(concept,amount,method,op_code,voucher_img,receipt_no,daily_pass_id,day,user_id)
-      VALUES(?,?,?,?,?,?,?,?,?)`,
-      `Pase Diario: ${name}`, price, method, op_code, voucher_img, receipt_no, passId, today, req.user.id);
+    const pay = q.run(`INSERT INTO payments(concept,amount,method,op_code,voucher_img,receipt_no,daily_pass_id,day,user_id,shift_id,category)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?)`,
+      `Pase Diario: ${name}`, price, method, op_code, voucher_img, receipt_no, passId, today, req.user.id, shift_id, 'gym');
     const payId = Number(pay.lastInsertRowid);
     q.run(`INSERT INTO attendance(uid,code,ts,day,hour,result,reason,kind,user_id)
       VALUES(?,?,?,?,?,?,?,?,?)`,
@@ -576,17 +584,100 @@ api.post('/daily-passes/scan', staff('admin', 'recepcion'), wrap((req, res) => {
   res.json({ ok: true, level: 'ok', reason: `Pase diario vigente (reingreso #${pass.scans_count + 1})`, pass });
 }));
 
+// ---------------- Gestión de Turnos de Caja (Apertura, Cierre y Arqueo) ----------------
+api.get('/shifts/current', staff('admin', 'recepcion'), wrap((req, res) => {
+  const shift = getActiveShift(req.user.id);
+  if (!shift) return res.json({ active: false });
+  const totals = computeShiftTotals(shift.id);
+  res.json({ active: true, shift, totals });
+}));
+
+api.post('/shifts/open', staff('admin', 'recepcion'), wrap((req, res) => {
+  const existing = getActiveShift(req.user.id);
+  if (existing) return bad(res, `Ya tienes un turno abierto (#${existing.id} - ${existing.shift_name}). Ciérralo antes de abrir uno nuevo.`);
+  const b = req.body || {};
+  const initial_cash = Math.max(0, num(b.initial_cash, 0));
+  const shift_name = String(b.shift_name || 'Turno General').trim();
+  const notes = b.notes ? String(b.notes).trim() : null;
+  const today = L.limaDay();
+  const now = new Date().toISOString();
+
+  const r = q.run(`INSERT INTO cash_shifts(user_id, user_name, shift_name, day, opened_at, initial_cash, notes, status)
+    VALUES(?,?,?,?,?,?,?,?)`,
+    req.user.id, req.user.name, shift_name, today, now, initial_cash, notes, 'open');
+  const shiftId = Number(r.lastInsertRowid);
+  const shift = q.get('SELECT * FROM cash_shifts WHERE id=?', shiftId);
+  audit(req.user.id, 'shift.open', { id: shiftId, shift_name, initial_cash });
+  res.json({ ok: true, shift, totals: computeShiftTotals(shiftId) });
+}));
+
+api.post('/shifts/close', staff('admin', 'recepcion'), wrap((req, res) => {
+  const b = req.body || {};
+  const shiftId = num(b.shift_id) || getActiveShift(req.user.id)?.id;
+  if (!shiftId) return bad(res, 'No se encontró un turno activo para cerrar');
+  const shift = q.get('SELECT * FROM cash_shifts WHERE id=?', shiftId);
+  if (!shift || shift.status !== 'open') return bad(res, 'Este turno no está abierto o no existe');
+
+  const totals = computeShiftTotals(shiftId);
+  const actual_cash = Math.max(0, num(b.actual_cash, 0));
+  const expected_cash = totals.expectedCashInDrawer;
+  const diff_cash = +(actual_cash - expected_cash).toFixed(2);
+  const expected_digital = totals.expectedDigital;
+  const now = new Date().toISOString();
+  const notes = b.notes ? String(b.notes).trim() : shift.notes;
+
+  q.run(`UPDATE cash_shifts SET closed_at=?, expected_cash=?, actual_cash=?, diff_cash=?, expected_digital=?, status='closed', notes=? WHERE id=?`,
+    now, expected_cash, actual_cash, diff_cash, expected_digital, notes, shiftId);
+
+  audit(req.user.id, 'shift.close', { id: shiftId, expected_cash, actual_cash, diff_cash, expected_digital });
+  const updatedShift = q.get('SELECT * FROM cash_shifts WHERE id=?', shiftId);
+  res.json({ ok: true, shift: updatedShift, totals, diff_cash });
+}));
+
+api.get('/shifts', staff('admin', 'recepcion'), wrap((req, res) => {
+  const day = req.query.day;
+  const from = req.query.from;
+  const to = req.query.to;
+  let sql = 'SELECT * FROM cash_shifts';
+  const params = [];
+  if (day) {
+    sql += ' WHERE day=?';
+    params.push(day);
+  } else if (from && to) {
+    sql += ' WHERE day BETWEEN ? AND ?';
+    params.push(from, to);
+  }
+  sql += ' ORDER BY id DESC LIMIT 100';
+  const shifts = q.all(sql, ...params);
+  res.json(shifts);
+}));
+
+api.get('/shifts/:id', staff('admin', 'recepcion'), wrap((req, res) => {
+  const id = num(req.params.id);
+  const shift = q.get('SELECT s.*, u.username FROM cash_shifts s JOIN users u ON u.id=s.user_id WHERE s.id=?', id);
+  if (!shift) return bad(res, 'Turno no encontrado', 404);
+  const totals = computeShiftTotals(id);
+  const pays = q.all(`SELECT p.*, m.name member_name, m.code member_code, dp.name dp_name FROM payments p
+    LEFT JOIN members m ON m.id=p.member_id
+    LEFT JOIN daily_passes dp ON dp.id=p.daily_pass_id
+    WHERE p.shift_id=? AND p.voided=0 ORDER BY p.id`, id);
+  const exps = q.all('SELECT * FROM expenses WHERE shift_id=? AND voided=0 ORDER BY id', id);
+  const settings = getSettings();
+  res.json({ shift, totals, payments: pays, expenses: exps, settings });
+}));
+
 // ---------------- Caja y Arqueo Diario ----------------
 api.get('/cash', staff('admin', 'recepcion'), wrap((req, res) => {
   const day = req.query.day || L.limaDay();
   const pays = q.all(`SELECT p.*, m.name member_name, m.code member_code,
-    dp.name dp_name, dp.code dp_code, u.name user_name
+    dp.name dp_name, dp.code dp_code, u.name user_name, s.shift_name
     FROM payments p
     LEFT JOIN members m ON m.id=p.member_id
     LEFT JOIN daily_passes dp ON dp.id=p.daily_pass_id
     LEFT JOIN users u ON u.id=p.user_id
+    LEFT JOIN cash_shifts s ON s.id=p.shift_id
     WHERE p.day=? AND p.voided=0 ORDER BY p.id`, day);
-  const exps = q.all('SELECT e.*, u.name user_name FROM expenses e LEFT JOIN users u ON u.id=e.user_id WHERE day=? AND voided=0 ORDER BY id', day);
+  const exps = q.all('SELECT e.*, u.name user_name, s.shift_name FROM expenses e LEFT JOIN users u ON u.id=e.user_id LEFT JOIN cash_shifts s ON s.id=e.shift_id WHERE e.day=? AND e.voided=0 ORDER BY e.id', day);
   const dailyPasses = q.all('SELECT * FROM daily_passes WHERE day=? ORDER BY id DESC', day);
   const byMethod = {};
   METHODS.forEach(m => byMethod[m] = 0);
@@ -596,10 +687,30 @@ api.get('/cash', staff('admin', 'recepcion'), wrap((req, res) => {
   const expensesInCash = exps.filter(e => e.method === 'efectivo').reduce((a, e) => a + e.amount, 0);
   const yapeList = pays.filter(p => p.method === 'yape' || p.method === 'plin');
   const yapeVerifiedCount = yapeList.filter(p => p.verified).length;
+
+  // Separación estricta Gym vs Tienda del día
+  const gymPays = pays.filter(p => p.category === 'gym' || p.membership_id || p.daily_pass_id);
+  const storePays = pays.filter(p => p.category === 'store' || (p.concept && p.concept.startsWith('Venta:')));
+  const gymIncome = gymPays.reduce((a, p) => a + p.amount, 0);
+  const storeIncome = storePays.reduce((a, p) => a + p.amount, 0);
+  const gymExpenses = exps.filter(e => e.category !== 'store').reduce((a, e) => a + e.amount, 0);
+  const storeExpenses = exps.filter(e => e.category === 'store').reduce((a, e) => a + e.amount, 0);
+
+  // Turno actual activo
+  const activeShift = getActiveShift(req.user.id);
+  const activeShiftTotals = activeShift ? computeShiftTotals(activeShift.id) : null;
+
   res.json({
     day, payments: pays, expenses: exps, dailyPasses, byMethod, income, expense, net: income - expense,
+    gym_income: gymIncome,
+    store_income: storeIncome,
+    other_income: income - (gymIncome + storeIncome),
+    gym_expense: gymExpenses,
+    store_expense: storeExpenses,
     cash_in_drawer: byMethod.efectivo - expensesInCash,
     digital_total: (byMethod.yape || 0) + (byMethod.plin || 0) + (byMethod.tarjeta || 0) + (byMethod.transferencia || 0),
+    active_shift: activeShift,
+    active_shift_totals: activeShiftTotals,
     yape_summary: {
       total: (byMethod.yape || 0) + (byMethod.plin || 0),
       count: yapeList.length,
@@ -611,7 +722,11 @@ api.get('/cash', staff('admin', 'recepcion'), wrap((req, res) => {
 api.post('/expenses', staff('admin', 'recepcion'), wrap((req, res) => {
   const b = req.body || {};
   if (!b.concept || num(b.amount) <= 0) return bad(res, 'Concepto y monto son obligatorios');
-  const r = q.run('INSERT INTO expenses(concept,amount,method,day,user_id) VALUES(?,?,?,?,?)', b.concept, num(b.amount), b.method || 'efectivo', L.limaDay(), req.user.id);
+  const curShift = getActiveShift(req.user.id);
+  const shift_id = curShift ? curShift.id : null;
+  const category = b.category === 'store' ? 'store' : 'gym';
+  const r = q.run('INSERT INTO expenses(concept,amount,method,day,user_id,shift_id,category) VALUES(?,?,?,?,?,?,?)',
+    b.concept, num(b.amount), b.method || 'efectivo', L.limaDay(), req.user.id, shift_id, category);
   res.json({ id: Number(r.lastInsertRowid) });
 }));
 api.post('/expenses/:id/void', staff('admin'), wrap((req, res) => {
@@ -663,10 +778,12 @@ api.post('/sales', staff('admin', 'recepcion'), wrap((req, res) => {
   const receipt_no = nextReceiptNo();
   const total = p.price * qty;
   let payId;
+  const curShift = getActiveShift(req.user.id);
+  const shift_id = curShift ? curShift.id : null;
   q.tx(() => {
     q.run('UPDATE products SET stock=stock-? WHERE id=?', qty, p.id);
-    const pay = q.run('INSERT INTO payments(member_id,concept,amount,method,op_code,voucher_img,receipt_no,day,user_id) VALUES(?,?,?,?,?,?,?,?,?)',
-      b.member_id || null, `Venta: ${p.name} x${qty}`, total, b.method, b.op_code || null, b.voucher_img || null, receipt_no, L.limaDay(), req.user.id);
+    const pay = q.run('INSERT INTO payments(member_id,concept,amount,method,op_code,voucher_img,receipt_no,day,user_id,shift_id,category) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
+      b.member_id || null, `Venta: ${p.name} x${qty}`, total, b.method, b.op_code || null, b.voucher_img || null, receipt_no, L.limaDay(), req.user.id, shift_id, 'store');
     payId = Number(pay.lastInsertRowid);
   });
   const receipt = buildReceipt(payId);
@@ -734,31 +851,116 @@ api.get('/reports', staff('admin', 'recepcion'), wrap((req, res) => {
   const today = L.limaDay();
   const to = req.query.to || today;
   const from = req.query.from || L.addDays(to, -29);
-  const income = q.all('SELECT day, SUM(amount) total FROM payments WHERE voided=0 AND day BETWEEN ? AND ? GROUP BY day ORDER BY day', from, to);
-  const byMethod = q.all('SELECT method, SUM(amount) total, COUNT(*) n FROM payments WHERE voided=0 AND day BETWEEN ? AND ? GROUP BY method', from, to);
-  const byConcept = q.all(`SELECT concept, SUM(amount) total, COUNT(*) n FROM payments WHERE voided=0 AND day BETWEEN ? AND ? GROUP BY concept ORDER BY total DESC`, from, to);
-  const byPlan = q.all(`SELECT plan_name, COUNT(*) n, SUM(price) total FROM memberships WHERE status='active' AND date(created_at) BETWEEN ? AND ? GROUP BY plan_name ORDER BY n DESC`, from, to);
-  const expenses = q.get('SELECT SUM(amount) s FROM expenses WHERE voided=0 AND day BETWEEN ? AND ?', from, to).s || 0;
-  const attDay = q.all("SELECT day, COUNT(DISTINCT CASE WHEN kind='D' THEN code ELSE member_id END) n FROM attendance WHERE result IN ('ok','warn') AND day BETWEEN ? AND ? GROUP BY day ORDER BY day", from, to);
-  const peak = q.all("SELECT hour, COUNT(*) n FROM attendance WHERE result IN ('ok','warn') AND day BETWEEN ? AND ? GROUP BY hour ORDER BY hour", from, to);
-  const newMembers = q.get('SELECT COUNT(*) n FROM members WHERE date(created_at) BETWEEN ? AND ?', from, to).n;
-  const renewals = q.get(`SELECT COUNT(*) n FROM memberships ms WHERE status='active' AND date(created_at) BETWEEN ? AND ?
-    AND EXISTS (SELECT 1 FROM memberships o WHERE o.member_id=ms.member_id AND o.id<ms.id)`, from, to).n;
-  const expiredPeriod = q.get(`SELECT COUNT(DISTINCT member_id) n FROM memberships ms WHERE status='active' AND end_date BETWEEN ? AND ?
-    AND NOT EXISTS (SELECT 1 FROM memberships o WHERE o.member_id=ms.member_id AND o.id>ms.id)`, from, to).n;
-  const dow = q.all("SELECT strftime('%w', day) d, COUNT(*) n FROM attendance WHERE result IN ('ok','warn') AND day BETWEEN ? AND ? GROUP BY d", from, to);
-  const totalIncome = income.reduce((a, r) => a + r.total, 0);
+  const shift_id = req.query.shift_id ? num(req.query.shift_id) : null;
+  const scope = req.query.scope || 'consolidated';
 
-  // Desglose por categoría de ingreso
-  const sumCat = (where) => q.get(`SELECT SUM(amount) s FROM payments WHERE voided=0 AND day BETWEEN ? AND ? AND ${where}`, from, to).s || 0;
+  const data = getScopedReportData({ from, to, shift_id, q });
+
+  // Estructura retrocompatible para las vistas existentes
+  const income = q.all('SELECT day, SUM(amount) total FROM payments WHERE voided=0 AND day BETWEEN ? AND ? GROUP BY day ORDER BY day', from, to);
+  const byConcept = q.all(`SELECT concept, SUM(amount) total, COUNT(*) n FROM payments WHERE voided=0 AND day BETWEEN ? AND ? GROUP BY concept ORDER BY total DESC`, from, to);
+  const attDay = q.all("SELECT day, COUNT(DISTINCT CASE WHEN kind='D' THEN code ELSE member_id END) n FROM attendance WHERE result IN ('ok','warn') AND day BETWEEN ? AND ? GROUP BY day ORDER BY day", from, to);
+  const dow = q.all("SELECT strftime('%w', day) d, COUNT(*) n FROM attendance WHERE result IN ('ok','warn') AND day BETWEEN ? AND ? GROUP BY d", from, to);
+
   const catIncome = {
-    memberships: sumCat('membership_id IS NOT NULL'),
-    daily_passes: sumCat('daily_pass_id IS NOT NULL'),
-    store: sumCat("concept LIKE 'Venta:%'"),
-    others: sumCat("membership_id IS NULL AND daily_pass_id IS NULL AND concept NOT LIKE 'Venta:%'")
+    memberships: data.byPlan.reduce((a, b) => a + (b.total || 0), 0),
+    daily_passes: data.dailyPasses.reduce((a, b) => a + b.price, 0),
+    store: data.totalStoreIncome,
+    others: data.totalOtherIncome
   };
 
-  res.json({ from, to, income, totalIncome, expenses, net: totalIncome - expenses, byMethod, byConcept, byPlan, catIncome, attDay, peak, dow, newMembers, renewals, expiredPeriod });
+  res.json({
+    from, to, scope, shift_id,
+    income,
+    totalIncome: data.totalIncome,
+    expenses: data.totalExpense,
+    net: data.netProfit,
+    byMethod: Object.entries(data.totalByMethod).filter(([k]) => k !== 'total').map(([m, val]) => ({
+      method: m,
+      total: val,
+      n: data.gymPayments.concat(data.storePayments, data.otherPayments).filter(p => p.method === m).length
+    })),
+    byConcept,
+    byPlan: data.byPlan,
+    catIncome,
+    attDay,
+    peak: data.peak,
+    dow,
+    newMembers: data.newMembers,
+    renewals: data.renewals,
+    expiredPeriod: data.expiredPeriod,
+    // Canales separados
+    gym: {
+      income: data.totalGymIncome,
+      expenses: data.totalGymExpense,
+      net: data.gymNet,
+      byMethod: data.gymByMethod,
+      payments: data.gymPayments,
+      dailyPasses: data.dailyPasses,
+      byPlan: data.byPlan
+    },
+    store: {
+      income: data.totalStoreIncome,
+      expenses: data.totalStoreExpense,
+      net: data.storeNet,
+      byMethod: data.storeByMethod,
+      payments: data.storePayments,
+      productStats: data.productStats,
+      lowStock: data.productStats.filter(p => p.stock <= p.min_stock)
+    },
+    consolidated: {
+      totalIncome: data.totalIncome,
+      totalGymIncome: data.totalGymIncome,
+      totalStoreIncome: data.totalStoreIncome,
+      totalOtherIncome: data.totalOtherIncome,
+      totalExpense: data.totalExpense,
+      totalGymExpense: data.totalGymExpense,
+      totalStoreExpense: data.totalStoreExpense,
+      netProfit: data.netProfit,
+      cashInDrawer: data.cashInDrawer,
+      digitalTotal: data.digitalTotal,
+      dailyComparison: data.dailyComparison,
+      shifts: data.shifts
+    }
+  });
+}));
+
+// Descarga en formato Microsoft Excel con Fórmulas Nativas
+api.get('/reports/export/excel', staff('admin', 'recepcion'), wrap((req, res) => {
+  const today = L.limaDay();
+  const to = req.query.to || today;
+  const from = req.query.from || L.addDays(to, -29);
+  const shift_id = req.query.shift_id ? num(req.query.shift_id) : null;
+
+  const data = getScopedReportData({ from, to, shift_id, q });
+  const settings = getSettings();
+  const xml = buildExcelXmlReport({ data, settings });
+
+  const filename = `Reporte_RD_Fitness_${from}_al_${to}.xls`;
+  res.setHeader('Content-Type', 'application/vnd.ms-excel; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(xml);
+}));
+
+// Feed en vivo en formato CSV para Google Sheets (=IMPORTDATA)
+api.get('/reports/live-feed.csv', wrap((req, res) => {
+  const settings = getSettings();
+  const key = req.query.key;
+  if (key && key !== settings.google_sheets_key) {
+    return bad(res, 'Clave de Google Sheets inválida', 403);
+  }
+
+  const today = L.limaDay();
+  const to = req.query.to || today;
+  const from = req.query.from || L.addDays(to, -30);
+  const type = req.query.type || 'consolidated'; // 'consolidated' | 'gym' | 'store' | 'shifts'
+
+  const data = getScopedReportData({ from, to, q });
+  const csv = buildCsvLiveFeed({ type, data });
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `inline; filename="rd_fitness_${type}_${today}.csv"`);
+  res.send(csv);
 }));
 
 // ---------------- Ejercicios ----------------
