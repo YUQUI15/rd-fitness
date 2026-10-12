@@ -90,6 +90,34 @@
     } catch { }
   };
 
+  RD.downloadAuth = async (url, defaultFilename = 'descarga') => {
+    const t = localStorage.getItem('rd_staff_token') || localStorage.getItem('rd_user_token');
+    const headers = {};
+    if (t) headers.Authorization = 'Bearer ' + t;
+    const fetchUrl = url.startsWith('/') ? (url.startsWith('/api') ? url : '/api' + url) : '/api/' + url;
+    const res = await fetch(fetchUrl, { headers });
+    if (!res.ok) {
+      let errText = 'Error ' + res.status;
+      try { const j = await res.json(); if (j && j.error) errText = j.error; } catch { }
+      throw new Error(errText);
+    }
+    let filename = defaultFilename;
+    const cd = res.headers.get('content-disposition');
+    if (cd) {
+      const m = cd.match(/filename\*?=['"]?(?:UTF-8'')?([^'";\n]+)['"]?/i);
+      if (m && m[1]) filename = decodeURIComponent(m[1].trim());
+    }
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { a.remove(); URL.revokeObjectURL(blobUrl); }, 1000);
+    return filename;
+  };
+
   // ---------- Interfaz ----------
   RD.toast = (msg, type = 'ok', ms = 3200) => {
     let box = document.getElementById('toasts');

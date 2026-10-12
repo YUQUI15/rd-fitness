@@ -4,7 +4,9 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const { q, db, DATA_DIR, getSettings, numSettings, backup, nextReceiptNo, dailyPassCode, getActiveShift, computeShiftTotals, getActiveAttendanceSession, closeAttendanceSession } = require('./db');
-const { getScopedReportData, getMemberAttendanceDetail, buildExcelXmlReport, buildCsvLiveFeed } = require('./reports');
+const { getScopedReportData, getMemberAttendanceDetail } = require('./reports');
+const { buildDataset, searchPeople, getPersonReport, tableToCsv } = require('./dataset');
+const { buildXlsx } = require('./xlsx-report');
 const L = require('./lib');
 
 const app = express();
@@ -915,8 +917,9 @@ api.post('/sales', staff('admin', 'recepcion'), wrap((req, res) => {
   const concept = b.concept || `Venta: ${p.name} x${qty}${unitPrice !== p.price ? ' (Promo)' : ''}`;
   q.tx(() => {
     q.run('UPDATE products SET stock=stock-? WHERE id=?', qty, p.id);
-    const pay = q.run('INSERT INTO payments(member_id,concept,amount,method,op_code,voucher_img,receipt_no,day,user_id,shift_id,category) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
-      b.member_id || null, concept, total, b.method, b.op_code || null, b.voucher_img || null, receipt_no, L.limaDay(), req.user.id, shift_id, 'store');
+    const pay = q.run('INSERT INTO payments(member_id,concept,amount,method,op_code,voucher_img,receipt_no,day,user_id,shift_id,category,product_id,qty,unit_price,unit_cost) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+      b.member_id || null, concept, total, b.method, b.op_code || null, b.voucher_img || null, receipt_no, L.limaDay(), req.user.id, shift_id, 'store',
+      p.id, qty, unitPrice, p.cost || 0);
     payId = Number(pay.lastInsertRowid);
   });
   const receipt = buildReceipt(payId);
@@ -1059,42 +1062,102 @@ api.get('/reports', staff('admin', 'recepcion'), wrap((req, res) => {
   });
 }));
 
-// Descarga en formato Microsoft Excel con Fórmulas Nativas
-api.get('/reports/export/excel', staff('admin', 'recepcion'), wrap((req, res) => {
+// Dataset consolidado para frontend, gráficos y dashboards
+api.get('/reports/dataset', staff('admin', 'recepcion'), wrap((req, res) => {
   const today = L.limaDay();
   const to = req.query.to || today;
   const from = req.query.from || L.addDays(to, -29);
-  const shift_id = req.query.shift_id ? num(req.query.shift_id) : null;
-
-  const data = getScopedReportData({ from, to, shift_id, q });
   const settings = getSettings();
-  const xml = buildExcelXmlReport({ data, settings });
-
-  const filename = `Reporte_RD_Fitness_${from}_al_${to}.xls`;
-  res.setHeader('Content-Type', 'application/vnd.ms-excel; charset=utf-8');
-  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-  res.send(xml);
+  const ds = buildDataset({ from, to, q, settings });
+  res.json(ds);
 }));
 
-// Feed en vivo en formato CSV para Google Sheets (=IMPORTDATA)
+// Descarga en formato Microsoft Excel (.xlsx) real con Dashboard, Fórmulas Nativas, Tablas, Logo y Marca de agua
+api.get('/reports/export/excel', staff('admin', 'recepcion'), wrap(async (req, res) => {
+  const today = L.limaDay();
+  const to = req.query.to || today;
+  const from = req.query.from || L.addDays(to, -29);
+  const settings = getSettings();
+  const ds = buildDataset({ from, to, q, settings });
+  const buf = await buildXlsx(ds, { publicDir: path.join(__dirname, '..', 'public') });
+  const filename = `Reporte_RD_Fitness_${from}_al_${to}.xlsx`;
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(buf);
+}));
+
+// Exportación individual de cualquier tabla del dataset en CSV (UTF-8 con BOM para Excel)
+api.get('/reports/export/csv', staff('admin', 'recepcion'), wrap((req, res) => {
+  const today = L.limaDay();
+  const to = req.query.to || today;
+  const from = req.query.from || L.addDays(to, -29);
+  const tableKey = req.query.table || 'daily';
+  const ds = buildDataset({ from, to, q, settings: getSettings() });
+  const table = ds.tables[tableKey] || ds.tables.daily;
+  const csv = tableToCsv(table, req.query.sep || ',');
+  const filename = `Reporte_${table.name.replace(/\s+/g, '_')}_${from}_al_${to}.csv`;
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(csv);
+}));
+
+// Feed completo en JSON para sincronización en tiempo real con Google Sheets (vía Apps Script)
+api.get('/reports/sheets-feed', wrap((req, res) => {
+  const settings = getSettings();
+  const clientKey = req.query.key || req.headers['x-rd-key'];
+  if (!clientKey || clientKey !== settings.google_sheets_key) {
+    return bad(res, 'Clave de Google Sheets inválida o ausente', 403);
+  }
+  const today = L.limaDay();
+  const to = req.query.to || today;
+  const from = req.query.from || L.addDays(to, -365);
+  const ds = buildDataset({ from, to, q, settings });
+  res.json(ds);
+}));
+
+// Feed en formato CSV para Google Sheets (con clave obligatoria)
 api.get('/reports/live-feed.csv', wrap((req, res) => {
   const settings = getSettings();
-  const key = req.query.key;
-  if (key && key !== settings.google_sheets_key) {
-    return bad(res, 'Clave de Google Sheets inválida', 403);
+  const clientKey = req.query.key || req.headers['x-rd-key'];
+  if (!clientKey || clientKey !== settings.google_sheets_key) {
+    return bad(res, 'Clave de Google Sheets requerida y válida', 403);
   }
 
   const today = L.limaDay();
   const to = req.query.to || today;
   const from = req.query.from || L.addDays(to, -30);
-  const type = req.query.type || 'consolidated'; // 'consolidated' | 'gym' | 'store' | 'shifts'
-
-  const data = getScopedReportData({ from, to, q });
-  const csv = buildCsvLiveFeed({ type, data });
+  const tableKey = req.query.table || req.query.type || 'daily';
+  const ds = buildDataset({ from, to, q, settings });
+  const table = ds.tables[tableKey] || ds.tables.daily;
+  const csv = tableToCsv(table, req.query.sep || ',');
 
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-  res.setHeader('Content-Disposition', `inline; filename="rd_fitness_${type}_${today}.csv"`);
+  res.setHeader('Content-Disposition', `inline; filename="rd_fitness_${tableKey}_${today}.csv"`);
   res.send(csv);
+}));
+
+// Búsqueda unificada de personas (socios y pases diarios) para reportes individuales y seguridad
+api.get('/reports/people', staff('admin', 'recepcion'), wrap((req, res) => {
+  const list = searchPeople({ term: req.query.q || '', q });
+  res.json(list);
+}));
+
+// Ficha individual de asistencias / verificación de presencia para seguridad o coartadas
+api.get('/reports/person', staff('admin', 'recepcion'), wrap((req, res) => {
+  const { kind, id, from, to, day } = req.query;
+  if (!id) return bad(res, 'ID requerido');
+  const today = L.limaDay();
+  const rep = getPersonReport({
+    kind: kind || 'M',
+    id: num(id),
+    from: from || L.addDays(today, -30),
+    to: to || today,
+    day: day || null,
+    q,
+    settings: getSettings()
+  });
+  if (!rep) return bad(res, 'Persona no encontrada', 404);
+  res.json(rep);
 }));
 
 // ---------------- Ejercicios ----------------
@@ -1229,9 +1292,19 @@ api.put('/settings', staff('admin'), wrap((req, res) => {
 }));
 api.get('/audit', staff('admin'), wrap((req, res) => res.json(q.all('SELECT a.*, u.name user_name FROM audit a LEFT JOIN users u ON u.id=a.user_id ORDER BY a.id DESC LIMIT 200'))));
 api.get('/backup', staff('admin'), wrap((req, res) => {
-  const f = path.join(DATA_DIR, 'backups', `manual-${Date.now()}.db`);
-  db.exec(`VACUUM INTO '${f.replace(/'/g, "''")}'`);
-  res.download(f, `rdfitness-${L.limaDay()}.db`, () => { try { fs.unlinkSync(f); } catch { } });
+  const dir = path.join(DATA_DIR, 'backups');
+  fs.mkdirSync(dir, { recursive: true });
+  const f = path.join(dir, `manual-${Date.now()}.db`);
+  const safePath = f.split(path.sep).join('/');
+  db.exec(`VACUUM INTO '${safePath}'`);
+  const filename = `rdfitness-${L.limaDay()}.db`;
+  res.setHeader('Content-Type', 'application/x-sqlite3');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  const stream = fs.createReadStream(f);
+  stream.pipe(res);
+  stream.on('close', () => {
+    try { fs.unlinkSync(f); } catch { }
+  });
 }));
 
 // ---------------- API del socio (app) ----------------

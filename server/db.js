@@ -174,12 +174,35 @@ function ensureColumns() {
   addCol('attendance', 'status', 'TEXT DEFAULT "inside"');
   addCol('attendance', 'notes', 'TEXT');
 
+  // Líneas de venta estructuradas (producto, cantidad, precio y costo unitarios) para reportes de rentabilidad
+  addCol('payments', 'product_id', 'INTEGER');
+  addCol('payments', 'qty', 'INTEGER');
+  addCol('payments', 'unit_price', 'REAL');
+  addCol('payments', 'unit_cost', 'REAL');
+
   // Asignar categorías iniciales para pagos existentes
   try {
     q.run("UPDATE payments SET category='gym' WHERE category IS NULL AND (membership_id IS NOT NULL OR daily_pass_id IS NOT NULL)");
     q.run("UPDATE payments SET category='store' WHERE category IS NULL AND concept LIKE 'Venta:%'");
     q.run("UPDATE payments SET category='gym' WHERE category IS NULL");
   } catch (e) { }
+
+  // Reconstruir las líneas de venta antiguas a partir del concepto "Venta: <producto> x<cantidad>"
+  try {
+    const legacy = q.all("SELECT id, concept, amount FROM payments WHERE category='store' AND product_id IS NULL AND concept LIKE 'Venta:%'");
+    for (const p of legacy) {
+      const m = p.concept.match(/^Venta:\s*(.+?)\s*x(\d+)/i);
+      if (!m) continue;
+      const prod = q.get('SELECT id, cost FROM products WHERE name=?', m[1].trim());
+      if (!prod) continue;
+      const qty = parseInt(m[2], 10) || 1;
+      q.run('UPDATE payments SET product_id=?, qty=?, unit_price=?, unit_cost=? WHERE id=?',
+        prod.id, qty, +(p.amount / qty).toFixed(2), prod.cost || 0, p.id);
+    }
+  } catch (e) { console.error('Backfill de ventas:', e.message); }
+
+  try { db.exec('CREATE INDEX IF NOT EXISTS idx_att_exit ON attendance(exit_ts)'); } catch (e) { }
+  try { db.exec('CREATE INDEX IF NOT EXISTS idx_pay_product ON payments(product_id)'); } catch (e) { }
 }
 ensureColumns();
 
@@ -199,13 +222,16 @@ const DEFAULT_SETTINGS = {
   opening: 'Lun a Sáb 6:00 a 21:00',
   color: '#f5b400',
   printer_width: '58mm',
-  google_sheets_key: 'RD-CHIVAY-2026',
+  google_sheets_key: require('crypto').randomBytes(12).toString('hex'),
   yape_phone: '982404043',
   yape_name: 'RD FITNESS CLUB'
 };
 for (const [k, v] of Object.entries(DEFAULT_SETTINGS)) {
   q.run('INSERT OR IGNORE INTO settings(key,value) VALUES(?,?)', k, v);
 }
+// La clave antigua era adivinable y daba acceso a datos financieros y personales: se reemplaza por una aleatoria
+q.run("UPDATE settings SET value=? WHERE key='google_sheets_key' AND (value='RD-CHIVAY-2026' OR value IS NULL OR value='')",
+  require('crypto').randomBytes(12).toString('hex'));
 const getSettings = () => Object.fromEntries(q.all('SELECT key,value FROM settings').map(r => [r.key, r.value]));
 const numSettings = () => {
   const s = getSettings();
@@ -332,9 +358,14 @@ seedRoutines();
 
 // ---------- Respaldo automático diario ----------
 function backup() {
-  const f = path.join(DATA_DIR, 'backups', `rdfitness-${L.limaDay()}.db`);
+  const dir = path.join(DATA_DIR, 'backups');
+  fs.mkdirSync(dir, { recursive: true });
+  const f = path.join(dir, `rdfitness-${L.limaDay()}.db`);
   if (fs.existsSync(f)) return f;
-  try { db.exec(`VACUUM INTO '${f.replace(/'/g, "''")}'`); } catch (e) { console.error('Respaldo falló:', e.message); return null; }
+  try {
+    const safePath = f.replace(/\\/g, '/').replace(/'/g, "''");
+    db.exec(`VACUUM INTO '${safePath}'`);
+  } catch (e) { console.error('Respaldo falló:', e.message); return null; }
   const files = fs.readdirSync(path.join(DATA_DIR, 'backups')).filter(x => x.endsWith('.db')).sort();
   files.slice(0, Math.max(0, files.length - 30)).forEach(x => fs.unlinkSync(path.join(DATA_DIR, 'backups', x)));
   return f;

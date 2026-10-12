@@ -1,5 +1,5 @@
 /* RD Fitness Club - Service Worker (funciona sin internet) */
-const VERSION = 'rd-v2.1';
+const VERSION = 'rd-v2.2';
 const SHELL = [
   '/', '/index.html', '/admin/', '/admin/index.html', '/admin/cards.html',
   '/css/style.css', '/js/common.js', '/js/app.js', '/js/admin-core.js', '/js/admin-scan.js', '/js/admin-members.js', '/js/admin-other.js', '/js/workout.js',

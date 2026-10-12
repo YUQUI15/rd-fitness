@@ -1741,13 +1741,13 @@
     }
   };
 
-  function googleSheetsSyncModal() {
+  function googleSheetsSyncModal(settings = {}) {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const prodHost = 'https://rd-fitness.onrender.com';
     const effectiveOrigin = isLocal ? prodHost : window.location.origin;
-    const key = 'RD-CHIVAY-2026';
-    let currentSep = 'semicolon'; // 'semicolon' (Perú/LatAm) o 'comma' (Internacional)
-    let currentFeed = 'consolidated'; // 'consolidated', 'attendance', 'gym', 'store', 'shifts'
+    const key = settings.google_sheets_key || 'RD-CHIVAY-2026';
+    let currentSep = 'semicolon';
+    let currentFeed = 'daily';
 
     function getFormula(feed, sep) {
       const url = `${effectiveOrigin}/api/reports/live-feed.csv?type=${feed}&key=${key}&sep=${sep}`;
@@ -1757,53 +1757,318 @@
 
     function getAppsScriptCode() {
       return `/**
- * RD FITNESS CLUB - CHIVAY
- * Sincronización en Vivo y en Tiempo Real (Sin Caché)
- * Pega este código en Google Sheets: Extensiones -> Apps Script
+ * =========================================================================
+ * RD FITNESS CLUB - CHIVAY | SINCRONIZADOR MAESTRO PARA GOOGLE SHEETS
+ * Sincroniza TODO el gimnasio en tiempo real:
+ * - Dashboard Ejecutivo con KPIs y Gráficos Nativos
+ * - Ingresos Diarios (Gimnasio vs Tienda vs Total)
+ * - Métodos de Pago (Cuadre de Efectivo vs Digital)
+ * - Pagos Detallados (Boletas, Conceptos, Comprobantes)
+ * - Tienda Ventas (Por producto, costo y utilidad)
+ * - Top Productos Más Vendidos
+ * - Inventario y Semáforo de Stock
+ * - Base de Socios y Estado de Membresías
+ * - Vencimientos Próximos y Vencidos
+ * - Socios en Riesgo de Abandono (10+ días sin asistir)
+ * - Membresías Vendidas (Nuevas y Renovaciones con Promociones)
+ * - Planes y Tarifas
+ * - Asistencias (Entrada, Salida, Duración, Tipo, Estado, Personal)
+ * - Afluencia Horaria (Entradas vs Salidas registradas)
+ * - Afluencia por Día de la Semana
+ * - Mapa de Calor (Día x Hora)
+ * - Accesos Denegados (Seguridad)
+ * - Turnos de Caja (Arqueo y Descuadres)
+ * - Gastos Operativos
+ * =========================================================================
  */
+
+var CONFIG = {
+  ENDPOINT: "${effectiveOrigin}/api/reports/sheets-feed",
+  KEY: "${key}"
+};
+
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('🏋️ RD Fitness')
-    .addItem('🔄 Actualizar Consolidado en Vivo', 'actualizarConsolidado')
-    .addItem('👥 Actualizar Asistencias y Aforo', 'actualizarAsistencias')
-    .addItem('🏋️ Actualizar Caja Gimnasio', 'actualizarGym')
-    .addItem('🛒 Actualizar Tiendita y POS', 'actualizarTiendita')
+    .addItem('🔄 Actualizar Todo en Vivo', 'actualizarTodo')
+    .addSeparator()
+    .addItem('⏱️ Activar Auto-Actualización (Cada 10 min)', 'activarAutoActualizacion')
+    .addItem('⏸️ Detener Auto-Actualización', 'detenerAutoActualizacion')
+    .addSeparator()
+    .addItem('ℹ️ Ver Estado de Conexión', 'verEstado')
     .addToUi();
 }
 
-function actualizarConsolidado() {
-  sincronizarFeedRDFitness("consolidated", "Consolidado RD Fitness");
-}
-
-function actualizarAsistencias() {
-  sincronizarFeedRDFitness("attendance", "Asistencias y Aforo");
-}
-
-function actualizarGym() {
-  sincronizarFeedRDFitness("gym", "Caja Gimnasio");
-}
-
-function actualizarTiendita() {
-  sincronizarFeedRDFitness("store", "Tiendita y POS");
-}
-
-function sincronizarFeedRDFitness(tipo, nombreHoja) {
-  var url = "${effectiveOrigin}/api/reports/live-feed.csv?type=" + tipo + "&key=${key}&sep=comma&_t=" + new Date().getTime();
-  var response = UrlFetchApp.fetch(url, { muteHttpExceptions: true, headers: { 'Cache-Control': 'no-cache' } });
-  if (response.getResponseCode() !== 200) {
-    SpreadsheetApp.getUi().alert("Error al conectar con RD Fitness: Código " + response.getResponseCode());
+function actualizarTodo() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  ss.toast('Conectando con RD Fitness...', 'Sincronizador', 5);
+  
+  var url = CONFIG.ENDPOINT + '?key=' + encodeURIComponent(CONFIG.KEY) + '&_t=' + new Date().getTime();
+  var options = {
+    method: 'get',
+    muteHttpExceptions: true,
+    headers: {
+      'Cache-Control': 'no-cache, no-store, max-age=0',
+      'x-rd-key': CONFIG.KEY
+    }
+  };
+  
+  var response = null;
+  var retries = 3;
+  while (retries > 0) {
+    try {
+      response = UrlFetchApp.fetch(url, options);
+      if (response.getResponseCode() === 200) break;
+    } catch (e) {
+      Utilities.sleep(1500);
+    }
+    retries--;
+  }
+  
+  if (!response || response.getResponseCode() !== 200) {
+    var code = response ? response.getResponseCode() : 'Sin respuesta';
+    SpreadsheetApp.getUi().alert('Error al conectar con RD Fitness (Código: ' + code + '). Verifique su conexión y que la clave sea correcta.');
     return;
   }
-  var csvData = Utilities.parseCsv(response.getContentText());
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(nombreHoja) || ss.getActiveSheet();
-  sheet.clear();
-  if (csvData && csvData.length > 0 && csvData[0].length > 0) {
-    sheet.getRange(1, 1, csvData.length, csvData[0].length).setValues(csvData);
-    sheet.getRange(1, 1, 1, csvData[0].length).setFontWeight("bold").setBackground("#fef3c7");
-    sheet.autoResizeColumns(1, csvData[0].length);
-    ss.toast("¡Datos sincronizados en tiempo real!", "RD Fitness Club", 4);
+  
+  var ds = JSON.parse(response.getContentText());
+  if (!ds || !ds.tables) {
+    SpreadsheetApp.getUi().alert('Datos no válidos recibidos desde el servidor.');
+    return;
   }
+  
+  // 1. Llenar cada tabla de datos en su propia hoja
+  var order = ds.tableOrder || Object.keys(ds.tables);
+  for (var i = 0; i < order.length; i++) {
+    var k = order[i];
+    var tbl = ds.tables[k];
+    if (!tbl) continue;
+    poblarHoja(ss, tbl.name, tbl.headers, tbl.rows, tbl.types);
+  }
+  
+  // 2. Crear / Actualizar Hoja Dashboard con KPIs y Gráficos
+  poblarDashboard(ss, ds);
+  
+  // Posicionar Dashboard al inicio
+  var dashSheet = ss.getSheetByName('Dashboard');
+  if (dashSheet) {
+    ss.setActiveSheet(dashSheet);
+    ss.moveActiveSheet(1);
+  }
+  
+  ss.toast('¡Todas las hojas y gráficos actualizados en vivo!', 'RD Fitness Club', 5);
+}
+
+function poblarHoja(ss, name, headers, rows, types) {
+  var sheet = ss.getSheetByName(name);
+  if (!sheet) {
+    sheet = ss.insertSheet(name);
+  }
+  sheet.clear();
+  
+  var allData = [headers];
+  if (rows && rows.length > 0) {
+    for (var r = 0; r < rows.length; r++) {
+      allData.push(rows[r]);
+    }
+  }
+  
+  var numRows = allData.length;
+  var numCols = headers.length;
+  var range = sheet.getRange(1, 1, numRows, numCols);
+  range.setValues(allData);
+  
+  // Formato Encabezado
+  var headerRange = sheet.getRange(1, 1, 1, numCols);
+  headerRange.setFontWeight('bold')
+    .setBackground('#111827')
+    .setFontColor('#f59e0b')
+    .setHorizontalAlignment('center');
+  sheet.setFrozenRows(1);
+  
+  // Formato de columnas según tipo
+  if (types && types.length && rows.length > 0) {
+    for (var c = 0; c < types.length; c++) {
+      var colRange = sheet.getRange(2, c + 1, rows.length, 1);
+      var t = types[c];
+      if (t === 'money') {
+        colRange.setNumberFormat('"S/ "#,##0.00');
+      } else if (t === 'int' || t === 'min') {
+        colRange.setNumberFormat('#,##0');
+      } else if (t === 'pct') {
+        colRange.setNumberFormat('0.0%');
+      } else if (t === 'date') {
+        colRange.setNumberFormat('yyyy-mm-dd');
+      } else if (t === 'time') {
+        colRange.setNumberFormat('hh:mm');
+      }
+    }
+  }
+  
+  // Auto-ajustar ancho de columnas
+  for (var c = 1; c <= numCols; c++) {
+    sheet.autoResizeColumn(c);
+  }
+}
+
+function poblarDashboard(ss, ds) {
+  var sheet = ss.getSheetByName('Dashboard');
+  if (!sheet) {
+    sheet = ss.insertSheet('Dashboard');
+  }
+  sheet.clear();
+  var charts = sheet.getCharts();
+  for (var i = 0; i < charts.length; i++) {
+    sheet.removeChart(charts[i]);
+  }
+  
+  var k = ds.kpis || {};
+  var m = ds.meta || {};
+  
+  // Banner principal
+  sheet.getRange('A1:L1').merge()
+    .setValue('🏋️ RD FITNESS CLUB - CHIVAY  |  DASHBOARD EJECUTIVO EN TIEMPO REAL')
+    .setFontWeight('bold').setFontSize(14).setBackground('#111827').setFontColor('#f59e0b')
+    .setHorizontalAlignment('center');
+    
+  sheet.getRange('A2:L2').merge()
+    .setValue('Período: ' + m.from + ' al ' + m.to + '   |   Generado: ' + m.generated + ' (' + m.timezone + ')')
+    .setFontSize(10).setFontColor('#9ca3af').setBackground('#1f2937')
+    .setHorizontalAlignment('center');
+
+  // Tarjetas KPI fila 4 a 5
+  var kpis = [
+    ['INGRESO TOTAL', 'S/ ' + (k.ingresos || 0).toFixed(2), '#10b981'],
+    ['GIMNASIO', 'S/ ' + (k.gimnasio || 0).toFixed(2), '#f59e0b'],
+    ['TIENDITA', 'S/ ' + (k.tienda || 0).toFixed(2), '#3b82f6'],
+    ['GASTOS OPERATIVOS', 'S/ ' + (k.gastos || 0).toFixed(2), '#ef4444'],
+    ['UTILIDAD NETA', 'S/ ' + (k.utilidad || 0).toFixed(2), '#10b981'],
+    ['EFECTIVO EN GAVETA', 'S/ ' + (k.efectivo || 0).toFixed(2), '#6366f1']
+  ];
+  
+  for (var idx = 0; idx < kpis.length; idx++) {
+    var col = 1 + idx * 2;
+    sheet.getRange(4, col, 1, 2).merge()
+      .setValue(kpis[idx][0]).setFontSize(9).setFontWeight('bold').setFontColor('#9ca3af').setBackground('#1f2937').setHorizontalAlignment('center');
+    sheet.getRange(5, col, 1, 2).merge()
+      .setValue(kpis[idx][1]).setFontSize(15).setFontWeight('bold').setFontColor(kpis[idx][2]).setBackground('#111827').setHorizontalAlignment('center');
+  }
+
+  // Tarjetas KPI fila 7 a 8 (Asistencias y Socios)
+  var kpis2 = [
+    ['ENTRADAS TOTALES', (k.visitas || 0) + ' visitas', '#f59e0b'],
+    ['SALIDAS REGISTRADAS', ((k.visitas || 0) - (k.sin_salida || 0)) + ' salidas', '#10b981'],
+    ['SIN SALIDA REGISTRADA', (k.sin_salida || 0) + ' (' + (k.pct_sin_salida || 0) + '%)', '#f97316'],
+    ['SOCIOS VIGENTES', (k.socios_vigentes || 0) + ' activos', '#3b82f6'],
+    ['POR VENCER (≤7 DÍAS)', (k.por_vencer || 0) + ' socios', '#eab308'],
+    ['STOCK BAJO / AGOTADO', (k.stock_bajo || 0) + ' prods', '#ef4444']
+  ];
+  
+  for (var idx2 = 0; idx2 < kpis2.length; idx2++) {
+    var col2 = 1 + idx2 * 2;
+    sheet.getRange(7, col2, 1, 2).merge()
+      .setValue(kpis2[idx2][0]).setFontSize(9).setFontWeight('bold').setFontColor('#9ca3af').setBackground('#1f2937').setHorizontalAlignment('center');
+    sheet.getRange(8, col2, 1, 2).merge()
+      .setValue(kpis2[idx2][1]).setFontSize(13).setFontWeight('bold').setFontColor(kpis2[idx2][2]).setBackground('#111827').setHorizontalAlignment('center');
+  }
+
+  // Gráficos Nativos en el Dashboard
+  try {
+    var sheetDaily = ss.getSheetByName('Ingresos Diarios');
+    if (sheetDaily && sheetDaily.getLastRow() > 1) {
+      var chart1 = sheet.newChart()
+        .setChartType(Charts.ChartType.COLUMN)
+        .addRange(sheetDaily.getRange(1, 1, sheetDaily.getLastRow(), 1))
+        .addRange(sheetDaily.getRange(1, 3, sheetDaily.getLastRow(), 1))
+        .addRange(sheetDaily.getRange(1, 4, sheetDaily.getLastRow(), 1))
+        .setPosition(10, 1, 0, 0)
+        .setOption('title', 'Ingresos Diarios: Gimnasio vs Tiendita')
+        .setOption('width', 580)
+        .setOption('height', 300)
+        .setOption('isStacked', true)
+        .setOption('colors', ['#f59e0b', '#3b82f6'])
+        .build();
+      sheet.insertChart(chart1);
+    }
+    
+    var sheetHourly = ss.getSheetByName('Afluencia Horaria');
+    if (sheetHourly && sheetHourly.getLastRow() > 1) {
+      var chart2 = sheet.newChart()
+        .setChartType(Charts.ChartType.COLUMN)
+        .addRange(sheetHourly.getRange(1, 1, sheetHourly.getLastRow(), 1))
+        .addRange(sheetHourly.getRange(1, 2, sheetHourly.getLastRow(), 1))
+        .addRange(sheetHourly.getRange(1, 3, sheetHourly.getLastRow(), 1))
+        .setPosition(10, 7, 0, 0)
+        .setOption('title', 'Afluencia por Hora: Entradas vs Salidas')
+        .setOption('width', 580)
+        .setOption('height', 300)
+        .setOption('colors', ['#f59e0b', '#10b981'])
+        .build();
+      sheet.insertChart(chart2);
+    }
+
+    var sheetMethods = ss.getSheetByName('Métodos de Pago');
+    if (sheetMethods && sheetMethods.getLastRow() > 1) {
+      var chart3 = sheet.newChart()
+        .setChartType(Charts.ChartType.PIE)
+        .addRange(sheetMethods.getRange(1, 1, sheetMethods.getLastRow(), 1))
+        .addRange(sheetMethods.getRange(1, 4, sheetMethods.getLastRow(), 1))
+        .setPosition(27, 1, 0, 0)
+        .setOption('title', 'Distribución de Pagos por Método (Cuadre)')
+        .setOption('width', 580)
+        .setOption('height', 280)
+        .setOption('pieHole', 0.4)
+        .build();
+      sheet.insertChart(chart3);
+    }
+
+    var sheetTop = ss.getSheetByName('Top Productos');
+    if (sheetTop && sheetTop.getLastRow() > 1) {
+      var limit = Math.min(sheetTop.getLastRow(), 11);
+      var chart4 = sheet.newChart()
+        .setChartType(Charts.ChartType.BAR)
+        .addRange(sheetTop.getRange(1, 2, limit, 1))
+        .addRange(sheetTop.getRange(1, 3, limit, 1))
+        .setPosition(27, 7, 0, 0)
+        .setOption('title', 'Top Productos Más Vendidos (Unidades)')
+        .setOption('width', 580)
+        .setOption('height', 280)
+        .setOption('colors', ['#3b82f6'])
+        .build();
+      sheet.insertChart(chart4);
+    }
+  } catch (e) { }
+}
+
+function activarAutoActualizacion() {
+  detenerAutoActualizacion();
+  ScriptApp.newTrigger('actualizarTodo')
+    .timeBased()
+    .everyMinutes(10)
+    .create();
+  SpreadsheetApp.getUi().alert('✅ Auto-actualización activada: Tus hojas y gráficos se actualizarán automáticamente cada 10 minutos en segundo plano.');
+}
+
+function detenerAutoActualizacion() {
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'actualizarTodo') {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
+  }
+  SpreadsheetApp.getUi().alert('⏸️ Auto-actualización detenida.');
+}
+
+function verEstado() {
+  var triggers = ScriptApp.getProjectTriggers();
+  var auto = false;
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'actualizarTodo') auto = true;
+  }
+  var msg = 'Servidor: ' + CONFIG.ENDPOINT + '\\n'
+    + 'Clave configurada: ' + CONFIG.KEY.slice(0, 6) + '...\\n'
+    + 'Auto-actualización cada 10 min: ' + (auto ? 'ACTIVADA ✅' : 'DESACTIVADA ⏸️');
+  SpreadsheetApp.getUi().alert(msg);
 }`;
     }
 
@@ -1811,13 +2076,13 @@ function sincronizarFeedRDFitness(tipo, nombreHoja) {
       ${isLocal ? `
       <div class="tip warn mb small">
         <b>ℹ️ Modo Servidor en la Nube Activado:</b><br>
-        Actualmente estás conectado desde una red local o desarrollo. Dado que los servidores de Google Sheets están en la nube de Google, Google no puede acceder a direcciones "localhost".
-        Las fórmulas y enlaces a continuación usan tu servidor oficial en la nube de Render: <b>${prodHost}</b>.
+        Actualmente estás conectado desde una red local o desarrollo. Dado que Google Sheets está en la nube, Google no puede acceder a direcciones "localhost".
+        Las fórmulas y el script usan tu servidor oficial en la nube de Render: <b>${prodHost}</b>.
       </div>` : ''}
 
       <div class="chips mb" id="gstab">
-        <span class="chip on" data-gt="formula">⚡ Opción A: Fórmula =IMPORTDATA</span>
-        <span class="chip" data-gt="script">🚀 Opción B: Menú 1-Clic en Sheets (Recomendado 100% en vivo)</span>
+        <span class="chip on" data-gt="script">🚀 Opción A: Script Maestro Multi-Hojas (Recomendado 100% en vivo)</span>
+        <span class="chip" data-gt="formula">⚡ Opción B: Fórmulas Rápidas =IMPORTDATA</span>
       </div>
 
       <div id="gtcontent"></div>
@@ -1825,20 +2090,56 @@ function sincronizarFeedRDFitness(tipo, nombreHoja) {
 
     function renderGContent(tab) {
       const cnt = d.el.querySelector('#gtcontent');
-      if (tab === 'formula') {
+      if (tab === 'script') {
         cnt.innerHTML = `
           <p class="small muted mb">
-            Google Sheets actualizará tu hoja automáticamente sin necesidad de exportar ni descargar archivos manualmente.
+            <b>Crea en 1 clic un libro completo en Google Sheets</b> con 19 hojas (Dashboard con Gráficos, Ingresos Diarios, Métodos de Pago, Pagos, Ventas Tienda, Inventario, Socios, Vencimientos, Asistencias con Entrada/Salida, Afluencia Horaria, etc.) y auto-actualización cada 10 minutos.
+          </p>
+
+          <div class="card mb" style="background:#0f172a">
+            <div class="row between wrap gap mb">
+              <span class="small muted"><b>Código Google Apps Script Maestro (Con Gráficos y Auto-Sync):</b></span>
+              <div class="row gap">
+                <button class="btn primary sm" id="btncopyscript">📋 Copiar Código Script</button>
+              </div>
+            </div>
+            <textarea id="gsscriptcode" rows="13" readonly style="font-family:monospace;font-size:.78rem;background:#1e293b;color:#38bdf8;width:100%">${getAppsScriptCode()}</textarea>
+          </div>
+
+          <div class="tip small mb">
+            <b>¿Cómo instalarlo en tu Google Sheets en 30 segundos?</b><br>
+            1. Abre tu hoja en blanco en <a href="https://sheets.new" target="_blank" rel="noopener">Google Sheets</a>.<br>
+            2. En el menú superior ve a: <b>Extensiones ➔ Apps Script</b>.<br>
+            3. Borra todo el código que aparece por defecto y pega este código con <b>Ctrl + V</b>.<br>
+            4. Haz clic en el icono <b>💾 Guardar</b>.<br>
+            5. Vuelve a tu hoja de cálculo y presiona <b>F5</b>: aparecerá un nuevo menú arriba llamado <b>🏋️ RD Fitness</b>.<br>
+            6. Haz clic en <b>"🏋️ RD Fitness" ➔ "🔄 Actualizar Todo en Vivo"</b> (la primera vez Google te pedirá autorizar la ejecución del script).<br>
+            <i>¡Listo! Todas las 19 hojas se generarán solas con sus datos, formatos y gráficos.</i>
+          </div>
+        `;
+
+        cnt.querySelector('#btncopyscript').onclick = () => {
+          const ta = cnt.querySelector('#gsscriptcode');
+          ta.select();
+          navigator.clipboard.writeText(ta.value);
+          RD.toast('¡Código Apps Script copiado al portapapeles!');
+        };
+      } else {
+        cnt.innerHTML = `
+          <p class="small muted mb">
+            Fórmulas para sincronizar hojas individuales usando la función nativa <code>=IMPORTDATA</code> de Google Sheets.
           </p>
 
           <div class="row between wrap gap mb">
             <label class="small muted"><b>Tipo de Reporte a Sincronizar:</b>
               <select id="gsfeedsel" style="min-height:36px">
-                <option value="consolidated" ${currentFeed === 'consolidated' ? 'selected' : ''}>📊 Consolidado General (Ingresos, Gastos, Utilidad)</option>
-                <option value="attendance" ${currentFeed === 'attendance' ? 'selected' : ''}>👥 Asistencias, Entradas, Salidas y Permanencia</option>
-                <option value="gym" ${currentFeed === 'gym' ? 'selected' : ''}>🏋️ Caja Gimnasio (Membresías y Pases S/ 5)</option>
-                <option value="store" ${currentFeed === 'store' ? 'selected' : ''}>🛒 Tiendita y POS (Bebidas, Aguas, Stock)</option>
-                <option value="shifts" ${currentFeed === 'shifts' ? 'selected' : ''}>🕒 Historial y Auditoría de Turnos</option>
+                <option value="daily" ${currentFeed === 'daily' ? 'selected' : ''}>📊 Ingresos Diarios (Gimnasio vs Tienda vs Utilidad)</option>
+                <option value="attendance" ${currentFeed === 'attendance' ? 'selected' : ''}>👥 Asistencias (Entradas, Salidas, Permanencia)</option>
+                <option value="payments" ${currentFeed === 'payments' ? 'selected' : ''}>🧾 Pagos y Boletas Detalladas</option>
+                <option value="sales" ${currentFeed === 'sales' ? 'selected' : ''}>🛒 Ventas de Tienda (Con Costo y Utilidad)</option>
+                <option value="inventory" ${currentFeed === 'inventory' ? 'selected' : ''}>📦 Inventario y Stock</option>
+                <option value="members" ${currentFeed === 'members' ? 'selected' : ''}>🏋️ Base de Socios y Membresías</option>
+                <option value="shifts" ${currentFeed === 'shifts' ? 'selected' : ''}>🕒 Historial y Arqueo de Turnos</option>
               </select>
             </label>
             <label class="small muted"><b>Configuración Regional de tu Google Sheets:</b>
@@ -1852,7 +2153,7 @@ function sincronizarFeedRDFitness(tipo, nombreHoja) {
           <div class="card mb" style="background:#0f172a">
             <div class="row between wrap gap">
               <label class="small muted"><b>Fórmula anti-caché para pegar en la celda A1:</b></label>
-              <span class="badge ok tiny">Anti-Caché Dinámico</span>
+              <span class="badge ok tiny">Anti-Caché</span>
             </div>
             <div class="row gap mt2">
               <input type="text" id="gsformula" value='${getFormula(currentFeed, currentSep)}' readonly style="font-family:monospace;font-size:.85rem;background:#1e293b;color:#4ade80">
@@ -1861,18 +2162,9 @@ function sincronizarFeedRDFitness(tipo, nombreHoja) {
           </div>
 
           <div class="tip small mb">
-            <b>Instrucciones de conexión:</b><br>
-            1. Abre tu hoja en <a href="https://sheets.new" target="_blank" rel="noopener">Google Sheets</a>.<br>
-            2. Haz clic en la celda <b>A1</b> y pega la fórmula copiada.<br>
-            3. Presiona <b>Enter</b>: los datos se cargarán automáticamente.<br>
-            <i>Nota: Al agregar el parámetro dinámico <code>&t=TEXT(NOW()...)</code>, Google Sheets consultará al servidor con frecuencia actualizada en lugar de congelar los datos en caché.</i>
-          </div>
-
-          <div class="row between wrap gap mt">
-            <a class="btn ghost sm" href="${effectiveOrigin}/api/reports/live-feed.csv?type=consolidated&key=${key}" target="_blank">📥 CSV Consolidado</a>
-            <a class="btn ghost sm" href="${effectiveOrigin}/api/reports/live-feed.csv?type=attendance&key=${key}" target="_blank">📥 CSV Asistencias</a>
-            <a class="btn ghost sm" href="${effectiveOrigin}/api/reports/live-feed.csv?type=gym&key=${key}" target="_blank">📥 CSV Gimnasio</a>
-            <a class="btn ghost sm" href="${effectiveOrigin}/api/reports/live-feed.csv?type=store&key=${key}" target="_blank">📥 CSV Tiendita</a>
+            <b>Instrucciones:</b><br>
+            1. En tu hoja de <a href="https://sheets.new" target="_blank" rel="noopener">Google Sheets</a>, haz clic en la celda <b>A1</b> y pega la fórmula.<br>
+            2. Presiona <b>Enter</b> y los datos se descargarán automáticamente.
           </div>
         `;
 
@@ -1884,38 +2176,6 @@ function sincronizarFeedRDFitness(tipo, nombreHoja) {
           navigator.clipboard.writeText(inp.value);
           RD.toast('¡Fórmula copiada! Pégala en la celda A1 de tu Google Sheets.');
         };
-      } else {
-        cnt.innerHTML = `
-          <p class="small muted mb">
-            Google Sheets a veces congela la fórmula <code>IMPORTDATA</code> por horas. 
-            <b>Con este script oficial de RD Fitness, tendrás un botón personalizado arriba en Google Sheets ("🏋️ RD Fitness" ➔ "🔄 Actualizar Datos en Vivo") que descarga la información fresca directamente del servidor en 1 segundo sin ningún retraso.</b>
-          </p>
-
-          <div class="card mb" style="background:#0f172a">
-            <div class="row between wrap gap mb">
-              <span class="small muted"><b>Código Google Apps Script (Listo para pegar):</b></span>
-              <button class="btn primary sm" id="btncopyscript">📋 Copiar Código Script</button>
-            </div>
-            <textarea id="gsscriptcode" rows="12" readonly style="font-family:monospace;font-size:.8rem;background:#1e293b;color:#38bdf8;width:100%">${getAppsScriptCode()}</textarea>
-          </div>
-
-          <div class="tip small mb">
-            <b>¿Cómo instalarlo en 30 segundos?</b><br>
-            1. En tu hoja de <a href="https://sheets.new" target="_blank" rel="noopener">Google Sheets</a>, ve al menú: <b>Extensiones ➔ Apps Script</b>.<br>
-            2. Borra el código de muestra del editor.<br>
-            3. Haz clic en el botón <b>📋 Copiar Código Script</b> de este panel y pégalo allí con <b>Ctrl + V</b>.<br>
-            4. Haz clic en el botón <b>💾 Guardar</b>.<br>
-            5. Vuelve a tu hoja y presiona <b>F5</b> para recargar: verás el nuevo menú <b>🏋️ RD Fitness</b> arriba.<br>
-            <i>¡Listo! Ahora puedes actualizar los reportes con 1 solo clic en tiempo real siempre que lo desees.</i>
-          </div>
-        `;
-
-        cnt.querySelector('#btncopyscript').onclick = () => {
-          const ta = cnt.querySelector('#gsscriptcode');
-          ta.select();
-          navigator.clipboard.writeText(ta.value);
-          RD.toast('¡Código Apps Script copiado! Pégalo en Extensiones -> Apps Script en Google Sheets.');
-        };
       }
     }
 
@@ -1926,7 +2186,7 @@ function sincronizarFeedRDFitness(tipo, nombreHoja) {
       renderGContent(c.dataset.gt);
     };
 
-    renderGContent('formula');
+    renderGContent('script');
   }
 
   // ============================================================
@@ -1936,7 +2196,7 @@ function sincronizarFeedRDFitness(tipo, nombreHoja) {
     async render(view) {
       const today = RD.limaDay();
       let to = today, from = RD.addDays(today, -29);
-      let channel = 'consolidated'; // 'consolidated' | 'gym' | 'store' | 'shifts' | 'attendance'
+      let channel = 'consolidated'; // 'consolidated' | 'gym' | 'store' | 'shifts' | 'attendance' | 'security'
 
       async function load() {
         const d = await RD.api.get(`/reports?from=${from}&to=${to}&scope=${channel}`);
@@ -1951,10 +2211,11 @@ function sincronizarFeedRDFitness(tipo, nombreHoja) {
             <span class="chip ${channel === 'store' ? 'on' : ''}" data-ch="store">🛒 Tiendita y POS</span>
             <span class="chip ${channel === 'shifts' ? 'on' : ''}" data-ch="shifts">🕒 Historial de Turnos</span>
             <span class="chip ${channel === 'attendance' ? 'on' : ''}" data-ch="attendance">👥 Asistencias y Aforo</span>
+            <span class="chip ${channel === 'security' ? 'on' : ''}" data-ch="security">🔍 Verificar Presencia / Coartada</span>
           </div>
 
           <div class="row gap wrap no-print">
-            <a class="btn sm ok" id="btnexcel" href="/api/reports/export/excel?from=${from}&to=${to}" download>📥 Descargar Excel (.xls con fórmulas)</a>
+            <button class="btn sm ok" id="btnexcel">📥 Descargar Excel (.xlsx)</button>
             <button class="btn sm primary" id="btnprint">🖨️ Imprimir / Guardar PDF</button>
             <button class="btn sm ghost" id="btngsheets">📊 Conectar Google Sheets</button>
           </div>
@@ -1984,7 +2245,7 @@ function sincronizarFeedRDFitness(tipo, nombreHoja) {
               <p class="small muted" style="margin:0">RUC: ${esc(settings.gym_ruc || '10702548911')} · ${esc(settings.gym_address || 'Calle Antonio José de Sucre Lt. 10, Chivay')} · Tel: ${esc(settings.gym_phone || '982404043')}</p>
             </div>
           </div>
-          <h3>REPORTE: ${channel === 'consolidated' ? 'CONSOLIDADO GENERAL EJECUTIVO' : channel === 'gym' ? 'INGRESOS EXCLUSIVOS DEL GIMNASIO' : channel === 'store' ? 'VENTAS DE TIENDITA Y POS' : channel === 'attendance' ? 'CONTROL DE ASISTENCIAS, AFORO Y ENTRADAS/SALIDAS' : 'HISTORIAL Y AUDITORÍA DE TURNOS'}</h3>
+          <h3>REPORTE: ${channel === 'consolidated' ? 'CONSOLIDADO GENERAL EJECUTIVO' : channel === 'gym' ? 'INGRESOS EXCLUSIVOS DEL GIMNASIO' : channel === 'store' ? 'VENTAS DE TIENDITA Y POS' : channel === 'attendance' ? 'CONTROL DE ASISTENCIAS, AFORO Y ENTRADAS/SALIDAS' : channel === 'security' ? 'VERIFICACIÓN DE PRESENCIA Y AUDITORÍA DE ACCESOS' : 'HISTORIAL Y AUDITORÍA DE TURNOS'}</h3>
           <p class="small"><b>Período:</b> ${from} al ${to} · <b>Generado el:</b> ${new Date().toLocaleString('es-PE')}</p>
           <hr class="mt mb">
         </div>
@@ -1997,6 +2258,7 @@ function sincronizarFeedRDFitness(tipo, nombreHoja) {
         else if (channel === 'store') renderStore(repcontent, d);
         else if (channel === 'shifts') renderShifts(repcontent, d);
         else if (channel === 'attendance') renderAttendance(repcontent, d, settings);
+        else if (channel === 'security') renderSecurityPresence(repcontent, settings);
 
         // Handlers de pestañas
         view.querySelector('#reptabs').onclick = e => {
@@ -2026,7 +2288,22 @@ function sincronizarFeedRDFitness(tipo, nombreHoja) {
 
         // Handlers de botones de exportación
         view.querySelector('#btnprint').onclick = () => window.print();
-        view.querySelector('#btngsheets').onclick = () => googleSheetsSyncModal();
+        view.querySelector('#btngsheets').onclick = () => googleSheetsSyncModal(settings);
+        view.querySelector('#btnexcel').onclick = async () => {
+          const btn = view.querySelector('#btnexcel');
+          const old = btn.innerHTML;
+          btn.disabled = true;
+          btn.innerHTML = '⏳ Generando Excel...';
+          try {
+            const fn = await RD.downloadAuth(`/reports/export/excel?from=${from}&to=${to}`, `Reporte_RD_Fitness_${from}_al_${to}.xlsx`);
+            RD.toast('Excel descargado con éxito: ' + fn, 'ok');
+          } catch (err) {
+            RD.toast(err.message || 'Error al descargar Excel', 'err');
+          } finally {
+            btn.disabled = false;
+            btn.innerHTML = old;
+          }
+        };
       }
 
       // ---------------- 1. CANAL CONSOLIDADO GENERAL ----------------
@@ -2743,6 +3020,221 @@ function sincronizarFeedRDFitness(tipo, nombreHoja) {
         }
       }
 
+      // ---------------- 6. CANAL VERIFICACIÓN DE PRESENCIA Y COARTADAS ----------------
+      function renderSecurityPresence(el, settings) {
+        el.innerHTML = `
+        <div class="card mb">
+          <div class="row between wrap gap">
+            <div>
+              <h3>🛡️ Verificación de Presencia y Ficha de Seguridad</h3>
+              <p class="muted small">Busca a cualquier persona (Socio o Visitante con Pase Diario) y una fecha específica para verificar con certeza oficial si estuvo en el gimnasio, a qué hora ingresó y a qué hora se retiró.</p>
+            </div>
+            <span class="badge ok">Auditoría y Seguridad</span>
+          </div>
+
+          <div class="grid g3 gap mt2 p" style="background:rgba(255,255,255,0.02);border-radius:8px">
+            <div style="position:relative">
+              <label class="small muted"><b>1. Persona (Nombre, DNI o Código):</b></label>
+              <input type="text" id="sec_query" placeholder="Ej: Juan Quispe, 70254891..." style="min-height:38px">
+              <div id="sec_results" class="list mt hidden" style="max-height:220px;overflow-y:auto;background:var(--card,#1e293b);border:1px solid var(--border,#334155);border-radius:6px;position:absolute;z-index:100;left:0;right:0"></div>
+            </div>
+            <div>
+              <label class="small muted"><b>2. Fecha a Comprobar:</b></label>
+              <input type="date" id="sec_day" value="${today}" style="min-height:38px">
+            </div>
+            <div style="display:flex;align-items:flex-end">
+              <button class="btn primary" id="sec_btn_check" style="width:100%;min-height:38px">🔍 Verificar Presencia</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="sec_verdict_container">
+          <div class="empty p2" style="background:var(--card,#1e293b);border-radius:8px">
+            Ingresa el nombre o DNI de la persona y la fecha que deseas auditar para generar la constancia oficial.
+          </div>
+        </div>`;
+
+        let selectedPerson = null;
+        const qInp = el.querySelector('#sec_query');
+        const resBox = el.querySelector('#sec_results');
+        const dayInp = el.querySelector('#sec_day');
+        const btnCheck = el.querySelector('#sec_btn_check');
+        const vContainer = el.querySelector('#sec_verdict_container');
+
+        let debounceTimer;
+        qInp.oninput = () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(async () => {
+            const term = qInp.value.trim();
+            if (term.length < 2) { resBox.classList.add('hidden'); return; }
+            try {
+              const list = await RD.api.get(`/reports/people?q=${encodeURIComponent(term)}`);
+              if (!list.length) {
+                resBox.innerHTML = '<div class="item small muted">No se encontraron socios ni visitantes</div>';
+                resBox.classList.remove('hidden');
+                return;
+              }
+              resBox.innerHTML = list.map(p => `
+                <div class="item click" data-pid="${p.id}" data-pkind="${p.kind}">
+                  <div class="row between">
+                    <b>${esc(p.name)}</b>
+                    <span class="badge ${p.kind === 'D' ? 'warn' : 'ok'}">${p.kind === 'D' ? '🎟️ Pase Diario' : '🏋️ Socio'}</span>
+                  </div>
+                  <div class="tiny muted">${esc(p.code)} · DNI: ${esc(p.dni || 'Sin DNI')} ${p.phone ? '· Cel: ' + esc(p.phone) : ''}</div>
+                </div>
+              `).join('');
+              resBox.classList.remove('hidden');
+
+              resBox.querySelectorAll('[data-pid]').forEach(it => {
+                it.onclick = () => {
+                  const id = it.dataset.pid;
+                  const kind = it.dataset.pkind;
+                  selectedPerson = list.find(x => String(x.id) === String(id) && x.kind === kind);
+                  qInp.value = selectedPerson ? `${selectedPerson.name} (${selectedPerson.code})` : '';
+                  resBox.classList.add('hidden');
+                };
+              });
+            } catch (e) { }
+          }, 300);
+        };
+
+        btnCheck.onclick = async () => {
+          if (!selectedPerson) {
+            RD.toast('Por favor busca y selecciona una persona de la lista desplegable', 'info');
+            qInp.focus();
+            return;
+          }
+          const checkDay = dayInp.value || today;
+          btnCheck.disabled = true;
+          btnCheck.innerHTML = '⏳ Verificando...';
+          try {
+            const rep = await RD.api.get(`/reports/person?kind=${selectedPerson.kind}&id=${selectedPerson.id}&day=${checkDay}&from=${RD.addDays(checkDay, -30)}&to=${checkDay}`);
+            renderVerdict(rep, checkDay);
+          } catch (err) {
+            RD.toast(err.message || 'Error al consultar presencia', 'err');
+          } finally {
+            btnCheck.disabled = false;
+            btnCheck.innerHTML = '🔍 Verificar Presencia';
+          }
+        };
+
+        function renderVerdict(rep, checkDay) {
+          const p = rep.person || {};
+          const pres = rep.presence || {};
+          const stats = rep.stats || {};
+          const sessions = rep.sessions || [];
+          const isPresent = pres.present;
+
+          vContainer.innerHTML = `
+          <!-- CONSTANCIA OFICIAL / DICTAMEN -->
+          <div class="card mb watermark-container" style="border: 2px solid ${isPresent ? '#22c55e' : '#ef4444'};background:#0b0f19;position:relative">
+            <div class="watermark-bg">RD FITNESS</div>
+
+            <div class="row between wrap gap mb">
+              <div class="row gap">
+                ${RD.LOGO_SVG(52)}
+                <div>
+                  <h2 style="margin:0;color:var(--gold)">${esc(settings.gym_name || 'RD FITNESS CLUB')} - CHIVAY</h2>
+                  <p class="small muted" style="margin:0">CONSTANCIA OFICIAL DE REGISTRO DE ACCESOS Y PERMANENCIA</p>
+                </div>
+              </div>
+              <div class="no-print">
+                <button class="btn sm primary" id="btnprintcertificate">🖨️ Imprimir Constancia Oficial (PDF)</button>
+              </div>
+            </div>
+
+            <hr class="mb">
+
+            <!-- DICTAMEN DE PRESENCIA -->
+            <div class="p2 mb" style="border-radius:8px;background:${isPresent ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)'};border:1px solid ${isPresent ? '#22c55e' : '#ef4444'}">
+              <div class="row gap" style="align-items:flex-start">
+                <span style="font-size:2.2rem">${isPresent ? '✅' : '❌'}</span>
+                <div>
+                  <h3 style="margin:0;color:${isPresent ? '#4ade80' : '#f87171'}">
+                    ${isPresent ? 'DICTAMEN: ASISTENCIA Y PRESENCIA CONFIRMADA' : 'DICTAMEN: NO SE REGISTRA INGRESO EN LA FECHA CONSULTADA'}
+                  </h3>
+                  <p style="margin:0.5rem 0 0 0;font-size:1.05rem;line-height:1.5">
+                    ${esc(pres.summary)}
+                  </p>
+                  <p class="tiny muted" style="margin:0.4rem 0 0 0">
+                    Fecha auditada: <b>${checkDay}</b> · Hora de emisión: <b>${new Date().toLocaleTimeString('es-PE')} (Hora de Lima)</b>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- FICHA DE LA PERSONA -->
+            <div class="grid g4 gap mb p" style="background:rgba(255,255,255,0.03);border-radius:8px">
+              <div>
+                <div class="tiny muted">NOMBRE COMPLETO:</div>
+                <div style="font-size:1.05rem;font-weight:bold">${esc(p.name)}</div>
+              </div>
+              <div>
+                <div class="tiny muted">DOCUMENTO DE IDENTIDAD:</div>
+                <div style="font-size:1.05rem;font-weight:bold">${esc(p.dni || 'Sin DNI')}</div>
+              </div>
+              <div>
+                <div class="tiny muted">CÓDIGO DE IDENTIFICACIÓN:</div>
+                <div style="font-size:1.05rem;font-weight:bold;color:var(--gold);font-family:monospace">${esc(p.code)}</div>
+              </div>
+              <div>
+                <div class="tiny muted">TIPO / CONDICIÓN:</div>
+                <div><span class="badge ${p.kind === 'D' ? 'warn' : 'ok'}">${esc(p.type)}</span> ${p.plan ? `<span class="badge">${esc(p.plan)}</span>` : ''}</div>
+              </div>
+            </div>
+
+            <!-- HISTORIAL DEL DÍA AUDITADO -->
+            <h4>Sesiones Registradas en la Fecha (${checkDay})</h4>
+            <div class="tbl-wrap mt mb">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Hora Entrada</th>
+                    <th>Hora Salida</th>
+                    <th>Tiempo de Permanencia</th>
+                    <th>Estado de Sesión</th>
+                    <th>Personal que Registró</th>
+                    <th>Resultado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${sessions.length ? sessions.map(s => `
+                    <tr>
+                      <td><b>${s.day}</b></td>
+                      <td style="font-family:monospace;font-weight:bold">${s.entrada || '—'}</td>
+                      <td style="font-family:monospace">${s.salida || '<span class="badge warn tiny">Sin registrar</span>'}</td>
+                      <td style="font-weight:bold">${s.dur ? `${Math.floor(s.dur / 60) > 0 ? Math.floor(s.dur / 60) + 'h ' : ''}${s.dur % 60}m` : '—'}</td>
+                      <td><span class="badge ${s.estado === 'Salida registrada' ? 'ok' : s.estado === 'En sala' ? 'info' : 'warn'} tiny">${esc(s.estado)}</span></td>
+                      <td class="small muted">${esc(s.staff || 'Recepción')}</td>
+                      <td><span class="badge ${s.result === 'ok' ? 'ok' : s.result === 'warn' ? 'warn' : 'denied'} tiny">${esc(s.result)}</span></td>
+                    </tr>
+                  `).join('') : `<tr><td colspan="7" class="empty">No existe ningún registro de ingreso ni de intento en la fecha consultada (${checkDay}).</td></tr>`}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- FIRMAS OFICIALES PARA IMPRESIÓN -->
+            <div class="row between mt2 pt2" style="border-top:1px solid rgba(255,255,255,0.1);padding-top:2rem">
+              <div style="text-align:center;width:240px">
+                <div style="border-top:1px solid #94a3b8;margin-bottom:4px"></div>
+                <div class="small"><b>Firma Administración / Recepción</b></div>
+                <div class="tiny muted">RD Fitness Club - Chivay</div>
+              </div>
+              <div style="text-align:center;width:240px">
+                <div style="border-top:1px solid #94a3b8;margin-bottom:4px"></div>
+                <div class="small"><b>Sello de Control de Accesos</b></div>
+                <div class="tiny muted">Verificación Digital Inmutable</div>
+              </div>
+            </div>
+          </div>`;
+
+          vContainer.querySelector('#btnprintcertificate')?.addEventListener('click', () => {
+            window.print();
+          });
+        }
+      }
+
       await load();
     }
   };
@@ -3114,10 +3606,18 @@ function sincronizarFeedRDFitness(tipo, nombreHoja) {
       <h3>Copia de Seguridad y Datos</h3>
       <p class="muted small mb">El sistema realiza respaldos automáticos diarios en el servidor. Puedes descargar una copia de seguridad completa de la base de datos SQLite en cualquier momento.</p>
       <div class="grid gap mt">
-        <a class="btn primary" href="/api/backup" download>💾 Descargar Copia de Seguridad (.db)</a>
+        <button class="btn primary" id="btnbackup">💾 Descargar Copia de Seguridad (.db)</button>
         <a class="btn" href="/admin/cards.html" target="_blank">🖨 Diseñador / Impresor Masivo de Tarjetas PVC</a>
       </div>
     </div>`;
+    el.querySelector('#btnbackup').onclick = async () => {
+      try {
+        const fn = await RD.downloadAuth('/backup', 'rd_fitness_backup.db');
+        RD.toast('Copia descargada con éxito: ' + fn, 'ok');
+      } catch (err) {
+        RD.toast(err.message || 'Error al descargar respaldo', 'err');
+      }
+    };
   }
 
 })();
