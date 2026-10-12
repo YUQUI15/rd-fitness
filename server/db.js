@@ -160,6 +160,14 @@ function ensureColumns() {
   addCol('products', 'category', 'TEXT DEFAULT "general"');
   addCol('products', 'min_stock', 'INTEGER DEFAULT 5');
 
+  addCol('memberships', 'extra_days', 'INTEGER DEFAULT 0');
+  addCol('memberships', 'promo_note', 'TEXT');
+
+  addCol('products', 'cost', 'REAL DEFAULT 0');
+  addCol('products', 'promo_price', 'REAL DEFAULT 0');
+  addCol('products', 'promo_desc', 'TEXT');
+  addCol('products', 'description', 'TEXT');
+
   addCol('attendance', 'direction', 'TEXT DEFAULT "in"');
   addCol('attendance', 'exit_ts', 'TEXT');
   addCol('attendance', 'duration_min', 'INTEGER');
@@ -191,7 +199,9 @@ const DEFAULT_SETTINGS = {
   opening: 'Lun a Sáb 6:00 a 21:00',
   color: '#f5b400',
   printer_width: '58mm',
-  google_sheets_key: 'RD-CHIVAY-2026'
+  google_sheets_key: 'RD-CHIVAY-2026',
+  yape_phone: '982404043',
+  yape_name: 'RD FITNESS CLUB'
 };
 for (const [k, v] of Object.entries(DEFAULT_SETTINGS)) {
   q.run('INSERT OR IGNORE INTO settings(key,value) VALUES(?,?)', k, v);

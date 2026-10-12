@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RD Fitness Club - Pantalla del Cliente</title>
+  <link rel="icon" href="/logo.svg">
+  <link rel="stylesheet" href="/css/theme.css">
+  <script src="/vendor/qrcode.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at 50% 20%, #1a1600 0%, #0d0d0d 70%, #050505 100%);
+      color: #fff;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .topbar-display {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 32px;
+      border-bottom: 1px solid rgba(245, 180, 0, 0.2);
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .brand img {
+      width: 48px;
+      height: 48px;
+    }
+    .brand-title {
+      font-size: 1.5rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: var(--gold, #f5b400);
+      text-transform: uppercase;
+    }
+    .brand-sub {
+      font-size: 0.85rem;
+      color: #a3a3a3;
+      letter-spacing: 0.5px;
+    }
+    .clock-box {
+      text-align: right;
+    }
+    .clock-time {
+      font-size: 1.6rem;
+      font-weight: 800;
+      font-family: monospace;
+      color: #f5f5f5;
+    }
+    .clock-date {
+      font-size: 0.85rem;
+      color: #888;
+      text-transform: capitalize;
+    }
+    .main-stage {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+    }
+
+    /* ESTADO IDLE / BIENVENIDA */
+    .idle-view {
+      text-align: center;
+      max-width: 800px;
+      animation: fadeIn 0.8s ease;
+    }
+    .idle-logo {
+      width: 140px;
+      height: 140px;
+      margin-bottom: 24px;
+      filter: drop-shadow(0 0 30px rgba(245, 180, 0, 0.4));
+      animation: pulse 4s infinite ease-in-out;
+    }
+    .idle-welcome {
+      font-size: 2.8rem;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 12px;
+      line-height: 1.15;
+    }
+    .idle-welcome span {
+      color: var(--gold, #f5b400);
+    }
+    .idle-quote {
+      font-size: 1.35rem;
+      color: #d4d4d4;
+      font-style: italic;
+      margin-bottom: 32px;
+    }
+    .idle-chips {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .idle-badge {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 0.95rem;
+      color: #e5e5e5;
+    }
+
+    /* ESTADO COBRO / PAGO ACTIVO */
+    .pay-view {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 48px;
+      max-width: 960px;
+      width: 100%;
+      background: rgba(18, 18, 18, 0.85);
+      border: 2px solid var(--gold, #f5b400);
+      border-radius: 24px;
+      padding: 36px 44px;
+      box-shadow: 0 0 60px rgba(245, 180, 0, 0.2);
+      animation: scaleUp 0.35s ease;
+    }
+    .pay-info {
+      flex: 1;
+    }
+    .pay-tag {
+      display: inline-block;
+      background: #c084fc;
+      color: #000;
+      font-weight: 800;
+      font-size: 0.8rem;
+      padding: 4px 12px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .pay-concept {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+    .pay-total-label {
+      font-size: 1rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    .pay-amount {
+      font-size: 4rem;
+      font-weight: 900;
+      color: var(--gold, #f5b400);
+      line-height: 1;
+      margin-bottom: 20px;
+      letter-spacing: -1px;
+    }
+    .pay-guide {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #e5e5e5;
+    }
+    .pay-guide b {
+      color: var(--gold, #f5b400);
+    }
+    .pay-qr-box {
+      text-align: center;
+      background: #fff;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+      width: 260px;
+    }
+    .pay-qr-svg {
+      width: 240px;
+      height: 240px;
+    }
+    .pay-qr-caption {
+      color: #111;
+      font-weight: 800;
+      font-size: 0.8rem;
+      margin-top: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ESTADO ÉXITO */
+    .success-view {
+      text-align: center;
+      animation: scaleUp 0.4s ease;
+      max-width: 600px;
+    }
+    .success-icon {
+      font-size: 5rem;
+      margin-bottom: 16px;
+      animation: bounce 1s infinite alternate;
+    }
+    .success-title {
+      font-size: 3rem;
+      font-weight: 900;
+      color: #34d399;
+      margin-bottom: 12px;
+    }
+    .success-msg {
+      font-size: 1.4rem;
+      color: #f3f4f6;
+      margin-bottom: 24px;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes scaleUp { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-12px); } }
+
+    @media (max-width: 768px) {
+      .pay-view { flex-direction: column-reverse; padding: 20px; gap: 24px; }
+      .pay-amount { font-size: 3rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar-display">
+    <div class="brand">
+      <img src="/logo.svg" alt="RD Fitness Club">
+      <div>
+        <div class="brand-title" id="gym_name">RD FITNESS CLUB</div>
+        <div class="brand-sub">CHIVAY · DISCIPLINA · CONSTANCIA · RESULTADOS</div>
+      </div>
+    </div>
+    <div class="clock-box">
+      <div class="clock-time" id="clock_time">--:--:--</div>
+      <div class="clock-date" id="clock_date">--</div>
+    </div>
+  </header>
+
+  <main class="main-stage" id="stage">
+    <!-- Renderizado dinámico de estado (idle, payment, cart, success) -->
+  </main>
+
+  <script>
+    (function () {
+      const stage = document.getElementById('stage');
+      let curState = { mode: 'idle' };
+
+      // Reloj en tiempo real
+      function updateClock() {
+        const now = new Date();
+        document.getElementById('clock_time').textContent = now.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById('clock_date').textContent = now.toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      }
+      setInterval(updateClock, 1000);
+      updateClock();
+
+      // Cargar info del gimnasio
+      fetch('/api/public').then(r => r.json()).then(p => {
+        if (p.gym_name) document.getElementById('gym_name').textContent = p.gym_name.toUpperCase();
+      }).catch(() => {});
+
+      function money(n) {
+        return 'S/ ' + (Number(n) || 0).toFixed(2).replace(/\.00$/, '');
+      }
+
+      function qrSvg(text) {
+        if (!window.qrcode) return '';
+        try {
+          const qr = window.qrcode(0, 'M');
+          qr.addData(text);
+          qr.make();
+          const n = qr.getModuleCount();
+          let d = '';
+          for (let r = 0; r < n; r++) {
+            for (let c = 0; c < n; c++) {
+              if (qr.isDark(r, c)) d += `M${c + 2} ${r + 2}h1v1h-1z`;
+            }
+          }
+          const s = n + 4;
+          return `<svg class="pay-qr-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${s} ${s}" shape-rendering="crispEdges"><rect width="${s}" height="${s}" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+        } catch (e) {
+          return '';
+        }
+      }
+
+      const QUOTES = [
+        "«La disciplina tarde o temprano vencerá a la inteligencia.»",
+        "«Tu único límite eres tú mismo. ¡A entrenar con todo!»",
+        "«El dolor que sientes hoy es la fuerza que tendrás mañana.»",
+        "«Constancia y dedicación: la fórmula de tus resultados.»"
+      ];
+      let quoteIdx = 0;
+
+      function render(state) {
+        curState = state;
+        const mode = state.mode || 'idle';
+
+        if (mode === 'idle') {
+          quoteIdx = (quoteIdx + 1) % QUOTES.length;
+          stage.innerHTML = `
+            <div class="idle-view">
+              <img src="/logo.svg" alt="" class="idle-logo">
+              <div class="idle-welcome">BIENVENIDO A <span>RD FITNESS CLUB</span></div>
+              <div class="idle-quote">${QUOTES[quoteIdx]}</div>
+              <div class="idle-chips">
+                <div class="idle-badge">🕒 Lun - Sáb: 6:00 AM - 9:00 PM</div>
+                <div class="idle-badge">📍 Chivay, Colca</div>
+                <div class="idle-badge">🟣 Aceptamos Yape y Plin</div>
+              </div>
+            </div>`;
+        } else if (mode === 'payment') {
+          const qrHtml = state.qr_payload ? qrSvg(state.qr_payload) : '';
+          stage.innerHTML = `
+            <div class="pay-view">
+              <div class="pay-info">
+                <span class="pay-tag">📱 Cobro Yape / Plin</span>
+                <div class="pay-concept">${state.title || 'Cobro en Recepción'}</div>
+                <div class="pay-total-label">Total a Pagar</div>
+                <div class="pay-amount">${money(state.amount)}</div>
+                <div class="pay-guide">
+                  <b>📱 Escanea con tu Yape o Plin desde tu celular:</b><br>
+                  El monto exacto de <b>${money(state.amount)}</b> ya está configurado en el código QR.<br>
+                  <small style="color:#aaa;display:block;margin-top:6px">Titular: ${state.merchant || 'RD FITNESS CLUB'} · Cel: ${state.phone || '982404043'}</small>
+                </div>
+              </div>
+              <div class="pay-qr-box">
+                ${qrHtml}
+                <div class="pay-qr-caption">MONTO: ${money(state.amount)}</div>
+              </div>
+            </div>`;
+        } else if (mode === 'cart') {
+          stage.innerHTML = `
+            <div class="pay-view" style="max-width:700px">
+              <div class="pay-info" style="text-align:center">
+                <span class="pay-tag">🛒 Venta en Curso</span>
+                <div class="pay-concept">${state.title || 'Venta en Recepción'}</div>
+                <div class="pay-total-label">Total Actual</div>
+                <div class="pay-amount">${money(state.amount)}</div>
+                <div class="idle-chips" style="justify-content:center;margin-top:16px">
+                  ${(state.items || []).map(i => `<span class="idle-badge">${i}</span>`).join('')}
+                </div>
+              </div>
+            </div>`;
+        } else if (mode === 'success') {
+          stage.innerHTML = `
+            <div class="success-view">
+              <div class="success-icon">🎉</div>
+              <div class="success-title">¡PAGO EXITOSO!</div>
+              <div class="success-msg">Gracias por tu preferencia.<br><b>¡Que tengas un excelente entrenamiento! 💪</b></div>
+              <div class="idle-badge" style="display:inline-block;border-color:#34d399;color:#34d399">Total abonado: ${money(state.amount)}</div>
+            </div>`;
+        }
+      }
+
+      // Conexión en tiempo real SSE
+      function connectSSE() {
+        const es = new EventSource('/api/screen/stream');
+        es.onmessage = e => {
+          try {
+            const data = JSON.parse(e.data);
+            render(data);
+          } catch { }
+        };
+        es.onerror = () => {
+          es.close();
+          // Fallback sondeo cada 3s si se cae la conexión
+          setTimeout(connectSSE, 3000);
+        };
+      }
+
+      // Estado inicial
+      fetch('/api/screen/state').then(r => r.json()).then(render).catch(() => render({ mode: 'idle' }));
+      connectSSE();
+    })();
+  </script>
+</body>
+</html>

@@ -100,6 +100,7 @@
     scan: ['📷', 'Escáner', ['admin', 'recepcion']],
     home: ['📊', 'Inicio', ['admin', 'recepcion', 'entrenador']],
     members: ['👥', 'Socios', ['admin', 'recepcion', 'entrenador']],
+    store: ['🛒', 'Tienda / POS', ['admin', 'recepcion']],
     cash: ['💰', 'Caja', ['admin', 'recepcion']],
     routines: ['🏋️', 'Rutinas', ['admin', 'recepcion', 'entrenador']],
     reports: ['📈', 'Reportes', ['admin', 'recepcion']],

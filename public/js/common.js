@@ -38,6 +38,19 @@
     if (m.status === 'inactive') return { level: 'denied', reason: 'Socio dado de baja', daysLeft: null };
     if (m.frozen) return { level: 'denied', reason: 'Membresía congelada', daysLeft: null };
     if (!m.end) return { level: 'denied', reason: 'Sin membresía', daysLeft: null };
+
+    // Membresía pagada con inicio diferido / programado
+    if (m.start && m.start > today) {
+      const daysToStart = RD.diffDays(m.start, today);
+      return {
+        level: 'denied',
+        reason: `Inicia el ${RD.fmtDate(m.start)} (en ${daysToStart} d)`,
+        daysLeft: RD.diffDays(m.end, today),
+        scheduled: true,
+        startsIn: daysToStart
+      };
+    }
+
     const left = RD.diffDays(m.end, today);
     if (left >= 0) {
       if (left <= warnDays) return { level: 'warn', reason: left === 0 ? 'Vence HOY' : `Vence en ${left} día${left === 1 ? '' : 's'}`, daysLeft: left };
@@ -173,6 +186,150 @@
   RD.digitalPayload = async (code, key) => {
     const n = Math.floor(RD.now() / 60000);
     return `RD1.${code}.D${n}.${await RD.hmac(key, `${code}|D${n}`)}`;
+  };
+
+  // ---------- Generador de Payload Interoperable Yape / Plin (BCRP / EMVCo MPM) ----------
+  function tlv(id, value) {
+    const v = String(value ?? '');
+    const len = String(v.length).padStart(2, '0');
+    return `${id}${len}${v}`;
+  }
+  function crc16Ccitt(str) {
+    let crc = 0xFFFF;
+    for (let i = 0; i < str.length; i++) {
+      crc ^= (str.charCodeAt(i) << 8);
+      for (let j = 0; j < 8; j++) {
+        if ((crc & 0x8000) !== 0) {
+          crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+        } else {
+          crc = (crc << 1) & 0xFFFF;
+        }
+      }
+    }
+    return crc.toString(16).toUpperCase().padStart(4, '0');
+  }
+
+  RD.buildYapeQrPayload = ({ phone = '982404043', amount = 0, merchant = 'RD FITNESS CLUB', city = 'CHIVAY', concept = '' } = {}) => {
+    const cleanPhone = String(phone).replace(/\D/g, '');
+    const sub26 = tlv('00', 'pe.bcrp.qr') + tlv('01', cleanPhone);
+    let payload = '';
+    payload += tlv('00', '01');
+    payload += tlv('01', amount > 0 ? '12' : '11');
+    payload += tlv('26', sub26);
+    payload += tlv('52', '7997');
+    payload += tlv('53', '604');
+    if (amount > 0) {
+      payload += tlv('54', Number(amount).toFixed(2));
+    }
+    payload += tlv('58', 'PE');
+    payload += tlv('59', merchant.slice(0, 25).toUpperCase());
+    payload += tlv('60', city.slice(0, 15).toUpperCase());
+    if (concept) {
+      payload += tlv('62', tlv('01', concept.slice(0, 20)));
+    }
+    payload += '6304';
+    return payload + crc16Ccitt(payload);
+  };
+
+  // Sincronizar estado con la pantalla del cliente / tablet
+  RD.setCustomerDisplay = async (state) => {
+    try {
+      if (RD.api) await RD.api.post('/screen/state', state);
+      else await fetch('/api/screen/state', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(state) });
+    } catch { }
+  };
+
+  // Modal de cobro dinámico Yape / Plin con QR y monto pre-cargado
+  RD.yapePaymentModal = ({ amount = 0, concept = 'Pago RD Fitness', phone = '982404043', name = 'RD FITNESS CLUB', onPaid } = {}) => {
+    const payload = RD.buildYapeQrPayload({ phone, amount, merchant: name, concept });
+    const qrSvg = RD.qrSvg(payload, { margin: 1 });
+
+    // Notificar pantalla del cliente
+    RD.setCustomerDisplay({
+      mode: 'payment',
+      title: concept,
+      amount: amount,
+      merchant: name,
+      phone: phone,
+      qr_payload: payload
+    }).catch(() => {});
+
+    const modal = RD.openModal('🟣 Cobro Yape / Plin con QR', `
+      <div class="center">
+        <div style="font-size:0.85rem;color:#c084fc;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">
+          YAPE · PLIN · INTEROPERABLE
+        </div>
+        <div style="font-size:2.3rem;font-weight:900;color:var(--gold);line-height:1.1;margin-bottom:4px">
+          ${RD.money(amount)}
+        </div>
+        <div class="small muted mb" style="max-width:320px;margin:0 auto 10px">
+          ${RD.esc(concept)}
+        </div>
+
+        <div style="background:#fff;border-radius:12px;padding:12px;max-width:230px;margin:0 auto 12px;box-shadow:0 4px 16px rgba(0,0,0,0.2)">
+          ${qrSvg}
+          <div style="color:#111;font-size:0.75rem;font-weight:700;margin-top:6px;letter-spacing:0.5px">
+            MONTO EXACTO: ${RD.money(amount)}
+          </div>
+        </div>
+
+        <div class="banner ok small mb" style="text-align:left;line-height:1.4">
+          📱 <b>Monto pre-cargado:</b> Al escanear este QR con Yape o Plin desde su celular, <b>se cargará automáticamente S/ ${(Number(amount) || 0).toFixed(2)}</b> a nombre de <b>${RD.esc(name)}</b> sin tener que tipear el número ni el monto.
+        </div>
+
+        <div class="row center gap wrap mb">
+          <span class="badge info" style="font-size:0.82rem">Titular: ${RD.esc(name)}</span>
+          <span class="badge" style="font-size:0.82rem;font-family:monospace">Cel: ${phone}</span>
+          <button type="button" class="btn sm ghost" id="btncopyphone">📋 Copiar N°</button>
+        </div>
+
+        <div class="box" style="background:var(--bg2);padding:10px;border-radius:8px;text-align:left">
+          <label class="field" style="margin:0">
+            <span style="font-weight:700">N° de Operación Yape/Plin (verificar en celular de caja):</span>
+            <input id="modal_op_code" placeholder="Ej. 748291" inputmode="numeric" autofocus style="font-size:1.1rem;font-weight:700;letter-spacing:1px">
+          </label>
+        </div>
+
+        <div class="grid g2 mt gap">
+          <button type="button" class="btn ghost" id="btncan">Cancelar</button>
+          <button type="button" class="btn primary" id="btnconfirm">✔ Confirmar Cobro</button>
+        </div>
+      </div>
+    `, { wide: false, sticky: true, onClose: () => {
+      RD.setCustomerDisplay({ mode: 'idle' }).catch(() => {});
+    }});
+
+    const copyBtn = modal.el.querySelector('#btncopyphone');
+    if (copyBtn) {
+      copyBtn.onclick = () => {
+        navigator.clipboard?.writeText(phone);
+        RD.toast('Número copiado: ' + phone);
+      };
+    }
+
+    const opInp = modal.el.querySelector('#modal_op_code');
+    const confirmBtn = modal.el.querySelector('#btnconfirm');
+    const cancelBtn = modal.el.querySelector('#btncan');
+
+    cancelBtn.onclick = () => modal.close();
+
+    const doConfirm = () => {
+      const op = opInp.value.trim();
+      modal.close();
+      RD.setCustomerDisplay({
+        mode: 'success',
+        title: '¡Pago Confirmado!',
+        amount: amount,
+        concept: concept
+      }).catch(() => {});
+      setTimeout(() => {
+        RD.setCustomerDisplay({ mode: 'idle' }).catch(() => {});
+      }, 5000);
+      onPaid && onPaid(op);
+    };
+
+    confirmBtn.onclick = doConfirm;
+    opInp.onkeydown = e => { if (e.key === 'Enter') doConfirm(); };
   };
 
   // ---------- Generador de Boletas / Tickets (Térmico 58mm/80mm y WhatsApp) ----------

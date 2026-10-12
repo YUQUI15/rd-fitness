@@ -9,10 +9,20 @@
     const last = new Date(Date.UTC(ty, mm + 1, 0)).getUTCDate();
     return new Date(Date.UTC(ty, mm, Math.min(d, last))).toISOString().slice(0, 10);
   };
-  RD.previewEnd = (curEnd, plan) => {
+  function nextMonday(fromDay) {
+    const [y, m, d] = fromDay.split('-').map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d, 12));
+    const dayOfWeek = dt.getUTDay();
+    const daysUntilMonday = ((8 - dayOfWeek) % 7) || 7;
+    return RD.addDays(fromDay, daysUntilMonday);
+  }
+
+  RD.previewEnd = (curEnd, plan, explicitStart = null, extraDays = 0) => {
     const today = RD.limaDay();
-    const start = curEnd && curEnd >= today ? RD.addDays(curEnd, 1) : today;
-    const end = plan.days && !plan.months ? RD.addDays(start, plan.days - 1) : RD.addDays(addMonths(start, plan.months), -1);
+    let start = explicitStart || (curEnd && curEnd >= today ? RD.addDays(curEnd, 1) : today);
+    let end = plan.days && !plan.months ? RD.addDays(start, plan.days - 1) : RD.addDays(addMonths(start, plan.months), -1);
+    const extra = Number(extraDays) || 0;
+    if (extra > 0) end = RD.addDays(end, extra);
     return { start, end };
   };
   RD.resizeImage = (file, max = 480) => new Promise((res, rej) => {
@@ -28,6 +38,7 @@
     if (m.status === 'blocked') return '<span class="badge denied">Bloqueado</span>';
     if (m.status === 'inactive') return '<span class="badge">De baja</span>';
     if (m.frozen) return '<span class="badge info">Congelado</span>';
+    if (m.scheduled) return '<span class="badge info">📅 ' + esc(m.access_reason) + '</span>';
     if (m.access === 'ok') return '<span class="badge ok">Vigente</span>';
     if (m.access === 'warn') return '<span class="badge warn">' + esc(m.access_reason) + '</span>';
     return '<span class="badge denied">' + (m.end_date ? 'Vencido' : 'Sin plan') + '</span>';
@@ -36,7 +47,7 @@
   const can = (...roles) => roles.includes(RD.user.role);
 
   // ---------- Lista de socios ----------
-  const FILTERS = [['all', 'Todos'], ['active', 'Activos'], ['expiring', 'Por vencer'], ['expired', 'Vencidos'], ['frozen', 'Congelados'], ['blocked', 'Bloqueados/Baja']];
+  const FILTERS = [['all', 'Todos'], ['active', 'Activos'], ['scheduled', 'Programados'], ['expiring', 'Por vencer'], ['expired', 'Vencidos'], ['frozen', 'Congelados'], ['blocked', 'Bloqueados/Baja']];
   RD.views.members = {
     async render(view) {
       let filter = 'all', term = '';
@@ -71,6 +82,11 @@
   RD.newMemberDialog = async function (onDone) {
     const plans = (await RD.getPlans()).filter(p => p.active);
     let photoData = null;
+    const today = RD.limaDay();
+    let selStart = today;
+    let extraDays = 0;
+    let promoNote = '';
+
     const m = RD.openModal('Nuevo socio', `
     <form id="nf">
       <div class="row gap2 mb"><label class="avatar lg" id="pbox" style="cursor:pointer">📷</label><div class="grow muted small">Toca para tomar o elegir una foto. Ayuda a validar la identidad en la puerta.<input id="photo" type="file" accept="image/*" capture="user" class="hidden"></div></div>
@@ -84,11 +100,40 @@
       <label class="field"><span>Contacto de emergencia (nombre y teléfono)</span><input name="emergency"></label>
       <label class="field"><span>Lesiones o condiciones de salud</span><textarea name="health" placeholder="Ninguna / hipertensión / rodilla / etc."></textarea></label>
       <hr style="border-color:var(--line)">
-      <h3>Plan y pago</h3>
+      <h3>Plan y período de membresía</h3>
       <div class="chips mb" id="plans">${plans.map((p, i) => `<span class="chip ${i === 0 ? 'on' : ''}" data-id="${p.id}">${esc(p.name)} · ${money(p.price)}</span>`).join('')}<span class="chip" data-id="">Sin plan (solo registrar)</span></div>
       <div id="paybox">
+        <div class="card mb" style="background:var(--bg2);border:1px solid var(--line);padding:12px">
+          <div class="small bold muted mb">📅 ¿Cuándo inicia su membresía?</div>
+          <div class="chips mb" id="start_chips">
+            <span class="chip on" data-s="today">Hoy (${RD.fmtDate(today)})</span>
+            <span class="chip" data-s="tomorrow">Mañana</span>
+            <span class="chip" data-s="monday">Próx. Lunes</span>
+            <span class="chip" data-s="custom">Fecha libre</span>
+          </div>
+          <input type="date" id="custom_start_in" class="hidden mb" style="max-width:200px" value="${today}">
+
+          <div class="small bold muted mb mt">🎁 Días extra de promoción / inauguración:</div>
+          <div class="chips mb" id="promo_chips">
+            <span class="chip on" data-d="0">Sin promo (+0d)</span>
+            <span class="chip" data-d="7">🎁 +7 días (1 sem gratis)</span>
+            <span class="chip" data-d="15">🎁 +15 días</span>
+            <span class="chip" data-d="30">🎁 +30 días (+1 mes gratis)</span>
+            <span class="chip" data-d="custom">Otro</span>
+          </div>
+          <div class="grid g2 keep mb hidden" id="custom_promo_box">
+            <input type="number" min="0" placeholder="Cant. días extra" id="custom_extra_days" style="max-width:140px">
+            <input placeholder="Detalle: Promo inauguración, amigo..." id="custom_promo_note">
+          </div>
+        </div>
+
         <div class="grid g2 keep"><label class="field"><span>Monto a cobrar (S/)</span><input name="price" type="number" step="0.5" min="0"></label>
         <label class="field"><span>Método de pago *</span><select name="method" id="nfmeth"><option value="efectivo">💵 Efectivo</option><option value="yape">🟣 Yape</option><option value="plin">🔵 Plin</option><option value="tarjeta">💳 Tarjeta</option><option value="transferencia">🏦 Transferencia</option></select></label></div>
+        
+        <div class="row gap mb">
+          <button type="button" class="btn small ok" id="btnyapeqr">📱 Mostrar QR Yape/Plin (Monto exacto cargado)</button>
+        </div>
+
         <div class="yape-box hidden mb mt" id="nf_yape">
           <label class="field"><span>N° de Operación Yape/Plin (4-6 dígitos)</span><input name="op_code" id="nfop" placeholder="Ej. 182940" inputmode="numeric"></label>
         </div>
@@ -98,17 +143,75 @@
       <label class="check"><input type="checkbox" name="consent" required> <span>El socio autoriza el uso de sus datos personales y de salud para la gestión del gimnasio y declara estar apto para realizar actividad física.</span></label>
       <button class="btn primary block" type="submit">Registrar socio</button>
     </form>`, { wide: true, sticky: true });
+
     const f = m.el.querySelector('#nf');
     let plan = plans[0] || null;
+
     const refresh = () => {
       m.el.querySelector('#paybox').classList.toggle('hidden', !plan);
       if (!plan) return;
       f.price.value = plan.price;
-      const pv = RD.previewEnd(null, plan);
-      m.el.querySelector('#prev').innerHTML = `Plan <b>${esc(plan.name)}</b>: del ${RD.fmtDate(pv.start)} al <b>${RD.fmtDate(pv.end)}</b>`;
+      const pv = RD.previewEnd(null, plan, selStart, extraDays);
+      const isFuture = selStart > today;
+      m.el.querySelector('#prev').innerHTML = `Plan <b>${esc(plan.name)}</b>: ${isFuture ? '📅 <i>(Inicio programado)</i> ' : ''}del <b>${RD.fmtDate(pv.start)}</b> al <b>${RD.fmtDate(pv.end)}</b> ${extraDays > 0 ? `<span class="badge info" style="margin-left:6px">+${extraDays}d promo gratis</span>` : ''}`;
       m.el.querySelector('#dn').classList.add('hidden');
     };
     refresh();
+
+    // Chips de inicio
+    const customStartInp = m.el.querySelector('#custom_start_in');
+    m.el.querySelector('#start_chips').onclick = e => {
+      const c = e.target.closest('[data-s]'); if (!c) return;
+      m.el.querySelectorAll('#start_chips .chip').forEach(x => x.classList.toggle('on', x === c));
+      const s = c.dataset.s;
+      if (s === 'today') { selStart = today; customStartInp.classList.add('hidden'); }
+      else if (s === 'tomorrow') { selStart = RD.addDays(today, 1); customStartInp.classList.add('hidden'); }
+      else if (s === 'monday') { selStart = nextMonday(today); customStartInp.classList.add('hidden'); }
+      else if (s === 'custom') { customStartInp.classList.remove('hidden'); customStartInp.focus(); selStart = customStartInp.value || today; }
+      refresh();
+    };
+    customStartInp.onchange = () => { selStart = customStartInp.value || today; refresh(); };
+
+    // Chips de promo
+    const customPromoBox = m.el.querySelector('#custom_promo_box');
+    const customExtraInp = m.el.querySelector('#custom_extra_days');
+    const customNoteInp = m.el.querySelector('#custom_promo_note');
+    m.el.querySelector('#promo_chips').onclick = e => {
+      const c = e.target.closest('[data-d]'); if (!c) return;
+      m.el.querySelectorAll('#promo_chips .chip').forEach(x => x.classList.toggle('on', x === c));
+      const d = c.dataset.d;
+      if (d === 'custom') {
+        customPromoBox.classList.remove('hidden');
+        extraDays = +customExtraInp.value || 0;
+        promoNote = customNoteInp.value.trim();
+      } else {
+        customPromoBox.classList.add('hidden');
+        extraDays = +d;
+        promoNote = extraDays > 0 ? `Promoción +${extraDays}d gratis` : '';
+      }
+      refresh();
+    };
+    customExtraInp.oninput = () => { extraDays = +customExtraInp.value || 0; refresh(); };
+    customNoteInp.oninput = () => { promoNote = customNoteInp.value.trim(); };
+
+    // Cobro Yape con QR dinámico
+    m.el.querySelector('#btnyapeqr').onclick = () => {
+      if (!plan) return RD.toast('Selecciona un plan primero', 'warn');
+      const amount = +f.price.value || plan.price;
+      RD.yapePaymentModal({
+        amount,
+        concept: `Membresía ${plan.name} (${f.name.value.trim() || 'Nuevo socio'})`,
+        onPaid: (op) => {
+          if (op) {
+            f.op_code.value = op;
+            f.method.value = 'yape';
+            m.el.querySelector('#nf_yape').classList.remove('hidden');
+            RD.toast('N° de operación cargado ✔');
+          }
+        }
+      });
+    };
+
     m.el.querySelector('#plans').onclick = e => {
       const c = e.target.closest('[data-id]'); if (!c) return;
       m.el.querySelectorAll('#plans .chip').forEach(x => x.classList.toggle('on', x === c));
@@ -131,7 +234,13 @@
         try {
           const body = Object.fromEntries(new FormData(f).entries());
           body.consent = f.consent.checked; body.plan_id = plan ? plan.id : null;
-          if (!plan) { delete body.price; delete body.method; delete body.op_code; }
+          if (plan) {
+            body.start_date = selStart;
+            body.extra_days = extraDays;
+            body.promo_note = promoNote || null;
+          } else {
+            delete body.price; delete body.method; delete body.op_code;
+          }
           const r = await RD.api.post('/members', body);
           if (photoData) { try { await RD.api.post(`/members/${r.member.id}/photo`, { data: photoData }); r.member.photo = (await RD.api.get('/members/' + r.member.id)).member.photo; } catch { RD.toast('Socio creado, pero la foto no se pudo subir', 'warn'); } }
           m.close(); RD.syncMembers().catch(() => { });
@@ -169,12 +278,47 @@
     const act = plans.filter(p => p.active);
     let plan = act.find(p => p.months === 1) || act[0];
     const curEnd = det.member.end_date;
+    const today = RD.limaDay();
+    let selStart = (curEnd && curEnd >= today) ? RD.addDays(curEnd, 1) : today;
+    let extraDays = 0;
+    let promoNote = '';
+
     const m = RD.openModal('Renovar membresía', `
       <p><b>${esc(name)}</b> ${curEnd ? `<span class="muted">· vence ${RD.fmtDate(curEnd)}</span>` : ''}</p>
       <div class="chips mb" id="plans">${act.map(p => `<span class="chip ${p === plan ? 'on' : ''}" data-id="${p.id}">${esc(p.name)} · ${money(p.price)}</span>`).join('')}</div>
       <form id="rf">
+        <div class="card mb" style="background:var(--bg2);border:1px solid var(--line);padding:12px">
+          <div class="small bold muted mb">📅 Fecha de inicio de la renovación:</div>
+          <div class="chips mb" id="r_start_chips">
+            <span class="chip on" data-s="auto">${curEnd && curEnd >= today ? 'Al vencer actual (' + RD.fmtDate(curEnd) + ')' : 'Hoy (' + RD.fmtDate(today) + ')'}</span>
+            <span class="chip" data-s="today">Hoy</span>
+            <span class="chip" data-s="tomorrow">Mañana</span>
+            <span class="chip" data-s="monday">Próx. Lunes</span>
+            <span class="chip" data-s="custom">Fecha libre</span>
+          </div>
+          <input type="date" id="r_custom_start_in" class="hidden mb" style="max-width:200px" value="${selStart}">
+
+          <div class="small bold muted mb mt">🎁 Días extra de promoción:</div>
+          <div class="chips mb" id="r_promo_chips">
+            <span class="chip on" data-d="0">Sin promo (+0d)</span>
+            <span class="chip" data-d="7">🎁 +7 días (1 sem)</span>
+            <span class="chip" data-d="15">🎁 +15 días</span>
+            <span class="chip" data-d="30">🎁 +30 días (+1 mes)</span>
+            <span class="chip" data-d="custom">Otro</span>
+          </div>
+          <div class="grid g2 keep mb hidden" id="r_custom_promo_box">
+            <input type="number" min="0" placeholder="Cant. días extra" id="r_custom_extra_days" style="max-width:140px">
+            <input placeholder="Detalle: Fidelidad, promo..." id="r_custom_promo_note">
+          </div>
+        </div>
+
         <div class="grid g2 keep"><label class="field"><span>Monto (S/)</span><input name="price" type="number" step="0.5" min="0" required></label>
         <label class="field"><span>Método de pago</span><select name="method" id="rfmeth"><option value="efectivo">💵 Efectivo</option><option value="yape">🟣 Yape</option><option value="plin">🔵 Plin</option><option value="tarjeta">💳 Tarjeta</option><option value="transferencia">🏦 Transferencia</option></select></label></div>
+        
+        <div class="row gap mb">
+          <button type="button" class="btn small ok" id="r_btnyapeqr">📱 Mostrar QR Yape/Plin (Monto exacto cargado)</button>
+        </div>
+
         <div class="yape-box hidden mb mt" id="rf_yape">
           <label class="field"><span>N° de Operación Yape/Plin (4-6 dígitos)</span><input name="op_code" id="rfop" placeholder="Ej. 182940" inputmode="numeric"></label>
         </div>
@@ -182,13 +326,70 @@
         <div class="banner" id="prev"></div>
         <button class="btn primary block">Cobrar y renovar</button>
       </form>`);
+
     const f = m.el.querySelector('#rf');
     const refresh = () => {
-      f.price.value = plan.price; const pv = RD.previewEnd(curEnd, plan);
-      m.el.querySelector('#prev').innerHTML = `Nuevo período: ${RD.fmtDate(pv.start)} → <b>${RD.fmtDate(pv.end)}</b>`;
+      f.price.value = plan.price;
+      const pv = RD.previewEnd(null, plan, selStart, extraDays);
+      m.el.querySelector('#prev').innerHTML = `Nuevo período: <b>${RD.fmtDate(pv.start)}</b> → <b>${RD.fmtDate(pv.end)}</b> ${extraDays > 0 ? `<span class="badge info" style="margin-left:6px">+${extraDays}d de promo</span>` : ''}`;
       m.el.querySelector('#dn').classList.add('hidden');
     };
     refresh();
+
+    // Chips de inicio
+    const customStartInp = m.el.querySelector('#r_custom_start_in');
+    m.el.querySelector('#r_start_chips').onclick = e => {
+      const c = e.target.closest('[data-s]'); if (!c) return;
+      m.el.querySelectorAll('#r_start_chips .chip').forEach(x => x.classList.toggle('on', x === c));
+      const s = c.dataset.s;
+      if (s === 'auto') { selStart = (curEnd && curEnd >= today) ? RD.addDays(curEnd, 1) : today; customStartInp.classList.add('hidden'); }
+      else if (s === 'today') { selStart = today; customStartInp.classList.add('hidden'); }
+      else if (s === 'tomorrow') { selStart = RD.addDays(today, 1); customStartInp.classList.add('hidden'); }
+      else if (s === 'monday') { selStart = nextMonday(today); customStartInp.classList.add('hidden'); }
+      else if (s === 'custom') { customStartInp.classList.remove('hidden'); customStartInp.focus(); selStart = customStartInp.value || today; }
+      refresh();
+    };
+    customStartInp.onchange = () => { selStart = customStartInp.value || today; refresh(); };
+
+    // Chips promo
+    const customPromoBox = m.el.querySelector('#r_custom_promo_box');
+    const customExtraInp = m.el.querySelector('#r_custom_extra_days');
+    const customNoteInp = m.el.querySelector('#r_custom_promo_note');
+    m.el.querySelector('#r_promo_chips').onclick = e => {
+      const c = e.target.closest('[data-d]'); if (!c) return;
+      m.el.querySelectorAll('#r_promo_chips .chip').forEach(x => x.classList.toggle('on', x === c));
+      const d = c.dataset.d;
+      if (d === 'custom') {
+        customPromoBox.classList.remove('hidden');
+        extraDays = +customExtraInp.value || 0;
+        promoNote = customNoteInp.value.trim();
+      } else {
+        customPromoBox.classList.add('hidden');
+        extraDays = +d;
+        promoNote = extraDays > 0 ? `Promoción +${extraDays}d extra` : '';
+      }
+      refresh();
+    };
+    customExtraInp.oninput = () => { extraDays = +customExtraInp.value || 0; refresh(); };
+    customNoteInp.oninput = () => { promoNote = customNoteInp.value.trim(); };
+
+    // Yape modal
+    m.el.querySelector('#r_btnyapeqr').onclick = () => {
+      const amount = +f.price.value || plan.price;
+      RD.yapePaymentModal({
+        amount,
+        concept: `Renovación ${plan.name} (${name})`,
+        onPaid: (op) => {
+          if (op) {
+            f.op_code.value = op;
+            f.method.value = 'yape';
+            m.el.querySelector('#rf_yape').classList.remove('hidden');
+            RD.toast('N° de operación cargado ✔');
+          }
+        }
+      });
+    };
+
     m.el.querySelector('#plans').onclick = e => {
       const c = e.target.closest('[data-id]'); if (!c) return;
       m.el.querySelectorAll('#plans .chip').forEach(x => x.classList.toggle('on', x === c));
@@ -209,7 +410,10 @@
             price: +f.price.value,
             method: f.method.value,
             discount_note: f.discount_note.value,
-            op_code: f.op_code?.value.trim() || null
+            op_code: f.op_code?.value.trim() || null,
+            start_date: selStart,
+            extra_days: extraDays,
+            promo_note: promoNote || null
           });
           m.close(); RD.beep('done'); RD.toast(`Renovado hasta ${RD.fmtDate(r.end)} ✔`);
           await RD.syncMembers().catch(() => { });

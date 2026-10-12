@@ -64,7 +64,33 @@ const api = express.Router();
 api.get('/time', (req, res) => res.json({ now: Date.now(), day: L.limaDay() }));
 api.get('/public', (req, res) => {
   const s = getSettings();
-  res.json({ gym_name: s.gym_name, gym_slogan: s.gym_slogan, gym_phone: s.gym_phone, gym_address: s.gym_address, color: s.color, opening: s.opening });
+  res.json({
+    gym_name: s.gym_name, gym_slogan: s.gym_slogan, gym_phone: s.gym_phone,
+    gym_address: s.gym_address, color: s.color, opening: s.opening,
+    yape_phone: s.yape_phone || '982404043', yape_name: s.yape_name || 'RD FITNESS CLUB'
+  });
+});
+
+// Estado de la pantalla para el cliente (Tablet / Segundo Monitor)
+let customerScreenState = { mode: 'idle', updatedAt: Date.now() };
+const screenClients = new Set();
+api.get('/screen/state', (req, res) => res.json(customerScreenState));
+api.post('/screen/state', staff('admin', 'recepcion'), wrap((req, res) => {
+  customerScreenState = { ...req.body, updatedAt: Date.now() };
+  const payload = 'data: ' + JSON.stringify(customerScreenState) + '\n\n';
+  for (const client of screenClients) { try { client.write(payload); } catch { } }
+  res.json({ ok: true, state: customerScreenState });
+}));
+api.get('/screen/stream', (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*'
+  });
+  res.write('data: ' + JSON.stringify(customerScreenState) + '\n\n');
+  screenClients.add(res);
+  req.on('close', () => screenClients.delete(res));
 });
 
 api.post('/auth/login', wrap((req, res) => {
@@ -109,14 +135,25 @@ api.post('/auth/change-password', staff(), wrap((req, res) => {
 // ---------------- Helpers de socios ----------------
 const MEMBER_SELECT = `
   SELECT m.*,
+    (SELECT start_date FROM memberships s WHERE s.member_id=m.id AND s.status='active' ORDER BY end_date DESC, id DESC LIMIT 1) AS start_date,
     (SELECT MAX(end_date) FROM memberships s WHERE s.member_id=m.id AND s.status='active') AS end_date,
     (SELECT plan_name FROM memberships s WHERE s.member_id=m.id AND s.status='active' ORDER BY end_date DESC, id DESC LIMIT 1) AS plan_name,
+    (SELECT extra_days FROM memberships s WHERE s.member_id=m.id AND s.status='active' ORDER BY end_date DESC, id DESC LIMIT 1) AS extra_days,
+    (SELECT promo_note FROM memberships s WHERE s.member_id=m.id AND s.status='active' ORDER BY end_date DESC, id DESC LIMIT 1) AS promo_note,
     (SELECT MAX(ts) FROM attendance a WHERE a.member_id=m.id AND a.result IN ('ok','warn')) AS last_in
   FROM members m`;
 
 function withState(m, cfg, today) {
-  const st = L.accessState({ status: m.status, frozen: !!m.frozen_from, end: m.end_date }, today, cfg);
-  return { ...m, access: st.level, access_reason: st.reason, days_left: st.daysLeft, frozen: !!m.frozen_from };
+  const st = L.accessState({ status: m.status, frozen: !!m.frozen_from, end: m.end_date, start: m.start_date }, today, cfg);
+  return {
+    ...m,
+    access: st.level,
+    access_reason: st.reason,
+    days_left: st.daysLeft,
+    frozen: !!m.frozen_from,
+    scheduled: !!st.scheduled,
+    starts_in: st.startsIn || 0
+  };
 }
 function memberPublic(m, includeKey = false) {
   const cfg = numSettings(); const today = L.limaDay();
@@ -124,7 +161,8 @@ function memberPublic(m, includeKey = false) {
   const s = withState(full, cfg, today);
   const out = {
     id: s.id, code: s.code, name: s.name, dni: s.dni, phone: s.phone, email: s.email, birth: s.birth, gender: s.gender,
-    goal: s.goal, level: s.level, photo: s.photo, status: s.status, plan_name: s.plan_name, end_date: s.end_date,
+    goal: s.goal, level: s.level, photo: s.photo, status: s.status, plan_name: s.plan_name, start_date: s.start_date, end_date: s.end_date,
+    extra_days: s.extra_days || 0, promo_note: s.promo_note, scheduled: s.scheduled, starts_in: s.starts_in,
     access: s.access, access_reason: s.access_reason, days_left: s.days_left, frozen: s.frozen, created_at: s.created_at,
     health: s.health, emergency: s.emergency
   };
@@ -188,20 +226,23 @@ function buildReceipt(paymentId) {
   };
 }
 
-function activateMembership({ member_id, plan, start, price, userId, method, note, concept, op_code, voucher_img }) {
+function activateMembership({ member_id, plan, start, price, userId, method, note, concept, op_code, voucher_img, extra_days, promo_note }) {
   const last = q.get("SELECT MAX(end_date) e FROM memberships WHERE member_id=? AND status='active'", member_id);
   const today = L.limaDay();
   let s = start || today;
   if (!start && last && last.e && last.e >= today) s = L.addDays(last.e, 1); // renovación anticipada: se suma a lo que queda
-  const end = L.membershipEnd(s, plan.months, plan.days);
+  let end = L.membershipEnd(s, plan.months, plan.days);
+  const extra = num(extra_days, 0);
+  if (extra > 0) end = L.addDays(end, extra);
   const receipt_no = nextReceiptNo();
   const curShift = getActiveShift(userId);
   const shift_id = curShift ? curShift.id : null;
-  const ms = q.run('INSERT INTO memberships(member_id,plan_id,plan_name,start_date,end_date,price,created_by) VALUES(?,?,?,?,?,?,?)',
-    member_id, plan.id, plan.name, s, end, price, userId);
+  const finalConcept = concept || `Membresía ${plan.name}${extra > 0 ? ` (+${extra}d promo)` : ''}`;
+  const ms = q.run('INSERT INTO memberships(member_id,plan_id,plan_name,start_date,end_date,price,created_by,extra_days,promo_note) VALUES(?,?,?,?,?,?,?,?,?)',
+    member_id, plan.id, plan.name, s, end, price, userId, extra, promo_note || null);
   const pay = q.run('INSERT INTO payments(member_id,membership_id,concept,amount,method,note,day,user_id,op_code,voucher_img,receipt_no,shift_id,category) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
-    member_id, ms.lastInsertRowid, concept || `Membresía ${plan.name}`, price, method, note || null, today, userId, op_code || null, voucher_img || null, receipt_no, shift_id, 'gym');
-  return { membership_id: Number(ms.lastInsertRowid), payment_id: Number(pay.lastInsertRowid), start: s, end, receipt_no };
+    member_id, ms.lastInsertRowid, finalConcept, price, method, note || promo_note || null, today, userId, op_code || null, voucher_img || null, receipt_no, shift_id, 'gym');
+  return { membership_id: Number(ms.lastInsertRowid), payment_id: Number(pay.lastInsertRowid), start: s, end, receipt_no, extra_days: extra };
 }
 
 function checkMethod(m) { return METHODS.includes(m) ? m : null; }
@@ -313,7 +354,11 @@ api.post('/members', staff('admin', 'recepcion'), wrap((req, res) => {
       ['principiante', 'intermedio', 'avanzado'].includes(b.level) ? b.level : 'principiante', L.randomKey(), b.consent ? 1 : 0, b.notes);
     const id = Number(r.lastInsertRowid);
     let ms = null;
-    if (plan) ms = activateMembership({ member_id: id, plan, price, userId: req.user.id, method: b.method, note: b.discount_note, op_code: b.op_code, voucher_img: b.voucher_img });
+    if (plan) ms = activateMembership({
+      member_id: id, plan, price, userId: req.user.id,
+      method: b.method, note: b.discount_note, op_code: b.op_code, voucher_img: b.voucher_img,
+      start: b.start_date || null, extra_days: b.extra_days || 0, promo_note: b.promo_note || null
+    });
     return { id, ms };
   });
   audit(req.user.id, 'member.create', { id: result.id, name });
@@ -369,7 +414,8 @@ api.post('/members/:id/renew', staff('admin', 'recepcion'), wrap((req, res) => {
   const r = q.tx(() => activateMembership({
     member_id: id, plan, price, userId: req.user.id,
     method: req.body.method, note: req.body.discount_note,
-    op_code: req.body.op_code, voucher_img: req.body.voucher_img
+    op_code: req.body.op_code, voucher_img: req.body.voucher_img,
+    start: req.body.start_date || null, extra_days: req.body.extra_days || 0, promo_note: req.body.promo_note || null
   }));
   audit(req.user.id, 'member.renew', { id, plan: plan.name, price });
   const receipt = r.payment_id ? buildReceipt(r.payment_id) : null;
@@ -815,17 +861,30 @@ api.get('/products/by-barcode/:code', staff('admin', 'recepcion'), wrap((req, re
   if (!p) return bad(res, 'Producto no encontrado con este código de barras', 404);
   res.json(p);
 }));
-api.post('/products', staff('admin'), wrap((req, res) => {
+api.post('/products', staff('admin', 'recepcion'), wrap((req, res) => {
   const b = req.body || {}; if (!b.name || num(b.price) < 0) return bad(res, 'Datos incompletos');
-  const r = q.run('INSERT INTO products(name,price,stock,barcode,category,min_stock) VALUES(?,?,?,?,?,?)',
-    b.name, num(b.price), num(b.stock), b.barcode || null, b.category || 'general', num(b.min_stock, 5));
+  const r = q.run(`INSERT INTO products(name,price,stock,barcode,category,min_stock,cost,promo_price,promo_desc,description)
+    VALUES(?,?,?,?,?,?,?,?,?,?)`,
+    b.name.trim(), num(b.price), num(b.stock), b.barcode ? String(b.barcode).trim() : null,
+    b.category || 'general', num(b.min_stock, 5), num(b.cost, 0), num(b.promo_price, 0),
+    b.promo_desc || null, b.description || null);
+  audit(req.user.id, 'product.create', { id: r.lastInsertRowid, name: b.name });
   res.json({ id: Number(r.lastInsertRowid) });
 }));
-api.put('/products/:id', staff('admin'), wrap((req, res) => {
+api.put('/products/:id', staff('admin', 'recepcion'), wrap((req, res) => {
   const b = req.body || {}; const p = q.get('SELECT * FROM products WHERE id=?', num(req.params.id));
   if (!p) return bad(res, 'Producto no encontrado', 404);
-  q.run('UPDATE products SET name=?, price=?, stock=?, barcode=?, category=?, min_stock=?, active=? WHERE id=?',
-    b.name ?? p.name, b.price ?? p.price, b.stock ?? p.stock, b.barcode ?? p.barcode, b.category ?? p.category, b.min_stock ?? p.min_stock, b.active ?? p.active, p.id);
+  q.run(`UPDATE products SET name=?, price=?, stock=?, barcode=?, category=?, min_stock=?, cost=?, promo_price=?, promo_desc=?, description=?, active=? WHERE id=?`,
+    b.name ?? p.name, b.price ?? p.price, b.stock ?? p.stock, b.barcode !== undefined ? (b.barcode || null) : p.barcode,
+    b.category ?? p.category, b.min_stock ?? p.min_stock, b.cost ?? p.cost, b.promo_price ?? p.promo_price,
+    b.promo_desc ?? p.promo_desc, b.description ?? p.description, b.active ?? p.active, p.id);
+  audit(req.user.id, 'product.update', { id: p.id, name: b.name ?? p.name });
+  res.json({ ok: true });
+}));
+api.delete('/products/:id', staff('admin'), wrap((req, res) => {
+  const id = num(req.params.id);
+  q.run('UPDATE products SET active=0 WHERE id=?', id);
+  audit(req.user.id, 'product.deactivate', { id });
   res.json({ ok: true });
 }));
 api.post('/products/:id/stock', staff('admin', 'recepcion'), wrap((req, res) => {
@@ -847,15 +906,17 @@ api.post('/sales', staff('admin', 'recepcion'), wrap((req, res) => {
   const qty = Math.max(1, Math.floor(num(b.qty, 1)));
   if (!checkMethod(b.method)) return bad(res, 'Elige el método de pago');
   if (p.stock < qty) return bad(res, `Stock insuficiente (quedan ${p.stock})`);
+  const unitPrice = num(b.price) > 0 ? num(b.price) : (p.promo_price > 0 ? p.promo_price : p.price);
+  const total = +(unitPrice * qty).toFixed(2);
   const receipt_no = nextReceiptNo();
-  const total = p.price * qty;
   let payId;
   const curShift = getActiveShift(req.user.id);
   const shift_id = curShift ? curShift.id : null;
+  const concept = b.concept || `Venta: ${p.name} x${qty}${unitPrice !== p.price ? ' (Promo)' : ''}`;
   q.tx(() => {
     q.run('UPDATE products SET stock=stock-? WHERE id=?', qty, p.id);
     const pay = q.run('INSERT INTO payments(member_id,concept,amount,method,op_code,voucher_img,receipt_no,day,user_id,shift_id,category) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
-      b.member_id || null, `Venta: ${p.name} x${qty}`, total, b.method, b.op_code || null, b.voucher_img || null, receipt_no, L.limaDay(), req.user.id, shift_id, 'store');
+      b.member_id || null, concept, total, b.method, b.op_code || null, b.voucher_img || null, receipt_no, L.limaDay(), req.user.id, shift_id, 'store');
     payId = Number(pay.lastInsertRowid);
   });
   const receipt = buildReceipt(payId);

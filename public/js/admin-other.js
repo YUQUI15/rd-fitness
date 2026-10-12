@@ -695,6 +695,550 @@
     }
   };
 
+  // ============================================================
+  // TIENDA / POS & CONTROL DE INVENTARIO (ADMIN / RECEPCIÓN)
+  // ============================================================
+  RD.views.store = {
+    async render(view) {
+      let activeTab = 'pos';
+      let selectedCat = 'all';
+      let term = '';
+      let cart = []; // [{ product, qty, price }]
+
+      view.innerHTML = `
+      <div class="row between wrap gap mb">
+        <div class="chips" id="store_tabs">
+          <span class="chip on" data-st="pos">🛒 Punto de Venta (POS)</span>
+          <span class="chip" data-st="inventory">📦 Inventario y Productos</span>
+          <span class="chip" data-st="sales">📋 Historial de Ventas</span>
+        </div>
+        <div class="row gap">
+          <button class="btn primary sm" id="btn_new_prod">＋ Registrar Nuevo Producto</button>
+        </div>
+      </div>
+      <div id="store_content"></div>`;
+
+      const content = view.querySelector('#store_content');
+
+      async function loadTab(tab) {
+        activeTab = tab;
+        view.querySelectorAll('#store_tabs .chip').forEach(c => c.classList.toggle('on', c.dataset.st === tab));
+        view.querySelector('#btn_new_prod').classList.toggle('hidden', tab !== 'inventory');
+
+        if (tab === 'pos') await renderPosTab(content);
+        else if (tab === 'inventory') await renderInventoryTab(content);
+        else if (tab === 'sales') await renderSalesHistoryTab(content);
+      }
+
+      view.querySelector('#store_tabs').onclick = e => {
+        const c = e.target.closest('[data-st]');
+        if (c) loadTab(c.dataset.st);
+      };
+
+      view.querySelector('#btn_new_prod').onclick = () => {
+        productEditorModal(null, () => loadTab('inventory'));
+      };
+
+      // TAB 1: POS RÁPIDO
+      async function renderPosTab(el) {
+        const prods = await RD.api.get('/products');
+        const availableProds = prods.filter(p => p.active);
+        const categories = Array.from(new Set(availableProds.map(p => p.category || 'general')));
+
+        el.innerHTML = `
+        <div class="grid g2" style="grid-template-columns: 1.5fr 1fr; align-items: start;">
+          <div>
+            <div class="card mb">
+              <div class="row gap mb">
+                <input id="store_search" class="grow" placeholder="🔍 Escanear código de barras con lector USB o buscar producto..." autocomplete="off" autofocus>
+              </div>
+              <div class="chips mb" id="cat_chips">
+                <span class="chip on" data-cat="all">Todos (${availableProds.length})</span>
+                ${categories.map(c => `<span class="chip" data-cat="${esc(c)}">${esc(c)}</span>`).join('')}
+              </div>
+              <div class="grid g3" id="prods_grid" style="gap:10px"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card" style="position:sticky;top:70px">
+              <h3>🧾 Ticket de Venta</h3>
+              <div id="cart_items" class="list mb mt" style="max-height:280px;overflow-y:auto"></div>
+              
+              <div style="border-top:1px solid var(--line);padding-top:10px" class="mb">
+                <div class="row between mb">
+                  <span class="muted">Artículos:</span>
+                  <span id="cart_qty" class="bold">0 un.</span>
+                </div>
+                <div class="row between" style="font-size:1.4rem;font-weight:900">
+                  <span>TOTAL:</span>
+                  <span class="gold" id="cart_total">S/ 0.00</span>
+                </div>
+              </div>
+
+              <div class="mb">
+                <label class="field"><span>Método de Pago:</span>
+                  <select id="cart_method">
+                    <option value="efectivo">💵 Efectivo</option>
+                    <option value="yape">🟣 Yape</option>
+                    <option value="plin">🔵 Plin</option>
+                    <option value="tarjeta">💳 Tarjeta</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="row gap mb">
+                <button type="button" class="btn small ok grow" id="btn_cart_yape_qr">📱 Cobro Yape/Plin con QR</button>
+              </div>
+
+              <div class="yape-box hidden mb" id="cart_yape_box">
+                <label class="field"><span>N° Operación Yape/Plin:</span>
+                  <input id="cart_op_code" placeholder="Ej. 748192" inputmode="numeric">
+                </label>
+              </div>
+
+              <div id="cash_calc_box" class="mb">
+                <div class="grid g2 keep gap">
+                  <label class="field"><span>Paga con (S/):</span>
+                    <input id="cash_received" type="number" step="0.5" placeholder="Monto">
+                  </label>
+                  <label class="field"><span>Vuelto:</span>
+                    <input id="cash_change" readonly style="font-weight:700;color:#60a5fa" placeholder="S/ 0.00">
+                  </label>
+                </div>
+              </div>
+
+              <button class="btn primary block lg" id="btn_checkout">Cobrar e Imprimir Ticket</button>
+              <button class="btn ghost block sm mt" id="btn_clear_cart">Vaciar carrito</button>
+            </div>
+          </div>
+        </div>`;
+
+        const searchInp = el.querySelector('#store_search');
+        const grid = el.querySelector('#prods_grid');
+        const cartList = el.querySelector('#cart_items');
+        const cartTotalEl = el.querySelector('#cart_total');
+        const cartQtyEl = el.querySelector('#cart_qty');
+        const methSel = el.querySelector('#cart_method');
+        const yapeBox = el.querySelector('#cart_yape_box');
+        const opInp = el.querySelector('#cart_op_code');
+        const cashRecInp = el.querySelector('#cash_received');
+        const cashChgInp = el.querySelector('#cash_change');
+
+        function renderGrid() {
+          const t = term.toLowerCase();
+          const filtered = availableProds.filter(p => {
+            const matchCat = selectedCat === 'all' || p.category === selectedCat;
+            const matchText = !t || p.name.toLowerCase().includes(t) || (p.barcode && p.barcode.toLowerCase().includes(t));
+            return matchCat && matchText;
+          });
+
+          grid.innerHTML = filtered.map(p => {
+            const hasPromo = p.promo_price > 0 && p.promo_price < p.price;
+            const activePrice = hasPromo ? p.promo_price : p.price;
+            const isLow = p.stock <= (p.min_stock || 5);
+            const isOut = p.stock <= 0;
+            return `
+            <div class="card click" data-prod-id="${p.id}" style="padding:10px;text-align:center;border:${isOut ? '1px dashed #ef4444' : '1px solid var(--line)'};opacity:${isOut ? '0.6' : '1'};position:relative">
+              ${hasPromo ? `<span class="badge info tiny" style="position:absolute;top:6px;right:6px">OFERTA</span>` : ''}
+              <div style="font-size:1.8rem;margin-bottom:4px">🥤</div>
+              <div class="bold small" style="line-height:1.2;min-height:32px;display:flex;align-items:center;justify-content:center">${esc(p.name)}</div>
+              <div class="gold bold mt" style="font-size:1.15rem">
+                ${money(activePrice)}
+                ${hasPromo ? `<span class="muted tiny" style="text-decoration:line-through;margin-left:4px">${money(p.price)}</span>` : ''}
+              </div>
+              <div class="mt2">
+                <span class="badge ${isOut ? 'bad' : isLow ? 'warn' : 'ok'} tiny">Stock: ${p.stock} un.</span>
+              </div>
+              ${p.promo_desc ? `<div class="tiny muted mt2">${esc(p.promo_desc)}</div>` : ''}
+            </div>`;
+          }).join('') || '<div class="empty" style="grid-column:1/-1">No se encontraron productos</div>';
+        }
+        renderGrid();
+
+        searchInp.oninput = () => {
+          term = searchInp.value.trim();
+          renderGrid();
+        };
+        searchInp.onkeydown = e => {
+          if (e.key === 'Enter') {
+            const val = searchInp.value.trim().toLowerCase();
+            const direct = availableProds.find(p => (p.barcode && p.barcode.toLowerCase() === val) || p.name.toLowerCase() === val);
+            if (direct) {
+              addToCart(direct);
+              searchInp.value = '';
+              term = '';
+              renderGrid();
+              RD.beep('tick');
+            }
+          }
+        };
+
+        el.querySelector('#cat_chips').onclick = e => {
+          const c = e.target.closest('[data-cat]');
+          if (!c) return;
+          selectedCat = c.dataset.cat;
+          el.querySelectorAll('#cat_chips .chip').forEach(x => x.classList.toggle('on', x === c));
+          renderGrid();
+        };
+
+        grid.onclick = e => {
+          const card = e.target.closest('[data-prod-id]');
+          if (!card) return;
+          const p = availableProds.find(x => x.id === +card.dataset.prodId);
+          if (p) addToCart(p);
+        };
+
+        function addToCart(p) {
+          if (p.stock <= 0) return RD.toast(`El producto "${p.name}" está agotado`, 'warn');
+          const existing = cart.find(it => it.product.id === p.id);
+          const activePrice = (p.promo_price > 0 && p.promo_price < p.price) ? p.promo_price : p.price;
+          if (existing) {
+            if (existing.qty >= p.stock) return RD.toast(`Stock máximo disponible alcanzado (${p.stock} un.)`, 'warn');
+            existing.qty++;
+          } else {
+            cart.push({ product: p, qty: 1, price: activePrice });
+          }
+          RD.beep('tick');
+          renderCart();
+        }
+
+        function renderCart() {
+          let total = 0;
+          let count = 0;
+          if (!cart.length) {
+            cartList.innerHTML = '<div class="muted small center" style="padding:20px 0">El carrito está vacío.<br>Toca un producto o escanea su código de barras.</div>';
+          } else {
+            cartList.innerHTML = cart.map((it, idx) => {
+              const lineTotal = +(it.price * it.qty).toFixed(2);
+              total += lineTotal;
+              count += it.qty;
+              return `
+              <div class="item" style="padding:6px 0;border-bottom:1px solid var(--line)">
+                <div class="grow">
+                  <div class="bold small">${esc(it.product.name)}</div>
+                  <div class="muted tiny">${money(it.price)} c/u</div>
+                </div>
+                <div class="row gap center">
+                  <button type="button" class="icon-btn" data-cminus="${idx}">−</button>
+                  <span class="bold small" style="min-width:20px;text-align:center">${it.qty}</span>
+                  <button type="button" class="icon-btn" data-cplus="${idx}">＋</button>
+                </div>
+                <div class="bold small right" style="min-width:60px">${money(lineTotal)}</div>
+                <button type="button" class="icon-btn" data-cdel="${idx}" title="Quitar">✕</button>
+              </div>`;
+            }).join('');
+          }
+
+          cartTotalEl.textContent = money(total);
+          cartQtyEl.textContent = `${count} un.`;
+          updateCashChange(total);
+
+          if (cart.length > 0) {
+            RD.setCustomerDisplay({
+              mode: 'cart',
+              title: `Venta Tienda (${count} productos)`,
+              amount: total,
+              items: cart.map(it => `${it.product.name} x${it.qty}`)
+            }).catch(() => {});
+          }
+        }
+        renderCart();
+
+        function updateCashChange(total) {
+          const rec = +cashRecInp.value || 0;
+          if (rec > 0 && rec >= total) {
+            cashChgInp.value = money(rec - total);
+          } else {
+            cashChgInp.value = 'S/ 0.00';
+          }
+        }
+        cashRecInp.oninput = () => {
+          const tot = cart.reduce((a, b) => a + b.price * b.qty, 0);
+          updateCashChange(tot);
+        };
+
+        cartList.onclick = e => {
+          const m = e.target.closest('[data-cminus]');
+          if (m) {
+            const idx = +m.dataset.cminus;
+            if (cart[idx].qty > 1) cart[idx].qty--;
+            else cart.splice(idx, 1);
+            renderCart();
+            return;
+          }
+          const p = e.target.closest('[data-cplus]');
+          if (p) {
+            const idx = +p.dataset.cplus;
+            if (cart[idx].qty < cart[idx].product.stock) cart[idx].qty++;
+            else RD.toast('No hay más stock disponible', 'warn');
+            renderCart();
+            return;
+          }
+          const d = e.target.closest('[data-cdel]');
+          if (d) {
+            cart.splice(+d.dataset.cdel, 1);
+            renderCart();
+          }
+        };
+
+        el.querySelector('#btn_clear_cart').onclick = () => {
+          cart = [];
+          renderCart();
+          RD.setCustomerDisplay({ mode: 'idle' }).catch(() => {});
+        };
+
+        methSel.onchange = () => {
+          const isYape = methSel.value === 'yape' || methSel.value === 'plin';
+          yapeBox.classList.toggle('hidden', !isYape);
+          el.querySelector('#cash_calc_box').classList.toggle('hidden', methSel.value !== 'efectivo');
+          if (isYape) setTimeout(() => opInp.focus(), 50);
+        };
+
+        el.querySelector('#btn_cart_yape_qr').onclick = () => {
+          const total = cart.reduce((a, b) => a + b.price * b.qty, 0);
+          if (total <= 0) return RD.toast('Agrega productos al carrito primero', 'warn');
+          const summaryConcept = cart.map(it => `${it.product.name} x${it.qty}`).join(', ');
+          RD.yapePaymentModal({
+            amount: total,
+            concept: `Tienda: ${summaryConcept}`,
+            onPaid: (op) => {
+              if (op) {
+                opInp.value = op;
+                methSel.value = 'yape';
+                yapeBox.classList.remove('hidden');
+                RD.toast('N° de operación cargado ✔');
+              }
+            }
+          });
+        };
+
+        el.querySelector('#btn_checkout').onclick = async () => {
+          if (!cart.length) return RD.toast('El carrito está vacío', 'warn');
+          const total = cart.reduce((a, b) => a + b.price * b.qty, 0);
+          const method = methSel.value;
+          const opCode = opInp.value.trim() || null;
+
+          await RD.busy(el.querySelector('#btn_checkout'), async () => {
+            try {
+              let lastReceipt = null;
+              for (const it of cart) {
+                const res = await RD.api.post('/sales', {
+                  product_id: it.product.id,
+                  qty: it.qty,
+                  price: it.price,
+                  method: method,
+                  op_code: opCode,
+                  concept: `Venta: ${it.product.name} x${it.qty}${it.price !== it.product.price ? ' (Promo)' : ''}`
+                });
+                lastReceipt = res.receipt;
+              }
+
+              RD.beep('done');
+              RD.toast('Venta registrada con éxito ✔');
+              cart = [];
+              renderCart();
+              searchInp.value = '';
+              opInp.value = '';
+              cashRecInp.value = '';
+              cashChgInp.value = '';
+
+              if (lastReceipt) RD.receiptModal(lastReceipt);
+              await renderPosTab(el);
+            } catch (err) {
+              RD.toast(err.message, 'err');
+            }
+          });
+        };
+      }
+
+      // TAB 2: INVENTARIO Y GESTIÓN DE PRODUCTOS
+      async function renderInventoryTab(el) {
+        const prods = await RD.api.get('/products');
+        const activeProds = prods.filter(p => p.active);
+        const totalUnits = prods.reduce((a, b) => a + (b.stock || 0), 0);
+        const totalCostVal = prods.reduce((a, b) => a + ((b.cost || 0) * (b.stock || 0)), 0);
+        const totalSaleVal = prods.reduce((a, b) => a + ((b.price || 0) * (b.stock || 0)), 0);
+        const lowStock = prods.filter(p => p.active && p.stock <= (p.min_stock || 5));
+
+        el.innerHTML = `
+        <div class="grid g4 mb">
+          <div class="stat gold">
+            <div class="v">${activeProds.length}</div>
+            <div class="l">Productos Activos</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:#60a5fa">${totalUnits} un.</div>
+            <div class="l">Existencias en Tienda</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:#34d399">${money(totalSaleVal)}</div>
+            <div class="l">Valor en Tienda (Venta)</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:${lowStock.length ? '#f87171' : '#4ade80'}">${lowStock.length}</div>
+            <div class="l">Stock Bajo / Por Agotar</div>
+          </div>
+        </div>
+
+        <div class="card mb">
+          <div class="row between wrap gap mb">
+            <div>
+              <h3>Control Maestro de Inventario y Precios</h3>
+              <p class="muted small">Configura costos, precios regulares, precios de promoción y reabastece mercadería.</p>
+            </div>
+            <button class="btn sm primary" id="btn_new_prod_tab">＋ Nuevo Producto</button>
+          </div>
+
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Categoría</th>
+                  <th>Código de Barras</th>
+                  <th>Costo Compra</th>
+                  <th>Precio Venta</th>
+                  <th>Precio Promo</th>
+                  <th>Stock Actual</th>
+                  <th>Stock Mínimo</th>
+                  <th>Estado</th>
+                  <th class="no-print">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${prods.map(p => {
+                  const hasPromo = p.promo_price > 0;
+                  const isLow = p.stock <= (p.min_stock || 5);
+                  return `
+                  <tr class="${isLow && p.active ? 'row-warn' : ''}">
+                    <td>
+                      <b>${esc(p.name)}</b>
+                      ${p.description ? `<div class="tiny muted">${esc(p.description)}</div>` : ''}
+                    </td>
+                    <td><span class="badge">${esc(p.category || 'general')}</span></td>
+                    <td>
+                      <span class="badge" style="font-family:monospace;font-size:0.8rem">
+                        ${esc(p.barcode || 'Sin código')}
+                      </span>
+                    </td>
+                    <td class="muted">${money(p.cost || 0)}</td>
+                    <td class="bold gold">${money(p.price)}</td>
+                    <td>
+                      ${hasPromo ? `<span class="badge info bold">${money(p.promo_price)}</span>${p.promo_desc ? `<div class="tiny muted">${esc(p.promo_desc)}</div>` : ''}` : '<span class="muted">—</span>'}
+                    </td>
+                    <td>
+                      <b style="color:${p.stock <= 0 ? '#ef4444' : isLow ? '#f59e0b' : '#10b981'}">${p.stock} un.</b>
+                      ${isLow && p.active ? `<span class="badge warn tiny">¡Bajo!</span>` : ''}
+                    </td>
+                    <td class="muted">${p.min_stock || 5} un.</td>
+                    <td>
+                      <span class="badge ${p.active ? 'ok' : 'bad'}">${p.active ? 'Activo' : 'Oculto'}</span>
+                    </td>
+                    <td class="row gap no-print">
+                      <button class="btn sm ok" data-addstock="${p.id}" data-pname="${esc(p.name)}" title="Ingresar mercadería">＋ Stock</button>
+                      <button class="btn sm" data-editprd="${p.id}">✏️ Editar</button>
+                    </td>
+                  </tr>`;
+                }).join('') || '<tr><td colspan="10" class="empty">Sin productos registrados</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+
+        el.querySelector('#btn_new_prod_tab').onclick = () => {
+          productEditorModal(null, () => renderInventoryTab(el));
+        };
+
+        el.onclick = async e => {
+          const as = e.target.closest('[data-addstock]');
+          if (as) {
+            const pid = as.dataset.addstock;
+            const pname = as.dataset.pname;
+            const qty = await RD.prompt(`Reabastecer: ${pname}`, 'Cantidad de unidades que ingresaron:', '24');
+            if (qty && parseInt(qty, 10) > 0) {
+              await RD.api.post(`/products/${pid}/stock`, { qty: parseInt(qty, 10), note: 'Ingreso desde gestión de tienda' });
+              RD.toast(`Stock de ${pname} actualizado ✔`);
+              renderInventoryTab(el);
+            }
+            return;
+          }
+
+          const ep = e.target.closest('[data-editprd]');
+          if (ep) {
+            const p = prods.find(x => x.id === +ep.dataset.editprd);
+            if (p) productEditorModal(p, () => renderInventoryTab(el));
+          }
+        };
+      }
+
+      // TAB 3: HISTORIAL DE VENTAS
+      async function renderSalesHistoryTab(el) {
+        const d = await RD.api.get('/reports/finance?scope=month');
+        const payments = (d.store?.payments || []);
+
+        el.innerHTML = `
+        <div class="card mb">
+          <div class="row between wrap gap mb">
+            <div>
+              <h3>Historial de Ventas de Tienda (Últimos 30 días)</h3>
+              <p class="muted small">Registro detallado de aguas, bebidas y productos vendidos en recepción.</p>
+            </div>
+            <div class="stat gold" style="display:inline-block;padding:6px 16px">
+              <div class="v" style="font-size:1.4rem">${money(d.store?.income || 0)}</div>
+              <div class="l">Total Recaudado Tienda</div>
+            </div>
+          </div>
+
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha y Hora</th>
+                  <th>Boleta / Ticket</th>
+                  <th>Detalle / Concepto</th>
+                  <th>Método de Pago</th>
+                  <th>Monto</th>
+                  <th>Atendido Por</th>
+                  <th class="no-print">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${payments.map(p => `
+                <tr>
+                  <td class="small muted">${p.day} ${p.created_at ? p.created_at.slice(11, 16) : ''}</td>
+                  <td class="small bold" style="font-family:monospace">${esc(p.receipt_no || ('B001-' + String(p.id).padStart(6, '0')))}</td>
+                  <td><b>${esc(p.concept)}</b></td>
+                  <td>
+                    <span class="badge ${p.method === 'yape' ? 'warn' : p.method === 'plin' ? 'info' : 'ok'}">${esc(p.method)}</span>
+                    ${p.op_code ? `<span class="tiny" style="color:#c084fc">#${esc(p.op_code)}</span>` : ''}
+                  </td>
+                  <td class="bold gold">${money(p.amount)}</td>
+                  <td class="small muted">${esc(p.user_name || 'Recepción')}</td>
+                  <td class="no-print">
+                    <button class="icon-btn" data-receipt="${p.id}" title="Ver e Imprimir Boleta">🧾</button>
+                  </td>
+                </tr>`).join('') || '<tr><td colspan="7" class="empty">Sin ventas de tienda registradas este mes</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+
+        el.onclick = async e => {
+          const rc = e.target.closest('[data-receipt]');
+          if (rc) {
+            try {
+              const r = await RD.api.get(`/payments/${rc.dataset.receipt}/receipt`);
+              RD.receiptModal(r);
+            } catch (err) { RD.toast(err.message, 'err'); }
+          }
+        };
+      }
+
+      await loadTab(activeTab);
+    }
+  };
+
   function posSaleModal(prods, onDone) {
     const act = prods.filter(p => p.active);
     const d = RD.openModal('Venta Rápida (Recepción / Tienda)', `
@@ -2374,9 +2918,9 @@ function sincronizarFeedRDFitness(tipo, nombreHoja) {
   function productEditorModal(p, done) {
     const d = RD.openModal(p ? 'Editar Producto' : 'Nuevo Producto', `
       <form id="prf">
-        <label class="field"><span>Nombre del producto *</span><input name="name" value="${esc(p?.name || '')}" required placeholder="Ej. Agua 625 ml, Bebida energizante"></label>
+        <label class="field"><span>Nombre del producto *</span><input name="name" value="${esc(p?.name || '')}" required placeholder="Ej. Agua San Mateo 625ml, Bebida Isotónica"></label>
         <div class="grid g2 keep">
-          <label class="field"><span>Código de barras (EAN-13 / Lector)</span>
+          <label class="field"><span>Código de barras (EAN-13 / Lector USB)</span>
             <input name="barcode" value="${esc(p?.barcode || '')}" placeholder="Escanea con el lector USB…">
           </label>
           <label class="field"><span>Categoría</span>
@@ -2388,11 +2932,18 @@ function sincronizarFeedRDFitness(tipo, nombreHoja) {
             </select>
           </label>
         </div>
-        <div class="grid g2 keep">
-          <label class="field"><span>Precio de venta (S/) *</span><input name="price" type="number" step="0.5" min="0" value="${p?.price ?? 2}" required></label>
-          <label class="field"><span>Stock actual</span><input name="stock" type="number" min="0" value="${p?.stock ?? 10}"></label>
+        <div class="grid g3 keep">
+          <label class="field"><span>Costo Compra (S/)</span><input name="cost" type="number" step="0.1" min="0" value="${p?.cost ?? 0}" placeholder="0.00"></label>
+          <label class="field"><span>Precio Regular (S/) *</span><input name="price" type="number" step="0.5" min="0" value="${p?.price ?? 2}" required></label>
+          <label class="field"><span>Precio Promo / Oferta (S/)</span><input name="promo_price" type="number" step="0.5" min="0" value="${p?.promo_price ?? 0}" placeholder="0.00"></label>
         </div>
-        <label class="check"><input type="checkbox" name="active" ${p ? (p.active ? 'checked' : '') : 'checked'}> <span>Activo para venta en recepción</span></label>
+        <label class="field"><span>Descripción de Oferta / Promoción (opcional)</span><input name="promo_desc" value="${esc(p?.promo_desc || '')}" placeholder="Ej. 2 por S/ 5.00, Pack Especial"></label>
+        <div class="grid g2 keep">
+          <label class="field"><span>Stock actual (unidades)</span><input name="stock" type="number" min="0" value="${p?.stock ?? 12}"></label>
+          <label class="field"><span>Stock mínimo de alerta</span><input name="min_stock" type="number" min="1" value="${p?.min_stock ?? 5}"></label>
+        </div>
+        <label class="field"><span>Detalle / Descripción adicional</span><input name="description" value="${esc(p?.description || '')}" placeholder="Marca, presentación, etc."></label>
+        <label class="check"><input type="checkbox" name="active" ${p ? (p.active ? 'checked' : '') : 'checked'}> <span>Activo para venta en recepción y POS</span></label>
         <button class="btn primary block mt">Guardar Producto</button>
       </form>
     `);
@@ -2405,8 +2956,13 @@ function sincronizarFeedRDFitness(tipo, nombreHoja) {
           name: f.name.value.trim(),
           barcode: f.barcode.value.trim() || null,
           category: f.category.value,
+          cost: +f.cost.value || 0,
           price: +f.price.value,
+          promo_price: +f.promo_price.value || 0,
+          promo_desc: f.promo_desc.value.trim() || null,
           stock: +f.stock.value || 0,
+          min_stock: +f.min_stock.value || 5,
+          description: f.description.value.trim() || null,
           active: f.active.checked ? 1 : 0
         };
         if (p) await RD.api.put('/products/' + p.id, body);
