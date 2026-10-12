@@ -319,6 +319,33 @@
                 <div class="idle-badge">🕒 Lun - Sáb: 6:00 AM - 9:00 PM</div>
                 <div class="idle-badge">📍 Chivay, Colca</div>
                 <div class="idle-badge">🟣 Aceptamos Yape y Plin</div>
+                <div class="idle-badge">💳 Tarjetas y Contactless</div>
+              </div>
+            </div>`;
+        } else if (mode === 'card' || (mode === 'payment' && state.method === 'tarjeta')) {
+          stage.innerHTML = `
+            <div class="pay-view">
+              <div class="pay-info">
+                <span class="pay-tag" style="background:#38bdf8;color:#000">💳 Pago con Tarjeta</span>
+                <div class="pay-concept">${state.title || 'Cobro con Tarjeta'}</div>
+                <div class="pay-total-label">Total a Pagar</div>
+                <div class="pay-amount">${money(state.amount)}</div>
+                <div class="pay-guide">
+                  <b>📶 Acerca tu tarjeta o insértala en el POS:</b><br>
+                  Aceptamos <b>Contactless (sin contacto)</b>, chip, y pagos con celular (<b>Apple Pay</b> y <b>Google Wallet</b>).<br>
+                  <small style="color:#aaa;display:block;margin-top:6px">Si tu tarjeta solicita clave PIN de seguridad, ingrésala en el terminal de recepción.</small>
+                </div>
+              </div>
+              <div class="pay-qr-box" style="background:#111827;border:2px solid #38bdf8;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
+                <div style="font-size:3.5rem;margin-bottom:8px;filter:drop-shadow(0 0 15px rgba(56,189,248,0.5))">💳 📶</div>
+                <div style="font-size:1.1rem;font-weight:900;letter-spacing:1px;color:#38bdf8;margin-bottom:6px">TERMINAL POS ACTIVO</div>
+                <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:14px;text-align:center">Acerca tu tarjeta Contactless o insértala</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
+                  <span style="background:#1e293b;border:1px solid #475569;border-radius:6px;padding:3px 8px;font-size:0.75rem;font-weight:800;color:#60a5fa">VISA</span>
+                  <span style="background:#1e293b;border:1px solid #475569;border-radius:6px;padding:3px 8px;font-size:0.75rem;font-weight:800;color:#f87171">MC</span>
+                  <span style="background:#1e293b;border:1px solid #475569;border-radius:6px;padding:3px 8px;font-size:0.75rem;font-weight:800;color:#38bdf8">AMEX</span>
+                  <span style="background:#1e293b;border:1px solid #475569;border-radius:6px;padding:3px 8px;font-size:0.75rem;font-weight:800;color:#cbd5e1">APPLE PAY</span>
+                </div>
               </div>
             </div>`;
         } else if (mode === 'payment') {

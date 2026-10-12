@@ -495,13 +495,17 @@ function buildExcelXmlReport({ data, settings }) {
     <Cell ss:StyleID="Currency"><Data ss:Type="Number">${data.totalByMethod.plin.toFixed(2)}</Data></Cell>
    </Row>
    <Row>
-    <Cell ss:StyleID="BoldText"><Data ss:Type="String">Digital: Tarjeta / Bancos</Data></Cell>
-    <Cell ss:StyleID="Currency"><Data ss:Type="Number">${(data.totalByMethod.tarjeta + data.totalByMethod.transferencia).toFixed(2)}</Data></Cell>
+    <Cell ss:StyleID="BoldText"><Data ss:Type="String">Digital: Tarjeta POS (Izipay / Niubiz)</Data></Cell>
+    <Cell ss:StyleID="Currency"><Data ss:Type="Number">${data.totalByMethod.tarjeta.toFixed(2)}</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="BoldText"><Data ss:Type="String">Digital: Transferencias Bancarias</Data></Cell>
+    <Cell ss:StyleID="Currency"><Data ss:Type="Number">${data.totalByMethod.transferencia.toFixed(2)}</Data></Cell>
    </Row>
    <Row>
     <Cell ss:StyleID="HeaderGold"><Data ss:Type="String">TOTAL DINERO DIGITAL</Data></Cell>
-    <Cell ss:StyleID="TotalRow" ss:Formula="=SUM(R[-3]C:R[-1]C)"><Data ss:Type="Number">${data.digitalTotal.toFixed(2)}</Data></Cell>
-    <Cell><Data ss:Type="String">Verificar en celular / apps</Data></Cell>
+    <Cell ss:StyleID="TotalRow" ss:Formula="=SUM(R[-4]C:R[-1]C)"><Data ss:Type="Number">${data.digitalTotal.toFixed(2)}</Data></Cell>
+    <Cell><Data ss:Type="String">Verificar en celular, apps y reporte POS</Data></Cell>
    </Row>
    <Row ss:Height="14"></Row>
 

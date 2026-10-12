@@ -506,14 +506,15 @@
 
         <div class="card mb">
           <h3>Resumen de Arqueo de Caja del Día</h3>
-          <div class="grid g4 mt2">
+          <div class="grid g5 mt2" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:10px">
             <div class="small">💵 Efectivo cobrado: <b>${money(cash.byMethod.efectivo || 0)}</b></div>
             <div class="small">💸 Gastos en efectivo: <b class="bad">-${money(cash.expenses.filter(e => e.method === 'efectivo').reduce((a, e) => a + e.amount, 0))}</b></div>
             <div class="small">🟣 Yape: <b>${money(cash.byMethod.yape || 0)}</b></div>
-            <div class="small">🔵 Plin / Bancos: <b>${money((cash.byMethod.plin || 0) + (cash.byMethod.tarjeta || 0) + (cash.byMethod.transferencia || 0))}</b></div>
+            <div class="small">🔵 Plin: <b>${money(cash.byMethod.plin || 0)}</b></div>
+            <div class="small">💳 Tarjeta POS: <b>${money(cash.byMethod.tarjeta || 0)}</b></div>
           </div>
           <div class="tip small mt">
-            <b>Regla de Arqueo para el Dueño:</b> Al cerrar caja, debe haber exactamente <b>${money(cash.cash_in_drawer)}</b> en monedas y billetes dentro del cajón físico. En tu aplicación de celular debes tener <b>${money((cash.byMethod.yape || 0) + (cash.byMethod.plin || 0))}</b> entre Yape y Plin.
+            <b>Regla de Arqueo para el Dueño:</b> Al cerrar caja, debe haber exactamente <b>${money(cash.cash_in_drawer)}</b> en monedas y billetes dentro del cajón físico. En tu aplicación de celular debes tener <b>${money((cash.byMethod.yape || 0) + (cash.byMethod.plin || 0))}</b> entre Yape y Plin, y en el reporte de lote de tu POS físico debes tener <b>${money(cash.byMethod.tarjeta || 0)}</b>.
           </div>
         </div>
 
@@ -787,13 +788,14 @@
                 </label>
               </div>
 
-              <div class="row gap mb">
-                <button type="button" class="btn small ok grow" id="btn_cart_yape_qr">📱 Cobro Yape/Plin con QR</button>
+              <div class="row gap wrap mb">
+                <button type="button" class="btn small ok grow" id="btn_cart_yape_qr">📱 QR Yape/Plin</button>
+                <button type="button" class="btn small info grow" id="btn_cart_card_pos" style="background:#0284c7;color:#fff">💳 Tarjeta POS</button>
               </div>
 
               <div class="yape-box hidden mb" id="cart_yape_box">
-                <label class="field"><span>N° Operación Yape/Plin:</span>
-                  <input id="cart_op_code" placeholder="Ej. 748192" inputmode="numeric">
+                <label class="field"><span id="cart_oplbl">N° Operación Yape/Plin:</span>
+                  <input id="cart_op_code" placeholder="Ej. 748192">
                 </label>
               </div>
 
@@ -988,12 +990,36 @@
           RD.setCustomerDisplay({ mode: 'idle' }).catch(() => {});
         };
 
-        methSel.onchange = () => {
-          const isYape = methSel.value === 'yape' || methSel.value === 'plin';
-          yapeBox.classList.toggle('hidden', !isYape);
-          el.querySelector('#cash_calc_box').classList.toggle('hidden', methSel.value !== 'efectivo');
-          if (isYape) setTimeout(() => opInp.focus(), 50);
-        };
+        function updateStoreMethod(meth) {
+          const isYape = meth === 'yape' || meth === 'plin';
+          const isCard = meth === 'tarjeta';
+          const opLbl = el.querySelector('#cart_oplbl');
+          el.querySelector('#cash_calc_box').classList.toggle('hidden', meth !== 'efectivo');
+
+          if (isYape) {
+            yapeBox.classList.remove('hidden');
+            opLbl.textContent = 'N° Operación Yape/Plin:';
+            opInp.placeholder = 'Ej. 748192';
+            setTimeout(() => opInp.focus(), 50);
+          } else if (isCard) {
+            yapeBox.classList.remove('hidden');
+            opLbl.textContent = 'N° Referencia / Voucher POS (Izipay/Niubiz):';
+            opInp.placeholder = 'Ej. Ref #041289';
+            setTimeout(() => opInp.focus(), 50);
+            const total = cart.reduce((a, b) => a + b.price * b.qty, 0);
+            RD.setCustomerDisplay({
+              mode: 'card',
+              method: 'tarjeta',
+              title: `Tienda (${cart.length} productos)`,
+              amount: total
+            }).catch(() => {});
+          } else {
+            yapeBox.classList.add('hidden');
+            if (cart.length > 0) renderCart();
+          }
+        }
+
+        methSel.onchange = () => updateStoreMethod(methSel.value);
 
         el.querySelector('#btn_cart_yape_qr').onclick = () => {
           const total = cart.reduce((a, b) => a + b.price * b.qty, 0);
@@ -1006,8 +1032,26 @@
               if (op) {
                 opInp.value = op;
                 methSel.value = 'yape';
-                yapeBox.classList.remove('hidden');
+                updateStoreMethod('yape');
                 RD.toast('N° de operación cargado ✔');
+              }
+            }
+          });
+        };
+
+        el.querySelector('#btn_cart_card_pos').onclick = () => {
+          const total = cart.reduce((a, b) => a + b.price * b.qty, 0);
+          if (total <= 0) return RD.toast('Agrega productos al carrito primero', 'warn');
+          const summaryConcept = cart.map(it => `${it.product.name} x${it.qty}`).join(', ');
+          RD.cardPaymentModal({
+            amount: total,
+            concept: `Tienda: ${summaryConcept}`,
+            onPaid: (ref) => {
+              if (ref) {
+                opInp.value = ref;
+                methSel.value = 'tarjeta';
+                updateStoreMethod('tarjeta');
+                RD.toast('Ref. de tarjeta cargada ✔');
               }
             }
           });
@@ -1446,15 +1490,27 @@
           </div>
           <div class="stat">
             <div class="v" style="font-size:1.3rem;color:#a78bfa">${money(expDig)}</div>
-            <div class="l">📱 Digital esperado (Yape/Plin)</div>
+            <div class="l">📱 Digital esperado (Yape / POS / Bancos)</div>
           </div>
         </div>
 
         <div class="card mb small">
+          <div class="bold mb" style="color:#4ade80">💵 Arqueo de Efectivo Físico:</div>
           <div class="row between"><span>Fondo inicial (vuelto):</span> <b>${money(activeShift.initial_cash)}</b></div>
           <div class="row between"><span>(+) Cobros Gym en efectivo:</span> <b>+${money(shiftTotals?.gymCash || 0)}</b></div>
           <div class="row between"><span>(+) Cobros Tienda en efectivo:</span> <b>+${money(shiftTotals?.storeCash || 0)}</b></div>
           <div class="row between"><span>(-) Gastos en efectivo:</span> <b class="bad">-${money(shiftTotals?.cashExpenses || 0)}</b></div>
+        </div>
+
+        <div class="card mb small">
+          <div class="bold mb" style="color:#a78bfa">📱 Conciliación Digital (Apps y POS):</div>
+          <div class="row between"><span>🟣 Yape:</span> <b>${money(shiftTotals?.digitalBreakdown?.yape || 0)}</b></div>
+          <div class="row between"><span>🔵 Plin:</span> <b>${money(shiftTotals?.digitalBreakdown?.plin || 0)}</b></div>
+          <div class="row between"><span>💳 Tarjeta POS (Izipay / Niubiz):</span> <b>${money(shiftTotals?.digitalBreakdown?.card || 0)}</b></div>
+          <div class="row between"><span>🏦 Transferencias Bancarias:</span> <b>${money(shiftTotals?.digitalBreakdown?.transfer || 0)}</b></div>
+          <div class="tip small mt" style="padding:6px 10px;font-size:0.75rem;margin-top:6px">
+            💡 <b>Cierre de Lote del POS:</b> Imprime el reporte diario en tu máquina Izipay/Niubiz y coteja que sume <b>${money(shiftTotals?.digitalBreakdown?.card || 0)}</b>.
+          </div>
         </div>
 
         <label class="field">

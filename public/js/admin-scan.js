@@ -343,9 +343,13 @@
             </select>
           </label>
         </div>
+        <div class="row gap wrap mb">
+          <button type="button" class="btn small ok" id="dp_btnyape">📱 QR Yape/Plin</button>
+          <button type="button" class="btn small info" id="dp_btncard" style="background:#0284c7;color:#fff">💳 Tarjeta POS</button>
+        </div>
         <div class="yape-box hidden mb mt" id="dp_yape">
-          <label class="field"><span>N° de Operación Yape/Plin (4-6 dígitos) *</span>
-            <input name="op_code" id="dpop" placeholder="Ej. 492018" inputmode="numeric">
+          <label class="field"><span id="dp_oplbl">N° de Operación / Ref *</span>
+            <input name="op_code" id="dpop" placeholder="Ej. 492018">
           </label>
         </div>
         <button class="btn ok block mt" type="submit">🎟️ Cobrar S/ <span id="dpbtntot">${price}</span> y Generar Ticket</button>
@@ -356,13 +360,68 @@
     const pInp = f.querySelector('input[name=price]');
     const mSel = f.querySelector('#dpmeth');
     const yBox = d.el.querySelector('#dp_yape');
+    const yLbl = d.el.querySelector('#dp_oplbl');
+    const opInp = d.el.querySelector('#dpop');
     const bTot = d.el.querySelector('#dpbtntot');
 
     pInp.oninput = () => bTot.textContent = pInp.value || '0';
-    mSel.onchange = () => {
-      const isYape = mSel.value === 'yape' || mSel.value === 'plin';
-      yBox.classList.toggle('hidden', !isYape);
-      if (isYape) setTimeout(() => d.el.querySelector('#dpop')?.focus(), 50);
+
+    function updatePassMethod(meth) {
+      if (meth === 'yape' || meth === 'plin') {
+        yBox.classList.remove('hidden');
+        yLbl.textContent = 'N° de Operación Yape/Plin (4-6 dígitos) *';
+        opInp.placeholder = 'Ej. 492018';
+        setTimeout(() => opInp.focus(), 50);
+      } else if (meth === 'tarjeta') {
+        yBox.classList.remove('hidden');
+        yLbl.textContent = 'N° de Referencia / Voucher del POS (Izipay / Niubiz) *';
+        opInp.placeholder = 'Ej. Ref #041289';
+        setTimeout(() => opInp.focus(), 50);
+        const amount = +pInp.value || price;
+        RD.setCustomerDisplay({
+          mode: 'card',
+          method: 'tarjeta',
+          title: `Pase Diario: ${f.name.value.trim() || 'Visitante'}`,
+          amount: amount
+        }).catch(() => {});
+      } else {
+        yBox.classList.add('hidden');
+        RD.setCustomerDisplay({ mode: 'idle' }).catch(() => {});
+      }
+    }
+
+    mSel.onchange = () => updatePassMethod(mSel.value);
+
+    d.el.querySelector('#dp_btnyape').onclick = () => {
+      const amount = +pInp.value || price;
+      RD.yapePaymentModal({
+        amount,
+        concept: `Pase Diario: ${f.name.value.trim() || 'Visitante'}`,
+        onPaid: (op) => {
+          if (op) {
+            opInp.value = op;
+            mSel.value = 'yape';
+            updatePassMethod('yape');
+            RD.toast('N° de operación cargado ✔');
+          }
+        }
+      });
+    };
+
+    d.el.querySelector('#dp_btncard').onclick = () => {
+      const amount = +pInp.value || price;
+      RD.cardPaymentModal({
+        amount,
+        concept: `Pase Diario: ${f.name.value.trim() || 'Visitante'}`,
+        onPaid: (ref) => {
+          if (ref) {
+            opInp.value = ref;
+            mSel.value = 'tarjeta';
+            updatePassMethod('tarjeta');
+            RD.toast('Ref. de tarjeta cargada ✔');
+          }
+        }
+      });
     };
 
     f.onsubmit = async e => {

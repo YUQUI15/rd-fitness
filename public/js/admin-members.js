@@ -130,12 +130,13 @@
         <div class="grid g2 keep"><label class="field"><span>Monto a cobrar (S/)</span><input name="price" type="number" step="0.5" min="0"></label>
         <label class="field"><span>Método de pago *</span><select name="method" id="nfmeth"><option value="efectivo">💵 Efectivo</option><option value="yape">🟣 Yape</option><option value="plin">🔵 Plin</option><option value="tarjeta">💳 Tarjeta</option><option value="transferencia">🏦 Transferencia</option></select></label></div>
         
-        <div class="row gap mb">
-          <button type="button" class="btn small ok" id="btnyapeqr">📱 Mostrar QR Yape/Plin (Monto exacto cargado)</button>
+        <div class="row gap wrap mb">
+          <button type="button" class="btn small ok" id="btnyapeqr">📱 QR Yape/Plin</button>
+          <button type="button" class="btn small info" id="btncardpos" style="background:#0284c7;color:#fff">💳 Tarjeta POS</button>
         </div>
 
         <div class="yape-box hidden mb mt" id="nf_yape">
-          <label class="field"><span>N° de Operación Yape/Plin (4-6 dígitos)</span><input name="op_code" id="nfop" placeholder="Ej. 182940" inputmode="numeric"></label>
+          <label class="field"><span id="nfop_label">N° de Operación Yape/Plin (4-6 dígitos)</span><input name="op_code" id="nfop" placeholder="Ej. 182940"></label>
         </div>
         <label class="field hidden" id="dn"><span>Motivo del descuento</span><input name="discount_note" placeholder="Promoción de inauguración, convenio…"></label>
         <div class="banner" id="prev"></div>
@@ -194,6 +195,38 @@
     customExtraInp.oninput = () => { extraDays = +customExtraInp.value || 0; refresh(); };
     customNoteInp.oninput = () => { promoNote = customNoteInp.value.trim(); };
 
+    function updateMethodFields(meth) {
+      const opBox = m.el.querySelector('#nf_yape');
+      const opLbl = m.el.querySelector('#nfop_label');
+      const opInp = m.el.querySelector('#nfop');
+      if (meth === 'yape' || meth === 'plin') {
+        opBox.classList.remove('hidden');
+        opLbl.textContent = 'N° de Operación Yape/Plin (4-6 dígitos) *';
+        opInp.placeholder = 'Ej. 182940';
+        setTimeout(() => opInp.focus(), 50);
+      } else if (meth === 'tarjeta') {
+        opBox.classList.remove('hidden');
+        opLbl.textContent = 'N° de Referencia / Voucher del POS (Izipay / Niubiz) *';
+        opInp.placeholder = 'Ej. Ref #041289';
+        setTimeout(() => opInp.focus(), 50);
+        const amount = +f.price.value || (plan ? plan.price : 0);
+        RD.setCustomerDisplay({
+          mode: 'card',
+          method: 'tarjeta',
+          title: `Membresía ${plan ? plan.name : ''} (${f.name.value.trim() || 'Socio'})`,
+          amount: amount
+        }).catch(() => {});
+      } else if (meth === 'transferencia') {
+        opBox.classList.remove('hidden');
+        opLbl.textContent = 'N° de Operación Bancaria *';
+        opInp.placeholder = 'Ej. Op #0049182';
+        setTimeout(() => opInp.focus(), 50);
+      } else {
+        opBox.classList.add('hidden');
+        RD.setCustomerDisplay({ mode: 'idle' }).catch(() => {});
+      }
+    }
+
     // Cobro Yape con QR dinámico
     m.el.querySelector('#btnyapeqr').onclick = () => {
       if (!plan) return RD.toast('Selecciona un plan primero', 'warn');
@@ -205,8 +238,26 @@
           if (op) {
             f.op_code.value = op;
             f.method.value = 'yape';
-            m.el.querySelector('#nf_yape').classList.remove('hidden');
+            updateMethodFields('yape');
             RD.toast('N° de operación cargado ✔');
+          }
+        }
+      });
+    };
+
+    // Cobro Tarjeta POS
+    m.el.querySelector('#btncardpos').onclick = () => {
+      if (!plan) return RD.toast('Selecciona un plan primero', 'warn');
+      const amount = +f.price.value || plan.price;
+      RD.cardPaymentModal({
+        amount,
+        concept: `Membresía ${plan.name} (${f.name.value.trim() || 'Nuevo socio'})`,
+        onPaid: (ref) => {
+          if (ref) {
+            f.op_code.value = ref;
+            f.method.value = 'tarjeta';
+            updateMethodFields('tarjeta');
+            RD.toast('Ref. de tarjeta cargada ✔');
           }
         }
       });
@@ -219,9 +270,7 @@
     };
     f.price.oninput = () => { if (plan) m.el.querySelector('#dn').classList.toggle('hidden', +f.price.value >= plan.price); };
     m.el.querySelector('#nfmeth').onchange = e => {
-      const isYape = e.target.value === 'yape' || e.target.value === 'plin';
-      m.el.querySelector('#nf_yape').classList.toggle('hidden', !isYape);
-      if (isYape) setTimeout(() => m.el.querySelector('#nfop')?.focus(), 50);
+      updateMethodFields(e.target.value);
     };
     m.el.querySelector('#pbox').onclick = () => m.el.querySelector('#photo').click();
     m.el.querySelector('#photo').onchange = async e => {
@@ -315,12 +364,13 @@
         <div class="grid g2 keep"><label class="field"><span>Monto (S/)</span><input name="price" type="number" step="0.5" min="0" required></label>
         <label class="field"><span>Método de pago</span><select name="method" id="rfmeth"><option value="efectivo">💵 Efectivo</option><option value="yape">🟣 Yape</option><option value="plin">🔵 Plin</option><option value="tarjeta">💳 Tarjeta</option><option value="transferencia">🏦 Transferencia</option></select></label></div>
         
-        <div class="row gap mb">
-          <button type="button" class="btn small ok" id="r_btnyapeqr">📱 Mostrar QR Yape/Plin (Monto exacto cargado)</button>
+        <div class="row gap wrap mb">
+          <button type="button" class="btn small ok" id="r_btnyapeqr">📱 QR Yape/Plin</button>
+          <button type="button" class="btn small info" id="r_btncardpos" style="background:#0284c7;color:#fff">💳 Tarjeta POS</button>
         </div>
 
         <div class="yape-box hidden mb mt" id="rf_yape">
-          <label class="field"><span>N° de Operación Yape/Plin (4-6 dígitos)</span><input name="op_code" id="rfop" placeholder="Ej. 182940" inputmode="numeric"></label>
+          <label class="field"><span id="rfop_label">N° de Operación Yape/Plin (4-6 dígitos)</span><input name="op_code" id="rfop" placeholder="Ej. 182940"></label>
         </div>
         <label class="field hidden" id="dn"><span>Motivo del descuento</span><input name="discount_note"></label>
         <div class="banner" id="prev"></div>
@@ -373,6 +423,38 @@
     customExtraInp.oninput = () => { extraDays = +customExtraInp.value || 0; refresh(); };
     customNoteInp.oninput = () => { promoNote = customNoteInp.value.trim(); };
 
+    function updateRenewMethodFields(meth) {
+      const opBox = m.el.querySelector('#rf_yape');
+      const opLbl = m.el.querySelector('#rfop_label');
+      const opInp = m.el.querySelector('#rfop');
+      if (meth === 'yape' || meth === 'plin') {
+        opBox.classList.remove('hidden');
+        opLbl.textContent = 'N° de Operación Yape/Plin (4-6 dígitos) *';
+        opInp.placeholder = 'Ej. 182940';
+        setTimeout(() => opInp.focus(), 50);
+      } else if (meth === 'tarjeta') {
+        opBox.classList.remove('hidden');
+        opLbl.textContent = 'N° de Referencia / Voucher del POS (Izipay / Niubiz) *';
+        opInp.placeholder = 'Ej. Ref #041289';
+        setTimeout(() => opInp.focus(), 50);
+        const amount = +f.price.value || plan.price;
+        RD.setCustomerDisplay({
+          mode: 'card',
+          method: 'tarjeta',
+          title: `Renovación ${plan ? plan.name : ''} (${name})`,
+          amount: amount
+        }).catch(() => {});
+      } else if (meth === 'transferencia') {
+        opBox.classList.remove('hidden');
+        opLbl.textContent = 'N° de Operación Bancaria *';
+        opInp.placeholder = 'Ej. Op #0049182';
+        setTimeout(() => opInp.focus(), 50);
+      } else {
+        opBox.classList.add('hidden');
+        RD.setCustomerDisplay({ mode: 'idle' }).catch(() => {});
+      }
+    }
+
     // Yape modal
     m.el.querySelector('#r_btnyapeqr').onclick = () => {
       const amount = +f.price.value || plan.price;
@@ -383,8 +465,25 @@
           if (op) {
             f.op_code.value = op;
             f.method.value = 'yape';
-            m.el.querySelector('#rf_yape').classList.remove('hidden');
+            updateRenewMethodFields('yape');
             RD.toast('N° de operación cargado ✔');
+          }
+        }
+      });
+    };
+
+    // Tarjeta modal
+    m.el.querySelector('#r_btncardpos').onclick = () => {
+      const amount = +f.price.value || plan.price;
+      RD.cardPaymentModal({
+        amount,
+        concept: `Renovación ${plan.name} (${name})`,
+        onPaid: (ref) => {
+          if (ref) {
+            f.op_code.value = ref;
+            f.method.value = 'tarjeta';
+            updateRenewMethodFields('tarjeta');
+            RD.toast('Ref. de tarjeta cargada ✔');
           }
         }
       });
@@ -397,9 +496,7 @@
     };
     f.price.oninput = () => m.el.querySelector('#dn').classList.toggle('hidden', +f.price.value >= plan.price);
     m.el.querySelector('#rfmeth').onchange = e => {
-      const isYape = e.target.value === 'yape' || e.target.value === 'plin';
-      m.el.querySelector('#rf_yape').classList.toggle('hidden', !isYape);
-      if (isYape) setTimeout(() => m.el.querySelector('#rfop')?.focus(), 50);
+      updateRenewMethodFields(e.target.value);
     };
     f.onsubmit = async e => {
       e.preventDefault();

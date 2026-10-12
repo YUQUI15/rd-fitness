@@ -332,6 +332,79 @@
     opInp.onkeydown = e => { if (e.key === 'Enter') doConfirm(); };
   };
 
+  // Modal de cobro con tarjeta en terminal POS físico (Izipay / Niubiz)
+  RD.cardPaymentModal = ({ amount = 0, concept = 'Pago RD Fitness', onPaid } = {}) => {
+    // Notificar pantalla del cliente
+    RD.setCustomerDisplay({
+      mode: 'card',
+      method: 'tarjeta',
+      title: concept,
+      amount: amount
+    }).catch(() => {});
+
+    const modal = RD.openModal('💳 Cobro con Tarjeta (POS Físico)', `
+      <div class="center">
+        <div style="font-size:0.85rem;color:#38bdf8;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">
+          IZIPAY · NIUBIZ · VISA · MASTERCARD · CONTACTLESS
+        </div>
+        <div style="font-size:2.3rem;font-weight:900;color:var(--gold);line-height:1.1;margin-bottom:4px">
+          ${RD.money(amount)}
+        </div>
+        <div class="small muted mb" style="max-width:320px;margin:0 auto 10px">
+          ${RD.esc(concept)}
+        </div>
+
+        <div class="box mb" style="background:#0f172a;border:1px solid #334155;border-radius:12px;padding:14px;text-align:left">
+          <div class="small bold" style="color:#38bdf8;margin-bottom:6px">📋 Pasos en recepción:</div>
+          <ol class="small" style="margin:0;padding-left:18px;line-height:1.5;color:#e2e8f0">
+            <li>Digita <b>${RD.money(amount)}</b> en el teclado de tu máquina POS física.</li>
+            <li>Pide al cliente que acerque su tarjeta <b>Contactless</b> o la inserte con chip (y digite su PIN si lo solicita).</li>
+            <li>Al aprobarse, el POS imprimirá el voucher. Escribe abajo el <b>N° de Referencia / Operación</b>.</li>
+          </ol>
+        </div>
+
+        <div class="box" style="background:var(--bg2);padding:10px;border-radius:8px;text-align:left">
+          <label class="field" style="margin:0">
+            <span style="font-weight:700">N° de Referencia / Voucher del POS (Izipay / Niubiz):</span>
+            <input id="modal_card_ref" placeholder="Ej. Ref #041289" autofocus style="font-size:1.1rem;font-weight:700;letter-spacing:1px">
+            <small class="muted" style="display:block;margin-top:4px">Aparece en el voucher impreso como "REF", "N° OPE" o "APROBACIÓN".</small>
+          </label>
+        </div>
+
+        <div class="grid g2 mt gap">
+          <button type="button" class="btn ghost" id="btncancard">Cancelar</button>
+          <button type="button" class="btn primary" id="btnconfirmcard">✔ Confirmar Cobro POS</button>
+        </div>
+      </div>
+    `, { wide: false, sticky: true, onClose: () => {
+      RD.setCustomerDisplay({ mode: 'idle' }).catch(() => {});
+    }});
+
+    const refInp = modal.el.querySelector('#modal_card_ref');
+    const confirmBtn = modal.el.querySelector('#btnconfirmcard');
+    const cancelBtn = modal.el.querySelector('#btncancard');
+
+    cancelBtn.onclick = () => modal.close();
+
+    const doConfirm = () => {
+      const ref = refInp.value.trim() || 'POS-' + Math.floor(Date.now() % 1000000);
+      modal.close();
+      RD.setCustomerDisplay({
+        mode: 'success',
+        title: '¡Pago Aprobado!',
+        amount: amount,
+        concept: concept
+      }).catch(() => {});
+      setTimeout(() => {
+        RD.setCustomerDisplay({ mode: 'idle' }).catch(() => {});
+      }, 5000);
+      onPaid && onPaid(ref);
+    };
+
+    confirmBtn.onclick = doConfirm;
+    refInp.onkeydown = e => { if (e.key === 'Enter') doConfirm(); };
+  };
+
   // ---------- Generador de Boletas / Tickets (Térmico 58mm/80mm y WhatsApp) ----------
   RD.waReceiptText = (r) => {
     return [
@@ -467,7 +540,8 @@
           <div class="r-line">--------------------------------</div>
           <div class="r-row"><span>🟣 Yape:</span> <span>${RD.money(t.digitalBreakdown?.yape || 0)}</span></div>
           <div class="r-row"><span>🔵 Plin:</span> <span>${RD.money(t.digitalBreakdown?.plin || 0)}</span></div>
-          <div class="r-row"><span>💳 Tarjeta / Transferencia:</span> <span>${RD.money((t.digitalBreakdown?.card || 0) + (t.digitalBreakdown?.transfer || 0))}</span></div>
+          <div class="r-row"><span>💳 Tarjeta POS (Izipay / Niubiz):</span> <span>${RD.money(t.digitalBreakdown?.card || 0)}</span></div>
+          <div class="r-row"><span>🏦 Transferencias Bancarias:</span> <span>${RD.money(t.digitalBreakdown?.transfer || 0)}</span></div>
           <div class="r-line">--------------------------------</div>
           <div class="r-row r-bold"><span>TOTAL DIGITAL ESPERADO:</span> <span>${RD.money(s.expected_digital || t.expectedDigital || 0)}</span></div>
           <div class="r-line">================================</div>
