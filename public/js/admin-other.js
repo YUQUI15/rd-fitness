@@ -2006,9 +2006,6 @@ function sincronizarFeedRDFitness(tipo, nombreHoja) {
             load();
           }
         };
-            load();
-          }
-        };
 
         // Handlers de fechas
         view.querySelector('#apply').onclick = () => {

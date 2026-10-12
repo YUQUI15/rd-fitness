@@ -148,6 +148,10 @@
     view.innerHTML = '<div class="empty">Cargando…</div>';
     try {
       const v = RD.views[name];
+      if (!v || typeof v.render !== 'function') {
+        view.innerHTML = `<div class="empty">⚠️ La pestaña <b>${NAV[name]?.[1] || name}</b> no está disponible o aún se está cargando.<br><button class="btn sm primary mt" onclick="location.reload()">🔄 Recargar</button></div>`;
+        return;
+      }
       const r = await v.render(view, arg);
       if (typeof r === 'function') unmount = r; else if (v.unmount) unmount = v.unmount;
     } catch (e) {

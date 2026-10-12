@@ -653,7 +653,7 @@
         mres.innerHTML = (htmlM + htmlP) || '<div class="empty">Sin resultados</div>';
       }, 150);
 
-      mres.onclick = e => {
+      mres.onclick = async e => {
         const it = e.target.closest('[data-code]');
         if (!it) return;
         const code = it.dataset.code;
