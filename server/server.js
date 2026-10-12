@@ -3,8 +3,8 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
-const { q, db, DATA_DIR, getSettings, numSettings, backup, nextReceiptNo, dailyPassCode, getActiveShift, computeShiftTotals } = require('./db');
-const { getScopedReportData, buildExcelXmlReport, buildCsvLiveFeed } = require('./reports');
+const { q, db, DATA_DIR, getSettings, numSettings, backup, nextReceiptNo, dailyPassCode, getActiveShift, computeShiftTotals, getActiveAttendanceSession, closeAttendanceSession } = require('./db');
+const { getScopedReportData, getMemberAttendanceDetail, buildExcelXmlReport, buildCsvLiveFeed } = require('./reports');
 const L = require('./lib');
 
 const app = express();
@@ -234,10 +234,20 @@ api.post('/sync/scans', staff('admin', 'recepcion'), wrap((req, res) => {
       if (!s.uid || !s.ts) continue;
       const ts = new Date(typeof s.ts === 'number' ? s.ts : Date.parse(s.ts));
       if (isNaN(ts)) continue;
+      if (s.direction === 'out') {
+        const active = s.code ? getActiveAttendanceSession(s.code, L.limaDay(ts)) : null;
+        if (active) {
+          closeAttendanceSession(active.id, ts);
+          saved++;
+          continue;
+        }
+      }
+      const isOk = s.result === 'ok' || s.result === 'warn';
       const m = s.code ? q.get('SELECT id FROM members WHERE code=?', s.code) : null;
-      const r = q.run('INSERT OR IGNORE INTO attendance(uid,member_id,code,ts,day,hour,result,reason,kind,device,user_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
+      const r = q.run('INSERT OR IGNORE INTO attendance(uid,member_id,code,ts,day,hour,result,reason,kind,device,user_id,direction,status) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
         String(s.uid), m ? m.id : null, s.code || null, ts.toISOString(), L.limaDay(ts), L.limaHour(ts),
-        ['ok', 'warn', 'denied', 'invalid', 'dup'].includes(s.result) ? s.result : 'invalid', s.reason || null, s.kind || null, s.device || null, req.user.id);
+        ['ok', 'warn', 'denied', 'invalid', 'dup'].includes(s.result) ? s.result : 'invalid', s.reason || null, s.kind || null, s.device || null, req.user.id,
+        s.direction || 'in', isOk ? 'inside' : 'rejected');
       saved += r.changes;
     }
   });
@@ -423,11 +433,73 @@ api.post('/members/:id/checkin', staff('admin', 'recepcion'), wrap((req, res) =>
   const id = num(req.params.id);
   const m = q.get(MEMBER_SELECT + ' WHERE m.id=?', id);
   if (!m) return bad(res, 'Socio no encontrado', 404);
-  const s = withState(m, numSettings(), L.limaDay());
+  const today = L.limaDay();
   const now = new Date();
-  q.run('INSERT INTO attendance(uid,member_id,code,ts,day,hour,result,reason,kind,user_id) VALUES(?,?,?,?,?,?,?,?,?,?)',
-    'srv-' + L.randomKey(), id, m.code, now.toISOString(), L.limaDay(now), L.limaHour(now), s.access, s.access_reason, 'M', req.user.id);
-  res.json({ access: s.access, reason: s.access_reason });
+
+  // Si se solicita registrar salida
+  if (req.body?.direction === 'out') {
+    const active = getActiveAttendanceSession(m.code, today);
+    if (active) {
+      const closed = closeAttendanceSession(active.id, now);
+      return res.json({ action: 'checkout', duration_min: closed.duration_min, access: 'ok', reason: `Salida registrada (${closed.duration_min} min)` });
+    }
+  }
+
+  const s = withState(m, numSettings(), today);
+  const r = q.run('INSERT INTO attendance(uid,member_id,code,ts,day,hour,result,reason,kind,direction,status,user_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
+    'srv-' + L.randomKey(), id, m.code, now.toISOString(), L.limaDay(now), L.limaHour(now), s.access, s.access_reason, 'M', 'in', 'inside', req.user.id);
+  res.json({ action: 'checkin', id: Number(r.lastInsertRowid), access: s.access, reason: s.access_reason });
+}));
+
+// Lista de personas actualmente dentro del gimnasio
+api.get('/attendance/inside', staff('admin', 'recepcion'), wrap((req, res) => {
+  const today = L.limaDay();
+  const fourHoursAgo = new Date(Date.now() - 4 * 3600000).toISOString();
+  const rows = q.all(`
+    SELECT a.*,
+      COALESCE(m.name, dp.name, 'Visitante') AS name,
+      COALESCE(m.code, a.code) AS code,
+      COALESCE(m.dni, dp.dni) AS dni,
+      m.photo, m.phone
+    FROM attendance a
+    LEFT JOIN members m ON m.id = a.member_id
+    LEFT JOIN daily_passes dp ON dp.code = a.code
+    WHERE a.day = ? AND a.result IN ('ok','warn') AND (a.status = 'inside' OR a.exit_ts IS NULL) AND a.ts >= ?
+    ORDER BY a.ts DESC
+  `, today, fourHoursAgo);
+  res.json(rows);
+}));
+
+// Registrar salida de una sesión de asistencia
+api.post('/attendance/:id/checkout', staff('admin', 'recepcion'), wrap((req, res) => {
+  const id = num(req.params.id);
+  const session = closeAttendanceSession(id);
+  if (!session) return bad(res, 'Sesión no encontrada', 404);
+  audit(req.user.id, 'attendance.checkout', { id, duration_min: session.duration_min });
+  res.json({ ok: true, session });
+}));
+
+// Registrar salida rápida por código de tarjeta o QR
+api.post('/attendance/checkout-code', staff('admin', 'recepcion'), wrap((req, res) => {
+  const code = String(req.body?.code || '').trim().toUpperCase();
+  const today = L.limaDay();
+  const active = getActiveAttendanceSession(code, today);
+  if (!active) return bad(res, 'No se encontró un ingreso activo para este código hoy');
+  const session = closeAttendanceSession(active.id);
+  audit(req.user.id, 'attendance.checkout_code', { code, duration_min: session.duration_min });
+  res.json({ ok: true, session, duration_min: session.duration_min });
+}));
+
+// Reporte e historial individual de asistencias de un socio
+api.get('/reports/member/:id/attendance', staff('admin', 'recepcion'), wrap((req, res) => {
+  const id = num(req.params.id);
+  const today = L.limaDay();
+  const to = req.query.to || today;
+  const from = req.query.from || L.addDays(to, -30);
+  const detail = getMemberAttendanceDetail({ memberId: id, from, to, q });
+  if (!detail) return bad(res, 'Socio no encontrado', 404);
+  const settings = getSettings();
+  res.json({ ...detail, settings });
 }));
 
 // ---------------- Planes ----------------
@@ -921,7 +993,8 @@ api.get('/reports', staff('admin', 'recepcion'), wrap((req, res) => {
       digitalTotal: data.digitalTotal,
       dailyComparison: data.dailyComparison,
       shifts: data.shifts
-    }
+    },
+    attendance: data.attendance
   });
 }));
 

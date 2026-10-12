@@ -7,7 +7,7 @@
   const device = () => localStorage.getItem('rd_device') || (localStorage.setItem('rd_device', (RD.user?.username || 'staff') + '-' + Math.random().toString(36).slice(2, 5)), localStorage.getItem('rd_device'));
 
   // ---------- Evaluación universal de cualquier código escaneado ----------
-  RD.evaluate = async function (text) {
+  RD.evaluate = async function (text, scanMode = 'auto') {
     let snap = RD.snap();
     if (!snap) {
       if (navigator.onLine) { try { snap = await RD.syncMembers(); } catch { } }
@@ -15,6 +15,25 @@
     }
     const p = RD.parsePayload(text);
     if (!p) return { level: 'invalid', reason: 'Código no reconocido.' };
+
+    // Si el operador activó explícitamente el Modo Salida
+    if (scanMode === 'out') {
+      if (navigator.onLine) {
+        try {
+          const res = await RD.api.post('/attendance/checkout-code', { code: p.code });
+          return {
+            level: 'ok',
+            is_checkout: true,
+            code: p.code,
+            name: res.session?.member_name || res.session?.name || 'Socio / Visitante',
+            duration_min: res.duration_min,
+            reason: `Salida completada (${res.duration_min} min en el gimnasio)`
+          };
+        } catch (e) {
+          return { level: 'warn', code: p.code, reason: e.message || 'No se encontró un ingreso activo para registrar salida hoy.' };
+        }
+      }
+    }
 
     // 1. CASO: PASE DIARIO (Visitante que paga S/ 5 hoy)
     if (p.type === 'daily' || p.type === 'daily_code') {
@@ -39,6 +58,27 @@
           }
         }
       }
+
+      // Si está en modo automático y ya ingresó hoy hace más de 10 min, registrar salida
+      const last = lastSeen[p.code];
+      if (scanMode === 'auto' && last && (RD.now() - last >= 10 * 60000) && navigator.onLine) {
+        try {
+          const res = await RD.api.post('/attendance/checkout-code', { code: p.code });
+          if (res && res.ok) {
+            delete lastSeen[p.code];
+            return {
+              level: 'ok',
+              is_checkout: true,
+              is_daily: true,
+              code: p.code,
+              name: dp?.name || 'Visitante',
+              duration_min: res.duration_min,
+              reason: `Salida registrada (${res.duration_min} min en sala)`
+            };
+          }
+        } catch (e) { }
+      }
+
       return {
         level: 'ok',
         is_daily: true,
@@ -78,6 +118,27 @@
         if (Math.abs(cur - p.n) > 1) return { level: 'denied', member: m, code: p.code, kind: p.kind, reason: 'QR digital caducado. Que actualice o reabra su app.' };
       }
     }
+
+    // En modo auto, si ya ingresó hace más de 10 min, consultar y marcar salida
+    const last = Math.max(lastSeen[m.code] || 0, m.last_in ? Date.parse(m.last_in) : 0);
+    if (scanMode === 'auto' && last && (RD.now() - last >= 10 * 60000) && navigator.onLine) {
+      try {
+        const res = await RD.api.post('/attendance/checkout-code', { code: m.code });
+        if (res && res.ok) {
+          delete lastSeen[m.code];
+          return {
+            level: 'ok',
+            is_checkout: true,
+            member: m,
+            code: m.code,
+            name: m.name,
+            duration_min: res.duration_min,
+            reason: `Salida completada (${res.duration_min} min entrenando)`
+          };
+        }
+      } catch (e) { }
+    }
+
     return decide(m, p.kind || 'M');
   };
 
@@ -95,11 +156,23 @@
 
   function record(r, kindOverride) {
     if (r.dup || r.level === 'pos') return;
-    const entry = { uid: RD.uid(), code: r.code || null, ts: RD.now(), result: r.level, reason: r.reason, kind: kindOverride || (r.is_daily ? 'D' : r.kind) || null, device: device() };
-    if (r.level === 'invalid' && !r.code) return; // basura: no se guarda
-    if (r.level === 'ok' || r.level === 'warn') lastSeen[r.code] = entry.ts;
+    const entry = {
+      uid: RD.uid(),
+      code: r.code || null,
+      ts: RD.now(),
+      result: r.level,
+      reason: r.reason,
+      kind: kindOverride || (r.is_daily ? 'D' : r.kind) || null,
+      direction: r.is_checkout ? 'out' : 'in',
+      duration_min: r.duration_min || null,
+      device: device()
+    };
+    if (r.level === 'invalid' && !r.code) return;
+    if (r.level === 'ok' || r.level === 'warn') {
+      if (!r.is_checkout) lastSeen[r.code] = entry.ts;
+    }
     RD.pushScan(entry);
-    recent.unshift({ ...entry, name: r.name || r.member?.name, is_daily: r.is_daily });
+    recent.unshift({ ...entry, name: r.name || r.member?.name, is_daily: r.is_daily, is_checkout: r.is_checkout });
     recent.length = Math.min(recent.length, 12);
     clearTimeout(record._t); record._t = setTimeout(() => RD.flushScans(), 800);
   }
@@ -119,7 +192,7 @@
     const m = r.member;
     const lvl = r.level;
     const titles = {
-      ok: r.is_daily ? '✔ ADELANTE (PASE DIARIO)' : '✔ ADELANTE',
+      ok: r.is_checkout ? '🚪 SALIDA REGISTRADA' : (r.is_daily ? '✔ ADELANTE (PASE DIARIO)' : '✔ ADELANTE (ENTRADA)'),
       warn: '⚠ PUEDE PASAR',
       denied: r.is_daily ? '✖ PASE DIARIO VENCIDO' : '✖ NO PUEDE PASAR',
       invalid: '? CÓDIGO NO VÁLIDO'
@@ -129,17 +202,20 @@
     overlay.className = 'result ' + (r.dup ? 'ok' : lvl);
 
     const displayName = r.name || m?.name || 'Visitante';
-    const subTitle = r.is_daily
-      ? (lvl === 'ok' ? `Pase Diario · Válido para hoy (${r.code})` : `Pase Diario Expirado (${r.code})`)
-      : (m ? `${esc(m.plan || 'Sin plan')} · vence ${RD.fmtDate(m.end)}` : '');
+    const subTitle = r.is_checkout
+      ? `¡Buen entrenamiento! Vuelve pronto (Permanencia: ${r.duration_min || 0} min)`
+      : (r.is_daily
+        ? (lvl === 'ok' ? `Pase Diario · Válido para hoy (${r.code})` : `Pase Diario Expirado (${r.code})`)
+        : (m ? `${esc(m.plan || 'Sin plan')} · vence ${RD.fmtDate(m.end)}` : ''));
 
     overlay.innerHTML = `
-      ${m && m.photo ? `<img class="ph" src="${esc(m.photo)}" alt="">` : `<div class="ph">${r.is_daily ? '🎟️' : esc((displayName)[0] || '?')}</div>`}
+      ${m && m.photo ? `<img class="ph" src="${esc(m.photo)}" alt="">` : `<div class="ph">${r.is_checkout ? '🚪' : r.is_daily ? '🎟️' : esc((displayName)[0] || '?')}</div>`}
       <div class="big">${head}</div>
       <div class="nm">${esc(displayName)}</div>
       ${subTitle ? `<div class="sub">${subTitle}</div>` : ''}
       <div class="sub" style="margin-top:.4rem;font-weight:700">${esc(r.reason)}${r.dup ? ` · ingresó hace ${r.mins} min (no se duplica)` : ''}</div>
       <div class="acts">
+        ${!r.is_checkout && (lvl === 'ok' || lvl === 'warn') && r.code ? `<button class="btn warn" data-a="checkout-now">🚪 Marcar como Salida</button>` : ''}
         ${r.is_daily && lvl === 'denied' ? '<button class="btn ok" data-a="new-daily">🎟️ Cobrar nuevo pase (S/ 5)</button>' : ''}
         ${m && (lvl === 'denied' || lvl === 'warn') && m.status === 'active' ? '<button class="btn" data-a="renew">💳 Renovar membresía</button>' : ''}
         ${m ? '<button class="btn" data-a="profile">Ver ficha</button>' : ''}
@@ -149,14 +225,23 @@
     RD.beep(r.dup ? 'ok' : lvl === 'invalid' ? 'denied' : lvl);
 
     const close = () => { clearTimeout(hideT); overlay && overlay.remove(); overlay = null; };
-    overlay.addEventListener('click', e => {
+    overlay.addEventListener('click', async e => {
       const a = e.target.closest('[data-a]')?.dataset.a;
-      if (a === 'new-daily') { close(); dailyPassDialog(); }
+      if (a === 'checkout-now') {
+        close();
+        try {
+          const res = await RD.api.post('/attendance/checkout-code', { code: r.code });
+          RD.toast(`Salida registrada (${res.duration_min || 0} min) ✔`);
+          recent.unshift({ uid: RD.uid(), code: r.code, ts: RD.now(), result: 'ok', name: displayName, is_checkout: true, duration_min: res.duration_min });
+          if (window.RD.drawScanRecent) window.RD.drawScanRecent();
+        } catch (err) { RD.toast(err.message, 'err'); }
+      }
+      else if (a === 'new-daily') { close(); dailyPassDialog(); }
       else if (a === 'renew') { close(); RD.renewDialog(m.id, m.name, async () => { await RD.syncMembers().catch(() => { }); }); }
       else if (a === 'profile') { close(); RD.openMember(m.id); }
       else close();
     });
-    const ms = r.dup ? 1800 : lvl === 'ok' ? 1900 : lvl === 'warn' ? 3200 : 9000;
+    const ms = r.dup ? 1800 : lvl === 'ok' ? 2200 : lvl === 'warn' ? 3200 : 9000;
     hideT = setTimeout(close, ms);
   }
 
@@ -316,9 +401,15 @@
   // ---------- Vista principal del escáner ----------
   RD.views.scan = {
     async render(view) {
+      let scanMode = 'auto'; // 'auto' | 'in' | 'out'
+
       view.innerHTML = `
       <div class="row between wrap gap mb">
-        <div class="small muted" id="sinfo">…</div>
+        <div class="chips" id="scan_mode_chips">
+          <span class="chip on" data-sm="auto">🔄 Auto (Entrada/Salida)</span>
+          <span class="chip" data-sm="in">🟢 Solo Entrada</span>
+          <span class="chip" data-sm="out">🚪 Solo Salida</span>
+        </div>
         <div class="row gap">
           <button class="btn ok sm" id="dpassbtn">🎟️ Pase Diario (S/ 5)</button>
           <button class="btn sm" id="sync">🔄 Sincronizar</button>
@@ -345,7 +436,7 @@
       <div class="card mt">
         <div class="row between">
           <h3>Últimos escaneos</h3>
-          <span class="muted small">Hoy</span>
+          <span class="muted small" id="sinfo">…</span>
         </div>
         <div class="list" id="recent"></div>
       </div>`;
@@ -354,24 +445,33 @@
       let stream = null, running = false, facing = 'environment', detector = null, canvas = null, ctx = null, busy = false, lastRun = 0, lastText = '', lastAt = 0;
       const hint = t => view.querySelector('#shint').textContent = t;
 
+      view.querySelector('#scan_mode_chips')?.addEventListener('click', e => {
+        const c = e.target.closest('[data-sm]');
+        if (!c) return;
+        view.querySelectorAll('#scan_mode_chips .chip').forEach(x => x.classList.toggle('on', x === c));
+        scanMode = c.dataset.sm;
+        RD.toast(scanMode === 'out' ? 'Modo Salida Activado 🚪' : scanMode === 'in' ? 'Modo Entrada Activado 🟢' : 'Modo Automático Activado 🔄');
+      });
+
       const info = () => {
         const s = RD.snap(); const el = view.querySelector('#sinfo'); if (!el) return;
-        el.innerHTML = s ? `Socios: <b>${s.members.length}</b> · Pases hoy: <b>${(s.dailyPasses || []).length}</b> · actualizado ${RD.ago(new Date(s.at).toISOString())}${RD.queue().length ? ` · <span class="warn">${RD.queue().length} por enviar</span>` : ''}` : '<span class="bad">Sin datos: conecta a internet y pulsa Sincronizar</span>';
+        el.innerHTML = s ? `Socios: <b>${s.members.length}</b> · Pases hoy: <b>${(s.dailyPasses || []).length}</b> · ${RD.ago(new Date(s.at).toISOString())}${RD.queue().length ? ` · <span class="warn">${RD.queue().length} pendientes</span>` : ''}` : '<span class="bad">Sin datos: pulsa Sincronizar</span>';
       };
       const drawRecent = () => {
         const el = view.querySelector('#recent'); if (!el) return;
         el.innerHTML = recent.map(s => `
           <div class="item">
-            <span class="badge ${s.result === 'ok' ? 'ok' : s.result === 'warn' ? 'warn' : 'denied'}">
-              ${s.result === 'ok' ? (s.is_daily ? 'Pase Diario' : 'Entró') : s.result === 'warn' ? 'Aviso' : 'Rechazado'}
+            <span class="badge ${s.is_checkout ? 'warn' : s.result === 'ok' ? 'ok' : s.result === 'warn' ? 'warn' : 'denied'}">
+              ${s.is_checkout ? '🚪 Salida' : s.result === 'ok' ? (s.is_daily ? 'Pase Diario' : 'Entró') : s.result === 'warn' ? 'Aviso' : 'Rechazado'}
             </span>
             <div class="grow">
               <b>${esc(s.name || s.code || '—')}</b>
-              <div class="muted tiny">${esc(s.reason || '')}</div>
+              <div class="muted tiny">${s.is_checkout ? `Permanencia: ${s.duration_min || 0} min` : esc(s.reason || '')}</div>
             </div>
             <span class="muted small">${RD.fmtTime(new Date(s.ts).toISOString())}</span>
           </div>`).join('') || '<div class="empty">Aún no hay escaneos hoy</div>';
       };
+      window.RD.drawScanRecent = drawRecent;
       info(); drawRecent();
       const infoT = setInterval(info, 5000);
 
@@ -380,7 +480,7 @@
         if (text === lastText && now - lastAt < 3000) return;
         lastText = text; lastAt = now;
         let r;
-        try { r = await RD.evaluate(text); } catch (e) { r = { level: 'invalid', reason: 'Error al validar: ' + e.message }; }
+        try { r = await RD.evaluate(text, scanMode); } catch (e) { r = { level: 'invalid', reason: 'Error al validar: ' + e.message }; }
         record(r);
         showResult(r);
         drawRecent();
@@ -501,6 +601,15 @@
         const type = it.dataset.type;
         if (type === 'm') {
           const m = RD.findMember(code);
+          if (scanMode === 'out') {
+            try {
+              const res = await RD.api.post('/attendance/checkout-code', { code: m.code });
+              RD.toast(`Salida registrada (${res.duration_min || 0} min) ✔`);
+              recent.unshift({ uid: RD.uid(), code: m.code, ts: RD.now(), result: 'ok', name: m.name, is_checkout: true, duration_min: res.duration_min });
+              drawRecent(); search.value = ''; mres.innerHTML = '';
+            } catch (err) { RD.toast(err.message, 'err'); }
+            return;
+          }
           const r = decide(m, 'M');
           RD.confirm('Ingreso manual de socio', `Confirma que verificaste la identidad de ${m.name} (DNI ${m.dni || '—'}). ¿Registrar ingreso?`, 'Registrar').then(ok => {
             if (!ok) return;

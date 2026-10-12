@@ -974,46 +974,359 @@
     };
   }
 
+  RD.LOGO_SVG = function (size = 54) {
+    return `<svg viewBox="0 0 100 100" style="width:${size}px;height:${size}px;display:inline-block;vertical-align:middle">
+      <defs>
+        <linearGradient id="rdGold" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#fbbf24"/>
+          <stop offset="50%" stop-color="#f59e0b"/>
+          <stop offset="100%" stop-color="#b45309"/>
+        </linearGradient>
+        <linearGradient id="rdDark" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#1e293b"/>
+          <stop offset="100%" stop-color="#0f172a"/>
+        </linearGradient>
+      </defs>
+      <polygon points="50,4 92,20 84,72 50,96 16,72 8,20" fill="url(#rdDark)" stroke="url(#rdGold)" stroke-width="3.5" stroke-linejoin="round"/>
+      <polygon points="50,11 85,25 78,68 50,88 22,68 15,25" fill="none" stroke="url(#rdGold)" stroke-width="1.2" opacity="0.6"/>
+      <rect x="26" y="32" width="48" height="3.5" rx="1.5" fill="url(#rdGold)"/>
+      <rect x="22" y="27" width="5" height="13.5" rx="1.5" fill="url(#rdGold)"/>
+      <rect x="73" y="27" width="5" height="13.5" rx="1.5" fill="url(#rdGold)"/>
+      <rect x="18" y="29.5" width="3" height="8.5" rx="1" fill="#fbbf24"/>
+      <rect x="79" y="29.5" width="3" height="8.5" rx="1" fill="#fbbf24"/>
+      <text x="50" y="62" font-family="'Impact', 'Arial Black', sans-serif" font-weight="900" font-size="25" fill="url(#rdGold)" text-anchor="middle" letter-spacing="1.5">RD</text>
+      <text x="50" y="74" font-family="'Arial Black', sans-serif" font-weight="800" font-size="6" fill="#f8fafc" text-anchor="middle" letter-spacing="2">FITNESS CLUB</text>
+      <polygon points="50,78 51.5,82 55.5,82 52.5,84 53.5,88 50,85.5 46.5,88 47.5,84 44.5,82 48.5,82" fill="url(#rdGold)"/>
+      <polygon points="41,79 42,81.5 44.5,81.5 42.5,83 43.2,85.5 41,84 38.8,85.5 39.5,83 37.5,81.5 40,81.5" fill="url(#rdGold)" opacity="0.8"/>
+      <polygon points="59,79 60,81.5 62.5,81.5 60.5,83 61.2,85.5 59,84 56.8,85.5 57.5,83 55.5,81.5 58,81.5" fill="url(#rdGold)" opacity="0.8"/>
+    </svg>`;
+  };
+
+  RD.memberAttendanceSheetModal = async function (memberId, fromDate, toDate) {
+    const today = RD.limaDay();
+    const to = toDate || today;
+    const from = fromDate || RD.addDays(to, -30);
+    try {
+      const data = await RD.api.get(`/reports/member/${memberId}/attendance?from=${from}&to=${to}`);
+      if (!data || !data.member) {
+        RD.toast('No se encontró información del socio', 'err');
+        return;
+      }
+      const m = data.member;
+      const s = data.stats || {};
+      const recs = data.records || [];
+      const set = data.settings || {};
+
+      const d = RD.openModal(`📄 Ficha de Asistencia: ${m.name}`, `
+        <div class="member-sheet-card watermark-container">
+          <div class="watermark-bg">RD FITNESS</div>
+
+          <!-- ENCABEZADO OFICIAL CON LOGO SVG -->
+          <div class="member-sheet-header">
+            <div class="logo-box">
+              ${RD.LOGO_SVG(58)}
+            </div>
+            <div class="grow">
+              <h2 style="color:var(--gold);font-weight:900;letter-spacing:1px">${esc(set.gym_name || 'RD FITNESS CLUB')} - CHIVAY</h2>
+              <div class="small muted">${esc(set.gym_slogan || 'Disciplina · Constancia · Resultados · Valle del Colca')}</div>
+              <div class="tiny muted">RUC: ${esc(set.gym_ruc || '10702548911')} · ${esc(set.gym_address || 'Calle Antonio José de Sucre Lt. 10, Chivay')} · Tel: ${esc(set.gym_phone || '982404043')}</div>
+            </div>
+            <div class="text-right no-print">
+              <button class="btn primary sm" id="btnprintsheet">🖨️ Imprimir / Guardar PDF</button>
+            </div>
+          </div>
+
+          <div class="row between wrap gap mb" style="border-bottom:1px dashed var(--border,#334155);padding-bottom:.6rem">
+            <div>
+              <h3 style="margin:0;font-size:1.1rem">FICHA OFICIAL DE CONTROL DE ASISTENCIA Y RENDIMIENTO</h3>
+              <div class="small muted">Auditoría de Entradas, Salidas y Horas de Entrenamiento</div>
+            </div>
+            <div class="small">
+              <b>Período evaluado:</b> ${from} al ${to}<br>
+              <span class="muted tiny">Emitido: ${new Date().toLocaleDateString('es-PE')} ${new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+          </div>
+
+          <!-- DATOS DEL SOCIO -->
+          <div class="member-sheet-profile">
+            <div>
+              ${m.photo ? `<img src="${esc(m.photo)}" style="width:64px;height:64px;border-radius:8px;object-fit:cover;border:2px solid var(--gold)">` : `<div style="width:64px;height:64px;border-radius:8px;background:#334155;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:bold">${esc((m.name || 'S')[0])}</div>`}
+            </div>
+            <div>
+              <div style="font-size:1.15rem;font-weight:800">${esc(m.name)}</div>
+              <div class="small"><b>DNI:</b> ${esc(m.dni || '—')} · <b>Código:</b> <span class="badge" style="font-family:monospace;font-weight:bold">${esc(m.code)}</span> · <b>Cel:</b> ${esc(m.phone || '—')}</div>
+              <div class="small muted mt2">Socio registrado desde: ${RD.fmtDate(m.created_at)}</div>
+            </div>
+            <div class="text-right">
+              <div><b>Plan Actual:</b> <span class="gold" style="font-weight:700">${esc(m.current_plan || 'Sin plan activo')}</span></div>
+              <div class="small"><b>Vigencia:</b> ${m.start_date ? RD.fmtDate(m.start_date) : '—'} al ${m.end_date ? RD.fmtDate(m.end_date) : '—'}</div>
+              <div class="mt2"><span class="badge ${m.status === 'active' ? 'ok' : 'denied'}">${m.status === 'active' ? 'Socio Activo' : 'Inactivo / Vencido'}</span></div>
+            </div>
+          </div>
+
+          <!-- METRICAS DE ASISTENCIA Y DISCIPLINA -->
+          <div class="member-sheet-kpis">
+            <div class="kpi-box">
+              <div style="font-size:1.4rem;font-weight:800;color:var(--gold)">${s.daysAttended || 0} días</div>
+              <div class="small muted">Días asistidos en el mes</div>
+            </div>
+            <div class="kpi-box">
+              <div style="font-size:1.4rem;font-weight:800;color:#60a5fa">${s.totalHours || 0} hrs</div>
+              <div class="small muted">Total horas de entrenamiento</div>
+            </div>
+            <div class="kpi-box">
+              <div style="font-size:1.4rem;font-weight:800;color:#4ade80">${s.avgDaysPerWeek || 0} d/sem</div>
+              <div class="small muted">Frecuencia semanal prom.</div>
+            </div>
+            <div class="kpi-box">
+              <div style="font-size:1.4rem;font-weight:800;color:#a78bfa">${s.consistencyRate || 0}%</div>
+              <div class="small muted">Constancia y disciplina</div>
+            </div>
+          </div>
+
+          <!-- TABLA DETALLADA DE SESIONES -->
+          <h4 class="mb mt">Historial de Sesiones (Entradas y Salidas)</h4>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:30px">#</th>
+                  <th>Fecha</th>
+                  <th>Hora Entrada</th>
+                  <th>Hora Salida</th>
+                  <th>Permanencia</th>
+                  <th>Atendido Por</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${recs.map((r, i) => {
+                  const enterTime = r.ts ? new Date(r.ts).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : '—';
+                  const exitTime = r.exit_ts ? new Date(r.exit_ts).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : (r.status === 'inside' ? '<span class="badge ok tiny">🟢 En Sala</span>' : '—');
+                  const duration = r.duration_min ? `${Math.floor(r.duration_min / 60) > 0 ? Math.floor(r.duration_min / 60) + 'h ' : ''}${r.duration_min % 60}m` : (r.status === 'inside' ? '<span class="gold tiny">Entrenando</span>' : '—');
+                  return `
+                  <tr>
+                    <td class="muted small">${i + 1}</td>
+                    <td><b>${r.day}</b></td>
+                    <td style="font-family:monospace">${enterTime}</td>
+                    <td style="font-family:monospace">${exitTime}</td>
+                    <td style="font-weight:700">${duration}</td>
+                    <td class="small muted">${esc(r.staff_name || 'Recepción')}</td>
+                    <td><span class="badge ${r.result === 'ok' ? 'ok' : r.result === 'warn' ? 'warn' : 'denied'} tiny">${r.result === 'ok' ? 'Ingreso OK' : r.result === 'warn' ? 'Aviso' : 'Rechazado'}</span></td>
+                  </tr>`;
+                }).join('') || '<tr><td colspan="7" class="empty">No se registran asistencias en el período seleccionado</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- SECCIÓN DE FIRMAS Y VALIDEZ -->
+          <div class="member-sheet-signatures">
+            <div class="sig-box">
+              <br><br>
+              <b>${esc(m.name)}</b><br>
+              <span class="muted">Firma del Socio<br>DNI: ${esc(m.dni || '—')}</span>
+            </div>
+            <div class="sig-box">
+              <br><br>
+              <b>ADMINISTRACIÓN / RECEPCIÓN</b><br>
+              <span class="muted">${esc(set.gym_name || 'RD FITNESS CLUB')}<br>Sello y Conformidad</span>
+            </div>
+          </div>
+        </div>
+      `, { wide: true });
+
+      d.el.querySelector('#btnprintsheet')?.addEventListener('click', () => window.print());
+    } catch (err) {
+      RD.toast(err.message, 'err');
+    }
+  };
+
   function googleSheetsSyncModal() {
-    const origin = window.location.origin;
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const prodHost = 'https://rd-fitness.onrender.com';
+    const effectiveOrigin = isLocal ? prodHost : window.location.origin;
     const key = 'RD-CHIVAY-2026';
-    const formUrl = `${origin}/api/reports/live-feed.csv?type=consolidated&key=${key}`;
-    const formula = `=IMPORTDATA("${formUrl}")`;
+    let currentSep = 'semicolon'; // 'semicolon' (Perú/LatAm) o 'comma' (Internacional)
+    let currentFeed = 'consolidated'; // 'consolidated', 'attendance', 'gym', 'store', 'shifts'
+
+    function getFormula(feed, sep) {
+      const url = `${effectiveOrigin}/api/reports/live-feed.csv?type=${feed}&key=${key}&sep=${sep}`;
+      const delim = sep === 'semicolon' ? ';' : ',';
+      return `=IMPORTDATA("${url}&t=" & TEXT(NOW()${delim} "yyyymmddhhmm"))`;
+    }
+
+    function getAppsScriptCode() {
+      return `/**
+ * RD FITNESS CLUB - CHIVAY
+ * Sincronización en Vivo y en Tiempo Real (Sin Caché)
+ * Pega este código en Google Sheets: Extensiones -> Apps Script
+ */
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('🏋️ RD Fitness')
+    .addItem('🔄 Actualizar Consolidado en Vivo', 'actualizarConsolidado')
+    .addItem('👥 Actualizar Asistencias y Aforo', 'actualizarAsistencias')
+    .addItem('🏋️ Actualizar Caja Gimnasio', 'actualizarGym')
+    .addItem('🛒 Actualizar Tiendita y POS', 'actualizarTiendita')
+    .addToUi();
+}
+
+function actualizarConsolidado() {
+  sincronizarFeedRDFitness("consolidated", "Consolidado RD Fitness");
+}
+
+function actualizarAsistencias() {
+  sincronizarFeedRDFitness("attendance", "Asistencias y Aforo");
+}
+
+function actualizarGym() {
+  sincronizarFeedRDFitness("gym", "Caja Gimnasio");
+}
+
+function actualizarTiendita() {
+  sincronizarFeedRDFitness("store", "Tiendita y POS");
+}
+
+function sincronizarFeedRDFitness(tipo, nombreHoja) {
+  var url = "${effectiveOrigin}/api/reports/live-feed.csv?type=" + tipo + "&key=${key}&sep=comma&_t=" + new Date().getTime();
+  var response = UrlFetchApp.fetch(url, { muteHttpExceptions: true, headers: { 'Cache-Control': 'no-cache' } });
+  if (response.getResponseCode() !== 200) {
+    SpreadsheetApp.getUi().alert("Error al conectar con RD Fitness: Código " + response.getResponseCode());
+    return;
+  }
+  var csvData = Utilities.parseCsv(response.getContentText());
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(nombreHoja) || ss.getActiveSheet();
+  sheet.clear();
+  if (csvData && csvData.length > 0 && csvData[0].length > 0) {
+    sheet.getRange(1, 1, csvData.length, csvData[0].length).setValues(csvData);
+    sheet.getRange(1, 1, 1, csvData[0].length).setFontWeight("bold").setBackground("#fef3c7");
+    sheet.autoResizeColumns(1, csvData[0].length);
+    ss.toast("¡Datos sincronizados en tiempo real!", "RD Fitness Club", 4);
+  }
+}`;
+    }
 
     const d = RD.openModal('📊 Sincronización en Vivo con Google Sheets', `
-      <p class="small muted">
-        Puedes vincular tu hoja de cálculo de <b>Google Sheets</b> para que se actualice <b>automáticamente y en tiempo real</b> cada vez que abras tu Google Drive, sin copiar ni exportar a mano.
-      </p>
+      ${isLocal ? `
+      <div class="tip warn mb small">
+        <b>ℹ️ Modo Servidor en la Nube Activado:</b><br>
+        Actualmente estás conectado desde una red local o desarrollo. Dado que los servidores de Google Sheets están en la nube de Google, Google no puede acceder a direcciones "localhost".
+        Las fórmulas y enlaces a continuación usan tu servidor oficial en la nube de Render: <b>${prodHost}</b>.
+      </div>` : ''}
 
-      <div class="card mt mb" style="background:#0f172a">
-        <label class="small muted"><b>Fórmula para pegar en la celda A1 de Google Sheets:</b></label>
-        <div class="row gap mt2">
-          <input type="text" id="gsformula" value='${formula}' readonly style="font-family:monospace;font-size:.85rem;background:#1e293b;color:#4ade80">
-          <button class="btn primary sm" id="btncopy">📋 Copiar Fórmula</button>
-        </div>
+      <div class="chips mb" id="gstab">
+        <span class="chip on" data-gt="formula">⚡ Opción A: Fórmula =IMPORTDATA</span>
+        <span class="chip" data-gt="script">🚀 Opción B: Menú 1-Clic en Sheets (Recomendado 100% en vivo)</span>
       </div>
 
-      <div class="tip small mb">
-        <b>¿Cómo vincularlo en 3 sencillos pasos?</b><br>
-        1. Abre una nueva hoja en <a href="https://sheets.new" target="_blank" rel="noopener">Google Sheets</a>.<br>
-        2. Haz clic en la celda <b>A1</b>.<br>
-        3. Pega la fórmula copiada y presiona <b>Enter</b>.<br>
-        <i>¡Listo! Todas las fechas, ingresos del gimnasio, ventas de la tiendita y utilidad neta se cargarán automáticamente.</i>
-      </div>
+      <div id="gtcontent"></div>
+    `, { wide: true });
 
-      <div class="row between wrap gap">
-        <a class="btn ghost sm" href="${origin}/api/reports/live-feed.csv?type=gym&key=${key}" target="_blank">📥 Feed Caja Gimnasio (CSV)</a>
-        <a class="btn ghost sm" href="${origin}/api/reports/live-feed.csv?type=store&key=${key}" target="_blank">📥 Feed Ventas Tienda (CSV)</a>
-        <a class="btn ghost sm" href="${origin}/api/reports/live-feed.csv?type=shifts&key=${key}" target="_blank">📥 Feed Historial Turnos (CSV)</a>
-      </div>
-    `);
+    function renderGContent(tab) {
+      const cnt = d.el.querySelector('#gtcontent');
+      if (tab === 'formula') {
+        cnt.innerHTML = `
+          <p class="small muted mb">
+            Google Sheets actualizará tu hoja automáticamente sin necesidad de exportar ni descargar archivos manualmente.
+          </p>
 
-    d.el.querySelector('#btncopy').onclick = () => {
-      const inp = d.el.querySelector('#gsformula');
-      inp.select();
-      navigator.clipboard.writeText(inp.value);
-      RD.toast('¡Fórmula copiada al portapapeles! Pégala en la celda A1 de tu Google Sheets.');
+          <div class="row between wrap gap mb">
+            <label class="small muted"><b>Tipo de Reporte a Sincronizar:</b>
+              <select id="gsfeedsel" style="min-height:36px">
+                <option value="consolidated" ${currentFeed === 'consolidated' ? 'selected' : ''}>📊 Consolidado General (Ingresos, Gastos, Utilidad)</option>
+                <option value="attendance" ${currentFeed === 'attendance' ? 'selected' : ''}>👥 Asistencias, Entradas, Salidas y Permanencia</option>
+                <option value="gym" ${currentFeed === 'gym' ? 'selected' : ''}>🏋️ Caja Gimnasio (Membresías y Pases S/ 5)</option>
+                <option value="store" ${currentFeed === 'store' ? 'selected' : ''}>🛒 Tiendita y POS (Bebidas, Aguas, Stock)</option>
+                <option value="shifts" ${currentFeed === 'shifts' ? 'selected' : ''}>🕒 Historial y Auditoría de Turnos</option>
+              </select>
+            </label>
+            <label class="small muted"><b>Configuración Regional de tu Google Sheets:</b>
+              <select id="gssepsel" style="min-height:36px">
+                <option value="semicolon" ${currentSep === 'semicolon' ? 'selected' : ''}>🇵🇪 Perú / Latinoamérica (Separador ; )</option>
+                <option value="comma" ${currentSep === 'comma' ? 'selected' : ''}>🌐 Internacional / USA (Separador , )</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="card mb" style="background:#0f172a">
+            <div class="row between wrap gap">
+              <label class="small muted"><b>Fórmula anti-caché para pegar en la celda A1:</b></label>
+              <span class="badge ok tiny">Anti-Caché Dinámico</span>
+            </div>
+            <div class="row gap mt2">
+              <input type="text" id="gsformula" value='${getFormula(currentFeed, currentSep)}' readonly style="font-family:monospace;font-size:.85rem;background:#1e293b;color:#4ade80">
+              <button class="btn primary sm" id="btncopy">📋 Copiar Fórmula</button>
+            </div>
+          </div>
+
+          <div class="tip small mb">
+            <b>Instrucciones de conexión:</b><br>
+            1. Abre tu hoja en <a href="https://sheets.new" target="_blank" rel="noopener">Google Sheets</a>.<br>
+            2. Haz clic en la celda <b>A1</b> y pega la fórmula copiada.<br>
+            3. Presiona <b>Enter</b>: los datos se cargarán automáticamente.<br>
+            <i>Nota: Al agregar el parámetro dinámico <code>&t=TEXT(NOW()...)</code>, Google Sheets consultará al servidor con frecuencia actualizada en lugar de congelar los datos en caché.</i>
+          </div>
+
+          <div class="row between wrap gap mt">
+            <a class="btn ghost sm" href="${effectiveOrigin}/api/reports/live-feed.csv?type=consolidated&key=${key}" target="_blank">📥 CSV Consolidado</a>
+            <a class="btn ghost sm" href="${effectiveOrigin}/api/reports/live-feed.csv?type=attendance&key=${key}" target="_blank">📥 CSV Asistencias</a>
+            <a class="btn ghost sm" href="${effectiveOrigin}/api/reports/live-feed.csv?type=gym&key=${key}" target="_blank">📥 CSV Gimnasio</a>
+            <a class="btn ghost sm" href="${effectiveOrigin}/api/reports/live-feed.csv?type=store&key=${key}" target="_blank">📥 CSV Tiendita</a>
+          </div>
+        `;
+
+        cnt.querySelector('#gsfeedsel').onchange = e => { currentFeed = e.target.value; cnt.querySelector('#gsformula').value = getFormula(currentFeed, currentSep); };
+        cnt.querySelector('#gssepsel').onchange = e => { currentSep = e.target.value; cnt.querySelector('#gsformula').value = getFormula(currentFeed, currentSep); };
+        cnt.querySelector('#btncopy').onclick = () => {
+          const inp = cnt.querySelector('#gsformula');
+          inp.select();
+          navigator.clipboard.writeText(inp.value);
+          RD.toast('¡Fórmula copiada! Pégala en la celda A1 de tu Google Sheets.');
+        };
+      } else {
+        cnt.innerHTML = `
+          <p class="small muted mb">
+            Google Sheets a veces congela la fórmula <code>IMPORTDATA</code> por horas. 
+            <b>Con este script oficial de RD Fitness, tendrás un botón personalizado arriba en Google Sheets ("🏋️ RD Fitness" ➔ "🔄 Actualizar Datos en Vivo") que descarga la información fresca directamente del servidor en 1 segundo sin ningún retraso.</b>
+          </p>
+
+          <div class="card mb" style="background:#0f172a">
+            <div class="row between wrap gap mb">
+              <span class="small muted"><b>Código Google Apps Script (Listo para pegar):</b></span>
+              <button class="btn primary sm" id="btncopyscript">📋 Copiar Código Script</button>
+            </div>
+            <textarea id="gsscriptcode" rows="12" readonly style="font-family:monospace;font-size:.8rem;background:#1e293b;color:#38bdf8;width:100%">${getAppsScriptCode()}</textarea>
+          </div>
+
+          <div class="tip small mb">
+            <b>¿Cómo instalarlo en 30 segundos?</b><br>
+            1. En tu hoja de <a href="https://sheets.new" target="_blank" rel="noopener">Google Sheets</a>, ve al menú: <b>Extensiones ➔ Apps Script</b>.<br>
+            2. Borra el código de muestra del editor.<br>
+            3. Haz clic en el botón <b>📋 Copiar Código Script</b> de este panel y pégalo allí con <b>Ctrl + V</b>.<br>
+            4. Haz clic en el botón <b>💾 Guardar</b>.<br>
+            5. Vuelve a tu hoja y presiona <b>F5</b> para recargar: verás el nuevo menú <b>🏋️ RD Fitness</b> arriba.<br>
+            <i>¡Listo! Ahora puedes actualizar los reportes con 1 solo clic en tiempo real siempre que lo desees.</i>
+          </div>
+        `;
+
+        cnt.querySelector('#btncopyscript').onclick = () => {
+          const ta = cnt.querySelector('#gsscriptcode');
+          ta.select();
+          navigator.clipboard.writeText(ta.value);
+          RD.toast('¡Código Apps Script copiado! Pégalo en Extensiones -> Apps Script en Google Sheets.');
+        };
+      }
+    }
+
+    d.el.querySelector('#gstab').onclick = e => {
+      const c = e.target.closest('[data-gt]');
+      if (!c) return;
+      d.el.querySelectorAll('#gstab .chip').forEach(x => x.classList.toggle('on', x === c));
+      renderGContent(c.dataset.gt);
     };
+
+    renderGContent('formula');
   }
 
   // ============================================================
@@ -1023,7 +1336,7 @@
     async render(view) {
       const today = RD.limaDay();
       let to = today, from = RD.addDays(today, -29);
-      let channel = 'consolidated'; // 'consolidated' | 'gym' | 'store' | 'shifts'
+      let channel = 'consolidated'; // 'consolidated' | 'gym' | 'store' | 'shifts' | 'attendance'
 
       async function load() {
         const d = await RD.api.get(`/reports?from=${from}&to=${to}&scope=${channel}`);
@@ -1037,6 +1350,7 @@
             <span class="chip ${channel === 'gym' ? 'on' : ''}" data-ch="gym">🏋️ Caja Gimnasio</span>
             <span class="chip ${channel === 'store' ? 'on' : ''}" data-ch="store">🛒 Tiendita y POS</span>
             <span class="chip ${channel === 'shifts' ? 'on' : ''}" data-ch="shifts">🕒 Historial de Turnos</span>
+            <span class="chip ${channel === 'attendance' ? 'on' : ''}" data-ch="attendance">👥 Asistencias y Aforo</span>
           </div>
 
           <div class="row gap wrap no-print">
@@ -1063,9 +1377,14 @@
 
         <!-- MEMBRETE OFICIAL PARA IMPRESIÓN (Visible al imprimir) -->
         <div class="print-header mb">
-          <h2>${esc(settings.gym_name || 'RD FITNESS CLUB')} - CHIVAY</h2>
-          <p class="small muted">RUC: ${esc(settings.gym_ruc || '10702548911')} · ${esc(settings.gym_address || 'Calle Antonio José de Sucre Lt. 10, Chivay')} · Tel: ${esc(settings.gym_phone || '982404043')}</p>
-          <h3>REPORTE: ${channel === 'consolidated' ? 'CONSOLIDADO GENERAL EJECUTIVO' : channel === 'gym' ? 'INGRESOS EXCLUSIVOS DEL GIMNASIO' : channel === 'store' ? 'VENTAS DE TIENDITA Y POS' : 'HISTORIAL Y AUDITORÍA DE TURNOS'}</h3>
+          <div class="row gap mb">
+            ${RD.LOGO_SVG(46)}
+            <div>
+              <h2 style="margin:0">${esc(settings.gym_name || 'RD FITNESS CLUB')} - CHIVAY</h2>
+              <p class="small muted" style="margin:0">RUC: ${esc(settings.gym_ruc || '10702548911')} · ${esc(settings.gym_address || 'Calle Antonio José de Sucre Lt. 10, Chivay')} · Tel: ${esc(settings.gym_phone || '982404043')}</p>
+            </div>
+          </div>
+          <h3>REPORTE: ${channel === 'consolidated' ? 'CONSOLIDADO GENERAL EJECUTIVO' : channel === 'gym' ? 'INGRESOS EXCLUSIVOS DEL GIMNASIO' : channel === 'store' ? 'VENTAS DE TIENDITA Y POS' : channel === 'attendance' ? 'CONTROL DE ASISTENCIAS, AFORO Y ENTRADAS/SALIDAS' : 'HISTORIAL Y AUDITORÍA DE TURNOS'}</h3>
           <p class="small"><b>Período:</b> ${from} al ${to} · <b>Generado el:</b> ${new Date().toLocaleString('es-PE')}</p>
           <hr class="mt mb">
         </div>
@@ -1077,12 +1396,16 @@
         else if (channel === 'gym') renderGym(repcontent, d);
         else if (channel === 'store') renderStore(repcontent, d);
         else if (channel === 'shifts') renderShifts(repcontent, d);
+        else if (channel === 'attendance') renderAttendance(repcontent, d, settings);
 
         // Handlers de pestañas
         view.querySelector('#reptabs').onclick = e => {
           const ch = e.target.closest('[data-ch]')?.dataset.ch;
           if (ch && ch !== channel) {
             channel = ch;
+            load();
+          }
+        };
             load();
           }
         };
@@ -1476,6 +1799,351 @@
             } catch (err) { RD.toast(err.message, 'err'); }
           };
         });
+      }
+
+      // ---------------- 5. CANAL ASISTENCIAS Y AFORO ----------------
+      function renderAttendance(el, d, settings) {
+        const att = d.attendance || {};
+        const rows = att.rows || [];
+        const insideNow = att.insideNow || [];
+        const topMembers = att.topMembers || [];
+        const hoursAll = Array.from({ length: 16 }, (_, i) => i + 6);
+        const hoursMap = Object.fromEntries((d.peak || []).map(x => [x.hour, x.n]));
+        const maxH = Math.max(1, ...(d.peak || []).map(x => x.n));
+
+        el.innerHTML = `
+        <!-- KPI METRICS DE ASISTENCIA Y AFORO -->
+        <div class="grid g4 mb">
+          <div class="stat" style="border-color:#4ade80">
+            <div class="v" style="color:#4ade80">${insideNow.length} personas</div>
+            <div class="l">⏱️ Aforo Actual en Sala (Dentro Ahora)</div>
+          </div>
+          <div class="stat gold">
+            <div class="v">${att.totalVisits || 0} visitas</div>
+            <div class="l">👥 Total Asistencias Registradas</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:#f5b400">${att.memberVisits || 0} socios / ${att.dailyVisits || 0} pases</div>
+            <div class="l">🏋️ Socios vs 🎟️ Pases Diarios (S/ 5)</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:#60a5fa">${att.avgDurationMin || 75} min</div>
+            <div class="l">⏳ Permanencia Promedio por Sesión</div>
+          </div>
+        </div>
+
+        <!-- PERSONAS ACTUALMENTE DENTRO (AFORO EN VIVO) -->
+        <div class="card mb" style="border: 1px solid rgba(74, 222, 128, 0.4)">
+          <div class="row between wrap gap">
+            <div>
+              <h3 style="color:#4ade80;display:flex;align-items:center;gap:.5rem">
+                <span>🟢</span> Personas Entrenando en el Gimnasio Ahora (${insideNow.length})
+              </h3>
+              <p class="muted small">Control en tiempo real de entradas y registro de salida al concluir su rutina en Chivay.</p>
+            </div>
+            <span class="badge ok">Aforo Seguro</span>
+          </div>
+
+          <div class="tbl-wrap mt">
+            <table>
+              <thead>
+                <tr>
+                  <th>Socio / Visitante</th>
+                  <th>DNI / Código</th>
+                  <th>Hora Entrada</th>
+                  <th>Tiempo en Sala</th>
+                  <th>Tipo</th>
+                  <th class="no-print">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${insideNow.map(row => {
+                  const enterTime = row.ts ? new Date(row.ts).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : '—';
+                  const mins = Math.max(1, Math.round((Date.now() - new Date(row.ts).getTime()) / 60000));
+                  const durText = `${Math.floor(mins / 60) > 0 ? Math.floor(mins / 60) + 'h ' : ''}${mins % 60}m`;
+                  return `
+                  <tr>
+                    <td>
+                      <div class="row gap">
+                        ${row.photo ? `<img src="${esc(row.photo)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover">` : `<div style="width:32px;height:32px;border-radius:50%;background:#334155;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:bold">${esc((row.name || 'V')[0])}</div>`}
+                        <div>
+                          <b>${esc(row.name)}</b>
+                          ${row.phone ? `<div class="tiny muted">📱 ${esc(row.phone)}</div>` : ''}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge" style="font-family:monospace">${esc(row.code || '—')}</span>
+                      ${row.dni ? `<div class="tiny muted">DNI: ${esc(row.dni)}</div>` : ''}
+                    </td>
+                    <td style="font-family:monospace;font-weight:bold">${enterTime}</td>
+                    <td style="color:#4ade80;font-weight:bold">${durText}</td>
+                    <td><span class="badge ${row.kind === 'D' ? 'warn' : 'ok'}">${row.kind === 'D' ? '🎟️ Pase Diario' : '🏋️ Socio'}</span></td>
+                    <td class="no-print">
+                      <div class="row gap">
+                        <button class="btn sm warn" data-checkout="${row.id}" data-name="${esc(row.name)}">🚪 Registrar Salida</button>
+                        ${row.member_id ? `<button class="btn sm ghost" data-membersheet="${row.member_id}">📄 Ficha</button>` : ''}
+                      </div>
+                    </td>
+                  </tr>`;
+                }).join('') || '<tr><td colspan="6" class="empty">No hay personas registradas en el gimnasio en este momento</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid g2 mb">
+          <!-- RANKING TOP 10 SOCIOS MAS DISCIPLINADOS -->
+          <div class="card">
+            <div class="row between wrap gap">
+              <div>
+                <h3>🥇 Top Socios Más Disciplinados</h3>
+                <p class="muted small">Ranking de constancia y fidelidad del período.</p>
+              </div>
+              <span class="badge ok">Constancia</span>
+            </div>
+            <div class="tbl-wrap mt">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Socio</th>
+                    <th>Días Asistidos</th>
+                    <th>Promedio</th>
+                    <th class="no-print">Ficha</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${topMembers.map((m, idx) => {
+                    const badgeRank = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}°`;
+                    return `
+                    <tr>
+                      <td style="font-size:1.1rem;font-weight:bold">${badgeRank}</td>
+                      <td>
+                        <b>${esc(m.name)}</b>
+                        <div class="tiny muted">${esc(m.code)} ${m.dni ? '· DNI ' + esc(m.dni) : ''}</div>
+                      </td>
+                      <td style="font-weight:bold;color:var(--gold)">${m.days_attended} días <span class="tiny muted">(${m.total_sessions} ses.)</span></td>
+                      <td class="small muted">${m.avg_min || 75} min</td>
+                      <td class="no-print">
+                        <button class="btn sm ghost" data-membersheet="${m.id}" title="Ver Ficha Oficial">📄 Ver Ficha</button>
+                      </td>
+                    </tr>`;
+                  }).join('') || '<tr><td colspan="5" class="empty">Sin asistencias registradas en este período</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- HORAS PICO DE ENTRENAMIENTO -->
+          <div class="card">
+            <h3>⏰ Horas Pico de Entrenamiento (Chivay)</h3>
+            <p class="muted small mb">Distribución horaria de ingresos al salón de máquinas.</p>
+            <div class="bars" style="height:140px">
+              ${hoursAll.map(h => {
+                const count = hoursMap[h] || 0;
+                return `<div class="b" style="height:${Math.max(2, count / maxH * 100)}%;background:var(--gold)"><span>${count || ''}</span></div>`;
+              }).join('')}
+            </div>
+            <div class="bars-l">${hoursAll.map(h => `<span>${h}h</span>`).join('')}</div>
+
+            <!-- BUSCADOR RAPIDO PARA FICHA INDIVIDUAL -->
+            <div class="mt2 pt" style="border-top:1px dashed var(--border,#334155)">
+              <label class="small muted"><b>🔍 Generar Ficha Individual de un Socio:</b></label>
+              <div class="row gap mt2">
+                <input type="text" id="att_search_member" placeholder="Escribe nombre o DNI del socio..." style="min-height:36px">
+                <button class="btn sm primary" id="btn_open_sheet">📄 Abrir Ficha</button>
+              </div>
+              <div id="att_member_results" class="list mt2 hidden"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HISTORIAL COMPLETO DE ENTRADAS Y SALIDAS -->
+        <div class="card mb">
+          <div class="row between wrap gap">
+            <div>
+              <h3>📋 Historial de Entradas, Salidas y Permanencia (${rows.length} registros)</h3>
+              <p class="muted small">Auditoría detallada con hora de ingreso, hora de salida y minutos de estancia.</p>
+            </div>
+            <div class="row gap wrap no-print">
+              <input type="text" id="att_filter_txt" placeholder="Filtrar por nombre o DNI..." style="min-height:32px;font-size:.85rem;width:200px">
+              <div class="chips" id="att_type_chips">
+                <span class="chip on" data-attfilter="all">Todos</span>
+                <span class="chip" data-attfilter="members">Solo Socios</span>
+                <span class="chip" data-attfilter="daily">Pases Diarios</span>
+                <span class="chip" data-attfilter="inside">En Sala</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tbl-wrap mt">
+            <table id="tbl_att_history">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Hora Entrada</th>
+                  <th>Hora Salida</th>
+                  <th>Permanencia</th>
+                  <th>Tipo</th>
+                  <th>Socio / Visitante</th>
+                  <th>DNI / Código</th>
+                  <th>Estado</th>
+                  <th>Atendido Por</th>
+                  <th class="no-print">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="att_history_body">
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+
+        // Render filas de historial
+        function renderAttendanceRows(filterText = '', filterType = 'all') {
+          const tbody = el.querySelector('#att_history_body');
+          if (!tbody) return;
+          const q = filterText.toLowerCase().trim();
+
+          const filtered = rows.filter(r => {
+            const name = (r.member_name || r.dp_name || 'Visitante').toLowerCase();
+            const dni = String(r.member_dni || r.dp_dni || '').toLowerCase();
+            const code = String(r.member_code || r.dp_code || r.code || '').toLowerCase();
+            const matchesText = !q || name.includes(q) || dni.includes(q) || code.includes(q);
+            if (!matchesText) return false;
+
+            if (filterType === 'members') return r.kind !== 'D';
+            if (filterType === 'daily') return r.kind === 'D';
+            if (filterType === 'inside') return r.status === 'inside' || !r.exit_ts;
+            return true;
+          });
+
+          tbody.innerHTML = filtered.map(r => {
+            const displayName = r.member_name || r.dp_name || 'Visitante';
+            const displayDni = r.member_dni || r.dp_dni || '—';
+            const displayCode = r.member_code || r.dp_code || r.code || '—';
+            const enterTime = r.ts ? new Date(r.ts).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : '—';
+            const exitTime = r.exit_ts ? new Date(r.exit_ts).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : (r.status === 'inside' ? '<span class="badge ok tiny">🟢 En Sala</span>' : '—');
+            const duration = r.duration_min ? `${Math.floor(r.duration_min / 60) > 0 ? Math.floor(r.duration_min / 60) + 'h ' : ''}${r.duration_min % 60}m` : (r.status === 'inside' ? '<span class="gold tiny">Entrenando</span>' : '—');
+            const isInside = r.status === 'inside' || (!r.exit_ts && r.day === RD.limaDay());
+
+            return `
+            <tr>
+              <td class="small muted">${r.day}</td>
+              <td style="font-family:monospace;font-weight:bold">${enterTime}</td>
+              <td style="font-family:monospace">${exitTime}</td>
+              <td style="font-weight:bold">${duration}</td>
+              <td><span class="badge ${r.kind === 'D' ? 'warn' : 'ok'}">${r.kind === 'D' ? '🎟️ Pase Diario' : '🏋️ Socio'}</span></td>
+              <td><b>${esc(displayName)}</b></td>
+              <td>
+                <span class="badge" style="font-family:monospace">${esc(displayCode)}</span>
+                ${displayDni !== '—' ? `<div class="tiny muted">DNI: ${esc(displayDni)}</div>` : ''}
+              </td>
+              <td><span class="badge ${r.result === 'ok' ? 'ok' : r.result === 'warn' ? 'warn' : 'denied'} tiny">${r.result === 'ok' ? 'Ingreso OK' : r.result === 'warn' ? 'Aviso' : 'Rechazado'}</span></td>
+              <td class="small muted">${esc(r.staff_name || 'Recepción')}</td>
+              <td class="no-print">
+                <div class="row gap">
+                  ${isInside ? `<button class="btn sm warn" data-checkout="${r.id}" data-name="${esc(displayName)}">🚪 Salida</button>` : ''}
+                  ${r.member_id ? `<button class="btn sm ghost" data-membersheet="${r.member_id}" title="Ficha de Asistencias">📄 Ficha</button>` : ''}
+                </div>
+              </td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="10" class="empty">No se encontraron asistencias con los filtros aplicados</td></tr>';
+
+          attachAttendanceActions(tbody);
+        }
+
+        function attachAttendanceActions(container) {
+          // Salida manual
+          container.querySelectorAll('[data-checkout]').forEach(btn => {
+            btn.onclick = async () => {
+              const id = btn.dataset.checkout;
+              const name = btn.dataset.name;
+              if (confirm(`¿Registrar salida de ${name}?`)) {
+                try {
+                  const res = await RD.api.post(`/attendance/${id}/checkout`);
+                  RD.toast(`Salida registrada (${res.session?.duration_min || 0} min) ✔`);
+                  load();
+                } catch (err) { RD.toast(err.message, 'err'); }
+              }
+            };
+          });
+
+          // Ficha individual
+          container.querySelectorAll('[data-membersheet]').forEach(btn => {
+            btn.onclick = () => {
+              const mid = btn.dataset.membersheet;
+              if (mid) RD.memberAttendanceSheetModal(mid, from, to);
+            };
+          });
+        }
+
+        renderAttendanceRows();
+        attachAttendanceActions(el);
+
+        // Filtro texto
+        const filterInput = el.querySelector('#att_filter_txt');
+        let currentFilterType = 'all';
+        if (filterInput) {
+          filterInput.oninput = () => renderAttendanceRows(filterInput.value, currentFilterType);
+        }
+
+        // Filtro chips tipo
+        el.querySelector('#att_type_chips')?.addEventListener('click', e => {
+          const c = e.target.closest('[data-attfilter]');
+          if (!c) return;
+          el.querySelectorAll('#att_type_chips .chip').forEach(x => x.classList.toggle('on', x === c));
+          currentFilterType = c.dataset.attfilter;
+          renderAttendanceRows(filterInput?.value || '', currentFilterType);
+        });
+
+        // Buscador directo de socio para ficha individual
+        const sInp = el.querySelector('#att_search_member');
+        const sRes = el.querySelector('#att_member_results');
+        const sBtn = el.querySelector('#btn_open_sheet');
+        if (sInp && sRes) {
+          let sTimer;
+          sInp.oninput = () => {
+            clearTimeout(sTimer);
+            sTimer = setTimeout(async () => {
+              const q = sInp.value.trim();
+              if (q.length < 2) { sRes.classList.add('hidden'); return; }
+              try {
+                const res = await RD.api.get(`/members?q=${encodeURIComponent(q)}&limit=8`);
+                const mems = res.members || [];
+                if (!mems.length) {
+                  sRes.innerHTML = '<div class="item small muted">No se encontraron socios</div>';
+                  sRes.classList.remove('hidden');
+                  return;
+                }
+                sRes.innerHTML = mems.map(m => `
+                  <div class="item click" data-mid="${m.id}">
+                    <b>${esc(m.name)}</b>
+                    <span class="badge" style="font-family:monospace">${esc(m.code)}</span>
+                    <span class="small muted">DNI: ${esc(m.dni || '—')}</span>
+                  </div>
+                `).join('');
+                sRes.classList.remove('hidden');
+
+                sRes.querySelectorAll('[data-mid]').forEach(it => {
+                  it.onclick = () => {
+                    sRes.classList.add('hidden');
+                    RD.memberAttendanceSheetModal(it.dataset.mid, from, to);
+                  };
+                });
+              } catch (err) {}
+            }, 250);
+          };
+          sBtn.onclick = () => {
+            const first = sRes.querySelector('[data-mid]');
+            if (first) {
+              sRes.classList.add('hidden');
+              RD.memberAttendanceSheetModal(first.dataset.mid, from, to);
+            } else if (sInp.value.trim()) {
+              RD.toast('Selecciona un socio de la lista para ver su ficha', 'info');
+            }
+          };
+        }
       }
 
       await load();

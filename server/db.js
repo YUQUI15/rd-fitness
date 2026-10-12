@@ -160,6 +160,12 @@ function ensureColumns() {
   addCol('products', 'category', 'TEXT DEFAULT "general"');
   addCol('products', 'min_stock', 'INTEGER DEFAULT 5');
 
+  addCol('attendance', 'direction', 'TEXT DEFAULT "in"');
+  addCol('attendance', 'exit_ts', 'TEXT');
+  addCol('attendance', 'duration_min', 'INTEGER');
+  addCol('attendance', 'status', 'TEXT DEFAULT "inside"');
+  addCol('attendance', 'notes', 'TEXT');
+
   // Asignar categorías iniciales para pagos existentes
   try {
     q.run("UPDATE payments SET category='gym' WHERE category IS NULL AND (membership_id IS NOT NULL OR daily_pass_id IS NOT NULL)");
@@ -385,7 +391,27 @@ function computeShiftTotals(shiftId) {
   };
 }
 
+// ---------- Control de Asistencias (Entradas y Salidas) ----------
+function getActiveAttendanceSession(code, day) {
+  return q.get(`
+    SELECT * FROM attendance
+    WHERE code=? AND day=? AND result IN ('ok','warn') AND (status='inside' OR exit_ts IS NULL)
+    ORDER BY id DESC LIMIT 1
+  `, code, day);
+}
+
+function closeAttendanceSession(id, exitTime) {
+  const row = q.get('SELECT * FROM attendance WHERE id=?', id);
+  if (!row) return null;
+  const exitDate = exitTime ? new Date(exitTime) : new Date();
+  const enterDate = new Date(row.ts);
+  const diffMin = Math.max(1, Math.round((exitDate - enterDate) / 60000));
+  q.run("UPDATE attendance SET exit_ts=?, duration_min=?, status='completed' WHERE id=?",
+    exitDate.toISOString(), diffMin, id);
+  return q.get('SELECT * FROM attendance WHERE id=?', id);
+}
+
 module.exports = {
   db, q, DATA_DIR, getSettings, numSettings, backup, seedExercises, nextReceiptNo, dailyPassCode,
-  getActiveShift, computeShiftTotals
+  getActiveShift, computeShiftTotals, getActiveAttendanceSession, closeAttendanceSession
 };

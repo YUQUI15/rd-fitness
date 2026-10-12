@@ -1,4 +1,4 @@
-// Módulo de Reportes Contables, Exportación a Excel y Live Feed de Google Sheets
+// Módulo de Reportes Contables, Asistencias, Exportación a Excel y Live Feed de Google Sheets
 const L = require('./lib');
 
 function escXml(str) {
@@ -80,7 +80,6 @@ function getScopedReportData({ from, to, shift_id, q }) {
   const prods = q.all('SELECT * FROM products ORDER BY name ASC');
   const prodSales = {};
   storePayments.forEach(p => {
-    // Concepto típico: "Venta: Agua 625 ml x2"
     const match = p.concept.match(/Venta:\s*(.+?)\s*x(\d+)/i);
     if (match) {
       const name = match[1].trim();
@@ -150,6 +149,60 @@ function getScopedReportData({ from, to, shift_id, q }) {
   const cashInDrawer = totalByMethod.efectivo - cashExpenses;
   const digitalTotal = totalByMethod.yape + totalByMethod.plin + totalByMethod.tarjeta + totalByMethod.transferencia;
 
+  // ---------------- CONTROL INTEGRAL DE ASISTENCIAS ----------------
+  const attendanceRows = q.all(`
+    SELECT a.*,
+      m.name AS member_name, m.dni AS member_dni, m.code AS member_code, m.photo AS member_photo, m.phone AS member_phone,
+      dp.name AS dp_name, dp.dni AS dp_dni, dp.code AS dp_code,
+      u.name AS staff_name
+    FROM attendance a
+    LEFT JOIN members m ON m.id = a.member_id
+    LEFT JOIN daily_passes dp ON dp.code = a.code
+    LEFT JOIN users u ON u.id = a.user_id
+    WHERE a.day BETWEEN ? AND ?
+    ORDER BY a.ts DESC
+  `, from, to);
+
+  const validVisits = attendanceRows.filter(a => a.result === 'ok' || a.result === 'warn');
+  const totalVisits = validVisits.length;
+  const memberVisits = validVisits.filter(a => a.kind !== 'D').length;
+  const dailyVisits = validVisits.filter(a => a.kind === 'D').length;
+
+  const completedSessions = validVisits.filter(a => a.duration_min && a.duration_min > 0);
+  const avgDurationMin = completedSessions.length > 0
+    ? Math.round(completedSessions.reduce((a, b) => a + b.duration_min, 0) / completedSessions.length)
+    : 75;
+
+  // Personas actualmente dentro del gimnasio (status = 'inside' o sin exit_ts de hoy)
+  const today = L.limaDay();
+  const fourHoursAgo = new Date(Date.now() - 4 * 3600000).toISOString();
+  const insideNow = q.all(`
+    SELECT a.*,
+      COALESCE(m.name, dp.name, 'Visitante') AS name,
+      COALESCE(m.code, a.code) AS code,
+      COALESCE(m.dni, dp.dni) AS dni,
+      m.photo, m.phone
+    FROM attendance a
+    LEFT JOIN members m ON m.id = a.member_id
+    LEFT JOIN daily_passes dp ON dp.code = a.code
+    WHERE a.day = ? AND a.result IN ('ok','warn') AND (a.status = 'inside' OR a.exit_ts IS NULL) AND a.ts >= ?
+    ORDER BY a.ts DESC
+  `, today, fourHoursAgo);
+
+  // Top Socios más Disciplinados / Fieles del Período
+  const topMembers = q.all(`
+    SELECT m.id, m.name, m.code, m.photo, m.dni,
+      COUNT(DISTINCT a.day) AS days_attended,
+      COUNT(*) AS total_sessions,
+      ROUND(AVG(COALESCE(a.duration_min, 75))) AS avg_min
+    FROM attendance a
+    JOIN members m ON m.id = a.member_id
+    WHERE a.result IN ('ok','warn') AND a.day BETWEEN ? AND ?
+    GROUP BY m.id
+    ORDER BY days_attended DESC, total_sessions DESC
+    LIMIT 10
+  `, from, to);
+
   // Asistencia y Horas Pico
   const peak = q.all(`
     SELECT hour, COUNT(*) AS n
@@ -182,13 +235,15 @@ function getScopedReportData({ from, to, shift_id, q }) {
     const gymDay = gymPayments.filter(p => p.day === d).reduce((a, p) => a + p.amount, 0);
     const storeDay = storePayments.filter(p => p.day === d).reduce((a, p) => a + p.amount, 0);
     const expDay = expenses.filter(e => e.day === d).reduce((a, e) => a + e.amount, 0);
+    const attDayCount = validVisits.filter(a => a.day === d).length;
     return {
       day: d,
       gym: gymDay,
       store: storeDay,
       total: gymDay + storeDay,
       expense: expDay,
-      net: (gymDay + storeDay) - expDay
+      net: (gymDay + storeDay) - expDay,
+      visits: attDayCount
     };
   });
 
@@ -205,7 +260,61 @@ function getScopedReportData({ from, to, shift_id, q }) {
     expenses, gymExpenses, storeExpenses,
     shifts, productStats, dailyPasses, byPlan,
     peak, newMembers, renewals, expiredPeriod,
-    dailyComparison
+    dailyComparison,
+    // Métricas ampliadas de asistencia
+    attendance: {
+      totalVisits,
+      memberVisits,
+      dailyVisits,
+      avgDurationMin,
+      insideNow,
+      topMembers,
+      rows: attendanceRows
+    }
+  };
+}
+
+// Detalle y Ficha Individual de Asistencias de un Socio
+function getMemberAttendanceDetail({ memberId, from, to, q }) {
+  const m = q.get(`
+    SELECT m.*, p.name AS current_plan, ms.start_date, ms.end_date, ms.price AS plan_price
+    FROM members m
+    LEFT JOIN memberships ms ON ms.member_id = m.id AND ms.status = 'active'
+    LEFT JOIN plans p ON p.id = ms.plan_id
+    WHERE m.id = ?
+    ORDER BY ms.id DESC LIMIT 1
+  `, memberId);
+  if (!m) return null;
+
+  const records = q.all(`
+    SELECT a.*, u.name AS staff_name
+    FROM attendance a
+    LEFT JOIN users u ON u.id = a.user_id
+    WHERE a.member_id = ? AND a.day BETWEEN ? AND ?
+    ORDER BY a.ts DESC
+  `, memberId, from, to);
+
+  const daysAttended = new Set(records.filter(r => r.result === 'ok' || r.result === 'warn').map(r => r.day)).size;
+  const totalMinutes = records.reduce((acc, r) => acc + (r.duration_min || 70), 0);
+  const totalHours = +(totalMinutes / 60).toFixed(1);
+
+  const totalDaysInRange = Math.max(1, L.diffDays(to, from) + 1);
+  const totalWeeks = Math.max(1, +(totalDaysInRange / 7).toFixed(1));
+  const avgDaysPerWeek = +(daysAttended / totalWeeks).toFixed(1);
+  const consistencyRate = Math.min(100, Math.round((daysAttended / (totalDaysInRange * 0.7)) * 100));
+
+  return {
+    member: m,
+    records,
+    stats: {
+      from, to,
+      daysAttended,
+      totalSessions: records.length,
+      totalHours,
+      totalMinutes,
+      avgDaysPerWeek,
+      consistencyRate
+    }
   };
 }
 
@@ -225,8 +334,8 @@ function buildExcelXmlReport({ data, settings }) {
  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
  xmlns:html="http://www.w3.org/TR/REC-html40">
  <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
-  <Title>Reporte Contable - ${escXml(gymName)}</Title>
-  <Subject>Caja Separada: Gimnasio, Tiendita y Cierres de Turno</Subject>
+  <Title>Reporte Contable y Asistencias - ${escXml(gymName)}</Title>
+  <Subject>Caja Separada: Gimnasio, Tiendita, Turnos y Control de Entradas/Salidas</Subject>
   <Author>${escXml(gymName)}</Author>
   <Created>${new Date().toISOString()}</Created>
  </DocumentProperties>
@@ -240,7 +349,7 @@ function buildExcelXmlReport({ data, settings }) {
    <Protection/>
   </Style>
   <Style ss:ID="TitleMain">
-   <Font ss:FontName="Segoe UI" ss:Size="16" ss:Bold="1" ss:Color="#0F172A"/>
+   <Font ss:FontName="Segoe UI" ss:Size="15" ss:Bold="1" ss:Color="#0F172A"/>
    <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
   </Style>
   <Style ss:ID="Subtitle">
@@ -355,7 +464,7 @@ function buildExcelXmlReport({ data, settings }) {
    </Row>
    <Row>
     <Cell ss:StyleID="HeaderDark"><Data ss:Type="String">UTILIDAD NETA FINAL</Data></Cell>
-    <Cell ss:StyleID="TotalRow" ss:Formula="=R[-2]C-R[-1]C"><Data ss:Type="Number">${data.netProfit.toFixed(2)}</Data></Cell>
+    <Cell ss:StyleID="TotalRow" ss:Formula="=R[-2]C-R[-1]C)"><Data ss:Type="Number">${data.netProfit.toFixed(2)}</Data></Cell>
     <Cell ss:StyleID="BoldText"><Data ss:Type="String">${data.netProfit >= 0 ? '✔ Rentabilidad Positiva' : '⚠ Saldo Negativo'}</Data></Cell>
    </Row>
    <Row ss:Height="14"></Row>
@@ -398,7 +507,7 @@ function buildExcelXmlReport({ data, settings }) {
 
    <!-- COMPARATIVA DÍA POR DÍA -->
    <Row ss:Height="22">
-    <Cell ss:MergeAcross="4" ss:StyleID="HeaderDark"><Data ss:Type="String">EVOLUCIÓN DÍA POR DÍA (GIMNASIO VS TIENDITA)</Data></Cell>
+    <Cell ss:MergeAcross="5" ss:StyleID="HeaderDark"><Data ss:Type="String">EVOLUCIÓN DÍA POR DÍA (GIMNASIO VS TIENDITA VS ASISTENCIAS)</Data></Cell>
    </Row>
    <Row ss:Height="20">
     <Cell ss:StyleID="HeaderGold"><Data ss:Type="String">Fecha</Data></Cell>
@@ -406,6 +515,7 @@ function buildExcelXmlReport({ data, settings }) {
     <Cell ss:StyleID="HeaderGold"><Data ss:Type="String">Tiendita (S/)</Data></Cell>
     <Cell ss:StyleID="HeaderGold"><Data ss:Type="String">Gastos (S/)</Data></Cell>
     <Cell ss:StyleID="HeaderGold"><Data ss:Type="String">Utilidad Neta (S/)</Data></Cell>
+    <Cell ss:StyleID="HeaderGold"><Data ss:Type="String">Asistencias</Data></Cell>
    </Row>`;
 
   data.dailyComparison.forEach(d => {
@@ -416,6 +526,7 @@ function buildExcelXmlReport({ data, settings }) {
     <Cell ss:StyleID="Currency"><Data ss:Type="Number">${d.store.toFixed(2)}</Data></Cell>
     <Cell ss:StyleID="Currency"><Data ss:Type="Number">${d.expense.toFixed(2)}</Data></Cell>
     <Cell ss:StyleID="CurrencyBold" ss:Formula="=RC[-3]+RC[-2]-RC[-1]"><Data ss:Type="Number">${d.net.toFixed(2)}</Data></Cell>
+    <Cell ss:StyleID="DateCenter"><Data ss:Type="Number">${d.visits || 0}</Data></Cell>
    </Row>`;
   });
 
@@ -428,6 +539,7 @@ function buildExcelXmlReport({ data, settings }) {
     <Cell ss:StyleID="TotalRow" ss:Formula="=SUM(R[-${n}]C:R[-1]C)"><Data ss:Type="Number">${data.totalStoreIncome.toFixed(2)}</Data></Cell>
     <Cell ss:StyleID="TotalRow" ss:Formula="=SUM(R[-${n}]C:R[-1]C)"><Data ss:Type="Number">${data.totalExpense.toFixed(2)}</Data></Cell>
     <Cell ss:StyleID="TotalRow" ss:Formula="=SUM(R[-${n}]C:R[-1]C)"><Data ss:Type="Number">${data.netProfit.toFixed(2)}</Data></Cell>
+    <Cell ss:StyleID="TotalRow" ss:Formula="=SUM(R[-${n}]C:R[-1]C)"><Data ss:Type="Number">${data.attendance?.totalVisits || 0}</Data></Cell>
    </Row>`;
   }
 
@@ -588,7 +700,7 @@ function buildExcelXmlReport({ data, settings }) {
 
    <!-- DETALLE TRANSACCIONES TIENDITA -->
    <Row ss:Height="22">
-    <Cell ss:MergeAcross="8" ss:StyleID="HeaderDark"><Data ss:Type="String">DETALLE DE TICKETS DE VENTA DE TIENDITA</Data></Cell>
+    <Cell ss:MergeAcross="7" ss:StyleID="HeaderDark"><Data ss:Type="String">DETALLE DE TICKETS DE VENTA DE TIENDITA</Data></Cell>
    </Row>
    <Row ss:Height="20">
     <Cell ss:StyleID="HeaderGold"><Data ss:Type="String">Fecha</Data></Cell>
@@ -694,6 +806,102 @@ function buildExcelXmlReport({ data, settings }) {
 
   xml += `
   </Table>
+ </Worksheet>`;
+
+  // ---------------- HOJA 5: CONTROL DE ASISTENCIAS (ENTRADAS Y SALIDAS) ----------------
+  const attRows = data.attendance?.rows || [];
+  xml += `
+ <Worksheet ss:Name="5. Asistencias y Aforo">
+  <Table ss:DefaultRowHeight="20">
+   <Column ss:Width="85"/>
+   <Column ss:Width="80"/>
+   <Column ss:Width="80"/>
+   <Column ss:Width="95"/>
+   <Column ss:Width="95"/>
+   <Column ss:Width="180"/>
+   <Column ss:Width="85"/>
+   <Column ss:Width="90"/>
+   <Column ss:Width="110"/>
+   <Column ss:Width="130"/>
+   <Row ss:Height="24">
+    <Cell ss:MergeAcross="9" ss:StyleID="TitleMain"><Data ss:Type="String">CONTROL DETALLADO DE ASISTENCIAS, ENTRADAS Y SALIDAS</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:MergeAcross="9" ss:StyleID="Subtitle"><Data ss:Type="String">Registro de ingresos y salidas con tiempo de permanencia de socios y visitantes en Chivay.</Data></Cell>
+   </Row>
+   <Row ss:Height="10"></Row>
+
+   <!-- RESUMEN DE ASISTENCIA -->
+   <Row ss:Height="20">
+    <Cell ss:MergeAcross="4" ss:StyleID="HeaderBlue"><Data ss:Type="String">RESUMEN DEL PERÍODO</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="BoldText"><Data ss:Type="String">Total de Asistencias Registradas</Data></Cell>
+    <Cell ss:StyleID="DateCenter"><Data ss:Type="Number">${data.attendance?.totalVisits || 0}</Data></Cell>
+    <Cell ss:StyleID="BoldText"><Data ss:Type="String">Tiempo Promedio Entrenamiento</Data></Cell>
+    <Cell ss:StyleID="DateCenter"><Data ss:Type="String">${data.attendance?.avgDurationMin || 75} minutos</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="BoldText"><Data ss:Type="String">Asistencias de Socios Activos</Data></Cell>
+    <Cell ss:StyleID="DateCenter"><Data ss:Type="Number">${data.attendance?.memberVisits || 0}</Data></Cell>
+    <Cell ss:StyleID="BoldText"><Data ss:Type="String">Visitas de Pases Diarios (S/ 5)</Data></Cell>
+    <Cell ss:StyleID="DateCenter"><Data ss:Type="Number">${data.attendance?.dailyVisits || 0}</Data></Cell>
+   </Row>
+   <Row ss:Height="14"></Row>
+
+   <!-- TABLA DETALLE ENTRADAS Y SALIDAS -->
+   <Row ss:Height="22">
+    <Cell ss:MergeAcross="9" ss:StyleID="HeaderDark"><Data ss:Type="String">DETALLE DE ASISTENCIAS CON HORA DE ENTRADA Y SALIDA</Data></Cell>
+   </Row>
+   <Row ss:Height="20">
+    <Cell ss:StyleID="HeaderGold"><Data ss:Type="String">Fecha</Data></Cell>
+    <Cell ss:StyleID="HeaderGold"><Data ss:Type="String">Hora Entrada</Data></Cell>
+    <Cell ss:StyleID="HeaderGold"><Data ss:Type="String">Hora Salida</Data></Cell>
+    <Cell ss:StyleID="HeaderGold"><Data ss:Type="String">Permanencia (min)</Data></Cell>
+    <Cell ss:StyleID="HeaderGold"><Data ss:Type="String">Tipo</Data></Cell>
+    <Cell ss:StyleID="HeaderGold"><Data ss:Type="String">Persona / Socio</Data></Cell>
+    <Cell ss:StyleID="HeaderGold"><Data ss:Type="String">DNI</Data></Cell>
+    <Cell ss:StyleID="HeaderGold"><Data ss:Type="String">Código</Data></Cell>
+    <Cell ss:StyleID="HeaderGold"><Data ss:Type="String">Estado</Data></Cell>
+    <Cell ss:StyleID="HeaderGold"><Data ss:Type="String">Personal Recepción</Data></Cell>
+   </Row>`;
+
+  attRows.forEach(a => {
+    const enterTime = a.ts ? a.ts.slice(11, 16) : '-';
+    const exitTime = a.exit_ts ? a.exit_ts.slice(11, 16) : (a.status === 'inside' ? 'En el Gym' : '-');
+    const name = a.member_name || a.dp_name || 'Visitante';
+    const dni = a.member_dni || a.dp_dni || '-';
+    const code = a.member_code || a.dp_code || a.code || '-';
+    const kindText = a.kind === 'D' ? 'Pase Diario' : 'Socio';
+    const statusText = a.status === 'inside' ? '🟢 En el Gym' : '⚪ Salida Registrada';
+
+    xml += `
+   <Row>
+    <Cell ss:StyleID="DateCenter"><Data ss:Type="String">${a.day}</Data></Cell>
+    <Cell ss:StyleID="DateCenter"><Data ss:Type="String">${enterTime}</Data></Cell>
+    <Cell ss:StyleID="DateCenter"><Data ss:Type="String">${exitTime}</Data></Cell>
+    <Cell ss:StyleID="DateCenter"><Data ss:Type="Number">${a.duration_min || 0}</Data></Cell>
+    <Cell ss:StyleID="DateCenter"><Data ss:Type="String">${kindText}</Data></Cell>
+    <Cell><Data ss:Type="String">${escXml(name)}</Data></Cell>
+    <Cell ss:StyleID="DateCenter"><Data ss:Type="String">${escXml(dni)}</Data></Cell>
+    <Cell ss:StyleID="DateCenter"><Data ss:Type="String">${escXml(code)}</Data></Cell>
+    <Cell ss:StyleID="DateCenter"><Data ss:Type="String">${statusText}</Data></Cell>
+    <Cell><Data ss:Type="String">${escXml(a.staff_name || 'Recepción')}</Data></Cell>
+   </Row>`;
+  });
+
+  if (attRows.length > 0) {
+    const an = attRows.length;
+    xml += `
+   <Row>
+    <Cell ss:MergeAcross="2" ss:StyleID="HeaderDark"><Data ss:Type="String">PROMEDIO / TOTALES</Data></Cell>
+    <Cell ss:StyleID="TotalRow" ss:Formula="=AVERAGE(R[-${an}]C:R[-1]C)"><Data ss:Type="Number">${data.attendance?.avgDurationMin || 75}</Data></Cell>
+    <Cell ss:MergeAcross="5" ss:StyleID="HeaderDark"><Data ss:Type="String"></Data></Cell>
+   </Row>`;
+  }
+
+  xml += `
+  </Table>
  </Worksheet>
 </Workbook>`;
 
@@ -701,8 +909,9 @@ function buildExcelXmlReport({ data, settings }) {
 }
 
 // Generador de CSV en Vivo (Compatible con Google Sheets =IMPORTDATA y Excel)
-function buildCsvLiveFeed({ type, data }) {
+function buildCsvLiveFeed({ type, data, sep = ',' }) {
   let rows = [];
+  const s = sep === ';' ? ';' : ',';
 
   if (type === 'gym') {
     rows.push(['Fecha', 'Hora', 'N_Comprobante', 'Tipo', 'Cliente', 'DNI', 'Concepto', 'Metodo', 'Op_Yape', 'Monto_Soles', 'Cajero']);
@@ -753,9 +962,25 @@ function buildCsvLiveFeed({ type, data }) {
         s.status
       ]);
     });
+  } else if (type === 'attendance') {
+    rows.push(['Fecha', 'Hora_Entrada', 'Hora_Salida', 'Duracion_Minutos', 'Tipo', 'Nombre', 'DNI', 'Codigo', 'Estado', 'Personal']);
+    (data.attendance?.rows || []).forEach(a => {
+      rows.push([
+        a.day,
+        a.ts ? a.ts.slice(11, 16) : '',
+        a.exit_ts ? a.exit_ts.slice(11, 16) : '',
+        a.duration_min || 0,
+        a.kind === 'D' ? 'Pase Diario' : 'Socio',
+        a.member_name || a.dp_name || 'Visitante',
+        a.member_dni || a.dp_dni || '',
+        a.member_code || a.dp_code || a.code || '',
+        a.status === 'inside' ? 'En el Gym' : 'Salida Registrada',
+        a.staff_name || 'Recepcion'
+      ]);
+    });
   } else {
     // Consolidated / Ejecutivo
-    rows.push(['Fecha', 'Ingresos_Gimnasio', 'Ingresos_Tiendita', 'Ingresos_Totales', 'Gastos_Operativos', 'Utilidad_Neta']);
+    rows.push(['Fecha', 'Ingresos_Gimnasio', 'Ingresos_Tiendita', 'Ingresos_Totales', 'Gastos_Operativos', 'Utilidad_Neta', 'Asistencias']);
     data.dailyComparison.forEach(d => {
       rows.push([
         d.day,
@@ -763,22 +988,24 @@ function buildCsvLiveFeed({ type, data }) {
         d.store.toFixed(2),
         d.total.toFixed(2),
         d.expense.toFixed(2),
-        d.net.toFixed(2)
+        d.net.toFixed(2),
+        d.visits || 0
       ]);
     });
   }
 
   // Convert to CSV with UTF-8 BOM
   const csvContent = '\uFEFF' + rows.map(r => r.map(field => {
-    const s = String(field ?? '').replace(/"/g, '""');
-    return `"${s}"`;
-  }).join(',')).join('\r\n');
+    const str = String(field ?? '').replace(/"/g, '""');
+    return `"${str}"`;
+  }).join(s)).join('\r\n');
 
   return csvContent;
 }
 
 module.exports = {
   getScopedReportData,
+  getMemberAttendanceDetail,
   buildExcelXmlReport,
   buildCsvLiveFeed
 };
