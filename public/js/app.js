@@ -120,7 +120,7 @@
     root.innerHTML = `
     <div>
       <header class="topbar">
-        <img src="/logo.svg" alt="RD">
+        <img src="/logo.svg" alt="RD" class="topbar-logo" style="height:32px;width:32px;max-height:32px;max-width:32px;object-fit:contain;flex-shrink:0" width="32" height="32">
         <div class="t" id="apptitle">RD FITNESS CLUB</div>
         <button class="icon-btn" id="appinstallbtn" title="Cómo instalar la App en tu móvil o PC" aria-label="Instalar App">📲</button>
         <button class="icon-btn bell" id="bellbtn" title="Avisos" aria-label="Avisos">🔔<span class="bell-dot" id="belldot" hidden></span></button>

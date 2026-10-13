@@ -193,9 +193,9 @@ th{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.
 .brand h1{font-weight:900;letter-spacing:.02em;margin:0}
 .brand p{color:var(--muted);margin:.2rem 0 0;font-size:.85rem}
 
-/* Barra superior y navegación */
-.topbar{position:sticky;top:0;z-index:50;background:rgba(11,11,13,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.6rem;padding:.55rem .9rem}
-.topbar .t{font-weight:800;flex:1}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(11,11,13,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.6rem;padding:.55rem .9rem;max-height:56px}
+.topbar img, .topbar-logo{height:32px !important;width:32px !important;max-height:32px !important;max-width:32px !important;object-fit:contain !important;flex-shrink:0 !important;display:inline-block}
+.topbar .t{font-weight:800;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top-btn{display:inline-flex;align-items:center;gap:.35rem;background:rgba(255,255,255,.07);border:1px solid var(--line);color:var(--text);padding:.35rem .65rem;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s ease}
 .top-btn:hover{border-color:var(--gold);color:var(--gold);transform:translateY(-1px)}
 [data-theme="light"] .top-btn{background:#fff;border-color:var(--line);color:var(--text)}

@@ -185,7 +185,7 @@
     root.innerHTML = `
     <div class="admin">
       <header class="topbar">
-        <img src="/logo.svg" alt="">
+        <img src="/logo.svg" alt="RD" class="topbar-logo" style="height:32px;width:32px;max-height:32px;max-width:32px;object-fit:contain;flex-shrink:0" width="32" height="32">
         <div class="t" id="title">${esc(RD.pub.gym_name || 'RD Fitness Club')}</div>
         <span id="net" class="net">…</span>
         <button class="top-btn" id="btn_customer_screen" title="Abrir Pantalla Tablet / Mostrador en 2do Monitor o Ventana Acoplada">
