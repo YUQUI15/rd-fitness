@@ -458,6 +458,110 @@ function seedRoutines() {
 }
 seedRoutines();
 
+// ---------- Bóveda Automática Persistente (JSON Vault) ----------
+function saveVault() {
+  try {
+    const data = {
+      gym_name: getSettings().gym_name || 'RD Fitness Club',
+      exported_at: new Date().toISOString(),
+      version: '2.8',
+      members: q.all('SELECT * FROM members'),
+      memberships: q.all('SELECT * FROM memberships'),
+      payments: q.all('SELECT * FROM payments'),
+      attendance: q.all('SELECT * FROM attendance'),
+      daily_passes: q.all('SELECT * FROM daily_passes'),
+      products: q.all('SELECT * FROM products'),
+      plans: q.all('SELECT * FROM plans'),
+      settings: q.all('SELECT * FROM settings'),
+      member_credentials: q.all('SELECT * FROM member_credentials'),
+      member_prefs: q.all('SELECT * FROM member_prefs'),
+      announcements: q.all('SELECT * FROM announcements'),
+      workouts: q.all('SELECT * FROM workouts'),
+      set_logs: q.all('SELECT * FROM set_logs'),
+      measurements: q.all('SELECT * FROM measurements'),
+      cash_shifts: q.all('SELECT * FROM cash_shifts')
+    };
+
+    const targetPaths = [
+      path.join(DATA_DIR, 'backup-vault.json'),
+      path.join(__dirname, '..', 'storage', 'backup-vault.json')
+    ];
+
+    for (const p of targetPaths) {
+      try {
+        fs.mkdirSync(path.dirname(p), { recursive: true });
+        fs.writeFileSync(p, JSON.stringify(data, null, 2), 'utf8');
+      } catch {}
+    }
+    return true;
+  } catch (e) {
+    console.warn('[VAULT] Error guardando bóveda JSON:', e.message);
+    return false;
+  }
+}
+
+function restoreVault() {
+  const memberCount = q.get('SELECT COUNT(*) c FROM members')?.c || 0;
+  if (memberCount > 0) return 0;
+
+  const vaultPaths = [
+    path.join(DATA_DIR, 'backup-vault.json'),
+    path.join(__dirname, '..', 'storage', 'backup-vault.json')
+  ];
+
+  const vaultFile = vaultPaths.find(p => fs.existsSync(p));
+  if (!vaultFile) return 0;
+
+  try {
+    const raw = fs.readFileSync(vaultFile, 'utf8');
+    const d = JSON.parse(raw);
+    if (!d || !Array.isArray(d.members) || d.members.length === 0) return 0;
+
+    let restored = 0;
+    q.tx(() => {
+      const insertRows = (tbl, rows) => {
+        if (!Array.isArray(rows) || !rows.length) return 0;
+        let c = 0;
+        for (const r of rows) {
+          const keys = Object.keys(r);
+          const cols = keys.join(', ');
+          const ph = keys.map(() => '?').join(', ');
+          const vals = Object.values(r);
+          try {
+            q.run(`INSERT OR REPLACE INTO ${tbl} (${cols}) VALUES (${ph})`, ...vals);
+            c++;
+          } catch (e) {}
+        }
+        return c;
+      };
+
+      insertRows('settings', d.settings);
+      insertRows('plans', d.plans);
+      insertRows('products', d.products);
+      restored = insertRows('members', d.members);
+      insertRows('memberships', d.memberships);
+      insertRows('payments', d.payments);
+      insertRows('attendance', d.attendance);
+      insertRows('daily_passes', d.daily_passes);
+      insertRows('member_credentials', d.member_credentials);
+      insertRows('member_prefs', d.member_prefs);
+      insertRows('announcements', d.announcements);
+      insertRows('workouts', d.workouts);
+      insertRows('set_logs', d.set_logs);
+      insertRows('measurements', d.measurements);
+      insertRows('cash_shifts', d.cash_shifts);
+    });
+
+    console.log(`[VAULT] Restauración automática de bóveda completada: ${restored} socios recuperados desde ${path.basename(vaultFile)}.`);
+    checkpoint();
+    return restored;
+  } catch (err) {
+    console.error('[VAULT] Error restaurando bóveda automática:', err.message);
+    return 0;
+  }
+}
+restoreVault();
+
 // ---------- Consolidación WAL y Respaldo automático ----------
 function checkpoint() {
   try {
@@ -469,6 +573,7 @@ function checkpoint() {
 
 function backup() {
   checkpoint();
+  saveVault();
   const dir = path.join(DATA_DIR, 'backups');
   fs.mkdirSync(dir, { recursive: true });
   const f = path.join(dir, `rdfitness-${L.limaDay()}.db`);
@@ -564,6 +669,6 @@ function closeAttendanceSession(id, exitTime) {
 }
 
 module.exports = {
-  db, q, DATA_DIR, getSettings, numSettings, backup, checkpoint, seedExercises, nextReceiptNo, dailyPassCode,
+  db, q, DATA_DIR, getSettings, numSettings, backup, checkpoint, saveVault, restoreVault, seedExercises, nextReceiptNo, dailyPassCode,
   getActiveShift, computeShiftTotals, getActiveAttendanceSession, closeAttendanceSession
 };

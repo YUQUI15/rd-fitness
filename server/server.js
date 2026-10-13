@@ -3,7 +3,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
-const { q, db, DATA_DIR, getSettings, numSettings, backup, checkpoint, nextReceiptNo, dailyPassCode, getActiveShift, computeShiftTotals, getActiveAttendanceSession, closeAttendanceSession } = require('./db');
+const { q, db, DATA_DIR, getSettings, numSettings, backup, checkpoint, saveVault, restoreVault, nextReceiptNo, dailyPassCode, getActiveShift, computeShiftTotals, getActiveAttendanceSession, closeAttendanceSession } = require('./db');
 const { getScopedReportData, getMemberAttendanceDetail } = require('./reports');
 const { buildDataset, searchPeople, getPersonReport, tableToCsv } = require('./dataset');
 const { buildXlsx } = require('./xlsx-report');
@@ -293,6 +293,7 @@ function activateMembership({ member_id, plan, start, price, userId, method, not
     member_id, plan.id, plan.name, s, end, price, userId, extra, promo_note || null);
   const pay = q.run('INSERT INTO payments(member_id,membership_id,concept,amount,method,note,day,user_id,op_code,voucher_img,receipt_no,shift_id,category) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
     member_id, ms.lastInsertRowid, finalConcept, price, method, note || promo_note || null, today, userId, op_code || null, voucher_img || null, receipt_no, shift_id, 'gym');
+  try { saveVault(); } catch {}
   return { membership_id: Number(ms.lastInsertRowid), payment_id: Number(pay.lastInsertRowid), start: s, end, receipt_no, extra_days: extra };
 }
 
@@ -429,6 +430,7 @@ api.post('/members', staff('admin', 'recepcion'), wrap((req, res) => {
     return { id, ms };
   });
   audit(req.user.id, 'member.create', { id: result.id, name });
+  try { saveVault(); } catch {}
   const m = q.get('SELECT * FROM members WHERE id=?', result.id);
   const receipt = result.ms?.payment_id ? buildReceipt(result.ms.payment_id) : null;
   res.json({ member: memberPublic(m, true), membership: result.ms, receipt });
@@ -448,6 +450,7 @@ api.put('/members/:id', staff('admin', 'recepcion', 'entrenador'), wrap((req, re
       String(b.name ?? m.name).trim(), dni, b.phone ?? m.phone, b.email ?? m.email, b.birth ?? m.birth, b.gender ?? m.gender,
       b.address ?? m.address, b.emergency ?? m.emergency, b.health ?? m.health, b.goal ?? m.goal, b.level ?? m.level, b.notes ?? m.notes, b.trainer_id ?? m.trainer_id, id);
   }
+  try { saveVault(); } catch {}
   audit(req.user.id, 'member.update', { id });
   res.json({ ok: true });
 }));
@@ -2151,12 +2154,15 @@ app.use((err, req, res, next) => {
 // ---------------- Arranque ----------------
 const PORT = process.env.PORT || 3000;
 function start() {
+  restoreVault();
   backup();
   checkpoint();
+  saveVault();
   setInterval(checkpoint, 5 * 60 * 1000).unref();
+  setInterval(saveVault, 2 * 60 * 1000).unref();
   setInterval(backup, 6 * 3600 * 1000).unref();
-  process.on('SIGINT', () => { checkpoint(); process.exit(0); });
-  process.on('SIGTERM', () => { checkpoint(); process.exit(0); });
+  process.on('SIGINT', () => { checkpoint(); saveVault(); process.exit(0); });
+  process.on('SIGTERM', () => { checkpoint(); saveVault(); process.exit(0); });
   const tls = process.env.HTTPS === '1';
   if (tls) {
     const selfsigned = require('selfsigned');

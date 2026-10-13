@@ -1,7 +1,5 @@
 node_modules/
 storage/backups/
-storage/*.db
-storage/*.json
 storage/*.db-journal
 storage/*.db-wal
 storage/*.db-shm
