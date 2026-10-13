@@ -36,6 +36,96 @@
     return r.outcome === 'accepted';
   };
 
+  H.openInstallGuide = () => {
+    let activeTab = H.isIOS() ? 'ios' : (/Android/i.test(navigator.userAgent) ? 'android' : 'desktop');
+    const m = RD.openModal('📲 Cómo instalar la App de RD Fitness', `
+      <div class="small muted mb">
+        Esta aplicación es una <b>PWA Oficial</b>: no requiere descargar pesados archivos de tiendas, se actualiza sola y puedes usarla tanto en tu celular (Android / iPhone) como en tu PC o Laptop.
+      </div>
+
+      ${H.canInstall() ? `
+        <div class="card mb" style="background:rgba(217,119,6,0.1);border:1px solid #d97706;border-radius:10px;text-align:center;padding:12px">
+          <p class="small bold" style="color:#d97706;margin:0 0 6px">✨ ¡Tu navegador permite la instalación directa con un clic!</p>
+          <button class="btn primary sm" id="btn_direct_install">⚡ Instalar App ahora en este dispositivo</button>
+        </div>
+      ` : ''}
+
+      <div class="chips mb" id="guide_tabs">
+        <span class="chip ${activeTab === 'android' ? 'on' : ''}" data-gt="android">📱 Android (Chrome)</span>
+        <span class="chip ${activeTab === 'ios' ? 'on' : ''}" data-gt="ios">🍏 iPhone / iPad (Safari)</span>
+        <span class="chip ${activeTab === 'desktop' ? 'on' : ''}" data-gt="desktop">💻 PC / Laptop (Windows/Mac)</span>
+      </div>
+
+      <div id="guide_content" class="card flat" style="padding:14px;background:var(--bg2);border:1px solid var(--line);border-radius:10px"></div>
+    `, { wide: true });
+
+    const content = m.el.querySelector('#guide_content');
+    const tabs = m.el.querySelector('#guide_tabs');
+
+    const renderTab = (tab) => {
+      activeTab = tab;
+      tabs.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c.dataset.gt === tab));
+      if (tab === 'android') {
+        content.innerHTML = `
+          <h4 style="margin:0 0 8px;display:flex;align-items:center;gap:6px">📱 Instalación en Android (Google Chrome, Brave, Samsung)</h4>
+          <ol class="small" style="padding-left:1.2rem;line-height:1.75">
+            <li>Abre esta página en tu navegador <b>Google Chrome</b>.</li>
+            <li>Toca el botón de <b>opciones de 3 puntos (⋮)</b> arriba a la derecha.</li>
+            <li>Busca y presiona <b>"Instalar aplicación"</b> o <b>"Añadir a pantalla de inicio"</b>.</li>
+            <li>Confirma tocando <b>"Instalar"</b>.</li>
+          </ol>
+          <div class="card flat mt small" style="background:rgba(34,197,94,0.1);border-left:4px solid #22c55e;padding:10px">
+            <b>Ventajas:</b> Se crea el icono oficial de RD Fitness en tus apps, abre a pantalla completa sin barra de direcciones y guarda tu sesión para siempre.
+          </div>
+        `;
+      } else if (tab === 'ios') {
+        content.innerHTML = `
+          <h4 style="margin:0 0 8px;display:flex;align-items:center;gap:6px">🍏 Instalación en iPhone / iPad (Apple Safari)</h4>
+          <ol class="small" style="padding-left:1.2rem;line-height:1.75">
+            <li>Abre la página exclusivamente en el navegador oficial <b>Safari</b>.</li>
+            <li>En la barra inferior del iPhone (o superior del iPad), toca el botón <b>Compartir</b> (el cuadrado con la flecha hacia arriba ⎋).</li>
+            <li>Desliza las opciones hacia abajo y selecciona <b>"Agregar al inicio"</b> (➕).</li>
+            <li>Toca <b>"Agregar"</b> en la esquina superior derecha.</li>
+          </ol>
+          <div class="card flat mt small" style="background:rgba(34,197,94,0.1);border-left:4px solid #22c55e;padding:10px">
+            <b>Requisito Apple:</b> En iOS, las notificaciones push y el inicio automático en pantalla completa requieren abrir la app desde la pantalla de inicio agregada con Safari.
+          </div>
+        `;
+      } else if (tab === 'desktop') {
+        content.innerHTML = `
+          <h4 style="margin:0 0 8px;display:flex;align-items:center;gap:6px">💻 Instalación en Computadora / Laptop (Windows 10/11, Mac, Linux)</h4>
+          <ol class="small" style="padding-left:1.2rem;line-height:1.75">
+            <li>Abre la web en <b>Google Chrome</b> o <b>Microsoft Edge</b>.</li>
+            <li>En el extremo derecho de la barra de direcciones (donde escribes la URL, al lado de la estrella), verás un icono de <b>pantalla con flecha</b> o símbolo <b>⊕</b>.</li>
+            <li>Haz clic en <b>"Instalar RD Fitness"</b>.</li>
+            <li>¡Listo! Se anclará a tu barra de tareas o escritorio y funcionará como una aplicación nativa ultra rápida.</li>
+          </ol>
+          <div class="card flat mt small" style="background:rgba(59,130,246,0.1);border-left:4px solid #3b82f6;padding:10px">
+            <b>Recepción y Entrenamiento:</b> En recepción o pantallas táctiles de mostrador, puedes usar pantalla completa presionando F11 para una experiencia 100% profesional.
+          </div>
+        `;
+      }
+    };
+
+    renderTab(activeTab);
+
+    tabs.onclick = e => {
+      const c = e.target.closest('[data-gt]');
+      if (c) renderTab(c.dataset.gt);
+    };
+
+    const bDirect = m.el.querySelector('#btn_direct_install');
+    if (bDirect) {
+      bDirect.onclick = async () => {
+        const ok = await H.install();
+        if (ok) {
+          RD.toast('¡App instalada con éxito! ✔');
+          m.close();
+        }
+      };
+    }
+  };
+
   // ---------- Sesión: recuperar si el navegador borró el almacenamiento ----------
   H.resume = async () => {
     try {
@@ -49,9 +139,16 @@
   const ICON = { aviso: '📢', evento: '🎉', tematica: '🎨', promo: '🏷️', mantenimiento: '🛠️', cierre: '⛔', pago: '🧾', recordatorio: '⏰' };
   const KIND_LABEL = { aviso: 'Aviso', evento: 'Evento', tematica: 'Temática', promo: 'Promoción', mantenimiento: 'Mantenimiento', cierre: 'Atención', pago: 'Pago', recordatorio: 'Recordatorio' };
   const nl = s => esc(s).replace(/\n/g, '<br>');
-  const ctaHtml = c => !c ? '' : /^https:\/\//i.test(c.url)
-    ? `<a class="btn sm mt2" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.label)}</a>`
-    : `<a class="btn sm mt2" href="${esc(c.url)}">${esc(c.label)}</a>`;
+  const ctaHtml = c => {
+    if (!c) return '';
+    if (c.url && c.url.startsWith('#receipt:')) {
+      const pid = c.url.replace('#receipt:', '');
+      return `<button type="button" class="btn sm ok mt2" onclick="RD.showReceipt(${pid})">${esc(c.label || 'Ver Boleta')}</button>`;
+    }
+    return /^https:\/\//i.test(c.url)
+      ? `<a class="btn sm mt2" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.label)}</a>`
+      : `<a class="btn sm mt2" href="${esc(c.url)}">${esc(c.label)}</a>`;
+  };
 
   function paintBell(unread) {
     document.querySelectorAll('#belldot').forEach(d => { d.textContent = unread > 9 ? '9+' : String(unread); d.hidden = !unread; });
@@ -88,7 +185,7 @@
   H.stop = () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVis); window.removeEventListener('online', H.refresh); paintBell(0); paintBanner(null); };
 
   H.openInbox = async () => {
-    const m = RD.openModal('🔔 Avisos', '<div class="empty">Cargando…</div>');
+    const m = RD.openModal('🔔 Avisos y Notificaciones', '<div class="empty">Cargando…</div>');
     try {
       const d = await api.get('/member/inbox');
       const unreadRefs = d.items.filter(i => !i.read).map(i => i.ref);
@@ -99,6 +196,11 @@
               <div class="ii-ico">${ICON[i.kind] || '📢'}</div>
               <div class="ii-main">
                 <div class="ii-title">${esc(i.title)}${unreadRefs.includes(i.ref) ? ' <span class="ii-new">Nuevo</span>' : ''}${i.pinned ? ' <span class="ii-pin">📌</span>' : ''}</div>
+                ${i.image_url ? `
+                  <div class="ii-img-wrap mb mt" style="margin:6px 0;max-height:180px;overflow:hidden;border-radius:8px;border:1px solid var(--line);cursor:pointer;background:var(--bg3)" onclick="RD.zoomImage('${esc(i.image_url)}')">
+                    <img src="${esc(i.image_url)}" class="ii-img" alt="${esc(i.title)}" style="width:100%;max-height:180px;object-fit:cover;display:block">
+                  </div>
+                ` : ''}
                 ${i.body ? `<div class="ii-body">${nl(i.body)}</div>` : ''}
                 <div class="ii-meta">${esc(KIND_LABEL[i.kind] || 'Aviso')} · ${i.source === 'system' ? 'Tu cuenta' : 'RD Fitness Club'} · ${RD.ago(i.created_at)}</div>
                 ${ctaHtml(i.cta)}
@@ -106,15 +208,62 @@
             </div>`).join('')}</div>`
             : '<div class="empty">🎉 Todo al día.<br><span class="small">No tienes avisos por ahora.</span></div>'}
           <div class="row between wrap gap mt">
-            <button class="btn sm ghost" id="inbprefs">⚙️ Preferencias de avisos</button>
+            <div class="row gap">
+              <button class="btn sm ghost" id="inbprefs">⚙️ Preferencias</button>
+              <button class="btn sm ok ghost" id="inbreceipts">🧾 Mis Boletas</button>
+            </div>
             <span class="tiny muted">Solo ves lo importante. Tú decides el resto.</span>
           </div>`;
         m.el.querySelector('#inbprefs').onclick = () => { m.close(); H.openPrefs(); };
+        m.el.querySelector('#inbreceipts').onclick = () => { m.close(); H.openReceipts(); };
       };
       draw();
       if (unreadRefs.length) { await api.post('/member/inbox/read', { refs: unreadRefs }).catch(() => { }); H.refresh(); }
     } catch (e) {
       m.el.innerHTML = `<div class="empty">${e.offline ? '📡 Sin conexión. Los avisos se cargan con internet.' : esc(e.message)}</div>`;
+    }
+  };
+
+  // ---------- Historial de boletas digitales del socio ----------
+  H.openReceipts = async () => {
+    const m = RD.openModal('🧾 Mis Boletas y Pagos', '<div class="empty">Cargando comprobantes…</div>', { wide: true });
+    try {
+      const data = await api.get('/member/receipts');
+      const list = data.receipts || [];
+      if (!list.length) {
+        m.el.innerHTML = '<div class="empty">No tienes boletas registradas todavía.<br><span class="small muted">Al realizar un pago o renovar tu membresía aparecerán aquí automáticamente.</span></div>';
+        return;
+      }
+      m.el.innerHTML = `
+        <p class="small muted mb">Historial de pagos de membresías y consumos en RD Fitness Club con valor de comprobante.</p>
+        <div class="list">
+          ${list.map(r => `
+            <div class="card item mb" style="padding:10px 14px;align-items:center">
+              <div class="grow">
+                <div class="row between wrap gap">
+                  <span class="bold small">${esc(r.concept)}</span>
+                  <span class="gold bold">${RD.money(r.amount)}</span>
+                </div>
+                <div class="row gap wrap tiny muted mt2">
+                  <span><b>N° Boleta:</b> ${esc(r.receipt_no)}</span>
+                  <span>·</span>
+                  <span><b>Fecha:</b> ${RD.fmtDate(r.date)}</span>
+                  <span>·</span>
+                  <span><b>Pago:</b> ${(r.method || 'efectivo').toUpperCase()}</span>
+                  ${r.op_code ? `<span>· <b>Op:</b> #${esc(r.op_code)}</span>` : ''}
+                </div>
+                ${r.validity ? `<div class="tiny info mt2">${esc(r.validity)}</div>` : ''}
+              </div>
+              <button class="btn sm ok" data-view-receipt="${r.id}">🧾 Ver Boleta</button>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      m.el.querySelectorAll('[data-view-receipt]').forEach(b => {
+        b.onclick = () => RD.showReceipt(+b.dataset.viewReceipt);
+      });
+    } catch (e) {
+      m.el.innerHTML = `<div class="empty">${e.offline ? '📡 Sin conexión.' : esc(e.message)}</div>`;
     }
   };
 
@@ -154,9 +303,20 @@
           ${!pushSupported() ? `<div class="small muted">Este navegador no admite notificaciones al celular. Seguirás viendo todo en la campana 🔔.</div>`
             : needInstall ? `<div class="small muted">En iPhone/iPad primero instala la app: toca <b>Compartir</b> ➜ <b>Añadir a pantalla de inicio</b> y ábrela desde ahí para poder activar los avisos.</div>`
             : `<div class="row between wrap gap"><div class="small">${sub ? '✅ Activadas en este dispositivo' : 'Desactivadas en este dispositivo'}</div>
-                <div class="row gap"><button class="btn sm ${sub ? '' : 'primary'}" id="pushtoggle">${sub ? 'Desactivar' : 'Activar'}</button>${sub ? '<button class="btn sm ghost" id="pushtest">Probar</button>' : ''}</div></div>`}
+                <div class="row gap"><button class="btn sm ${sub ? '' : 'primary'}" id="pushtoggle">${sub ? 'Desactivar' : 'Activar'}</button>${sub ? '<button class="btn sm ghost" id="pushtest">Probar Push</button>' : ''}</div></div>`}
         </div>
         <div id="pushopts" class="${sub ? '' : 'dim'}">
+          <label class="field mt mb">
+            <span>Modo de alerta de notificaciones:</span>
+            <select id="pref_alert_mode">
+              <option value="sound" ${p.alert_mode === 'sound' ? 'selected' : ''}>🔊 Sonido y vibración (Recomendado)</option>
+              <option value="vibrate" ${p.alert_mode === 'vibrate' ? 'selected' : ''}>📳 Solo vibración (Silencioso con vibración)</option>
+              <option value="silent" ${p.alert_mode === 'silent' ? 'selected' : ''}>🔕 Totalmente silencioso (Solo en pantalla)</option>
+            </select>
+          </label>
+          <div class="row gap mb">
+            <button type="button" class="btn sm ghost" id="btn_test_chime">🔔 Probar timbre y vibración</button>
+          </div>
           ${sw('push_critical', 'Avisos importantes', 'Cierres, mantenimiento o cambios de horario', p.push_critical)}
           ${sw('push_news', 'Novedades', 'Noticias del gimnasio', p.push_news)}
           ${sw('push_promos', 'Promociones', 'Ofertas y descuentos', p.push_promos)}
@@ -166,6 +326,31 @@
       m.el.querySelectorAll('.sw').forEach(i => i.onchange = async () => {
         try { await api.put('/member/prefs', { [i.dataset.k]: i.checked }); } catch (e) { i.checked = !i.checked; RD.toast(e.message, 'err'); }
       });
+      const amSel = m.el.querySelector('#pref_alert_mode');
+      if (amSel) {
+        amSel.onchange = async () => {
+          try {
+            await api.put('/member/prefs', { alert_mode: amSel.value });
+            RD.toast('Preferencia de alerta guardada ✔');
+          } catch (e) { RD.toast(e.message, 'err'); }
+        };
+      }
+      const btChime = m.el.querySelector('#btn_test_chime');
+      if (btChime) {
+        btChime.onclick = () => {
+          const mode = amSel ? amSel.value : 'sound';
+          if (mode === 'sound') {
+            RD.beep('bell');
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            RD.toast('Reproduciendo timbre y vibración 🔊');
+          } else if (mode === 'vibrate') {
+            if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
+            RD.toast('Vibración emitida 📳');
+          } else {
+            RD.toast('Modo silencioso: sin sonido ni vibración 🔕');
+          }
+        };
+      }
       const tg = m.el.querySelector('#pushtoggle');
       if (tg) tg.onclick = async () => {
         await RD.busy(tg, async () => {

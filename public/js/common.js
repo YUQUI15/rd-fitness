@@ -201,15 +201,25 @@
   RD.beep = (kind) => {
     try {
       actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-      const seq = { ok: [[880, .12]], warn: [[660, .12], [660, .12]], denied: [[220, .35], [180, .45]], tick: [[1000, .05]], done: [[880, .15], [1175, .25]] }[kind] || [];
+      const seq = {
+        ok: [[880, .12]],
+        warn: [[660, .12], [660, .12]],
+        denied: [[220, .35], [180, .45]],
+        tick: [[1000, .05]],
+        done: [[880, .15], [1175, .25]],
+        bell: [[523.25, .15], [659.25, .15], [783.99, .25], [1046.50, .4]]
+      }[kind] || [];
       let t = actx.currentTime;
       seq.forEach(([f, d]) => {
         const o = actx.createOscillator(), g = actx.createGain();
-        o.type = kind === 'denied' ? 'sawtooth' : 'sine'; o.frequency.value = f;
-        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.35, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
-        o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + d + 0.02); t += d + 0.06;
+        o.type = kind === 'denied' ? 'sawtooth' : kind === 'bell' ? 'triangle' : 'sine';
+        o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(kind === 'bell' ? 0.45 : 0.35, t + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+        o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + d + 0.02); t += d + 0.05;
       });
-      if (kind === 'denied' && navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      if ((kind === 'denied' || kind === 'bell') && navigator.vibrate) navigator.vibrate([200, 100, 200]);
     } catch { }
   };
 
@@ -556,6 +566,32 @@
         }
       };
     }
+  };
+
+  RD.showReceipt = async (paymentId) => {
+    try {
+      const token = localStorage.getItem('rd_token') || localStorage.getItem('rd_member_token');
+      const res = await fetch(`/api/payments/${paymentId}/receipt`, {
+        headers: token ? { Authorization: 'Bearer ' + token } : {}
+      });
+      if (!res.ok) throw new Error('No se pudo cargar la boleta');
+      const r = await res.json();
+      RD.receiptModal(r);
+    } catch (e) {
+      RD.toast(e.message || 'No se pudo abrir el comprobante', 'err');
+    }
+  };
+
+  RD.zoomImage = (src, title) => {
+    if (!src) return;
+    RD.openModal(title || 'Detalle de Imagen', `
+      <div style="text-align:center;padding:8px 0">
+        <img src="${RD.esc(src)}" style="max-width:100%;max-height:75vh;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.45);object-fit:contain" alt="">
+      </div>
+      <div class="row end mt">
+        <a class="btn primary sm" href="${RD.esc(src)}" target="_blank" rel="noopener">🔍 Ver tamaño completo</a>
+      </div>
+    `, { wide: true });
   };
 
   RD.shiftTicketModal = (data) => {

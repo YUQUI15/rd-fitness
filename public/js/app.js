@@ -37,16 +37,17 @@
         </div>
         ${err ? `<div class="banner err">${esc(err)}</div>` : ''}
         <label class="field">
-          <span>Usuario o código de socio</span>
-          <input name="username" placeholder="Tu usuario o RD-0001" required autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" autofocus>
+          <span>DNI, Usuario o Código de socio</span>
+          <input name="username" placeholder="Tu DNI, usuario o código (ej. 74839201)" required autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" autofocus>
         </label>
         <label class="field">
           <span>Contraseña</span>
-          <div class="pw"><input name="password" type="password" placeholder="Tu contraseña" required autocomplete="current-password"><button type="button" class="pw-eye" data-eye aria-label="Mostrar contraseña">👁</button></div>
-          <small class="tiny muted">¿Primera vez? Tu contraseña inicial es tu <b>DNI</b>. Luego podrás crear tu propio usuario y contraseña.</small>
+          <div class="pw"><input name="password" type="password" placeholder="Tu contraseña o DNI" required autocomplete="current-password"><button type="button" class="pw-eye" data-eye aria-label="Mostrar contraseña">👁</button></div>
+          <small class="tiny muted">¿Primera vez o regresas después de meses? Tu contraseña inicial es tu <b>DNI</b>. Si olvidaste tu clave, tu DNI siempre te permite ingresar.</small>
         </label>
         <button class="btn primary block" type="submit">Ingresar a mi App</button>
         <p class="center small mt2"><a href="#" id="forgot">¿Olvidaste tu contraseña?</a></p>
+        <button type="button" class="btn ghost sm mt2 block" id="btn_login_install">📲 ¿Cómo instalar la App en tu Celular o PC?</button>
         <p class="center muted tiny mt2">Este dispositivo recordará tu sesión: no tendrás que ingresar cada vez.</p>
         <div class="card flat mt center small muted">
           ¿Aún no estás registrado? Acércate a recepción en Calle Sucre Lt. 10 para obtener tu código y credencial.
@@ -60,6 +61,8 @@
 
     const ltb = document.getElementById('loginthemebtn');
     ltb.onclick = () => { RD.toggleTheme(); ltb.textContent = themeLbl(); };
+    const bli = document.getElementById('btn_login_install');
+    if (bli) bli.onclick = () => RD.hub.openInstallGuide();
     root.querySelector('[data-eye]').onclick = e => { const i = e.currentTarget.previousElementSibling; i.type = i.type === 'password' ? 'text' : 'password'; };
     document.getElementById('forgot').onclick = e => { e.preventDefault(); RD.hub.forgot(); };
 
@@ -119,6 +122,7 @@
       <header class="topbar">
         <img src="/logo.svg" alt="RD">
         <div class="t" id="apptitle">RD FITNESS CLUB</div>
+        <button class="icon-btn" id="appinstallbtn" title="Cómo instalar la App en tu móvil o PC" aria-label="Instalar App">📲</button>
         <button class="icon-btn bell" id="bellbtn" title="Avisos" aria-label="Avisos">🔔<span class="bell-dot" id="belldot" hidden></span></button>
         <button class="icon-btn theme-toggle" id="appthemetoggle" data-theme-toggle title="${isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro (Pastel)'}">${isLight ? '🌙' : '☀️'}</button>
         <button class="icon-btn" id="logoutbtn" title="Cerrar sesión">✕</button>
@@ -137,6 +141,7 @@
       b.onclick = () => switchTab(b.dataset.tab);
     });
 
+    document.getElementById('appinstallbtn').onclick = () => RD.hub.openInstallGuide();
     document.getElementById('appthemetoggle').onclick = () => RD.toggleTheme();
     document.getElementById('bellbtn').onclick = () => RD.hub.openInbox();
     RD.hub.start(api);
@@ -608,11 +613,12 @@
     </div>
 
     <div class="card mb">
-      <h3>Avisos y preferencias</h3>
-      <p class="small muted">Tú decides qué ver y cuándo. Nada de acoso: lo importante aparece en la campana 🔔.</p>
-      <div class="grid g2 keep">
-        <button class="btn sm" id="pfinbox">🔔 Ver mis avisos</button>
-        <button class="btn sm" id="pfprefs">⚙️ Preferencias</button>
+      <h3>Avisos, boletas y preferencias</h3>
+      <p class="small muted">Consulta tus avisos oficiales, revisa tus boletas de pago y configura tus alertas.</p>
+      <div class="grid g3 keep gap">
+        <button class="btn sm" id="pfinbox">🔔 Avisos</button>
+        <button class="btn sm ok" id="pfreceipts">🧾 Mis Boletas</button>
+        <button class="btn sm ghost" id="pfprefs">⚙️ Ajustes</button>
       </div>
     </div>
 
@@ -623,13 +629,13 @@
         <button class="btn sm" id="profilethemebtn">${RD.getTheme && RD.getTheme() === 'light' ? '🌙 Modo Oscuro' : '☀️ Modo Claro (Pastel)'}</button>
       </div>
       <div class="row between wrap gap mt2" id="installrow">
-        ${RD.hub.isStandalone()
-          ? '<span class="small">✅ App instalada en este dispositivo</span>'
-          : RD.hub.canInstall()
-            ? '<span class="small">Instálala: abre más rápido y se actualiza sola</span><button class="btn sm primary" id="pfinstall">📲 Instalar app</button>'
-            : RD.hub.isIOS()
-              ? '<span class="small">Para instalarla: toca <b>Compartir</b> ➜ <b>Añadir a pantalla de inicio</b>. Se actualizará sola.</span>'
-              : '<span class="small">Para instalarla usa el menú del navegador ➜ <b>Instalar app</b> / <b>Añadir a pantalla de inicio</b>.</span>'}
+        <div class="small">
+          ${RD.hub.isStandalone() ? '✅ App instalada en este dispositivo' : '💡 Puedes usarla como App en Android, iOS o PC'}
+        </div>
+        <div class="row gap">
+          ${RD.hub.canInstall() ? '<button class="btn sm primary" id="pfinstall">⚡ Instalar app</button>' : ''}
+          <button class="btn sm info" id="pfinstallguide">📲 Guía de Instalación</button>
+        </div>
       </div>
     </div>
 
@@ -641,9 +647,12 @@
     el.querySelector('#pfaccount').onclick = () => RD.hub.openAccount(member, redrawProfile, { first: !member.has_password });
     el.querySelector('#pfdevices').onclick = () => RD.hub.openDevices();
     el.querySelector('#pfinbox').onclick = () => RD.hub.openInbox();
+    el.querySelector('#pfreceipts').onclick = () => RD.hub.openReceipts();
     el.querySelector('#pfprefs').onclick = () => RD.hub.openPrefs();
     const pfi = el.querySelector('#pfinstall');
     if (pfi) pfi.onclick = async () => { if (await RD.hub.install()) { RD.toast('App instalada ✔'); renderProfileTab(el); } };
+    const pfig = el.querySelector('#pfinstallguide');
+    if (pfig) pfig.onclick = () => RD.hub.openInstallGuide();
 
     const ptb = el.querySelector('#profilethemebtn');
     if (ptb) {

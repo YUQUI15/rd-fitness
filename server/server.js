@@ -381,8 +381,18 @@ api.post('/members', staff('admin', 'recepcion'), wrap((req, res) => {
   if (name.length < 3) return bad(res, 'Escribe el nombre completo del socio');
   const dni = String(b.dni || '').trim();
   if (!/^[A-Za-z0-9]{6,12}$/.test(dni)) return bad(res, 'DNI inválido (usa 8 dígitos; extranjeros: documento de 6-12 caracteres)');
-  const dup = q.get('SELECT id,code,name FROM members WHERE dni=?', dni);
-  if (dup) return res.status(409).json({ error: `Ya existe un socio con ese DNI: ${dup.name} (${dup.code})`, existing: dup });
+  const dup = q.get(`
+    SELECT m.id, m.code, m.name, m.dni, m.status,
+      (SELECT end_date FROM memberships ms WHERE ms.member_id=m.id ORDER BY ms.id DESC LIMIT 1) AS last_end,
+      (SELECT plan_name FROM memberships ms WHERE ms.member_id=m.id ORDER BY ms.id DESC LIMIT 1) AS last_plan
+    FROM members m WHERE m.dni=?`, dni);
+  if (dup) {
+    const info = dup.last_end ? ` (Membresía ${dup.last_plan || ''} hasta ${dup.last_end})` : '';
+    return res.status(409).json({
+      error: `Ya existe un socio registrado con el DNI ${dup.dni}: ${dup.name} (${dup.code})${info}. Abre su ficha para renovar su membresía o ver su historial.`,
+      existing: dup
+    });
+  }
   let plan = null;
   if (b.plan_id) { plan = q.get('SELECT * FROM plans WHERE id=? AND active=1', num(b.plan_id)); if (!plan) return bad(res, 'Plan no válido'); }
   if (plan && !checkMethod(b.method)) return bad(res, 'Elige el método de pago');

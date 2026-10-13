@@ -91,8 +91,9 @@
     <form id="nf">
       <div class="row gap2 mb"><label class="avatar lg" id="pbox" style="cursor:pointer">📷</label><div class="grow muted small">Toca para tomar o elegir una foto. Ayuda a validar la identidad en la puerta.<input id="photo" type="file" accept="image/*" capture="user" class="hidden"></div></div>
       <label class="field"><span>Nombres y apellidos *</span><input name="name" required autocomplete="off"></label>
-      <div class="grid g2 keep"><label class="field"><span>DNI *</span><input name="dni" inputmode="numeric" maxlength="12" required autocomplete="off"></label>
+      <div class="grid g2 keep"><label class="field"><span>DNI *</span><input name="dni" inputmode="numeric" maxlength="12" required autocomplete="off" placeholder="8 dígitos (extranjero: 6-12)"></label>
       <label class="field"><span>Celular (WhatsApp)</span><input name="phone" inputmode="tel" placeholder="9XXXXXXXX" autocomplete="off"></label></div>
+      <div id="dni_match_box" class="hidden mb"></div>
       <div class="grid g2 keep"><label class="field"><span>Fecha de nacimiento</span><input name="birth" type="date"></label>
       <label class="field"><span>Sexo</span><select name="gender"><option value="">—</option><option>Femenino</option><option>Masculino</option></select></label></div>
       <div class="grid g2 keep"><label class="field"><span>Objetivo</span><select name="goal"><option value="">—</option>${GOALS.map(g => `<option>${g}</option>`).join('')}</select></label>
@@ -277,6 +278,46 @@
       const file = e.target.files[0]; if (!file) return;
       try { photoData = await RD.resizeImage(file); m.el.querySelector('#pbox').innerHTML = `<img src="${photoData}" alt="">`; } catch (err) { RD.toast(err.message, 'err'); }
     };
+    // Detección automática en vivo de DNI (socio existente o antiguo para renovar sin duplicados)
+    const dniMatchBox = m.el.querySelector('#dni_match_box');
+    const checkDni = RD.debounce(async () => {
+      const val = f.dni.value.trim();
+      if (val.length < 6) {
+        dniMatchBox.classList.add('hidden');
+        dniMatchBox.innerHTML = '';
+        return;
+      }
+      try {
+        const res = await RD.api.get('/members?q=' + encodeURIComponent(val));
+        const found = (res.members || []).find(x => String(x.dni || '').trim() === val);
+        if (found) {
+          const isAct = found.access === 'ok';
+          dniMatchBox.classList.remove('hidden');
+          dniMatchBox.innerHTML = `
+            <div class="card mb" style="border:1px solid #f59e0b;background:rgba(245,158,11,0.08);padding:10px;border-radius:8px">
+              <div class="row between wrap gap">
+                <div>
+                  <span class="bold" style="color:#d97706">⚠️ Este DNI ya está registrado en el gimnasio</span>
+                  <div class="small"><b>${esc(found.name)}</b> (${esc(found.code)}) · Estado: <span class="badge ${isAct ? 'ok' : 'bad'} tiny">${isAct ? 'Activo' : 'Vencido / Ex-socio'}</span></div>
+                  ${found.end_date ? `<div class="tiny muted">Última membresía: hasta ${RD.fmtDate(found.end_date)}</div>` : ''}
+                </div>
+                <div class="row gap">
+                  <button type="button" class="btn sm ok" id="btn_open_found">Ver Ficha / Renovar</button>
+                </div>
+              </div>
+            </div>`;
+          dniMatchBox.querySelector('#btn_open_found').onclick = () => {
+            m.close();
+            RD.openMember(found.id);
+          };
+        } else {
+          dniMatchBox.classList.add('hidden');
+          dniMatchBox.innerHTML = '';
+        }
+      } catch { }
+    }, 300);
+    f.dni.oninput = checkDni;
+
     f.onsubmit = async e => {
       e.preventDefault();
       await RD.busy(f.querySelector('button[type=submit]'), async () => {
@@ -296,7 +337,15 @@
           onDone && onDone();
           successDialog(r);
         } catch (err) {
-          if (err.status === 409 && err.data?.existing) { RD.toast(err.message, 'err', 5000); } else RD.toast(err.message, 'err', 5000);
+          if (err.status === 409 && err.data?.existing) {
+            const ex = err.data.existing;
+            if (await RD.confirm('Socio ya registrado', `El DNI ${ex.dni} ya pertenece a ${ex.name} (${ex.code}). ¿Deseas abrir su ficha para ver su historial y renovar su membresía?`, 'Abrir Ficha')) {
+              m.close();
+              RD.openMember(ex.id);
+            }
+          } else {
+            RD.toast(err.message, 'err', 5000);
+          }
         }
       });
     };

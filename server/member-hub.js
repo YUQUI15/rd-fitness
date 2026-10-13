@@ -45,17 +45,37 @@ module.exports = function mountMemberHub(api, ctx) {
   function findMember(ident) {
     const s = String(ident || '').trim().replace(/\s/g, '');
     if (!s) return null;
-    if (/^\d{1,6}$/.test(s)) return q.get('SELECT * FROM members WHERE code=?', memberCode(parseInt(s, 10)));
+    // 1. Prioridad: DNI del socio (identificador vitalicio en Perú o extranjero)
+    const byDni = q.get('SELECT * FROM members WHERE dni=? COLLATE NOCASE', s);
+    if (byDni) return byDni;
+    // 2. Formato código de socio: RD-0001, rd-1, etc.
     if (/^rd-?\d+$/i.test(s)) return q.get('SELECT * FROM members WHERE code=?', memberCode(parseInt(s.replace(/\D/g, ''), 10)));
+    // 3. Código numérico corto (1 a 6 dígitos)
+    if (/^\d{1,6}$/.test(s)) {
+      const byCode = q.get('SELECT * FROM members WHERE code=?', memberCode(parseInt(s, 10)));
+      if (byCode) return byCode;
+    }
+    // 4. Alias o usuario personalizado
     const c = q.get('SELECT member_id FROM member_credentials WHERE alias=?', s);
-    return c ? q.get('SELECT * FROM members WHERE id=?', c.member_id) : null;
+    if (c) return q.get('SELECT * FROM members WHERE id=?', c.member_id);
+    // 5. Correo electrónico como alternativa
+    const byEmail = q.get('SELECT * FROM members WHERE email=? COLLATE NOCASE', s);
+    if (byEmail) return byEmail;
+    return null;
   }
-  // Con contraseña propia solo vale esa; mientras no la cree, la contraseña inicial es su DNI.
+  // Si configuró contraseña propia se valida contra su hash. Si regresa meses después y olvidó su clave,
+  // su DNI siempre le permite recuperar acceso inmediato sin quedar bloqueado.
   function verifySecret(m, secret) {
-    const raw = String(secret ?? '');
+    const raw = String(secret ?? '').trim();
+    if (!raw) return false;
     const cr = getCred(m.id);
-    if (cr && cr.pass_hash) return bcrypt.compareSync(raw, cr.pass_hash);
-    return !!m.dni && String(m.dni).trim() !== '' && String(m.dni).trim() === raw.trim();
+    if (cr && cr.pass_hash) {
+      if (bcrypt.compareSync(raw, cr.pass_hash)) return true;
+      // Respaldo de acceso con DNI si olvidó la contraseña personalizada
+      if (m.dni && String(m.dni).trim() === raw) return true;
+      return false;
+    }
+    return !!m.dni && String(m.dni).trim() !== '' && String(m.dni).trim() === raw;
   }
   function aliasProblem(alias, selfId) {
     if (!/^[a-z0-9._]{3,20}$/i.test(alias)) return 'El usuario debe tener de 3 a 20 caracteres: letras, números, punto o guion bajo.';
@@ -194,7 +214,9 @@ module.exports = function mountMemberHub(api, ctx) {
   }
   const prefsOut = (mid) => {
     const p = getPrefs(mid);
-    const out = {}; PREF_KEYS.forEach(k => out[k] = !!p[k]);
+    const out = {};
+    PREF_KEYS.forEach(k => out[k] = !!p[k]);
+    out.alert_mode = ['sound', 'vibrate', 'silent'].includes(p.alert_mode) ? p.alert_mode : 'sound';
     out.push_devices = q.get('SELECT COUNT(*) n FROM push_subs WHERE member_id=?', mid).n;
     return out;
   };
@@ -203,7 +225,37 @@ module.exports = function mountMemberHub(api, ctx) {
     getPrefs(req.member.id);
     const b = req.body || {};
     for (const k of PREF_KEYS) if (k in b) q.run(`UPDATE member_prefs SET ${k}=? WHERE member_id=?`, b[k] ? 1 : 0, req.member.id);
+    if ('alert_mode' in b) {
+      const mode = ['sound', 'vibrate', 'silent'].includes(b.alert_mode) ? b.alert_mode : 'sound';
+      q.run('UPDATE member_prefs SET alert_mode=? WHERE member_id=?', mode, req.member.id);
+    }
     res.json(prefsOut(req.member.id));
+  }));
+
+  // ---------------- Boletas y comprobantes digitales del socio ----------------
+  api.get('/member/receipts', memberAuth, wrap((req, res) => {
+    const pays = q.all(`
+      SELECT p.id, p.concept, p.amount, p.method, p.day, p.created_at, p.receipt_no, p.category, p.op_code,
+             ms.plan_name, ms.start_date, ms.end_date
+      FROM payments p
+      LEFT JOIN memberships ms ON ms.id=p.membership_id
+      WHERE p.member_id=? AND p.voided=0
+      ORDER BY p.id DESC LIMIT 50`, req.member.id);
+    res.json({
+      receipts: pays.map(p => ({
+        id: p.id,
+        receipt_no: p.receipt_no || `B001-${String(p.id).padStart(6, '0')}`,
+        concept: p.concept,
+        amount: p.amount,
+        method: p.method,
+        op_code: p.op_code,
+        date: p.day || p.created_at?.slice(0, 10),
+        created_at: asIso(p.created_at),
+        category: p.category,
+        plan_name: p.plan_name,
+        validity: p.start_date && p.end_date ? `Del ${p.start_date} al ${p.end_date}` : null
+      }))
+    });
   }));
 
   // ---------------- Bandeja de avisos ----------------
@@ -235,6 +287,7 @@ module.exports = function mountMemberHub(api, ctx) {
       if (KINDS[a.kind] === 'promos' && !pr.show_promos) continue;
       push('a:' + a.id, {
         source: 'gym', kind: a.kind, title: a.title, body: a.body || '', priority: a.priority, pinned: !!a.pinned,
+        image_url: a.image_url || null,
         cta: a.cta_label && a.cta_url ? { label: a.cta_label, url: a.cta_url } : null, created_at: asIso(a.starts_at || a.created_at)
       });
     }
@@ -253,8 +306,16 @@ module.exports = function mountMemberHub(api, ctx) {
       if (mp.frozen) {
         push('s:frozen:' + (m.frozen_from || ''), { source: 'system', kind: 'recordatorio', title: 'Tu membresía está congelada', body: 'Al reanudarla se extiende tu vencimiento por los días congelados.', priority: 'info', pinned: false, cta: null, created_at: new Date(now).toISOString() });
       }
-      for (const p of q.all("SELECT id,concept,amount,method,created_at FROM payments WHERE member_id=? AND voided=0 AND created_at > datetime('now','-14 days') ORDER BY id DESC LIMIT 5", m.id)) {
-        push('s:pay:' + p.id, { source: 'system', kind: 'pago', title: 'Pago registrado', body: `${p.concept} · S/ ${(+p.amount).toFixed(2).replace(/\.00$/, '')} · ${p.method}`, priority: 'info', pinned: false, cta: null, created_at: asIso(p.created_at) });
+      for (const p of q.all("SELECT id,concept,amount,method,created_at,receipt_no FROM payments WHERE member_id=? AND voided=0 AND created_at > datetime('now','-30 days') ORDER BY id DESC LIMIT 10", m.id)) {
+        push('s:pay:' + p.id, {
+          source: 'system', kind: 'pago',
+          title: `Boleta digital emitida (${p.receipt_no || ('BOL-' + p.id)})`,
+          body: `${p.concept} · S/ ${(+p.amount).toFixed(2).replace(/\.00$/, '')} · Método: ${p.method.toUpperCase()}`,
+          priority: 'info', pinned: false,
+          receipt_id: p.id,
+          cta: { label: '🧾 Ver Boleta Digital', url: `#receipt:${p.id}` },
+          created_at: asIso(p.created_at)
+        });
       }
     }
 
@@ -318,7 +379,7 @@ module.exports = function mountMemberHub(api, ctx) {
   }));
 
   const limaHour = () => +new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Lima', hour: '2-digit', hour12: false }).format(new Date());
-  // Envía a los socios indicados respetando sus preferencias. Lo no crítico: nunca de noche y máximo 1 cada 6 h.
+  // Envía a los socios indicados respetando sus preferencias de horario y alerta (sonido, vibración, silencioso)
   async function sendPush(memberIds, payload, category) {
     if (!pushEnabled()) return { sent: 0, skipped: memberIds.length };
     const hour = limaHour();
@@ -331,9 +392,18 @@ module.exports = function mountMemberHub(api, ctx) {
       if (!wants || (category !== 'critical' && (quiet || recent))) { skipped++; continue; }
       const subs = q.all('SELECT * FROM push_subs WHERE member_id=?', mid);
       let ok = false;
+      const alertMode = pr.alert_mode || 'sound';
+      const isSilent = alertMode === 'silent';
+      const vibratePattern = alertMode === 'silent' ? [] : [200, 100, 200];
+      const memberPayload = {
+        ...payload,
+        silent: isSilent,
+        vibrate: vibratePattern,
+        alert_mode: alertMode
+      };
       for (const s of subs) {
         try {
-          await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify(payload), { TTL: 6 * 3600, urgency: category === 'critical' ? 'high' : 'low' });
+          await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify(memberPayload), { TTL: 6 * 3600, urgency: category === 'critical' ? 'high' : 'low' });
           ok = true;
         } catch (e) {
           if (e && (e.statusCode === 404 || e.statusCode === 410)) q.run('DELETE FROM push_subs WHERE id=?', s.id);
@@ -345,7 +415,14 @@ module.exports = function mountMemberHub(api, ctx) {
   }
   api.post('/member/push/test', memberAuth, wrap(async (req, res) => {
     if (!q.get('SELECT 1 x FROM push_subs WHERE member_id=?', req.member.id)) return bad(res, 'Activa los avisos en este dispositivo primero');
-    const r = await sendPush([req.member.id], { title: 'RD Fitness Club', body: 'Los avisos están funcionando correctamente ✔', url: '/', tag: 'test' }, 'critical');
+    const pr = getPrefs(req.member.id);
+    const alertMode = pr.alert_mode || 'sound';
+    const r = await sendPush([req.member.id], {
+      title: 'RD Fitness Club',
+      body: 'Avisos configurados con éxito (' + (alertMode === 'sound' ? 'Sonido y vibración' : alertMode === 'vibrate' ? 'Solo vibración' : 'Silencioso') + ') ✔',
+      url: '/',
+      tag: 'test'
+    }, 'critical');
     res.json({ ok: true, ...r });
   }));
 
@@ -358,7 +435,13 @@ module.exports = function mountMemberHub(api, ctx) {
     q.run('UPDATE announcements SET push_sent=1 WHERE id=?', a.id);
     const ids = audienceMembers(a);
     if (!ids.length) return { sent: 0, skipped: 0 };
-    return sendPush(ids, { title: a.title, body: String(a.body || '').slice(0, 140), url: '/?inbox=1', tag: 'a' + a.id }, KINDS[a.kind] || 'news');
+    return sendPush(ids, {
+      title: a.title,
+      body: String(a.body || '').slice(0, 140),
+      image: a.image_url || null,
+      url: '/?inbox=1',
+      tag: 'a' + a.id
+    }, KINDS[a.kind] || 'news');
   }
   // Avisos programados con push: se envían cuando llega su hora de inicio
   const runDue = () => {
@@ -374,6 +457,28 @@ module.exports = function mountMemberHub(api, ctx) {
   setInterval(() => { try { q.run("DELETE FROM sessions WHERE kind='member' AND COALESCE(last_seen,created_at) < datetime('now','-400 days')"); } catch { } }, 24 * 3600e3).unref();
 
   // ---------------- Gestión de avisos (personal) ----------------
+  function saveAnnouncementImage(raw) {
+    if (!raw) return null;
+    const str = String(raw).trim();
+    if (!str) return null;
+    if (/^https?:\/\//i.test(str) || str.startsWith('/photos/')) return str;
+    const match = /^data:image\/(jpeg|jpg|png|webp|gif);base64,(.+)$/.exec(str);
+    if (!match) return null;
+    try {
+      const buf = Buffer.from(match[2], 'base64');
+      if (buf.length > 3 * 1024 * 1024) return null;
+      const ext = match[1] === 'png' ? 'png' : match[1] === 'webp' ? 'webp' : 'jpg';
+      const file = `ann-${Date.now()}-${L.randomKey().slice(0, 6)}.${ext}`;
+      const photosDir = path.join(DATA_DIR, 'photos');
+      if (!fs.existsSync(photosDir)) fs.mkdirSync(photosDir, { recursive: true });
+      fs.writeFileSync(path.join(photosDir, file), buf);
+      return `/photos/${file}`;
+    } catch (e) {
+      console.error('Error guardando imagen de aviso:', e.message);
+      return null;
+    }
+  }
+
   const isoOrNull = v => { if (!v) return null; const d = new Date(v); return Number.isNaN(d.getTime()) ? undefined : d.toISOString(); };
   function parseAnn(b, res) {
     const kind = String(b.kind || 'aviso');
@@ -387,9 +492,11 @@ module.exports = function mountMemberHub(api, ctx) {
     if (starts_at && ends_at && ends_at < starts_at) { bad(res, 'La fecha de fin debe ser posterior al inicio'); return null; }
     const cta_label = clip(b.cta_label, 30), cta_url = clip(b.cta_url, 300);
     if (cta_url && !/^(\/|https:\/\/|tel:|mailto:)/i.test(cta_url)) { bad(res, 'El enlace debe empezar con https:// o /'); return null; }
+    const image_url = saveAnnouncementImage(b.image_url) || (b.image_url && /^https?:\/\//i.test(b.image_url) ? String(b.image_url).trim() : null);
     return {
       kind, title, body: clip(b.body, 600), audience, member_id, priority: b.priority === 'importante' ? 'importante' : 'info',
-      pinned: b.pinned ? 1 : 0, starts_at, ends_at, cta_label: cta_url ? cta_label : '', cta_url, push: b.push ? 1 : 0
+      pinned: b.pinned ? 1 : 0, starts_at, ends_at, cta_label: cta_url ? cta_label : '', cta_url,
+      image_url, push: b.push ? 1 : 0
     };
   }
   const annStatus = (a, now) => a.archived ? 'archivado' : a.starts_at && new Date(a.starts_at).getTime() > now ? 'programado' : a.ends_at && new Date(a.ends_at).getTime() < now ? 'finalizado' : 'activo';
@@ -402,8 +509,8 @@ module.exports = function mountMemberHub(api, ctx) {
   }));
   api.post('/announcements', staff('admin', 'recepcion'), wrap(async (req, res) => {
     const d = parseAnn(req.body || {}, res); if (!d) return;
-    const r = q.run(`INSERT INTO announcements(kind,title,body,audience,member_id,priority,pinned,starts_at,ends_at,cta_label,cta_url,push,created_by)
-      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)`, d.kind, d.title, d.body, d.audience, d.member_id, d.priority, d.pinned, d.starts_at, d.ends_at, d.cta_label, d.cta_url, d.push, req.user.id);
+    const r = q.run(`INSERT INTO announcements(kind,title,body,audience,member_id,priority,pinned,starts_at,ends_at,cta_label,cta_url,image_url,push,created_by)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, d.kind, d.title, d.body, d.audience, d.member_id, d.priority, d.pinned, d.starts_at, d.ends_at, d.cta_label, d.cta_url, d.image_url, d.push, req.user.id);
     const id = Number(r.lastInsertRowid);
     audit(req.user.id, 'announcement.create', { id, kind: d.kind, title: d.title, audience: d.audience });
     let push = null;
@@ -415,8 +522,8 @@ module.exports = function mountMemberHub(api, ctx) {
     const id = num(req.params.id);
     const cur = q.get('SELECT * FROM announcements WHERE id=?', id); if (!cur) return bad(res, 'Aviso no encontrado', 404);
     const d = parseAnn(req.body || {}, res); if (!d) return;
-    q.run(`UPDATE announcements SET kind=?,title=?,body=?,audience=?,member_id=?,priority=?,pinned=?,starts_at=?,ends_at=?,cta_label=?,cta_url=?,push=? WHERE id=?`,
-      d.kind, d.title, d.body, d.audience, d.member_id, d.priority, d.pinned, d.starts_at, d.ends_at, d.cta_label, d.cta_url, cur.push_sent ? cur.push : d.push, id);
+    q.run(`UPDATE announcements SET kind=?,title=?,body=?,audience=?,member_id=?,priority=?,pinned=?,starts_at=?,ends_at=?,cta_label=?,cta_url=?,image_url=?,push=? WHERE id=?`,
+      d.kind, d.title, d.body, d.audience, d.member_id, d.priority, d.pinned, d.starts_at, d.ends_at, d.cta_label, d.cta_url, d.image_url, cur.push_sent ? cur.push : d.push, id);
     audit(req.user.id, 'announcement.update', { id });
     res.json({ ok: true });
   }));

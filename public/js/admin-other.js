@@ -712,9 +712,9 @@
       view.innerHTML = `
       <div class="row between wrap gap mb">
         <div class="chips" id="store_tabs">
-          <span class="chip on" data-st="pos">🛒 Punto de Venta (POS)</span>
-          <span class="chip" data-st="inventory">📦 Inventario y Productos</span>
-          <span class="chip" data-st="sales">📋 Historial de Ventas</span>
+          <span class="chip on" data-st="pos">${RD.icon ? RD.icon('store') : ''} Punto de Venta (POS)</span>
+          <span class="chip" data-st="inventory">${RD.icon ? RD.icon('box') : ''} Inventario y Productos</span>
+          <span class="chip" data-st="sales">${RD.icon ? RD.icon('reports') : ''} Historial de Ventas</span>
         </div>
         <div class="row gap">
           <button class="btn primary sm" id="btn_new_prod">＋ Registrar Nuevo Producto</button>
@@ -754,7 +754,7 @@
           <div>
             <div class="card mb">
               <div class="row gap mb">
-                <input id="store_search" class="grow" placeholder="🔍 Escanear código de barras con lector USB o buscar producto..." autocomplete="off" autofocus>
+                <input id="store_search" class="grow" placeholder="Escanear código de barras con lector USB o buscar producto..." autocomplete="off" autofocus>
               </div>
               <div class="chips mb" id="cat_chips">
                 <span class="chip on" data-cat="all">Todos (${availableProds.length})</span>
@@ -766,7 +766,7 @@
 
           <div>
             <div class="card" style="position:sticky;top:70px">
-              <h3>🧾 Ticket de Venta</h3>
+              <h3>Ticket de Venta</h3>
               <div id="cart_items" class="list mb mt" style="max-height:280px;overflow-y:auto"></div>
               
               <div style="border-top:1px solid var(--line);padding-top:10px" class="mb">
@@ -783,17 +783,17 @@
               <div class="mb">
                 <label class="field"><span>Método de Pago:</span>
                   <select id="cart_method">
-                    <option value="efectivo">💵 Efectivo</option>
-                    <option value="yape">🟣 Yape</option>
-                    <option value="plin">🔵 Plin</option>
-                    <option value="tarjeta">💳 Tarjeta</option>
+                    <option value="efectivo">Efectivo</option>
+                    <option value="yape">Yape</option>
+                    <option value="plin">Plin</option>
+                    <option value="tarjeta">Tarjeta (POS)</option>
                   </select>
                 </label>
               </div>
 
               <div class="row gap wrap mb">
-                <button type="button" class="btn small ok grow" id="btn_cart_yape_qr">📱 QR Yape/Plin</button>
-                <button type="button" class="btn small info grow" id="btn_cart_card_pos" style="background:#0284c7;color:#fff">💳 Tarjeta POS</button>
+                <button type="button" class="btn small ok grow" id="btn_cart_yape_qr">${RD.icon ? RD.icon('qr') : ''} QR Yape/Plin</button>
+                <button type="button" class="btn small info grow" id="btn_cart_card_pos" style="background:#0284c7;color:#fff">${RD.icon ? RD.icon('card') : ''} Tarjeta POS</button>
               </div>
 
               <div class="yape-box hidden mb" id="cart_yape_box">
@@ -844,18 +844,23 @@
             const isLow = p.stock <= (p.min_stock || 5);
             const isOut = p.stock <= 0;
             return `
-            <div class="card click" data-prod-id="${p.id}" style="padding:10px;text-align:center;border:${isOut ? '1px dashed #ef4444' : '1px solid var(--line)'};opacity:${isOut ? '0.6' : '1'};position:relative">
-              ${hasPromo ? `<span class="badge info tiny" style="position:absolute;top:6px;right:6px">OFERTA</span>` : ''}
-              <div style="font-size:1.8rem;margin-bottom:4px">🥤</div>
-              <div class="bold small" style="line-height:1.2;min-height:32px;display:flex;align-items:center;justify-content:center">${esc(p.name)}</div>
-              <div class="gold bold mt" style="font-size:1.15rem">
-                ${money(activePrice)}
-                ${hasPromo ? `<span class="muted tiny" style="text-decoration:line-through;margin-left:4px">${money(p.price)}</span>` : ''}
+            <div class="card click" data-prod-id="${p.id}" style="padding:12px 10px;text-align:center;border:${isOut ? '1px dashed #ef4444' : '1px solid var(--line)'};opacity:${isOut ? '0.65' : '1'};position:relative;display:flex;flex-direction:column;justify-content:space-between;min-height:120px;transition:transform .15s ease,box-shadow .15s ease">
+              ${hasPromo ? `<span class="badge info tiny" style="position:absolute;top:6px;right:6px;font-weight:700">OFERTA</span>` : ''}
+              <div>
+                <span class="badge ghost tiny uppercase" style="font-size:0.65rem;letter-spacing:0.5px;padding:2px 6px;margin-bottom:6px;display:inline-block">${esc(p.category || 'General')}</span>
+                <div class="bold small" style="line-height:1.25;min-height:28px;display:flex;align-items:center;justify-content:center">${esc(p.name)}</div>
               </div>
-              <div class="mt2">
-                <span class="badge ${isOut ? 'bad' : isLow ? 'warn' : 'ok'} tiny">Stock: ${p.stock} un.</span>
+              <div class="mt">
+                <div class="gold bold" style="font-size:1.2rem">
+                  ${money(activePrice)}
+                  ${hasPromo ? `<span class="muted tiny" style="text-decoration:line-through;margin-left:4px;font-weight:400">${money(p.price)}</span>` : ''}
+                </div>
+                <div class="mt2 row center gap" style="font-size:0.75rem">
+                  <span class="badge ${isOut ? 'bad' : isLow ? 'warn' : 'ok'} tiny">Stock: ${p.stock} un.</span>
+                  ${p.barcode ? `<span class="muted tiny" style="font-family:monospace">${esc(p.barcode)}</span>` : ''}
+                </div>
+                ${p.promo_desc ? `<div class="tiny muted mt2">${esc(p.promo_desc)}</div>` : ''}
               </div>
-              ${p.promo_desc ? `<div class="tiny muted mt2">${esc(p.promo_desc)}</div>` : ''}
             </div>`;
           }).join('') || '<div class="empty" style="grid-column:1/-1">No se encontraron productos</div>';
         }

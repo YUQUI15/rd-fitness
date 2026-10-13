@@ -138,7 +138,11 @@
                   ${!a.archived ? `<button class="btn sm" data-edit="${a.id}">✏️ Editar</button>` : ''}
                   <button class="btn sm ${a.archived ? 'ok' : 'danger'}" data-archive="${a.id}">${a.archived ? 'Desarchivar' : 'Archivar'}</button>
                 </div>
-              </div>
+              ${a.image_url ? `
+                <div style="margin:8px 0;max-height:160px;overflow:hidden;border-radius:8px;border:1px solid var(--line);cursor:pointer;background:var(--bg3)" onclick="RD.zoomImage('${esc(a.image_url)}')">
+                  <img src="${esc(a.image_url)}" style="width:100%;max-height:160px;object-fit:cover;display:block" alt="${esc(a.title)}">
+                </div>
+              ` : ''}
 
               ${a.body ? `<p style="margin:.6rem 0;line-height:1.45;color:var(--text)">${esc(a.body)}</p>` : ''}
 
@@ -263,6 +267,24 @@
           </label>
         </div>
 
+        <div class="card flat mt mb" style="background:var(--bg2);border:1px solid var(--line);padding:12px">
+          <label class="field mb">
+            <span>🖼️ Imagen / Banner Multimedia (Opcional)</span>
+            <div class="row gap wrap">
+              <input name="image_url" id="ann_image_url" class="grow" placeholder="https://... o sube una imagen de tu dispositivo" value="${esc(item?.image_url || '')}">
+              <label class="btn sm" style="cursor:pointer">
+                📷 Subir Imagen
+                <input type="file" id="ann_file_inp" accept="image/*" class="hidden">
+              </label>
+              <button type="button" class="btn sm ghost ${item?.image_url ? '' : 'hidden'}" id="btn_clear_img">✕ Quitar</button>
+            </div>
+            <small class="tiny muted">Ideal para banners de promociones, eventos o afiches informativos. Se muestra en la app del socio y en notificaciones push.</small>
+          </label>
+          <div id="ann_img_preview" class="${item?.image_url ? '' : 'hidden'}" style="text-align:center;margin-top:8px">
+            <img id="ann_preview_el" src="${item?.image_url ? esc(item.image_url) : ''}" style="max-height:160px;max-width:100%;border-radius:8px;object-fit:cover;border:1px solid var(--line)" alt="">
+          </div>
+        </div>
+
         <div class="card flat mt mb" style="background:var(--bg3)">
           <label class="check">
             <input type="checkbox" name="pinned" ${item?.pinned ? 'checked' : ''}>
@@ -285,6 +307,47 @@
     const audSel = f.querySelector('#selaudience');
     const smBox = f.querySelector('#singlememberbox');
 
+    let currentImage = item?.image_url || '';
+    const imgUrlInp = f.querySelector('#ann_image_url');
+    const fileInp = f.querySelector('#ann_file_inp');
+    const prevWrap = f.querySelector('#ann_img_preview');
+    const prevImg = f.querySelector('#ann_preview_el');
+    const clearBtn = f.querySelector('#btn_clear_img');
+
+    const updatePreview = (src) => {
+      currentImage = src || '';
+      if (currentImage) {
+        prevImg.src = currentImage;
+        prevWrap.classList.remove('hidden');
+        clearBtn.classList.remove('hidden');
+      } else {
+        prevImg.src = '';
+        prevWrap.classList.add('hidden');
+        clearBtn.classList.add('hidden');
+      }
+    };
+
+    imgUrlInp.oninput = () => updatePreview(imgUrlInp.value.trim());
+
+    fileInp.onchange = async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const b64 = await RD.resizeImage(file, 1200, 0.85);
+        imgUrlInp.value = b64;
+        updatePreview(b64);
+        RD.toast('Imagen cargada ✔');
+      } catch (err) {
+        RD.toast('Error cargando imagen: ' + err.message, 'err');
+      }
+    };
+
+    clearBtn.onclick = () => {
+      imgUrlInp.value = '';
+      fileInp.value = '';
+      updatePreview('');
+    };
+
     audSel.onchange = () => {
       smBox.classList.toggle('hidden', audSel.value !== 'member');
     };
@@ -302,6 +365,7 @@
         ends_at: f.ends_at.value ? new Date(f.ends_at.value).toISOString() : null,
         cta_label: f.cta_label.value.trim(),
         cta_url: f.cta_url.value.trim(),
+        image_url: currentImage || null,
         pinned: f.pinned.checked ? 1 : 0,
         push: f.push.checked ? 1 : 0
       };

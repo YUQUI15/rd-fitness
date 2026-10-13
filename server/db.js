@@ -148,6 +148,7 @@ CREATE TABLE IF NOT EXISTS announcements (
   id INTEGER PRIMARY KEY, kind TEXT NOT NULL DEFAULT 'aviso', title TEXT NOT NULL, body TEXT,
   audience TEXT NOT NULL DEFAULT 'all', member_id INTEGER, priority TEXT NOT NULL DEFAULT 'info',
   pinned INTEGER DEFAULT 0, starts_at TEXT, ends_at TEXT, cta_label TEXT, cta_url TEXT,
+  image_url TEXT,
   push INTEGER DEFAULT 0, push_sent INTEGER DEFAULT 0, archived INTEGER DEFAULT 0,
   created_by INTEGER, created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
@@ -158,7 +159,8 @@ CREATE TABLE IF NOT EXISTS inbox_reads (
 );
 CREATE TABLE IF NOT EXISTS member_prefs (
   member_id INTEGER PRIMARY KEY, show_promos INTEGER DEFAULT 1, show_reminders INTEGER DEFAULT 1,
-  push_critical INTEGER DEFAULT 1, push_news INTEGER DEFAULT 0, push_promos INTEGER DEFAULT 0, last_push_at TEXT
+  push_critical INTEGER DEFAULT 1, push_news INTEGER DEFAULT 0, push_promos INTEGER DEFAULT 0,
+  alert_mode TEXT DEFAULT 'sound', last_push_at TEXT
 );
 CREATE TABLE IF NOT EXISTS push_subs (
   id INTEGER PRIMARY KEY, member_id INTEGER NOT NULL, endpoint TEXT UNIQUE NOT NULL, p256dh TEXT NOT NULL, auth TEXT NOT NULL,
@@ -216,6 +218,10 @@ function ensureColumns() {
   addCol('payments', 'qty', 'INTEGER');
   addCol('payments', 'unit_price', 'REAL');
   addCol('payments', 'unit_cost', 'REAL');
+
+  // Hub del socio: multimedia en avisos y preferencia de sonido/vibración
+  addCol('announcements', 'image_url', 'TEXT');
+  addCol('member_prefs', 'alert_mode', 'TEXT DEFAULT "sound"');
 
   // Asignar categorías iniciales para pagos existentes
   try {
