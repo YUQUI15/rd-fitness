@@ -1,69 +1,156 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>RD Fitness Club - Pantalla del Cliente</title>
+  <title>RD Fitness Club - Pantalla de Mostrador</title>
   <link rel="icon" href="/logo.svg">
-  <link rel="stylesheet" href="/css/theme.css">
   <script src="/vendor/qrcode.js"></script>
   <style>
-    body {
+    :root {
+      --bg: #07090e;
+      --bg-card: rgba(15, 23, 42, 0.88);
+      --bg-card-border: rgba(245, 180, 0, 0.35);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --gold: #f5b400;
+      --gold-glow: rgba(245, 180, 0, 0.28);
+      --accent: #38bdf8;
+      --topbar-bg: rgba(7, 9, 14, 0.85);
+      --topbar-border: rgba(245, 180, 0, 0.2);
+      --chip-bg: rgba(255, 255, 255, 0.06);
+      --chip-border: rgba(255, 255, 255, 0.12);
+      --qr-bg: #ffffff;
+      --qr-text: #0f172a;
+      --success: #10b981;
+    }
+
+    [data-theme="light"] {
+      --bg: #faf7fa;
+      --bg-card: #ffffff;
+      --bg-card-border: #e5dce8;
+      --text: #241e26;
+      --text-muted: #736878;
+      --gold: #b76e79;
+      --gold-glow: rgba(183, 110, 121, 0.22);
+      --accent: #0284c7;
+      --topbar-bg: rgba(255, 255, 255, 0.92);
+      --topbar-border: #e5dce8;
+      --chip-bg: #f3edf5;
+      --chip-border: #e5dce8;
+      --qr-bg: #ffffff;
+      --qr-text: #241e26;
+      --success: #15803d;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
       margin: 0;
       padding: 0;
-      background: radial-gradient(circle at 50% 20%, #1a1600 0%, #0d0d0d 70%, #050505 100%);
-      color: #fff;
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background .25s ease, color .25s ease;
+      user-select: none;
+    }
+
+    .display-shell {
       display: flex;
       flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+      position: relative;
     }
-    .topbar-display {
+
+    /* BARRA SUPERIOR */
+    .topbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px 32px;
-      border-bottom: 1px solid rgba(245, 180, 0, 0.2);
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(10px);
+      padding: 14px 28px;
+      background: var(--topbar-bg);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--topbar-border);
+      z-index: 20;
     }
     .brand {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
     }
     .brand img {
-      width: 48px;
-      height: 48px;
+      width: 44px;
+      height: 44px;
+      filter: drop-shadow(0 2px 8px var(--gold-glow));
     }
     .brand-title {
-      font-size: 1.5rem;
+      font-size: 1.35rem;
       font-weight: 900;
-      letter-spacing: 1px;
-      color: var(--gold, #f5b400);
+      letter-spacing: 0.8px;
+      color: var(--gold);
       text-transform: uppercase;
+      line-height: 1.1;
     }
     .brand-sub {
-      font-size: 0.85rem;
-      color: #a3a3a3;
+      font-size: 0.8rem;
+      color: var(--text-muted);
       letter-spacing: 0.5px;
+      font-weight: 500;
+      margin-top: 2px;
     }
-    .clock-box {
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .clock-block {
       text-align: right;
     }
     .clock-time {
-      font-size: 1.6rem;
+      font-size: 1.45rem;
       font-weight: 800;
-      font-family: monospace;
-      color: #f5f5f5;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: var(--text);
+      line-height: 1;
     }
     .clock-date {
-      font-size: 0.85rem;
-      color: #888;
+      font-size: 0.78rem;
+      color: var(--text-muted);
       text-transform: capitalize;
+      margin-top: 3px;
     }
-    .main-stage {
+
+    .ctrl-btn {
+      background: var(--chip-bg);
+      border: 1px solid var(--chip-border);
+      color: var(--text);
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+    .ctrl-btn:hover {
+      border-color: var(--gold);
+      transform: translateY(-1px);
+    }
+    .ctrl-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    /* ESCENARIO PRINCIPAL */
+    .stage {
       flex: 1;
       display: flex;
       align-items: center;
@@ -72,209 +159,404 @@
       position: relative;
     }
 
-    /* ESTADO IDLE / BIENVENIDA */
-    .idle-view {
+    /* ESTADO 1: BIENVENIDA (IDLE) */
+    .idle-box {
       text-align: center;
-      max-width: 800px;
-      animation: fadeIn 0.8s ease;
+      max-width: 840px;
+      animation: fadeIn .4s ease;
     }
-    .idle-logo {
-      width: 140px;
-      height: 140px;
-      margin-bottom: 24px;
-      filter: drop-shadow(0 0 30px rgba(245, 180, 0, 0.4));
-      animation: pulse 4s infinite ease-in-out;
+    .idle-hero-logo {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 20px;
+      filter: drop-shadow(0 0 35px var(--gold-glow));
+      animation: pulseBreath 4s infinite ease-in-out;
     }
-    .idle-welcome {
-      font-size: 2.8rem;
+    .idle-headline {
+      font-size: 2.6rem;
       font-weight: 900;
-      color: #fff;
-      margin-bottom: 12px;
+      letter-spacing: -0.5px;
       line-height: 1.15;
+      margin-bottom: 12px;
     }
-    .idle-welcome span {
-      color: var(--gold, #f5b400);
+    .idle-headline span {
+      color: var(--gold);
     }
     .idle-quote {
-      font-size: 1.35rem;
-      color: #d4d4d4;
+      font-size: 1.25rem;
+      color: var(--text-muted);
       font-style: italic;
-      margin-bottom: 32px;
+      margin-bottom: 30px;
+      line-height: 1.4;
+      min-height: 38px;
     }
-    .idle-chips {
+    .idle-badges {
       display: flex;
       justify-content: center;
-      gap: 16px;
+      gap: 12px;
       flex-wrap: wrap;
+      margin-bottom: 34px;
     }
-    .idle-badge {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 10px 20px;
-      border-radius: 30px;
-      font-size: 0.95rem;
-      color: #e5e5e5;
+    .chip {
+      background: var(--chip-bg);
+      border: 1px solid var(--chip-border);
+      padding: 9px 16px;
+      border-radius: 24px;
+      font-size: 0.88rem;
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+    .chip svg {
+      width: 16px;
+      height: 16px;
+      stroke: var(--gold);
+      fill: none;
+      stroke-width: 2;
     }
 
-    /* ESTADO COBRO / PAGO ACTIVO */
-    .pay-view {
+    .payment-trust-bar {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 48px;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding-top: 14px;
+      border-top: 1px solid var(--chip-border);
+    }
+    .pay-pill {
+      background: var(--chip-bg);
+      border: 1px solid var(--chip-border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pay-pill.yape { color: #c084fc; border-color: rgba(192, 132, 252, 0.4); }
+    .pay-pill.plin { color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); }
+    .pay-pill.card { color: var(--gold); border-color: var(--gold-glow); }
+
+    /* ESTADO 2: COBRO ACTIVO (PAYMENT / CARD) */
+    .bill-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 40px;
       max-width: 960px;
       width: 100%;
-      background: rgba(18, 18, 18, 0.85);
-      border: 2px solid var(--gold, #f5b400);
+      background: var(--bg-card);
+      border: 2px solid var(--bg-card-border);
       border-radius: 24px;
-      padding: 36px 44px;
-      box-shadow: 0 0 60px rgba(245, 180, 0, 0.2);
-      animation: scaleUp 0.35s ease;
+      padding: 38px 44px;
+      box-shadow: 0 16px 50px rgba(0, 0, 0, 0.25), 0 0 40px var(--gold-glow);
+      animation: popIn .3s ease;
+      position: relative;
     }
-    .pay-info {
+    .bill-meta {
       flex: 1;
+      text-align: left;
     }
-    .pay-tag {
-      display: inline-block;
-      background: #c084fc;
-      color: #000;
+    .bill-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--chip-bg);
+      border: 1px solid var(--bg-card-border);
+      color: var(--gold);
       font-weight: 800;
-      font-size: 0.8rem;
-      padding: 4px 12px;
+      font-size: 0.78rem;
+      padding: 5px 12px;
       border-radius: 20px;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 12px;
+      letter-spacing: 0.8px;
+      margin-bottom: 14px;
     }
-    .pay-concept {
-      font-size: 1.8rem;
+    .bill-title {
+      font-size: 1.85rem;
       font-weight: 800;
-      color: #fff;
-      margin-bottom: 8px;
       line-height: 1.2;
+      margin-bottom: 6px;
+      color: var(--text);
     }
-    .pay-total-label {
-      font-size: 1rem;
-      color: #888;
+    .bill-sub {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+    .bill-price-label {
+      font-size: 0.85rem;
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-bottom: 4px;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 2px;
     }
-    .pay-amount {
-      font-size: 4rem;
+    .bill-price {
+      font-size: 3.8rem;
       font-weight: 900;
-      color: var(--gold, #f5b400);
-      line-height: 1;
-      margin-bottom: 20px;
+      color: var(--gold);
       letter-spacing: -1px;
+      line-height: 1;
+      margin-bottom: 22px;
     }
-    .pay-guide {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 16px;
-      font-size: 0.95rem;
-      line-height: 1.5;
-      color: #e5e5e5;
+    .bill-instructions {
+      background: var(--chip-bg);
+      border: 1px solid var(--chip-border);
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      color: var(--text);
     }
-    .pay-guide b {
-      color: var(--gold, #f5b400);
-    }
-    .pay-qr-box {
-      text-align: center;
-      background: #fff;
-      padding: 20px;
-      border-radius: 20px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-      width: 260px;
-    }
-    .pay-qr-svg {
-      width: 240px;
-      height: 240px;
-    }
-    .pay-qr-caption {
-      color: #111;
-      font-weight: 800;
-      font-size: 0.8rem;
-      margin-top: 10px;
-      letter-spacing: 0.5px;
+    .bill-instructions b {
+      color: var(--gold);
     }
 
-    /* ESTADO ÉXITO */
-    .success-view {
+    /* LADO DERECHO: QR CODE BOX */
+    .qr-container {
+      background: var(--qr-bg);
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
       text-align: center;
-      animation: scaleUp 0.4s ease;
-      max-width: 600px;
+      width: 270px;
+      flex-shrink: 0;
+      border: 1px solid rgba(0, 0, 0, 0.08);
     }
-    .success-icon {
-      font-size: 5rem;
+    .qr-svg-holder svg {
+      width: 226px;
+      height: 226px;
+      display: block;
+      margin: 0 auto;
+    }
+    .qr-caption {
+      color: var(--qr-text);
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      margin-top: 10px;
+      text-transform: uppercase;
+    }
+
+    /* LADO DERECHO: POS CONTACTLESS NFC ANIMATION */
+    .nfc-container {
+      background: var(--chip-bg);
+      border: 2px dashed var(--bg-card-border);
+      border-radius: 20px;
+      padding: 28px 22px;
+      text-align: center;
+      width: 270px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .nfc-wave-ring {
+      position: relative;
+      width: 90px;
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       margin-bottom: 16px;
-      animation: bounce 1s infinite alternate;
+    }
+    .nfc-pulse {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px solid var(--gold);
+      opacity: 0;
+      animation: nfcPulse 2.2s infinite ease-out;
+    }
+    .nfc-pulse:nth-child(2) {
+      animation-delay: 0.7s;
+    }
+    .nfc-center-icon {
+      z-index: 2;
+      width: 48px;
+      height: 48px;
+      color: var(--gold);
+    }
+    .nfc-label {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .nfc-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    /* ESTADO 3: ÉXITO */
+    .success-box {
+      text-align: center;
+      max-width: 620px;
+      animation: popIn .35s ease;
+    }
+    .success-ring {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.15);
+      border: 3px solid var(--success);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      animation: bounceCheck .7s ease;
+    }
+    .success-ring svg {
+      width: 52px;
+      height: 52px;
+      stroke: var(--success);
+      fill: none;
+      stroke-width: 3;
     }
     .success-title {
-      font-size: 3rem;
+      font-size: 2.8rem;
       font-weight: 900;
-      color: #34d399;
+      color: var(--success);
+      line-height: 1.1;
       margin-bottom: 12px;
     }
     .success-msg {
-      font-size: 1.4rem;
-      color: #f3f4f6;
+      font-size: 1.3rem;
+      color: var(--text);
+      line-height: 1.4;
       margin-bottom: 24px;
     }
+    .success-meter {
+      height: 4px;
+      background: var(--chip-border);
+      border-radius: 2px;
+      max-width: 280px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .success-meter-bar {
+      height: 100%;
+      background: var(--success);
+      width: 100%;
+      animation: countdownBar 5s linear forwards;
+    }
 
+    /* ANIMACIONES */
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes scaleUp { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
-    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
-    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-12px); } }
+    @keyframes popIn { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+    @keyframes pulseBreath { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    @keyframes nfcPulse {
+      0% { transform: scale(0.6); opacity: 0.9; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+    @keyframes bounceCheck {
+      0% { transform: scale(0.3); opacity: 0; }
+      60% { transform: scale(1.15); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes countdownBar {
+      from { width: 100%; }
+      to { width: 0%; }
+    }
 
     @media (max-width: 768px) {
-      .pay-view { flex-direction: column-reverse; padding: 20px; gap: 24px; }
-      .pay-amount { font-size: 3rem; }
+      .bill-card { flex-direction: column-reverse; padding: 24px; gap: 20px; }
+      .bill-price { font-size: 3rem; }
+      .qr-container, .nfc-container { width: 100%; max-width: 240px; }
+      .idle-headline { font-size: 2rem; }
     }
   </style>
 </head>
 <body>
-  <header class="topbar-display">
-    <div class="brand">
-      <img src="/logo.svg" alt="RD Fitness Club">
-      <div>
-        <div class="brand-title" id="gym_name">RD FITNESS CLUB</div>
-        <div class="brand-sub">CHIVAY · DISCIPLINA · CONSTANCIA · RESULTADOS</div>
+  <div class="display-shell">
+    <header class="topbar">
+      <div class="brand">
+        <img src="/logo.svg" alt="RD Fitness Club">
+        <div>
+          <div class="brand-title" id="gym_name">RD FITNESS CLUB</div>
+          <div class="brand-sub" id="gym_slogan">DISCIPLINA · CONSTANCIA · RESULTADOS</div>
+        </div>
       </div>
-    </div>
-    <div class="clock-box">
-      <div class="clock-time" id="clock_time">--:--:--</div>
-      <div class="clock-date" id="clock_date">--</div>
-    </div>
-  </header>
+      <div class="top-actions">
+        <div class="clock-block">
+          <div class="clock-time" id="clock_time">--:--:--</div>
+          <div class="clock-date" id="clock_date">--</div>
+        </div>
+        <button class="ctrl-btn" id="themetoggle" title="Alternar Modo Claro / Oscuro" aria-label="Tema">
+          <svg viewBox="0 0 24 24" id="theme_icon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+        <button class="ctrl-btn" id="fsbtn" title="Pantalla completa" aria-label="Pantalla completa">
+          <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+        </button>
+      </div>
+    </header>
 
-  <main class="main-stage" id="stage">
-    <!-- Renderizado dinámico de estado (idle, payment, cart, success) -->
-  </main>
+    <main class="stage" id="stage">
+      <!-- Contenido reactivo controlado por SSE / REST -->
+    </main>
+  </div>
 
   <script>
     (function () {
       const stage = document.getElementById('stage');
-      let curState = { mode: 'idle' };
+      const themeToggle = document.getElementById('themetoggle');
+      const themeIcon = document.getElementById('theme_icon');
+      const fsBtn = document.getElementById('fsbtn');
 
-      // Reloj en tiempo real
+      // ---------------- Gestión del Modo Claro / Oscuro ----------------
+      function applyTheme(t) {
+        document.documentElement.setAttribute('data-theme', t);
+        localStorage.setItem('rd_display_theme', t);
+        if (t === 'light') {
+          themeIcon.innerHTML = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>';
+        } else {
+          themeIcon.innerHTML = '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>';
+        }
+      }
+      const initialTheme = localStorage.getItem('rd_display_theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      applyTheme(initialTheme);
+      themeToggle.onclick = () => {
+        const cur = document.documentElement.getAttribute('data-theme');
+        applyTheme(cur === 'light' ? 'dark' : 'light');
+      };
+
+      // ---------------- Modo Pantalla Completa para Tablet ----------------
+      fsBtn.onclick = () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      };
+
+      // ---------------- Reloj en Tiempo Real (Hora Lima) ----------------
       function updateClock() {
         const now = new Date();
-        document.getElementById('clock_time').textContent = now.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        document.getElementById('clock_date').textContent = now.toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        document.getElementById('clock_time').textContent = now.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'America/Lima' });
+        document.getElementById('clock_date').textContent = now.toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Lima' });
       }
       setInterval(updateClock, 1000);
       updateClock();
 
-      // Cargar info del gimnasio
+      // ---------------- Configuración Pública del Gimnasio ----------------
       fetch('/api/public').then(r => r.json()).then(p => {
         if (p.gym_name) document.getElementById('gym_name').textContent = p.gym_name.toUpperCase();
+        if (p.gym_slogan) document.getElementById('gym_slogan').textContent = p.gym_slogan.toUpperCase();
       }).catch(() => {});
 
-      function money(n) {
-        return 'S/ ' + (Number(n) || 0).toFixed(2).replace(/\.00$/, '');
-      }
+      // ---------------- Utilidades ----------------
+      const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      const money = n => 'S/ ' + (Number(n) || 0).toFixed(2).replace(/\.00$/, '');
 
       function qrSvg(text) {
         if (!window.qrcode) return '';
@@ -290,120 +572,183 @@
             }
           }
           const s = n + 4;
-          return `<svg class="pay-qr-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${s} ${s}" shape-rendering="crispEdges"><rect width="${s}" height="${s}" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
-        } catch (e) {
+          return `<svg viewBox="0 0 ${s} ${s}" shape-rendering="crispEdges"><rect width="${s}" height="${s}" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+        } catch {
           return '';
         }
       }
 
+      // ---------------- Sonido de Éxito con Web Audio API ----------------
+      function playChime() {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc1 = ctx.createOscillator(), osc2 = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc1.type = 'sine'; osc2.type = 'sine';
+          osc1.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+          osc2.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5
+          gain.gain.setValueAtTime(0.01, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+          osc1.connect(gain); osc2.connect(gain);
+          gain.connect(ctx.destination);
+          osc1.start(); osc2.start(ctx.currentTime + 0.1);
+          osc1.stop(ctx.currentTime + 0.8); osc2.stop(ctx.currentTime + 0.8);
+        } catch {}
+      }
+
+      // ---------------- Carrusel de Citas ----------------
       const QUOTES = [
-        "«La disciplina tarde o temprano vencerá a la inteligencia.»",
+        "«La disciplina tarde o temprano vencerá al talento.»",
         "«Tu único límite eres tú mismo. ¡A entrenar con todo!»",
-        "«El dolor que sientes hoy es la fuerza que tendrás mañana.»",
-        "«Constancia y dedicación: la fórmula de tus resultados.»"
+        "«El esfuerzo de hoy es la fuerza y salud de tu mañana.»",
+        "«Constancia y dedicación: la fórmula de tus mejores resultados.»",
+        "«No se trata de ser el mejor, sino de ser mejor que ayer.»"
       ];
       let quoteIdx = 0;
+      setInterval(() => {
+        quoteIdx = (quoteIdx + 1) % QUOTES.length;
+        const qEl = document.getElementById('idle_quote_text');
+        if (qEl) {
+          qEl.style.opacity = '0';
+          setTimeout(() => { qEl.textContent = QUOTES[quoteIdx]; qEl.style.opacity = '1'; }, 300);
+        }
+      }, 7000);
 
+      let successTimer = null;
+
+      // ---------------- Renderizador de Estados ----------------
       function render(state) {
-        curState = state;
-        const mode = state.mode || 'idle';
+        if (successTimer) { clearTimeout(successTimer); successTimer = null; }
+        const mode = state?.mode || 'idle';
 
         if (mode === 'idle') {
-          quoteIdx = (quoteIdx + 1) % QUOTES.length;
           stage.innerHTML = `
-            <div class="idle-view">
-              <img src="/logo.svg" alt="" class="idle-logo">
-              <div class="idle-welcome">BIENVENIDO A <span>RD FITNESS CLUB</span></div>
-              <div class="idle-quote">${QUOTES[quoteIdx]}</div>
-              <div class="idle-chips">
-                <div class="idle-badge">🕒 Lun - Sáb: 6:00 AM - 9:00 PM</div>
-                <div class="idle-badge">📍 Chivay, Colca</div>
-                <div class="idle-badge">🟣 Aceptamos Yape y Plin</div>
-                <div class="idle-badge">💳 Tarjetas y Contactless</div>
+            <div class="idle-box">
+              <img src="/logo.svg" alt="" class="idle-hero-logo">
+              <div class="idle-headline">BIENVENIDO A <span>RD FITNESS CLUB</span></div>
+              <div class="idle-quote" id="idle_quote_text">${QUOTES[quoteIdx]}</div>
+              <div class="idle-badges">
+                <div class="chip">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  Lun - Sáb: 6:00 AM - 9:00 PM
+                </div>
+                <div class="chip">
+                  <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  Chivay · Colca
+                </div>
+                <div class="chip">
+                  <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  Pase Diario S/ 5
+                </div>
+              </div>
+              <div class="payment-trust-bar">
+                <span class="pay-pill yape">🟣 Yape QR</span>
+                <span class="pay-pill plin">🔵 Plin QR</span>
+                <span class="pay-pill card">💳 POS Contactless / Chip</span>
+                <span class="pay-pill card">📶 Apple Pay & Google Wallet</span>
+                <span class="pay-pill card">💵 Efectivo</span>
               </div>
             </div>`;
         } else if (mode === 'card' || (mode === 'payment' && state.method === 'tarjeta')) {
           stage.innerHTML = `
-            <div class="pay-view">
-              <div class="pay-info">
-                <span class="pay-tag" style="background:#38bdf8;color:#000">💳 Pago con Tarjeta</span>
-                <div class="pay-concept">${state.title || 'Cobro con Tarjeta'}</div>
-                <div class="pay-total-label">Total a Pagar</div>
-                <div class="pay-amount">${money(state.amount)}</div>
-                <div class="pay-guide">
-                  <b>📶 Acerca tu tarjeta o insértala en el POS:</b><br>
-                  Aceptamos <b>Contactless (sin contacto)</b>, chip, y pagos con celular (<b>Apple Pay</b> y <b>Google Wallet</b>).<br>
-                  <small style="color:#aaa;display:block;margin-top:6px">Si tu tarjeta solicita clave PIN de seguridad, ingrésala en el terminal de recepción.</small>
+            <div class="bill-card">
+              <div class="bill-meta">
+                <div class="bill-tag">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                  TERMINAL POS ACTIVO
+                </div>
+                <div class="bill-title">${esc(state.title || 'Cobro con Tarjeta')}</div>
+                <div class="bill-sub">Recepción RD Fitness Club</div>
+                <div class="bill-price-label">Monto a pagar</div>
+                <div class="bill-price">${money(state.amount)}</div>
+                <div class="bill-instructions">
+                  <b>📶 Acerca tu tarjeta o dispositivo al terminal POS:</b><br>
+                  Aceptamos <b>Contactless (sin contacto)</b>, chip, y pagos móviles con <b>Apple Pay</b> y <b>Google Wallet</b>.<br>
+                  <small style="opacity:.8;display:block;margin-top:6px">Si tu banco solicita clave PIN de seguridad, ingrésala en el teclado del POS.</small>
                 </div>
               </div>
-              <div class="pay-qr-box" style="background:#111827;border:2px solid #38bdf8;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
-                <div style="font-size:3.5rem;margin-bottom:8px;filter:drop-shadow(0 0 15px rgba(56,189,248,0.5))">💳 📶</div>
-                <div style="font-size:1.1rem;font-weight:900;letter-spacing:1px;color:#38bdf8;margin-bottom:6px">TERMINAL POS ACTIVO</div>
-                <div style="font-size:0.85rem;color:#e2e8f0;margin-bottom:14px;text-align:center">Acerca tu tarjeta Contactless o insértala</div>
-                <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
-                  <span style="background:#1e293b;border:1px solid #475569;border-radius:6px;padding:3px 8px;font-size:0.75rem;font-weight:800;color:#60a5fa">VISA</span>
-                  <span style="background:#1e293b;border:1px solid #475569;border-radius:6px;padding:3px 8px;font-size:0.75rem;font-weight:800;color:#f87171">MC</span>
-                  <span style="background:#1e293b;border:1px solid #475569;border-radius:6px;padding:3px 8px;font-size:0.75rem;font-weight:800;color:#38bdf8">AMEX</span>
-                  <span style="background:#1e293b;border:1px solid #475569;border-radius:6px;padding:3px 8px;font-size:0.75rem;font-weight:800;color:#cbd5e1">APPLE PAY</span>
+              <div class="nfc-container">
+                <div class="nfc-wave-ring">
+                  <div class="nfc-pulse"></div>
+                  <div class="nfc-pulse"></div>
+                  <svg class="nfc-center-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8.32a7.43 7.43 0 0 1 0 7.36"/><path d="M9.46 6.21a11.76 11.76 0 0 1 0 11.58"/><path d="M12.91 4.1a15.91 15.91 0 0 1 0 15.8"/><path d="M16.37 2a20.16 20.16 0 0 1 0 20"/></svg>
+                </div>
+                <div class="nfc-label">PAGO SIN CONTACTO</div>
+                <div class="nfc-sub">Acerca tu tarjeta o celular</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:8px">
+                  <span class="pay-pill card" style="font-size:0.7rem;padding:3px 7px">VISA</span>
+                  <span class="pay-pill card" style="font-size:0.7rem;padding:3px 7px">MASTERCARD</span>
+                  <span class="pay-pill card" style="font-size:0.7rem;padding:3px 7px">AMEX</span>
                 </div>
               </div>
             </div>`;
         } else if (mode === 'payment') {
-          const qrHtml = state.qr_payload ? qrSvg(state.qr_payload) : '';
+          const qrCodeSvg = state.qr_payload ? qrSvg(state.qr_payload) : '';
           stage.innerHTML = `
-            <div class="pay-view">
-              <div class="pay-info">
-                <span class="pay-tag">📱 Cobro Yape / Plin</span>
-                <div class="pay-concept">${state.title || 'Cobro en Recepción'}</div>
-                <div class="pay-total-label">Total a Pagar</div>
-                <div class="pay-amount">${money(state.amount)}</div>
-                <div class="pay-guide">
-                  <b>📱 Escanea con tu Yape o Plin desde tu celular:</b><br>
+            <div class="bill-card">
+              <div class="bill-meta">
+                <div class="bill-tag" style="color:#c084fc;border-color:rgba(192,132,252,0.4)">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="7" width="10" height="10" rx="1.5"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
+                  YAPE · PLIN · INTEROPERABLE
+                </div>
+                <div class="bill-title">${esc(state.title || 'Cobro con QR')}</div>
+                <div class="bill-sub">Titular: <b>${esc(state.merchant || 'RD FITNESS CLUB')}</b> · Cel: <b>${esc(state.phone || '982404043')}</b></div>
+                <div class="bill-price-label">Monto exacto a transferir</div>
+                <div class="bill-price">${money(state.amount)}</div>
+                <div class="bill-instructions">
+                  <b>📱 Escanea desde tu celular con Yape o Plin:</b><br>
                   El monto exacto de <b>${money(state.amount)}</b> ya está configurado en el código QR.<br>
-                  <small style="color:#aaa;display:block;margin-top:6px">Titular: ${state.merchant || 'RD FITNESS CLUB'} · Cel: ${state.phone || '982404043'}</small>
+                  No necesitas digitar número ni monto manualmente.
                 </div>
               </div>
-              <div class="pay-qr-box">
-                ${qrHtml}
-                <div class="pay-qr-caption">MONTO: ${money(state.amount)}</div>
+              <div class="qr-container">
+                <div class="qr-svg-holder">${qrCodeSvg}</div>
+                <div class="qr-caption">MONTO EXACTO: ${money(state.amount)}</div>
               </div>
             </div>`;
         } else if (mode === 'cart') {
           stage.innerHTML = `
-            <div class="pay-view" style="max-width:700px">
-              <div class="pay-info" style="text-align:center">
-                <span class="pay-tag">🛒 Venta en Curso</span>
-                <div class="pay-concept">${state.title || 'Venta en Recepción'}</div>
-                <div class="pay-total-label">Total Actual</div>
-                <div class="pay-amount">${money(state.amount)}</div>
-                <div class="idle-chips" style="justify-content:center;margin-top:16px">
-                  ${(state.items || []).map(i => `<span class="idle-badge">${i}</span>`).join('')}
+            <div class="bill-card" style="max-width:720px">
+              <div class="bill-meta" style="text-align:center">
+                <div class="bill-tag">VENTA EN CURSO</div>
+                <div class="bill-title">${esc(state.title || 'Venta en Recepción')}</div>
+                <div class="bill-price-label">Total acumulado</div>
+                <div class="bill-price">${money(state.amount)}</div>
+                <div class="idle-badges" style="justify-content:center;margin-top:14px">
+                  ${(state.items || []).map(i => `<span class="chip">${esc(i)}</span>`).join('')}
                 </div>
               </div>
             </div>`;
         } else if (mode === 'success') {
+          playChime();
           stage.innerHTML = `
-            <div class="success-view">
-              <div class="success-icon">🎉</div>
-              <div class="success-title">¡PAGO EXITOSO!</div>
-              <div class="success-msg">Gracias por tu preferencia.<br><b>¡Que tengas un excelente entrenamiento! 💪</b></div>
-              <div class="idle-badge" style="display:inline-block;border-color:#34d399;color:#34d399">Total abonado: ${money(state.amount)}</div>
+            <div class="success-box">
+              <div class="success-ring">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="success-title">¡PAGO REGISTRADO!</div>
+              <div class="success-msg">Gracias por tu preferencia.<br><b>¡Que tengas un excelente entrenamiento!</b></div>
+              <div class="chip" style="margin-bottom:20px;border-color:var(--success);color:var(--success);font-size:1.1rem;padding:10px 22px">
+                Total abonado: ${money(state.amount)}
+              </div>
+              <div class="success-meter"><div class="success-meter-bar"></div></div>
             </div>`;
+          successTimer = setTimeout(() => { render({ mode: 'idle' }); }, 5000);
         }
       }
 
-      // Conexión en tiempo real SSE
+      // ---------------- Sincronización en Tiempo Real (SSE Stream) ----------------
       function connectSSE() {
         const es = new EventSource('/api/screen/stream');
         es.onmessage = e => {
           try {
             const data = JSON.parse(e.data);
             render(data);
-          } catch { }
+          } catch {}
         };
         es.onerror = () => {
           es.close();
-          // Fallback sondeo cada 3s si se cae la conexión
           setTimeout(connectSSE, 3000);
         };
       }

@@ -3,7 +3,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
-const { q, db, DATA_DIR, getSettings, numSettings, backup, nextReceiptNo, dailyPassCode, getActiveShift, computeShiftTotals, getActiveAttendanceSession, closeAttendanceSession } = require('./db');
+const { q, db, DATA_DIR, getSettings, numSettings, backup, checkpoint, nextReceiptNo, dailyPassCode, getActiveShift, computeShiftTotals, getActiveAttendanceSession, closeAttendanceSession } = require('./db');
 const { getScopedReportData, getMemberAttendanceDetail } = require('./reports');
 const { buildDataset, searchPeople, getPersonReport, tableToCsv } = require('./dataset');
 const { buildXlsx } = require('./xlsx-report');
@@ -21,6 +21,7 @@ const audit = (uid, action, detail) => q.run('INSERT INTO audit(user_id,action,d
 const J = s => { try { return JSON.parse(s); } catch { return []; } };
 const memberCode = id => 'RD-' + String(id).padStart(4, '0');
 const METHODS = ['efectivo', 'yape', 'plin', 'tarjeta', 'transferencia'];
+const isSecure = req => req.secure || String(req.headers['x-forwarded-proto'] || '').split(',')[0] === 'https';
 
 // Rate limit simple para login
 const attempts = new Map();
@@ -32,17 +33,29 @@ function limited(req) {
   return a.n > 12;
 }
 
-// ---------------- Autenticación ----------------
+// ---------------- Autenticación y Sesiones Persistentes ----------------
 function loadSession(req) {
   const h = req.headers.authorization || '';
-  const token = h.startsWith('Bearer ') ? h.slice(7) : null;
+  let token = h.startsWith('Bearer ') ? h.slice(7) : null;
+  if (!token) {
+    const raw = req.headers.cookie || '';
+    for (const part of raw.split(';')) {
+      const i = part.indexOf('=');
+      if (i > 0) {
+        const k = part.slice(0, i).trim();
+        const v = decodeURIComponent(part.slice(i + 1).trim());
+        if (k === 'rd_s' && !token) token = v;
+        else if (k === 'rd_m' && !token) token = v;
+      }
+    }
+  }
   if (!token) return null;
-  // Socios: vigencia deslizante de 365 días desde el último uso. Personal: 90 días fijos.
-  const s = q.get(`SELECT * FROM sessions WHERE token=? AND (
-    (kind='member' AND COALESCE(last_seen,created_at) > datetime('now','-365 days')) OR
-    (kind<>'member' AND created_at > datetime('now','-90 days')))`, token);
+  // Vigencia deslizante de 365 días desde el último uso para socios y personal
+  const s = q.get(`SELECT * FROM sessions WHERE token=? AND COALESCE(last_seen,created_at) > datetime('now','-365 days')`, token);
   if (!s) return null;
-  if (s.kind === 'member' && (!s.last_seen || s.last_seen < new Date(Date.now() - 3600e3).toISOString().slice(0, 19).replace('T', ' '))) {
+  // Refrescar last_seen si pasaron más de 30 minutos
+  const lastTime = s.last_seen ? new Date(s.last_seen.replace(' ', 'T') + 'Z').getTime() : 0;
+  if (Date.now() - lastTime > 1800e3) {
     try { q.run("UPDATE sessions SET last_seen=datetime('now') WHERE token=?", s.token); } catch { }
   }
   return s;
@@ -108,15 +121,38 @@ api.post('/auth/login', wrap((req, res) => {
   const u = q.get('SELECT * FROM users WHERE username=? AND active=1', String(username || '').trim().toLowerCase());
   if (!u || !bcrypt.compareSync(String(password || ''), u.pass_hash)) return bad(res, 'Usuario o contraseña incorrectos', 401);
   const token = L.randomToken();
-  q.run("INSERT INTO sessions(token,kind,ref_id) VALUES(?,?,?)", token, 'staff', u.id);
+  const ua = String(req.headers['user-agent'] || '').slice(0, 300);
+  q.run("INSERT INTO sessions(token,kind,ref_id,last_seen,ua) VALUES(?,?,?,datetime('now'),?)", token, 'staff', u.id, ua);
+  const sec = isSecure(req);
+  res.setHeader('Set-Cookie', `rd_s=${token}; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax${sec ? '; Secure' : ''}`);
   res.json({ token, user: { id: u.id, username: u.username, name: u.name, role: u.role, must_change: u.must_change } });
+}));
+
+// Reanudar sesión de personal silenciosamente si el navegador limpió el almacenamiento local
+api.post('/auth/staff-resume', wrap((req, res) => {
+  const s = loadSession(req);
+  if (!s || s.kind !== 'staff') {
+    res.setHeader('Set-Cookie', 'rd_s=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');
+    return bad(res, 'Sin sesión de personal', 401);
+  }
+  const u = q.get('SELECT id,username,name,role,active,must_change FROM users WHERE id=?', s.ref_id);
+  if (!u || !u.active) {
+    res.setHeader('Set-Cookie', 'rd_s=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');
+    return bad(res, 'Usuario inactivo', 401);
+  }
+  const sec = isSecure(req);
+  res.setHeader('Set-Cookie', `rd_s=${s.token}; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax${sec ? '; Secure' : ''}`);
+  res.json({ token: s.token, user: { id: u.id, username: u.username, name: u.name, role: u.role, must_change: u.must_change } });
 }));
 
 // /auth/member-login y /auth/resume: ver server/member-hub.js
 
 api.post('/auth/logout', wrap((req, res) => {
   const s = loadSession(req); if (s) q.run('DELETE FROM sessions WHERE token=?', s.token);
-  res.setHeader('Set-Cookie', 'rd_m=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');
+  res.setHeader('Set-Cookie', [
+    'rd_s=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax',
+    'rd_m=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax'
+  ]);
   res.json({ ok: true });
 }));
 
@@ -1438,7 +1474,11 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 function start() {
   backup();
-  setInterval(backup, 6 * 3600 * 1000);
+  checkpoint();
+  setInterval(checkpoint, 5 * 60 * 1000).unref();
+  setInterval(backup, 6 * 3600 * 1000).unref();
+  process.on('SIGINT', () => { checkpoint(); process.exit(0); });
+  process.on('SIGTERM', () => { checkpoint(); process.exit(0); });
   const tls = process.env.HTTPS === '1';
   if (tls) {
     const selfsigned = require('selfsigned');

@@ -5,6 +5,22 @@
   --radius:14px; --nav-h:62px;
 }
 
+.svg-icon {
+  display: inline-block;
+  vertical-align: middle;
+  stroke: currentColor;
+  fill: none;
+  flex-shrink: 0;
+  transition: transform .15s ease, stroke .15s ease;
+}
+.btn .svg-icon, .nav button .svg-icon {
+  margin-right: 6px;
+}
+.icon-btn .svg-icon {
+  margin: 0;
+}
+
+
 /* ============================================================ */
 /* MODO CLARO - PALETA PASTEL DE ALTA FIDELIDAD */
 /* ============================================================ */

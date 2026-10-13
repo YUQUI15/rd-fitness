@@ -430,18 +430,21 @@
 
         view.innerHTML = `
         <!-- WIDGET DE TURNO DE CAJA -->
-        <div class="card mb shift-banner" style="background:linear-gradient(135deg, #1e293b, #0f172a); border-left:4px solid ${actShift ? '#4ade80' : '#f59e0b'};">
+        <div class="card mb shift-banner" style="background:var(--bg2); border-left:4px solid ${actShift ? '#10b981' : '#f59e0b'};">
           <div class="row between wrap gap">
             <div>
-              <span class="badge ${actShift ? 'ok' : 'warn'}">${actShift ? '🟢 Turno Activo' : '⚠️ Sin Turno Abierto'}</span>
-              <h3 style="margin:.3rem 0;color:#fff">${actShift ? esc(actShift.shift_name) : 'No hay un turno de caja abierto'}</h3>
+              <span class="badge ${actShift ? 'ok' : 'warn'}">${actShift ? RD.icon('check', '', 14) + ' Turno en Curso' : RD.icon('lock', '', 14) + ' Sin Turno Abierto'}</span>
+              <h3 style="margin:.3rem 0;color:var(--text)">${actShift ? esc(actShift.shift_name) : 'No hay un turno de caja abierto'}</h3>
               ${actShift ? `
                 <div class="small muted">
-                  Cajero(a): <b style="color:#fff">${esc(actShift.user_name)}</b> · Abierto: <b>${RD.fmtTime(actShift.opened_at)}</b> · Fondo inicial (vuelto): <b style="color:#f5b400">${money(actShift.initial_cash)}</b>
+                  Cajero(a): <b>${esc(actShift.user_name)}</b> · Abierto: <b>${RD.fmtTime(actShift.opened_at)}</b> · Fondo inicial: <b class="gold">${money(actShift.initial_cash)}</b>
                 </div>
                 <div class="row gap wrap mt2 small">
-                  <span style="color:#4ade80">💵 Efectivo esperado en gaveta: <b>${money(actTotals?.expectedCashInDrawer || 0)}</b></span>
-                  <span style="color:#a78bfa">📱 Cobros Digitales (Yape/Plin): <b>${money(actTotals?.expectedDigital || 0)}</b></span>
+                  <span style="color:#10b981">${RD.icon('cash', '', 14)} Efectivo esperado en gaveta: <b>${money(actTotals?.expectedCashInDrawer || 0)}</b></span>
+                  <span style="color:#8b5cf6">${RD.icon('nfc', '', 14)} Cobros Digitales (Yape/Plin/POS): <b>${money(actTotals?.expectedDigital || 0)}</b></span>
+                </div>
+                <div class="muted tiny mt" style="opacity:.85">
+                  El turno permanece activo de forma continua hasta que realices el arqueo manual con el botón "Cerrar Turno".
                 </div>
               ` : `
                 <p class="small muted" style="margin:.2rem 0">Abre un turno antes de cobrar para registrar tu fondo de sencillo (vuelto) y auditar tu arqueo.</p>
@@ -449,9 +452,9 @@
             </div>
             <div class="row gap">
               ${actShift ? `
-                <button class="btn sm danger" id="closeshiftbtn">🔒 Cerrar Turno / Arqueo</button>
+                <button class="btn sm danger" id="closeshiftbtn">${RD.icon('lock')} Cerrar Turno / Arqueo</button>
               ` : `
-                <button class="btn sm ok" id="openshiftbtn">🔓 Abrir Turno de Caja</button>
+                <button class="btn sm ok" id="openshiftbtn">${RD.icon('unlock')} Abrir Turno de Caja</button>
               `}
             </div>
           </div>
@@ -463,9 +466,9 @@
             <button class="btn sm" id="todaybtn">Hoy</button>
           </div>
           <div class="row gap wrap">
-            <button class="btn sm ok" id="dpbtn">🎟️ Pase Diario (S/ 5)</button>
-            <button class="btn sm primary" id="posbtn">🛒 Venta rápida tienda</button>
-            <button class="btn sm danger" id="expbtn">💸 Registrar Gasto</button>
+            <button class="btn sm ok" id="dpbtn">${RD.icon('ticket')} Pase Diario (S/ 5)</button>
+            <button class="btn sm primary" id="posbtn">${RD.icon('store')} Venta rápida tienda</button>
+            <button class="btn sm danger" id="expbtn">${RD.icon('expense')} Registrar Gasto</button>
           </div>
         </div>
 

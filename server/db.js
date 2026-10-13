@@ -393,8 +393,17 @@ function seedRoutines() {
 }
 seedRoutines();
 
-// ---------- Respaldo automático diario ----------
+// ---------- Consolidación WAL y Respaldo automático ----------
+function checkpoint() {
+  try {
+    db.exec('PRAGMA wal_checkpoint(TRUNCATE);');
+  } catch (e) {
+    console.error('WAL checkpoint falló:', e.message);
+  }
+}
+
 function backup() {
+  checkpoint();
   const dir = path.join(DATA_DIR, 'backups');
   fs.mkdirSync(dir, { recursive: true });
   const f = path.join(dir, `rdfitness-${L.limaDay()}.db`);
@@ -490,6 +499,6 @@ function closeAttendanceSession(id, exitTime) {
 }
 
 module.exports = {
-  db, q, DATA_DIR, getSettings, numSettings, backup, seedExercises, nextReceiptNo, dailyPassCode,
+  db, q, DATA_DIR, getSettings, numSettings, backup, checkpoint, seedExercises, nextReceiptNo, dailyPassCode,
   getActiveShift, computeShiftTotals, getActiveAttendanceSession, closeAttendanceSession
 };
