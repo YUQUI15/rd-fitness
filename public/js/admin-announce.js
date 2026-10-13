@@ -135,6 +135,7 @@
                   </div>
                 </div>
                 <div class="row gap">
+                  ${!a.archived ? `<button class="btn sm" data-send-push="${a.id}" title="Enviar o reenviar notificación push al celular de los socios">📲 Enviar Push</button>` : ''}
                   ${!a.archived ? `<button class="btn sm" data-edit="${a.id}">✏️ Editar</button>` : ''}
                   <button class="btn sm ${a.archived ? 'ok' : 'danger'}" data-archive="${a.id}">${a.archived ? 'Desarchivar' : 'Archivar'}</button>
                 </div>
@@ -161,6 +162,24 @@
         }).join('')}
       </div>
     `;
+
+    host.querySelectorAll('[data-send-push]').forEach(b => {
+      b.onclick = async () => {
+        const id = b.dataset.sendPush;
+        const item = listCache.find(x => String(x.id) === id);
+        if (!item) return;
+        await RD.busy(b, async () => {
+          try {
+            const res = await RD.api.post(`/announcements/${id}/send-push`);
+            const p = res.push || {};
+            RD.toast(`📲 Notificaciones enviadas: ${p.sent || 0} entregadas (${p.skipped || 0} sin dispositivo suscrito)`, 'ok', 5000);
+            loadData(view);
+          } catch (err) {
+            RD.toast(err.message, 'err');
+          }
+        });
+      };
+    });
 
     host.querySelectorAll('[data-edit]').forEach(b => {
       b.onclick = () => {
@@ -291,7 +310,7 @@
             <span>📌 <b>Fijar al inicio de la bandeja</b> del socio</span>
           </label>
           <label class="check mt2">
-            <input type="checkbox" name="push" ${item?.push ? 'checked' : ''}>
+            <input type="checkbox" name="push" ${item ? (item.push ? 'checked' : '') : 'checked'}>
             <span>📲 <b>Enviar notificación Push al celular</b> de los socios suscritos (respeta horario nocturno y preferencias)</span>
           </label>
         </div>

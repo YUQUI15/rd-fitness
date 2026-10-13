@@ -4,7 +4,7 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const { DATA_DIR } = require('./db');
+const { DATA_DIR, saveVault } = require('./db');
 
 module.exports = function mountMemberHub(api, ctx) {
   const { q, bad, wrap, num, staff, memberAuth, loadSession, limited, memberPublic, audit, L, bcrypt, memberCode } = ctx;
@@ -324,7 +324,7 @@ module.exports = function mountMemberHub(api, ctx) {
 
     items.sort((a, b) => (b.pinned - a.pinned) || String(b.created_at).localeCompare(String(a.created_at)));
     const list = items.slice(0, 60);
-    const banner = list.find(i => i.source === 'gym' && i.priority === 'importante' && ['mantenimiento', 'cierre'].includes(i.kind) && !i.dismissed) || null;
+    const banner = list.find(i => i.source === 'gym' && i.priority === 'importante' && !i.dismissed) || null;
     return { items: list, unread: list.filter(i => !i.read).length, banner };
   }
 
@@ -517,8 +517,22 @@ module.exports = function mountMemberHub(api, ctx) {
     let push = null;
     const a = q.get('SELECT * FROM announcements WHERE id=?', id);
     if (d.push && (!d.starts_at || new Date(d.starts_at).getTime() <= Date.now())) push = await dispatchPush(a);
+    try { if (typeof saveVault === 'function') saveVault(); } catch {}
     res.json({ ok: true, id, push, push_enabled: pushEnabled() });
   }));
+
+  api.post('/announcements/:id/send-push', staff('admin', 'recepcion'), wrap(async (req, res) => {
+    const id = num(req.params.id);
+    const a = q.get('SELECT * FROM announcements WHERE id=?', id);
+    if (!a) return bad(res, 'Aviso no encontrado', 404);
+    q.run('UPDATE announcements SET push=1, push_sent=0 WHERE id=?', id);
+    const updated = q.get('SELECT * FROM announcements WHERE id=?', id);
+    const pushResult = await dispatchPush(updated);
+    audit(req.user.id, 'announcement.send_push', { id, pushResult });
+    try { if (typeof saveVault === 'function') saveVault(); } catch {}
+    res.json({ ok: true, id, push: pushResult, push_enabled: pushEnabled() });
+  }));
+
   api.put('/announcements/:id', staff('admin', 'recepcion'), wrap((req, res) => {
     const id = num(req.params.id);
     const cur = q.get('SELECT * FROM announcements WHERE id=?', id); if (!cur) return bad(res, 'Aviso no encontrado', 404);
@@ -526,12 +540,14 @@ module.exports = function mountMemberHub(api, ctx) {
     q.run(`UPDATE announcements SET kind=?,title=?,body=?,audience=?,member_id=?,priority=?,pinned=?,starts_at=?,ends_at=?,cta_label=?,cta_url=?,image_url=?,push=? WHERE id=?`,
       d.kind, d.title, d.body, d.audience, d.member_id, d.priority, d.pinned, d.starts_at, d.ends_at, d.cta_label, d.cta_url, d.image_url, cur.push_sent ? cur.push : d.push, id);
     audit(req.user.id, 'announcement.update', { id });
+    try { if (typeof saveVault === 'function') saveVault(); } catch {}
     res.json({ ok: true });
   }));
   api.delete('/announcements/:id', staff('admin', 'recepcion'), wrap((req, res) => {
     const id = num(req.params.id);
     q.run('UPDATE announcements SET archived=1 WHERE id=?', id);
     audit(req.user.id, 'announcement.archive', { id });
+    try { if (typeof saveVault === 'function') saveVault(); } catch {}
     res.json({ ok: true });
   }));
 };

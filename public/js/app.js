@@ -273,6 +273,21 @@
       </div>
     </div>
 
+    ${('Notification' in window) && Notification.permission === 'default' && !localStorage.getItem('rd_push_prompt_dismiss') ? `
+    <div class="card mb" id="push_prompt_card" style="background:linear-gradient(135deg,rgba(245,180,0,0.14),rgba(245,180,0,0.04));border:1px solid var(--gold);padding:14px;border-radius:10px">
+      <div class="row between wrap gap" style="align-items:center">
+        <div class="grow" style="min-width:200px">
+          <b style="color:var(--gold);display:flex;align-items:center;gap:6px">📲 ¿Activar Notificaciones al Celular?</b>
+          <p class="tiny muted" style="margin:4px 0 0">Entérate al instante de promociones 2x1, cambios de horario y avisos de RD Fitness.</p>
+        </div>
+        <div class="row gap">
+          <button class="btn sm ghost" id="btn_dismiss_push">Más tarde</button>
+          <button class="btn sm primary" id="btn_enable_push">🔔 Activar</button>
+        </div>
+      </div>
+    </div>
+    ` : ''}
+
     <!-- Novedades y Avisos Oficiales del Club -->
     <div id="pass_announcements_sec"></div>
 
@@ -296,39 +311,57 @@
       </p>
     </div>`;
 
-    // Cargar novedades oficiales en la pantalla principal
-    api.get('/member/inbox').then(inb => {
+    const dPush = el.querySelector('#btn_dismiss_push');
+    if (dPush) dPush.onclick = () => { localStorage.setItem('rd_push_prompt_dismiss', '1'); el.querySelector('#push_prompt_card')?.remove(); };
+    const ePush = el.querySelector('#btn_enable_push');
+    if (ePush) ePush.onclick = async () => {
+      try {
+        await RD.hub.enablePush();
+        RD.toast('¡Notificaciones al celular activadas con éxito! ✔', 'ok');
+        el.querySelector('#push_prompt_card')?.remove();
+      } catch (err) {
+        RD.toast(err.message, 'warn');
+      }
+    };
+
+    // Función global para refrescar novedades oficiales en tiempo real
+    const updateHeroAnnouncement = () => {
       const sec = el.querySelector('#pass_announcements_sec');
-      if (!sec || !inb || !inb.items) return;
-      const gymItems = inb.items.filter(i => i.source === 'gym' && !i.dismissed);
-      if (!gymItems.length) return;
-      const latest = gymItems[0];
-      const kindLabel = { aviso: 'Aviso', evento: 'Evento', tematica: 'Temática', promo: 'Promoción', mantenimiento: 'Mantenimiento', cierre: 'Atención' }[latest.kind] || 'Novedades';
-      const kindIcon = { aviso: '📢', evento: '🎉', tematica: '🎨', promo: '🏷️', mantenimiento: '🛠️', cierre: '⛔' }[latest.kind] || '📢';
-      sec.innerHTML = `
-        <div class="card mb" style="border-left: 4px solid var(--gold);background:var(--bg2)">
-          <div class="row between wrap gap mb2">
-            <span class="badge ${esc(latest.kind || 'aviso')}" style="font-weight:700">${kindIcon} ${esc(kindLabel)}</span>
-            <span class="tiny muted">${RD.ago(latest.created_at)}</span>
-          </div>
-          <b style="font-size:1.05rem;display:block;margin-bottom:6px">${esc(latest.title)}</b>
-          ${latest.image_url ? `
-            <div class="mb" style="max-height:190px;overflow:hidden;border-radius:8px;border:1px solid var(--line);background:var(--bg3);cursor:pointer;" id="ann_hero_img">
-              <img src="${esc(latest.image_url)}" style="width:100%;max-height:190px;object-fit:cover;display:block" alt="${esc(latest.title)}">
+      if (!sec) return;
+      api.get('/member/inbox').then(inb => {
+        if (!sec || !inb || !inb.items) return;
+        const gymItems = inb.items.filter(i => i.source === 'gym' && !i.dismissed);
+        if (!gymItems.length) { sec.innerHTML = ''; return; }
+        const latest = gymItems[0];
+        const kindLabel = { aviso: 'Aviso', evento: 'Evento', tematica: 'Temática', promo: 'Promoción', mantenimiento: 'Mantenimiento', cierre: 'Atención' }[latest.kind] || 'Novedades';
+        const kindIcon = { aviso: '📢', evento: '🎉', tematica: '🎨', promo: '🏷️', mantenimiento: '🛠️', cierre: '⛔' }[latest.kind] || '📢';
+        sec.innerHTML = `
+          <div class="card mb" style="border-left: 4px solid var(--gold);background:var(--bg2)">
+            <div class="row between wrap gap mb2">
+              <span class="badge ${esc(latest.kind || 'aviso')}" style="font-weight:700">${kindIcon} ${esc(kindLabel)}</span>
+              <span class="tiny muted">${RD.ago(latest.created_at)}</span>
             </div>
-          ` : ''}
-          ${latest.body ? `<div class="small muted mb" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4">${esc(latest.body)}</div>` : ''}
-          <div class="row between wrap gap mt2 pt2" style="border-top:1px solid var(--line);align-items:center">
-            <button class="btn sm ghost" id="btn_open_all_inb">Ver todos (${gymItems.length})</button>
-            <button class="btn sm primary" id="btn_open_hero_ann">👁️ Leer Comunicado</button>
+            <b style="font-size:1.05rem;display:block;margin-bottom:6px">${esc(latest.title)}</b>
+            ${latest.image_url ? `
+              <div class="mb" style="max-height:190px;overflow:hidden;border-radius:8px;border:1px solid var(--line);background:var(--bg3);cursor:pointer;" id="ann_hero_img">
+                <img src="${esc(latest.image_url)}" style="width:100%;max-height:190px;object-fit:cover;display:block" alt="${esc(latest.title)}">
+              </div>
+            ` : ''}
+            ${latest.body ? `<div class="small muted mb" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4">${esc(latest.body)}</div>` : ''}
+            <div class="row between wrap gap mt2 pt2" style="border-top:1px solid var(--line);align-items:center">
+              <button class="btn sm ghost" id="btn_open_all_inb">Ver todos (${gymItems.length})</button>
+              <button class="btn sm primary" id="btn_open_hero_ann">👁️ Leer Comunicado</button>
+            </div>
           </div>
-        </div>
-      `;
-      sec.querySelector('#btn_open_hero_ann').onclick = () => RD.hub.openAnnouncementModal(latest);
-      sec.querySelector('#btn_open_all_inb').onclick = () => RD.hub.openInbox();
-      const heroImg = sec.querySelector('#ann_hero_img');
-      if (heroImg) heroImg.onclick = () => RD.zoomImage(latest.image_url, latest.title);
-    }).catch(() => {});
+        `;
+        sec.querySelector('#btn_open_hero_ann').onclick = () => RD.hub.openAnnouncementModal(latest);
+        sec.querySelector('#btn_open_all_inb').onclick = () => RD.hub.openInbox();
+        const heroImg = sec.querySelector('#ann_hero_img');
+        if (heroImg) heroImg.onclick = () => RD.zoomImage(latest.image_url, latest.title);
+      }).catch(() => {});
+    };
+    RD.hub.updateHeroAnnouncement = updateHeroAnnouncement;
+    updateHeroAnnouncement();
 
     const setupLater = el.querySelector('#setuplater');
     if (setupLater) {

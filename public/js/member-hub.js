@@ -236,15 +236,27 @@
       try { await api.post('/member/inbox/dismiss', { ref: banner.ref }); } catch { }
     };
   }
+  let lastUnreadCount = null;
   H.refresh = async () => {
     if (!api) return;
-    try { const s = await api.get('/member/inbox/summary'); paintBell(s.unread); paintBanner(s.banner); } catch { }
+    try {
+      const s = await api.get('/member/inbox/summary');
+      if (lastUnreadCount !== null && typeof s.unread === 'number' && s.unread > lastUnreadCount) {
+        try { if (typeof RD.beep === 'function') RD.beep('bell'); } catch {}
+        try { RD.toast('📢 Nuevo comunicado oficial de RD Fitness Club', 'info', 6000); } catch {}
+      }
+      lastUnreadCount = s.unread;
+      paintBell(s.unread);
+      paintBanner(s.banner);
+      if (typeof H.updateHeroAnnouncement === 'function') H.updateHeroAnnouncement();
+    } catch { }
   };
-  // Sincronización suave: al abrir, al volver a la app y cada 90 s mientras está visible (sin sondeo en segundo plano)
+  // Sincronización ágil: al abrir, al volver a la app y cada 25 s mientras está visible
   H.start = (apiRef) => {
     api = apiRef; H.stop();
     H.refresh();
-    timer = setInterval(() => { if (!document.hidden) H.refresh(); }, 90000);
+    if (typeof H.autoSubscribe === 'function') H.autoSubscribe();
+    timer = setInterval(() => { if (!document.hidden) H.refresh(); }, 25000);
     document.addEventListener('visibilitychange', onVis);
     window.addEventListener('online', H.refresh);
   };
@@ -367,6 +379,25 @@
     let sub = await reg.pushManager.getSubscription();
     if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(cfg.publicKey) });
     await api.post('/member/push/subscribe', { subscription: sub.toJSON(), device_id: H.deviceId() });
+    return true;
+  };
+  H.autoSubscribe = async () => {
+    try {
+      if (!pushSupported()) return;
+      if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+      const cfg = await api.get('/member/push/config');
+      if (!cfg || !cfg.enabled) return;
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(cfg.publicKey) });
+      }
+      if (sub) {
+        await api.post('/member/push/subscribe', { subscription: sub.toJSON(), device_id: H.deviceId() });
+      }
+    } catch (e) {
+      console.warn('Auto-subscribe push notice:', e.message);
+    }
   };
   H.disablePush = async () => {
     const sub = await currentSub();
