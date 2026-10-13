@@ -168,7 +168,16 @@
   RD.toast = (msg, type = 'ok', ms = 3200) => {
     let box = document.getElementById('toasts');
     if (!box) { box = document.createElement('div'); box.id = 'toasts'; document.body.appendChild(box); }
-    const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg; box.appendChild(t);
+    while (box.children.length >= 2) {
+      box.firstElementChild.remove();
+    }
+    const t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.textContent = msg;
+    t.style.cursor = 'pointer';
+    t.title = 'Toca para cerrar';
+    t.onclick = () => { t.classList.add('out'); setTimeout(() => t.remove(), 200); };
+    box.appendChild(t);
     setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, ms);
   };
   RD.openModal = (title, html, opts = {}) => {
@@ -730,6 +739,7 @@
   // ==========================================
   RD.vault = {
     KEY: 'rd_fitness_vault_cache',
+    isRestoring: false,
 
     get() {
       try {
@@ -758,11 +768,16 @@
     },
 
     async checkAndRestore(currentTotal, onDone) {
+      if (this.isRestoring) return false;
+      if (sessionStorage.getItem('rd_restored_done')) return false;
+
       const v = this.get();
       if (!v || !Array.isArray(v.members) || v.members.length === 0) return false;
+
       if (typeof currentTotal === 'number' && currentTotal < v.members.length) {
+        this.isRestoring = true;
+        sessionStorage.setItem('rd_restored_done', '1');
         console.warn(`[VAULT] Servidor reporta ${currentTotal} socios, pero la bóveda local tiene ${v.members.length}. Auto-recuperando...`);
-        RD.toast(`⚠️ Servidor reiniciado en Render. Recuperando automáticamente ${v.members.length} socios desde tu bóveda local...`, 'info', 5000);
         try {
           const res = await RD.api.post('/backup/import-json', {
             data: {
@@ -771,14 +786,16 @@
               payments: v.payments || []
             }
           });
-          if (res && res.ok) {
-            RD.toast(`✔ ¡Bóveda restaurada con éxito! ${res.restoredMembers} socios sincronizados.`, 'ok', 6000);
+          if (res && res.ok && res.restoredMembers > 0) {
+            RD.toast(`✔ ¡Bóveda sincronizada! ${res.restoredMembers} socios asegurados.`, 'ok', 3500);
             if (typeof onDone === 'function') onDone();
+            this.isRestoring = false;
             return true;
           }
         } catch (err) {
           console.error('[VAULT] Error al auto-restaurar:', err);
         }
+        this.isRestoring = false;
       }
       return false;
     }

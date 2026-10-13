@@ -1801,8 +1801,17 @@ api.post('/backup/import-json', staff('admin'), wrap((req, res) => {
     }
     const colSet = new Set(colInfo);
     let count = 0;
-    for (const row of rows) {
-      if (!row || typeof row !== 'object') continue;
+    for (const r of rows) {
+      if (!r || typeof r !== 'object') continue;
+      const row = { ...r };
+      if (table === 'members') {
+        if (!row.qr_key) row.qr_key = L.randomKey();
+        if (!row.code) row.code = memberCode(row.id || (q.get('SELECT COALESCE(MAX(id),0)+1 n FROM members').n));
+        if (!row.status) row.status = 'active';
+      }
+      if (table === 'attendance') {
+        if (!row.uid) row.uid = 'att-' + require('crypto').randomBytes(12).toString('hex');
+      }
       const keys = Object.keys(row).filter(k => colSet.has(k));
       if (keys.length === 0) continue;
       const placeholders = keys.map(() => '?').join(', ');
@@ -1811,6 +1820,20 @@ api.post('/backup/import-json', staff('admin'), wrap((req, res) => {
       try {
         q.run(sql, ...vals);
         count++;
+
+        // Si es socio y traía fechas de membresía, asegurar que tenga su membresía activa registrada
+        if (table === 'members' && row.end_date) {
+          const hasMs = q.get('SELECT 1 x FROM memberships WHERE member_id=?', row.id);
+          if (!hasMs) {
+            try {
+              q.run('INSERT INTO memberships(member_id, plan_name, start_date, end_date, status) VALUES(?,?,?,?,?)',
+                row.id, row.plan_name || 'Membresía', row.start_date || L.limaDay(), row.end_date, 'active');
+            } catch {}
+          }
+          try {
+            q.run('INSERT OR IGNORE INTO member_prefs(member_id, show_promos, show_reminders, push_critical, push_news, push_promos, alert_mode) VALUES(?, 1, 1, 1, 1, 1, "sound")', row.id);
+          } catch {}
+        }
       } catch (e) {
         console.warn(`Aviso importando fila a ${table}:`, e.message);
       }

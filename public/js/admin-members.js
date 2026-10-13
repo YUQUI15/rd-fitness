@@ -62,7 +62,7 @@
       async function load() {
         const d = await RD.api.get(`/members?filter=${filter}&q=${encodeURIComponent(term)}&limit=200`);
         if (filter === 'all' && !term) {
-          if (RD.vault && typeof RD.vault.checkAndRestore === 'function') {
+          if (!sessionStorage.getItem('rd_restored_done') && RD.vault && typeof RD.vault.checkAndRestore === 'function') {
             const restored = await RD.vault.checkAndRestore(d.total, () => load());
             if (restored) return;
           }
