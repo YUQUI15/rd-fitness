@@ -47,8 +47,19 @@
           ¿Aún no estás registrado? Acércate a recepción en Calle Sucre Lt. 10 para obtener tu código y credencial.
         </div>
         <p class="center muted tiny mt">Personal del gimnasio: <a href="/admin/">Acceso al panel</a></p>
+        <div class="center mt2">
+          <button type="button" class="btn ghost sm" id="loginthemebtn" data-theme-toggle>${RD.getTheme && RD.getTheme() === 'light' ? '🌙 Modo Oscuro' : '☀️ Modo Claro (Pastel)'}</button>
+        </div>
       </form>
     </div>`;
+
+    const ltb = document.getElementById('loginthemebtn');
+    if (ltb) {
+      ltb.onclick = () => {
+        RD.toggleTheme();
+        ltb.textContent = RD.getTheme() === 'light' ? '🌙 Modo Oscuro' : '☀️ Modo Claro (Pastel)';
+      };
+    }
 
     document.getElementById('mlf').onsubmit = async e => {
       e.preventDefault();
@@ -80,11 +91,13 @@
 
   // ---------------- NAVEGACIÓN Y ESTRUCTURA ----------------
   function layout() {
+    const isLight = RD.getTheme && RD.getTheme() === 'light';
     root.innerHTML = `
     <div>
       <header class="topbar">
         <img src="/logo.svg" alt="RD">
         <div class="t" id="apptitle">RD FITNESS CLUB</div>
+        <button class="icon-btn theme-toggle" id="appthemetoggle" data-theme-toggle title="${isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro (Pastel)'}">${isLight ? '🌙' : '☀️'}</button>
         <button class="icon-btn" id="logoutbtn" title="Cerrar sesión">✕</button>
       </header>
       <main class="page" id="mainview"></main>
@@ -99,6 +112,8 @@
     document.querySelectorAll('.nav button').forEach(b => {
       b.onclick = () => switchTab(b.dataset.tab);
     });
+
+    document.getElementById('appthemetoggle').onclick = () => RD.toggleTheme();
 
     document.getElementById('logoutbtn').onclick = async () => {
       if (await RD.confirm('Cerrar sesión', '¿Deseas salir de tu cuenta en este dispositivo?', 'Salir', true)) {
@@ -528,9 +543,25 @@
       </div>
     </div>
 
+    <div class="card mb">
+      <h3>Apariencia</h3>
+      <div class="row between">
+        <span>Tema visual (Modo Claro / Oscuro):</span>
+        <button class="btn sm" id="profilethemebtn">${RD.getTheme && RD.getTheme() === 'light' ? '🌙 Modo Oscuro' : '☀️ Modo Claro (Pastel)'}</button>
+      </div>
+    </div>
+
     <div class="grid gap">
       <button class="btn danger block" id="outbtn">Cerrar Sesión</button>
     </div>`;
+
+    const ptb = el.querySelector('#profilethemebtn');
+    if (ptb) {
+      ptb.onclick = () => {
+        RD.toggleTheme();
+        ptb.textContent = RD.getTheme() === 'light' ? '🌙 Modo Oscuro' : '☀️ Modo Claro (Pastel)';
+      };
+    }
 
     el.querySelector('#outbtn').onclick = async () => {
       if (await RD.confirm('Cerrar sesión', '¿Deseas cerrar tu sesión?', 'Salir', true)) {

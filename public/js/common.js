@@ -598,4 +598,44 @@
 
   RD.registerSW = () => { if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => { }); };
   RD.GROUP_ICON = { Piernas: '🦵', Glúteos: '🍑', Pecho: '💪', Espalda: '🧗', Hombros: '🏋️', Bíceps: '💪', Tríceps: '💪', Core: '🔥', Cardio: '🏃', Movilidad: '🧘', Otros: '⭐' };
+
+  // ---------- Sistema de Tema (Claro / Oscuro) ----------
+  RD.getTheme = () => document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  RD.setTheme = (theme, notify = false) => {
+    const isLight = theme === 'light';
+    if (isLight) {
+      document.documentElement.setAttribute('data-theme', 'light');
+      localStorage.setItem('rd_theme', 'light');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('rd_theme', 'dark');
+    }
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) metaTheme.setAttribute('content', isLight ? '#FAF7FA' : '#0b0b0d');
+
+    document.querySelectorAll('[data-theme-toggle], #themetoggle, #appthemetoggle, .theme-toggle').forEach(btn => {
+      btn.innerHTML = isLight ? '🌙' : '☀️';
+      btn.title = isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro (Pastel)';
+    });
+
+    if (notify) {
+      RD.toast(isLight ? '☀️ Modo Claro activado (Paleta Pastel)' : '🌙 Modo Oscuro activado');
+    }
+  };
+
+  RD.toggleTheme = () => {
+    const current = RD.getTheme();
+    RD.setTheme(current === 'light' ? 'dark' : 'light', true);
+  };
+
+  RD.initTheme = () => {
+    const saved = localStorage.getItem('rd_theme');
+    if (saved === 'light') {
+      RD.setTheme('light', false);
+    } else {
+      RD.setTheme('dark', false);
+    }
+  };
+
+  RD.initTheme();
 })();

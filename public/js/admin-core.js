@@ -108,20 +108,30 @@
   };
   function layout() {
     const items = Object.entries(NAV).filter(([, v]) => v[2].includes(RD.user.role));
+    const isLight = RD.getTheme && RD.getTheme() === 'light';
     root.innerHTML = `
     <div class="admin">
       <header class="topbar"><img src="/logo.svg" alt=""><div class="t" id="title">${esc(RD.pub.gym_name || 'RD Fitness Club')}</div><span id="net" class="net">…</span>
+        <button class="icon-btn theme-toggle" id="themetoggle" data-theme-toggle title="${isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro (Pastel)'}">${isLight ? '🌙' : '☀️'}</button>
         <button class="icon-btn" id="who" title="${esc(RD.user.name)}">👤</button></header>
       <main class="page" id="view"></main>
       <nav class="nav">${items.map(([k, v]) => `<button data-v="${k}"><span class="i">${v[0]}</span>${v[1]}</button>`).join('')}</nav>
     </div>`;
     document.querySelectorAll('.nav button').forEach(b => b.onclick = () => go(b.dataset.v));
+    $('#themetoggle').onclick = () => RD.toggleTheme();
     $('#who').onclick = userMenu;
     updateNet();
   }
   function userMenu() {
+    const isLight = RD.getTheme && RD.getTheme() === 'light';
     const m = RD.openModal(RD.user.name, `<p class="muted">Rol: <b>${esc(RD.user.role)}</b></p>
-      <div class="grid"><button class="btn" id="cp">Cambiar contraseña</button><button class="btn" id="rf">Actualizar datos ahora</button><button class="btn danger" id="lo">Cerrar sesión</button></div>`);
+      <div class="grid">
+        <button class="btn" id="tm">${isLight ? '🌙 Modo Oscuro' : '☀️ Modo Claro (Paleta Pastel)'}</button>
+        <button class="btn" id="cp">Cambiar contraseña</button>
+        <button class="btn" id="rf">Actualizar datos ahora</button>
+        <button class="btn danger" id="lo">Cerrar sesión</button>
+      </div>`);
+    m.el.querySelector('#tm').onclick = () => { m.close(); RD.toggleTheme(); };
     m.el.querySelector('#lo').onclick = () => { m.close(); logout(); };
     m.el.querySelector('#rf').onclick = async () => { try { await RD.flushScans(); await RD.syncMembers(); RD.toast('Datos actualizados'); } catch (e) { RD.toast(e.message, 'err'); } };
     m.el.querySelector('#cp').onclick = () => { m.close(); changePassword(); };
