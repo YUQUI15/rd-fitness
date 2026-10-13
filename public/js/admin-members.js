@@ -61,15 +61,6 @@
       const list = view.querySelector('#list');
       async function load() {
         const d = await RD.api.get(`/members?filter=${filter}&q=${encodeURIComponent(term)}&limit=200`);
-        if (filter === 'all' && !term) {
-          if (!sessionStorage.getItem('rd_restored_done') && RD.vault && typeof RD.vault.checkAndRestore === 'function') {
-            const restored = await RD.vault.checkAndRestore(d.total, () => load());
-            if (restored) return;
-          }
-          if (RD.vault && d.members && d.members.length > 0) {
-            RD.vault.save(d.members);
-          }
-        }
         view.querySelector('#cnt').textContent = `${d.total} socio${d.total === 1 ? '' : 's'}${d.total > 200 ? ' (mostrando 200, usa el buscador)' : ''}`;
         list.innerHTML = d.members.map(m => `<div class="item click" data-id="${m.id}">${avatar(m)}<div class="grow"><b>${esc(m.name)}</b>
           <div class="muted small">${esc(m.code)} · DNI ${esc(m.dni || '—')}${m.plan_name ? ' · ' + esc(m.plan_name) : ''}</div></div>
