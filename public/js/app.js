@@ -1,4 +1,4 @@
-/* RD Fitness Club - Aplicación del Socio (PWA Móvil) */
+/* RD Fitness Club - Aplicación del Socio (PWA Móvil de Élite) */
 (function () {
   const RD = window.RD;
   const { esc, money } = RD;
@@ -31,7 +31,7 @@
     <div class="auth">
       <form class="box" id="mlf" autocomplete="on">
         <div class="brand">
-          <img class="logo" src="/logo.svg" alt="RD">
+          <img class="logo" src="/logo.svg" alt="RD" style="height:48px;width:48px;max-height:48px;max-width:48px;object-fit:contain;margin:0 auto .6rem" width="48" height="48">
           <h1>RD FITNESS CLUB</h1>
           <p>Tu credencial y entrenador digital · Chivay</p>
         </div>
@@ -48,7 +48,7 @@
         <button class="btn primary block" type="submit">Ingresar a mi App</button>
         <p class="center small mt2"><a href="#" id="forgot">¿Olvidaste tu contraseña?</a></p>
         <button type="button" class="btn ghost sm mt2 block" id="btn_login_install">📲 ¿Cómo instalar la App en tu Celular o PC?</button>
-        <p class="center muted tiny mt2">Este dispositivo recordará tu sesión: no tendrás que ingresar cada vez.</p>
+        <p class="center muted tiny mt2">Este dispositivo recordará tu sesión de forma segura.</p>
         <div class="card flat mt center small muted">
           ¿Aún no estás registrado? Acércate a recepción en Calle Sucre Lt. 10 para obtener tu código y credencial.
         </div>
@@ -92,7 +92,6 @@
     boot();
   }
 
-  // Si el servidor rechaza el token (401) se intenta recuperar la sesión de este dispositivo antes de pedir login
   let recovering = false;
   async function handleAuthFail() {
     if (recovering) return;
@@ -114,7 +113,7 @@
     showLogin(auto ? 'Tu sesión terminó. Ingresa de nuevo.' : '');
   }
 
-  // ---------------- NAVEGACIÓN Y ESTRUCTURA ----------------
+  // ---------------- NAVEGACIÓN Y ESTRUCTURA (5 TABS PROFESIONALES) ----------------
   function layout() {
     const isLight = RD.getTheme && RD.getTheme() === 'light';
     root.innerHTML = `
@@ -133,6 +132,7 @@
         <button data-tab="pass" class="on"><span class="i">🪪</span>Acceso</button>
         <button data-tab="train"><span class="i">🏋️</span>Entrenar</button>
         <button data-tab="progress"><span class="i">📈</span>Progreso</button>
+        <button data-tab="tools"><span class="i">🧮</span>Herramientas</button>
         <button data-tab="profile"><span class="i">👤</span>Perfil</button>
       </nav>
     </div>`;
@@ -158,11 +158,12 @@
     clearInterval(qrTimer);
     document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
     const main = document.getElementById('mainview');
-    main.innerHTML = '<div class="empty">Cargando…</div>';
+    main.innerHTML = '<div class="empty" style="padding-top:25vh">Cargando…</div>';
 
     if (tab === 'pass') await renderPassTab(main);
     else if (tab === 'train') await renderTrainTab(main);
     else if (tab === 'progress') await renderProgressTab(main);
+    else if (tab === 'tools') await renderToolsTab(main);
     else if (tab === 'profile') await renderProfileTab(main);
   }
 
@@ -196,7 +197,7 @@
         <div style="font-size:1.6rem">✨</div>
         <div class="grow">
           <b>Crea tu usuario y contraseña</b>
-          <div class="small muted">Ingresa con tu propio alias y protege tu cuenta. Tu código ${esc(member.code)} no cambia.</div>
+          <div class="small muted">Ingresa con tu propio alias y protege tu cuenta. Tu código ${esc(member.code)} y tu DNI no cambian.</div>
         </div>
       </div>
       <div class="row end gap mt2">
@@ -204,9 +205,10 @@
         <button class="btn sm primary" id="setupnow">Configurar</button>
       </div>
     </div>` : ''}
+
     <div class="idcard">
       <div class="row between">
-        <img src="/logo.svg" style="height:32px" alt="RD">
+        <img src="/logo.svg" style="height:32px;width:32px;object-fit:contain" alt="RD" width="32" height="32">
         <span class="tag-loc" style="font-size:10px;font-weight:700;color:var(--gold)">CHIVAY</span>
       </div>
 
@@ -222,7 +224,7 @@
       <div class="countdown" title="Código de seguridad dinámico">
         <i id="cdbar" style="width:100%"></i>
       </div>
-      <div class="muted tiny mt2 center">El código se renueva cada 60 s para evitar capturas</div>
+      <div class="muted tiny mt2 center">El código se renueva automáticamente cada 60 s para seguridad</div>
 
       <div class="statusbar ${st} mt">
         <div style="font-size:1.1rem;font-weight:900">${isOk ? '✔ MEMBRESÍA VIGENTE' : isWarn ? '⚠ POR VENCER' : '✖ NO VIGENTE'}</div>
@@ -236,11 +238,25 @@
       </div>` : ''}
     </div>
 
-    <!-- Estadísticas de constancia del socio -->
-    <div class="grid g3 keep mt mb">
+    <!-- Acceso Rápido a Entrenar Hoy -->
+    <div class="card mt mb" style="background:linear-gradient(135deg,rgba(183,110,121,0.15),rgba(2,132,199,0.1));border-color:var(--gold)">
+      <div class="row between mb">
+        <div>
+          <b style="font-size:1.05rem">🏋️ ¿Listo para entrenar hoy?</b>
+          <div class="small muted">Registra tus series, pesos y descansos con cronómetro automático.</div>
+        </div>
+      </div>
+      <div class="grid g2 keep gap">
+        <button class="btn primary" id="btn_quick_train">▶ Seguir Mi Rutina</button>
+        <button class="btn" id="btn_quick_free">⚡ Sesión Libre</button>
+      </div>
+    </div>
+
+    <!-- Estadísticas de Constancia -->
+    <div class="grid g3 keep mb">
       <div class="stat gold">
         <div class="v">🔥 ${fresh.stats?.streak_weeks || 0}</div>
-        <div class="l">Semanas seguidas</div>
+        <div class="l">Semanas racha</div>
       </div>
       <div class="stat">
         <div class="v">🏃 ${fresh.stats?.visits_30 || 0}</div>
@@ -252,7 +268,18 @@
       </div>
     </div>
 
-    <div class="card mt">
+    <!-- Enlaces directos a Boleta y Gimnasio -->
+    <div class="card mb">
+      <div class="row between">
+        <div>
+          <b>🧾 Tu comprobante y boleta de pago</b>
+          <div class="tiny muted">Revisa tu última boleta digital de pago en formato térmico.</div>
+        </div>
+        <button class="btn sm ok" id="btn_quick_receipt">Ver Boleta</button>
+      </div>
+    </div>
+
+    <div class="card">
       <h3>📍 RD Fitness Club - Chivay</h3>
       <p class="muted small">
         Calle Antonio José de Sucre Lt. 10 (al costado de discoteca Muya).<br>
@@ -268,6 +295,16 @@
         member = m; localStorage.setItem('rd_member_data', JSON.stringify(m)); el.querySelector('#setupcard')?.remove();
       }, { first: true });
     }
+
+    el.querySelector('#btn_quick_train').onclick = () => switchTab('train');
+    el.querySelector('#btn_quick_free').onclick = async () => {
+      const exList = await getExercises();
+      const exMap = Object.fromEntries(exList.map(e => [e.id, e]));
+      let lastWeights = {};
+      try { lastWeights = await api.get('/member/last-weights'); } catch {}
+      RD.startFreeWorkout({ exercises: exMap, lastWeights, onFinish: p => api.post('/member/workouts', p) });
+    };
+    el.querySelector('#btn_quick_receipt').onclick = () => RD.hub.openReceipts();
 
     const qrBox = el.querySelector('#qrcodebox');
     const cdBar = el.querySelector('#cdbar');
@@ -292,17 +329,20 @@
     qrTimer = setInterval(tick, 1000);
   }
 
-  // ---------------- TAB 2: ENTRENAMIENTO Y RUTINAS ----------------
+  // ---------------- TAB 2: ENTRENAR (RUTINAS, SESIÓN LIBRE, ASISTENTE, BIBLIOTECA) ----------------
   async function renderTrainTab(el) {
     const [routinesData, exList] = await Promise.all([
       api.get('/member/routines'),
       getExercises()
     ]);
+    const exMap = Object.fromEntries(exList.map(e => [e.id, e]));
 
     el.innerHTML = `
     <div class="chips mb" id="ttabs">
       <span class="chip on" data-tt="my">Mi Rutina</span>
-      <span class="chip" data-tt="templates">Explorar Rutinas</span>
+      <span class="chip" data-tt="free">⚡ Sesión Libre</span>
+      <span class="chip" data-tt="wizard">🤖 Asistente de Plan</span>
+      <span class="chip" data-tt="templates">Explorar Plantillas (${routinesData.templates.length})</span>
       <span class="chip" data-tt="exercises">Biblioteca (${exList.length})</span>
       <span class="chip" data-tt="timers">Cronómetros</span>
     </div>
@@ -315,6 +355,10 @@
 
       if (tab === 'my') {
         renderMyRoutine(subview, routinesData.mine, exList);
+      } else if (tab === 'free') {
+        renderFreeWorkoutLauncher(subview, exMap);
+      } else if (tab === 'wizard') {
+        renderSmartRoutineWizard(subview, routinesData.templates);
       } else if (tab === 'templates') {
         renderRoutineTemplates(subview, routinesData.templates);
       } else if (tab === 'exercises') {
@@ -337,12 +381,16 @@
   async function renderMyRoutine(el, mine, exList) {
     if (!mine.length) {
       el.innerHTML = `
-      <div class="card center" style="padding:2.5rem 1rem">
+      <div class="card center mb" style="padding:2.5rem 1rem">
         <h3>Aún no tienes una rutina asignada</h3>
-        <p class="muted small mb">El entrenador puede asignarte una personalizada en el gimnasio, o puedes elegir una de las plantillas oficiales ahora mismo.</p>
-        <button class="btn primary" id="pickplan">Explorar Rutinas Disponibles</button>
+        <p class="muted small mb">Puedes elegir una de las 10 rutinas profesionales creadas por entrenadores o usar nuestro Asistente Inteligente.</p>
+        <div class="row gap mt" style="justify-content:center">
+          <button class="btn primary" id="pickplan">Explorar Plantillas Oficiales</button>
+          <button class="btn" id="open_wiz_btn">🤖 Asistente de Plan</button>
+        </div>
       </div>`;
       el.querySelector('#pickplan').onclick = () => document.querySelector('[data-tt="templates"]').click();
+      el.querySelector('#open_wiz_btn').onclick = () => document.querySelector('[data-tt="wizard"]').click();
       return;
     }
 
@@ -354,7 +402,7 @@
     <div class="card mb">
       <div class="row between">
         <span class="badge ok">Rutina Asignada</span>
-        <span class="badge info">${esc(full.level)}</span>
+        <span class="badge info">${esc(full.level)} · ${full.days_per_week || full.days.length} días/sem</span>
       </div>
       <h2 class="mt2" style="margin-bottom:.2rem">${esc(full.name)}</h2>
       <p class="muted small">${esc(full.goal || full.description || '')}</p>
@@ -370,8 +418,8 @@
           <span class="badge">${d.items.length} ejercicios</span>
         </div>
         <div class="list small mb">
-          ${d.items.slice(0, 4).map(it => `<div class="item"><span>${esc(it.nombre)}</span> <span class="muted tiny">${it.sets}×${esc(it.reps)}</span></div>`).join('')}
-          ${d.items.length > 4 ? `<div class="item muted tiny">＋ ${d.items.length - 4} más…</div>` : ''}
+          ${d.items.slice(0, 5).map(it => `<div class="item"><span>${esc(it.nombre)}</span> <span class="muted tiny">${it.sets}×${esc(it.reps)}</span></div>`).join('')}
+          ${d.items.length > 5 ? `<div class="item muted tiny">＋ ${d.items.length - 5} ejercicios más…</div>` : ''}
         </div>
         <button class="btn primary block" data-startday="${di}">▶ Iniciar Entrenamiento Guiado</button>
       </div>`).join('')}
@@ -390,10 +438,132 @@
         dayIndex: di,
         lastWeights,
         exercises: exMap,
-        onFinish: async (payload) => {
-          return await api.post('/member/workouts', payload);
-        }
+        onFinish: async payload => api.post('/member/workouts', payload)
       });
+    };
+  }
+
+  function renderFreeWorkoutLauncher(el, exMap) {
+    el.innerHTML = `
+    <div class="card center mb" style="padding:2.5rem 1rem">
+      <div style="font-size:3rem">⚡</div>
+      <h2>Entrenamiento Libre / Registro Rápido</h2>
+      <p class="muted small mb" style="max-width:440px;margin:0 auto .8rem">
+        ¿Quieres hacer un entrenamiento espontáneo hoy sin ceñirte a una rutina fija?
+        Selecciona ejercicios al vuelo de nuestra biblioteca de más de 85 ejercicios, registra tus series y pesos con cronómetro automático, y se guardará en tu historial y récords personales.
+      </p>
+      <button class="btn ok lg" id="btn_start_free_act" style="font-size:1.1rem;padding:0.9rem 1.8rem">▶ Iniciar Sesión Libre Ahora</button>
+    </div>`;
+
+    el.querySelector('#btn_start_free_act').onclick = async () => {
+      let lastWeights = {};
+      try { lastWeights = await api.get('/member/last-weights'); } catch {}
+      RD.startFreeWorkout({ exercises: exMap, lastWeights, onFinish: p => api.post('/member/workouts', p) });
+    };
+  }
+
+  function renderSmartRoutineWizard(el, templates) {
+    el.innerHTML = `
+    <div class="card mb">
+      <h3>🤖 Asistente Inteligente de Rutinas</h3>
+      <p class="muted small mb">Responde 3 preguntas y te recomendaremos el plan científicamente óptimo para ti.</p>
+
+      <div class="mb">
+        <b>1. ¿Cuál es tu objetivo principal?</b>
+        <div class="grid mt2">
+          <div class="wizard-option selected" data-wz-goal="hipertrofia">
+            <span style="font-size:1.5rem">💪</span>
+            <div><b>Ganar Masa Muscular & Hipertrofia</b><div class="tiny muted">Volumen muscular, desarrollo estético y proporción</div></div>
+          </div>
+          <div class="wizard-option" data-wz-goal="grasa">
+            <span style="font-size:1.5rem">🔥</span>
+            <div><b>Perder Grasa & Tonificación</b><div class="tiny muted">Déficit calórico, circuitos metabólicos y quema de grasa</div></div>
+          </div>
+          <div class="wizard-option" data-wz-goal="fuerza">
+            <span style="font-size:1.5rem">🏋️</span>
+            <div><b>Fuerza Máxima (Powerbuilding)</b><div class="tiny muted">Levantamiento pesado de sentadilla, banca y peso muerto</div></div>
+          </div>
+          <div class="wizard-option" data-wz-goal="gluteo">
+            <span style="font-size:1.5rem">🍑</span>
+            <div><b>Glúteos & Tren Inferior Pro</b><div class="tiny muted">Especialización en glúteos redondos, femorales y cintura fina</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb">
+        <b>2. ¿Cuántos días por semana puedes entrenar?</b>
+        <div class="chips mt2" id="wz_days_chips">
+          <span class="chip on" data-wz-days="3">3 días</span>
+          <span class="chip" data-wz-days="4">4 días</span>
+          <span class="chip" data-wz-days="6">6 días</span>
+        </div>
+      </div>
+
+      <div class="mb">
+        <b>3. Tu nivel de experiencia en gimnasio:</b>
+        <div class="chips mt2" id="wz_lev_chips">
+          <span class="chip on" data-wz-lev="principiante">Principiante (0 - 6 meses)</span>
+          <span class="chip" data-wz-lev="intermedio">Intermedio (6m - 2 años)</span>
+          <span class="chip" data-wz-lev="avanzado">Avanzado (+2 años)</span>
+        </div>
+      </div>
+
+      <button class="btn primary block lg mt" id="wz_recommend_btn">Recomendar Mi Rutina Ideal</button>
+    </div>
+
+    <div id="wz_result_box"></div>`;
+
+    el.querySelectorAll('.wizard-option').forEach(opt => {
+      opt.onclick = () => {
+        el.querySelectorAll('.wizard-option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+      };
+    });
+    el.querySelector('#wz_days_chips').onclick = e => {
+      const c = e.target.closest('[data-wz-days]');
+      if (!c) return;
+      el.querySelectorAll('#wz_days_chips .chip').forEach(x => x.classList.toggle('on', x === c));
+    };
+    el.querySelector('#wz_lev_chips').onclick = e => {
+      const c = e.target.closest('[data-wz-lev]');
+      if (!c) return;
+      el.querySelectorAll('#wz_lev_chips .chip').forEach(x => x.classList.toggle('on', x === c));
+    };
+
+    el.querySelector('#wz_recommend_btn').onclick = () => {
+      const goal = el.querySelector('.wizard-option.selected')?.dataset.wzGoal || 'hipertrofia';
+      const days = parseInt(el.querySelector('#wz_days_chips .chip.on')?.dataset.wzDays || '3', 10);
+      const lev = el.querySelector('#wz_lev_chips .chip.on')?.dataset.wzLev || 'principiante';
+
+      let match = templates.find(t => {
+        const tName = t.name.toLowerCase();
+        if (goal === 'gluteo' && tName.includes('glúteo')) return true;
+        if (goal === 'fuerza' && tName.includes('fuerza')) return true;
+        if (goal === 'grasa' && (tName.includes('grasa') || tName.includes('exprés'))) return true;
+        if (days === 6 && tName.includes('6 días')) return true;
+        if (days === 4 && tName.includes('4 días')) return true;
+        return false;
+      }) || templates[0];
+
+      const resBox = el.querySelector('#wz_result_box');
+      resBox.innerHTML = `
+        <div class="card mb" style="border:2px solid var(--gold);background:rgba(183,110,121,0.08)">
+          <div class="badge ok mb">Plan Recomendado para Ti</div>
+          <h2>${esc(match.name)}</h2>
+          <p class="muted small">${esc(match.description || match.goal)}</p>
+          <div class="chips mb">
+            <span class="badge info">${esc(match.level)}</span>
+            <span class="badge">📅 ${match.days} días / semana</span>
+          </div>
+          <button class="btn ok block lg" id="wz_apply_btn">✔ Activar y Comenzar Este Plan</button>
+        </div>`;
+
+      resBox.querySelector('#wz_apply_btn').onclick = async () => {
+        await api.post(`/member/routines/${match.id}/follow`);
+        RD.toast('¡Rutina recomendada activada con éxito! ✔');
+        document.querySelector('[data-tt="my"]').click();
+      };
+      resBox.scrollIntoView({ behavior: 'smooth' });
     };
   }
 
@@ -423,12 +593,12 @@
       if (act === 'viewtpl') {
         const full = await api.get('/routines/' + rid);
         RD.openModal(full.name, `
-          <div class="muted small mb">${esc(full.goal || '')}</div>
+          <div class="muted small mb">${esc(full.goal || full.description || '')}</div>
           ${full.days.map((d, di) => `
           <div class="card flat mt mb">
             <h4>${esc(d.title || `Día ${di + 1}`)} (${d.items.length} ejercicios)</h4>
             <div class="list">
-              ${d.items.map(it => `<div class="item"><b>${esc(it.nombre)}</b> <span class="muted small">${it.sets}×${esc(it.reps)}</span></div>`).join('')}
+              ${d.items.map(it => `<div class="item"><b>${esc(it.nombre)}</b> <span class="muted small">${it.sets}×${esc(it.reps)} ${it.rest ? `(${it.rest}s descanso)` : ''}</span></div>`).join('')}
             </div>
           </div>`).join('')}
         `);
@@ -442,139 +612,323 @@
     };
   }
 
-  // ---------------- TAB 3: PROGRESO Y RÉCORDS ----------------
+  // ---------------- TAB 3: PROGRESO Y RÉCORDS (GRÁFICOS, MEDIDAS, PRs) ----------------
   async function renderProgressTab(el) {
-    const [prs, workouts, measurements, attendance, payments] = await Promise.all([
+    const [prs, workouts, measurements, attendance, payments, analytics] = await Promise.all([
       api.get('/member/prs').catch(() => []),
       api.get('/member/workouts').catch(() => []),
       api.get('/member/measurements').catch(() => []),
       api.get('/member/attendance').catch(() => []),
-      api.get('/member/payments').catch(() => [])
+      api.get('/member/payments').catch(() => []),
+      api.get('/member/analytics').catch(() => ({ muscleDistribution: [], weeklyVolume: [] }))
     ]);
 
     el.innerHTML = `
-    <!-- Récords Personales (PRs) -->
-    <div class="card mb">
-      <h3>🏆 Récords Personales (Máximos pesos levantados)</h3>
-      <div class="list">
-        ${prs.map(p => `
-        <div class="item">
-          <span class="grow"><b>${esc(p.nombre)}</b></span>
-          <span class="gold" style="font-size:1.2rem;font-weight:900">${p.weight} kg</span>
-        </div>`).join('') || '<div class="empty">Registra tus entrenamientos para desbloquear tus récords.</div>'}
-      </div>
+    <div class="chips mb" id="ptabs">
+      <span class="chip on" data-pt="charts">📊 Gráficos de Evolución</span>
+      <span class="chip" data-pt="prs">🏆 Récords (PRs)</span>
+      <span class="chip" data-pt="body">📏 Medidas Corporales (${measurements.length})</span>
+      <span class="chip" data-pt="history">📋 Historial (${workouts.length})</span>
+      <span class="chip" data-pt="payments">💳 Pagos (${payments.length})</span>
     </div>
+    <div id="progresssubview"></div>`;
 
-    <!-- Registro de peso y medidas corporales -->
-    <div class="card mb">
-      <div class="row between mb">
-        <h3>Evolución Corporal</h3>
-        <button class="btn sm primary" id="addm">＋ Registrar Medidas</button>
-      </div>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>Fecha</th><th>Peso</th><th>Cintura</th><th>Pecho</th><th>Brazo</th></tr></thead>
-          <tbody>
-            ${measurements.map(m => `
-            <tr>
-              <td>${RD.fmtDate(m.day)}</td>
-              <td style="font-weight:700">${m.weight ? m.weight + ' kg' : '—'}</td>
-              <td>${m.waist ? m.waist + ' cm' : '—'}</td>
-              <td>${m.chest ? m.chest + ' cm' : '—'}</td>
-              <td>${m.arm ? m.arm + ' cm' : '—'}</td>
-            </tr>`).join('') || '<tr><td colspan="5" class="empty">Sin medidas registradas aún</td></tr>'}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    const subview = el.querySelector('#progresssubview');
 
-    <!-- Historial de entrenamientos -->
-    <div class="card mb">
-      <h3>Sesiones de Entrenamiento Completadas (${workouts.length})</h3>
-      <div class="list">
-        ${workouts.slice(0, 10).map(w => `
-        <div class="item">
-          <div class="grow">
-            <b>${esc(w.title)}</b>
-            <div class="muted small">${RD.fmtDate(w.day)} · Duración: ${RD.fmtDur(w.duration_sec)}</div>
+    function showSubTab(tab) {
+      el.querySelectorAll('#ptabs .chip').forEach(c => c.classList.toggle('on', c.dataset.pt === tab));
+
+      if (tab === 'charts') {
+        subview.innerHTML = `
+          <!-- Gráfico de Peso Corporal -->
+          <div class="card mb">
+            <div class="row between">
+              <h3>Curva de Peso Corporal</h3>
+              <button class="btn sm ghost" id="btn_add_meas_quick">＋ Registrar Peso</button>
+            </div>
+            ${RD.renderWeightSvgChart(measurements)}
           </div>
-          <div class="right">
-            <span class="badge info">${Math.round(w.volume)} kg</span>
+
+          <!-- Gráfico de Volumen de Carga Semanal -->
+          <div class="card mb">
+            <h3>Volumen Semanal de Cargas (Kg Levantados)</h3>
+            <p class="muted tiny">Muestra el trabajo acumulado por semana para verificar la sobrecarga progresiva.</p>
+            ${RD.renderVolumeSvgChart(analytics.weeklyVolume)}
           </div>
-        </div>`).join('') || '<div class="empty">Aún no has completado entrenamientos guiados</div>'}
-      </div>
-    </div>
 
-    <!-- Historial de asistencias -->
-    <div class="card mb">
-      <h3>Historial de Asistencias en el Gimnasio</h3>
-      <div class="list small">
-        ${attendance.slice(0, 15).map(a => `
-        <div class="item">
-          <span class="badge ok">Presente</span>
-          <span class="grow">${RD.fmtDateTime(a.ts)}</span>
-        </div>`).join('') || '<div class="empty">Sin asistencias registradas</div>'}
-      </div>
-    </div>
+          <!-- Gráfico de Distribución Muscular -->
+          <div class="card mb">
+            <h3>Distribución de Series por Grupo Muscular</h3>
+            <p class="muted tiny">Asegura que tu entrenamiento esté balanceado y sin descompensaciones posturales.</p>
+            ${RD.renderMuscleDistribution(analytics.muscleDistribution)}
+          </div>`;
 
-    <!-- Historial de pagos -->
-    <div class="card">
-      <h3>Tus Pagos y Membresías</h3>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Método</th></tr></thead>
-          <tbody>
-            ${payments.map(p => `
-            <tr>
-              <td>${RD.fmtDate(p.day)}</td>
-              <td><b>${esc(p.concept)}</b></td>
-              <td style="font-weight:700">${money(p.amount)}</td>
-              <td><span class="badge">${esc(p.method)}</span></td>
-            </tr>`).join('') || '<tr><td colspan="4" class="empty">Sin pagos</td></tr>'}
-          </tbody>
-        </table>
-      </div>
-    </div>`;
+        subview.querySelector('#btn_add_meas_quick').onclick = () => openAddMeasurementModal(() => renderProgressTab(el));
+      } else if (tab === 'prs') {
+        subview.innerHTML = `
+          <div class="card mb">
+            <div class="row between mb">
+              <div>
+                <h3 style="margin:0">🏆 Récords Personales (PRs)</h3>
+                <div class="muted tiny">Tus cargas máximas históricas en cada ejercicio</div>
+              </div>
+              <button class="btn sm primary" id="btn_open_1rm_tool">💪 Calcular 1RM</button>
+            </div>
+            <div class="list">
+              ${prs.map(p => `
+              <div class="item">
+                <span class="grow">
+                  <b>${esc(p.nombre)}</b>
+                  <div class="muted tiny">Carga registrada: ${p.weight} kg</div>
+                </span>
+                <span class="gold" style="font-size:1.3rem;font-weight:900">${p.weight} kg</span>
+              </div>`).join('') || '<div class="empty">Registra tus sesiones guiadas o libres para desbloquear tus récords personales.</div>'}
+            </div>
+          </div>`;
 
-    el.querySelector('#addm').onclick = () => {
-      const d = RD.openModal('Registrar mi peso y medidas', `
-        <form id="mf">
-          <div class="grid g2 keep">
-            <label class="field"><span>Peso (kg) *</span><input name="weight" type="number" step="0.1" placeholder="Ej. 68.5"></label>
-            <label class="field"><span>Cintura (cm)</span><input name="waist" type="number" step="0.5" placeholder="Ej. 82"></label>
+        subview.querySelector('#btn_open_1rm_tool').onclick = () => RD.open1RMCalculator(70, 8);
+      } else if (tab === 'body') {
+        subview.innerHTML = `
+          <div class="card mb">
+            <div class="row between mb">
+              <h3>Historial de Medidas Corporales</h3>
+              <button class="btn sm primary" id="btn_add_meas">＋ Registrar Medidas</button>
+            </div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Fecha</th><th>Peso</th><th>Cintura</th><th>Pecho</th><th>Brazo</th><th>Pierna</th><th>Cadera</th></tr></thead>
+                <tbody>
+                  ${measurements.map(m => `
+                  <tr>
+                    <td>${RD.fmtDate(m.day)}</td>
+                    <td style="font-weight:700">${m.weight ? m.weight + ' kg' : '—'}</td>
+                    <td>${m.waist ? m.waist + ' cm' : '—'}</td>
+                    <td>${m.chest ? m.chest + ' cm' : '—'}</td>
+                    <td>${m.arm ? m.arm + ' cm' : '—'}</td>
+                    <td>${m.thigh ? m.thigh + ' cm' : '—'}</td>
+                    <td>${m.hip ? m.hip + ' cm' : '—'}</td>
+                  </tr>`).join('') || '<tr><td colspan="7" class="empty">Sin medidas registradas aún</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          </div>`;
+
+        subview.querySelector('#btn_add_meas').onclick = () => openAddMeasurementModal(() => renderProgressTab(el));
+      } else if (tab === 'history') {
+        subview.innerHTML = `
+          <div class="card mb">
+            <h3>Sesiones de Entrenamiento Completadas (${workouts.length})</h3>
+            <div class="list">
+              ${workouts.map(w => `
+              <div class="item">
+                <div class="grow">
+                  <b>${esc(w.title)}</b>
+                  <div class="muted small">${RD.fmtDate(w.day)} · Duración: ${RD.fmtDur(w.duration_sec)}</div>
+                </div>
+                <div class="right">
+                  <span class="badge info">${Math.round(w.volume)} kg</span>
+                </div>
+              </div>`).join('') || '<div class="empty">Aún no has completado entrenamientos</div>'}
+            </div>
           </div>
-          <div class="grid g2 keep">
-            <label class="field"><span>Pecho (cm)</span><input name="chest" type="number" step="0.5" placeholder="Ej. 95"></label>
-            <label class="field"><span>Brazo (cm)</span><input name="arm" type="number" step="0.5" placeholder="Ej. 32"></label>
-          </div>
-          <button class="btn primary block mt">Guardar Progreso</button>
-        </form>
-      `);
+          <div class="card mb">
+            <h3>Historial de Asistencias en Gimnasio (${attendance.length})</h3>
+            <div class="list small">
+              ${attendance.slice(0, 20).map(a => `
+              <div class="item">
+                <span class="badge ok">Presente</span>
+                <span class="grow">${RD.fmtDateTime(a.ts)}</span>
+              </div>`).join('') || '<div class="empty">Sin asistencias registradas</div>'}
+            </div>
+          </div>`;
+      } else if (tab === 'payments') {
+        subview.innerHTML = `
+          <div class="card">
+            <h3>Tus Pagos y Membresías</h3>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Método</th></tr></thead>
+                <tbody>
+                  ${payments.map(p => `
+                  <tr>
+                    <td>${RD.fmtDate(p.day)}</td>
+                    <td><b>${esc(p.concept)}</b></td>
+                    <td style="font-weight:700">${money(p.amount)}</td>
+                    <td><span class="badge">${esc(p.method)}</span></td>
+                  </tr>`).join('') || '<tr><td colspan="4" class="empty">Sin pagos</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          </div>`;
+      }
+    }
 
-      d.el.querySelector('#mf').onsubmit = async e => {
-        e.preventDefault();
-        const f = e.target;
-        if (!f.weight.value && !f.waist.value && !f.chest.value && !f.arm.value) {
-          return RD.toast('Ingresa al menos un dato', 'warn');
-        }
-        try {
-          await api.post('/member/measurements', {
-            weight: f.weight.value || null,
-            waist: f.waist.value || null,
-            chest: f.chest.value || null,
-            arm: f.arm.value || null
-          });
-          RD.toast('Medidas guardadas con éxito ✔');
-          d.close();
-          renderProgressTab(el);
-        } catch (err) {
-          RD.toast(err.message, 'err');
-        }
-      };
+    el.querySelector('#ptabs').onclick = e => {
+      const c = e.target.closest('[data-pt]');
+      if (c) showSubTab(c.dataset.pt);
+    };
+
+    showSubTab('charts');
+  }
+
+  function openAddMeasurementModal(onDone) {
+    const d = RD.openModal('Registrar mi peso y medidas', `
+      <form id="mf">
+        <div class="grid g2 keep mb">
+          <label class="field"><span>Peso (kg) *</span><input name="weight" type="number" step="0.1" placeholder="Ej. 68.5"></label>
+          <label class="field"><span>Estatura (cm)</span><input name="height" type="number" step="0.5" placeholder="Ej. 170"></label>
+        </div>
+        <div class="grid g2 keep mb">
+          <label class="field"><span>Cintura (cm)</span><input name="waist" type="number" step="0.5" placeholder="Ej. 82"></label>
+          <label class="field"><span>Pecho (cm)</span><input name="chest" type="number" step="0.5" placeholder="Ej. 95"></label>
+        </div>
+        <div class="grid g2 keep mb">
+          <label class="field"><span>Brazo (cm)</span><input name="arm" type="number" step="0.5" placeholder="Ej. 32"></label>
+          <label class="field"><span>Muslo / Pierna (cm)</span><input name="thigh" type="number" step="0.5" placeholder="Ej. 54"></label>
+        </div>
+        <div class="grid g2 keep mb">
+          <label class="field"><span>Cadera (cm)</span><input name="hip" type="number" step="0.5" placeholder="Ej. 96"></label>
+          <label class="field"><span>Grasa Corporal (%)</span><input name="body_fat" type="number" step="0.1" placeholder="Ej. 16.5"></label>
+        </div>
+        <button class="btn primary block mt">Guardar Progreso</button>
+      </form>
+    `);
+
+    d.el.querySelector('#mf').onsubmit = async e => {
+      e.preventDefault();
+      const f = e.target;
+      try {
+        await api.post('/member/measurements', {
+          weight: f.weight.value || null,
+          height: f.height.value || null,
+          waist: f.waist.value || null,
+          chest: f.chest.value || null,
+          arm: f.arm.value || null,
+          thigh: f.thigh.value || null,
+          hip: f.hip.value || null,
+          body_fat: f.body_fat.value || null
+        });
+        RD.toast('Medidas guardadas con éxito ✔');
+        d.close();
+        if (onDone) onDone();
+      } catch (err) {
+        RD.toast(err.message, 'err');
+      }
     };
   }
 
-  // ---------------- TAB 4: PERFIL Y SALUD ----------------
+  // ---------------- TAB 4: HERRAMIENTAS PRO DEPORTIVAS ----------------
+  async function renderToolsTab(el) {
+    el.innerHTML = `
+    <div class="card mb flat">
+      <h2>🧮 Herramientas Deportivas Pro</h2>
+      <p class="muted small">Calculadoras científicas diseñadas para sacarle el máximo provecho a cada entrenamiento y alimentación.</p>
+    </div>
+
+    <div class="grid g2 gap mb">
+      <div class="card" id="tool_1rm" style="cursor:pointer">
+        <div style="font-size:2rem">💪</div>
+        <h3 class="mt2">Calculadora 1RM</h3>
+        <p class="muted small">Predice tu fuerza máxima a 1 repetición y tabla exacta de cargas del 100% al 65%.</p>
+        <button class="btn sm primary mt">Abrir Calculadora</button>
+      </div>
+
+      <div class="card" id="tool_plates" style="cursor:pointer">
+        <div style="font-size:2rem">🧮</div>
+        <h3 class="mt2">Discos de Barra</h3>
+        <p class="muted small">Visualiza qué discos colocar a cada lado de la barra con los colores oficiales de halterofilia.</p>
+        <button class="btn sm primary mt">Calcular Discos</button>
+      </div>
+
+      <div class="card" id="tool_nutrition" style="cursor:pointer">
+        <div style="font-size:2rem">🥗</div>
+        <h3 class="mt2">Macros & Calorías TDEE</h3>
+        <p class="muted small">Gasto calórico real y gramos exactos de proteínas, carbos y grasas según tu objetivo.</p>
+        <button class="btn sm primary mt">Calcular Dieta</button>
+      </div>
+
+      <div class="card" id="tool_fat" style="cursor:pointer">
+        <div style="font-size:2rem">📏</div>
+        <h3 class="mt2">Grasa Corporal (US Navy)</h3>
+        <p class="muted small">Estimación científica de porcentaje graso usando tus contornos corporales.</p>
+        <button class="btn sm primary mt">Calcular Grasa</button>
+      </div>
+
+      <div class="card" id="tool_water" style="cursor:pointer">
+        <div style="font-size:2rem">💧</div>
+        <h3 class="mt2">Hidratación en Altura</h3>
+        <p class="muted small">Calcula cuántos litros de agua necesitas al día en el clima y altitud de Chivay.</p>
+        <button class="btn sm primary mt">Calcular Agua</button>
+      </div>
+
+      <div class="card" id="tool_timers" style="cursor:pointer">
+        <div style="font-size:2rem">⏱</div>
+        <h3 class="mt2">Tabata, HIIT y EMOM</h3>
+        <p class="muted small">Cronómetros de intervalos con avisos sonoros y vibración offline.</p>
+        <button class="btn sm primary mt">Abrir Cronómetros</button>
+      </div>
+    </div>`;
+
+    el.querySelector('#tool_1rm').onclick = () => RD.open1RMCalculator(70, 8);
+    el.querySelector('#tool_plates').onclick = () => RD.openPlateCalculator(60, 20);
+    el.querySelector('#tool_nutrition').onclick = () => RD.openNutritionCalculator(member || {});
+    el.querySelector('#tool_fat').onclick = () => {
+      const m = RD.openModal('📏 Calculadora de Grasa (US Navy)', `
+        <div class="mb">
+          <p class="muted small mb">Fórmula de la Marina de EE.UU. para estimar el porcentaje de grasa corporal.</p>
+          <label class="field"><span>Género</span>
+            <select id="bf_g"><option value="male">Hombre</option><option value="female">Mujer</option></select>
+          </label>
+          <div class="grid g2 keep mb">
+            <label class="field"><span>Estatura (cm)</span><input id="bf_h" type="number" value="170"></label>
+            <label class="field"><span>Cuello (cm)</span><input id="bf_n" type="number" value="38"></label>
+          </div>
+          <div class="grid g2 keep mb">
+            <label class="field"><span>Cintura (cm)</span><input id="bf_w" type="number" value="82"></label>
+            <label class="field" id="bf_hip_wrap" style="display:none"><span>Cadera (cm)</span><input id="bf_hp" type="number" value="95"></label>
+          </div>
+        </div>
+        <div class="card center mb" style="background:rgba(183,110,121,0.12);border-color:var(--gold)">
+          <div class="muted small">Porcentaje de Grasa Estimado</div>
+          <div class="gold" id="bf_res" style="font-size:2.4rem;font-weight:900">-- %</div>
+        </div>
+      `);
+      const upd = () => {
+        const g = m.el.querySelector('#bf_g').value;
+        m.el.querySelector('#bf_hip_wrap').style.display = g === 'female' ? 'block' : 'none';
+        const res = RD.calcBodyFat({
+          gender: g,
+          height: m.el.querySelector('#bf_h').value,
+          neck: m.el.querySelector('#bf_n').value,
+          waist: m.el.querySelector('#bf_w').value,
+          hip: m.el.querySelector('#bf_hp').value
+        });
+        m.el.querySelector('#bf_res').textContent = `${res} %`;
+      };
+      m.el.querySelectorAll('input, select').forEach(i => i.oninput = upd);
+      upd();
+    };
+    el.querySelector('#tool_water').onclick = () => {
+      const w = member?.weight || 70;
+      const res = RD.calcWater(w, 60);
+      RD.openModal('💧 Hidratación Deportiva', `
+        <div class="card center mb" style="background:rgba(2,132,199,0.1);border-color:#0284c7">
+          <div class="muted small">Requerimiento Diario Estimado</div>
+          <div style="font-size:2.6rem;font-weight:900;color:#0284c7">${res} Litros</div>
+          <div class="small muted">Aproximadamente ${Math.round(res / 0.25)} vasos de agua al día</div>
+        </div>
+        <p class="small muted">
+          En Chivay (3,635 msnm), el aire es seco y frío, lo que incrementa la pérdida insensible de agua a través de la respiración. Bebe 500 ml antes de entrenar y pequeños sorbos cada 15 minutos en el gimnasio.
+        </p>
+      `);
+    };
+    el.querySelector('#tool_timers').onclick = () => {
+      const m = RD.openModal('⏱ Cronómetros y Tabata', '<div id="tim_box"></div>');
+      RD.timersTool(m.el.querySelector('#tim_box'));
+    };
+  }
+
+  // ---------------- TAB 5: PERFIL Y BOLETAS DIGITALES ----------------
   async function renderProfileTab(el) {
     el.innerHTML = `
     <div class="card mb center">
@@ -613,11 +967,11 @@
     </div>
 
     <div class="card mb">
-      <h3>Avisos, boletas y preferencias</h3>
-      <p class="small muted">Consulta tus avisos oficiales, revisa tus boletas de pago y configura tus alertas.</p>
+      <h3>Boletas de pago, avisos y ajustes</h3>
+      <p class="small muted">Consulta tus boletas electrónicas térmicas, revisa los avisos del club y ajusta alertas de sonido.</p>
       <div class="grid g3 keep gap">
-        <button class="btn sm" id="pfinbox">🔔 Avisos</button>
         <button class="btn sm ok" id="pfreceipts">🧾 Mis Boletas</button>
+        <button class="btn sm" id="pfinbox">🔔 Avisos</button>
         <button class="btn sm ghost" id="pfprefs">⚙️ Ajustes</button>
       </div>
     </div>
@@ -643,7 +997,11 @@
       <button class="btn danger block" id="outbtn">Cerrar Sesión</button>
     </div>`;
 
-    const redrawProfile = m => { member = m; localStorage.setItem('rd_member_data', JSON.stringify(m)); renderProfileTab(el); };
+    const redrawProfile = m => {
+      member = m;
+      localStorage.setItem('rd_member_data', JSON.stringify(m));
+      renderProfileTab(el);
+    };
     el.querySelector('#pfaccount').onclick = () => RD.hub.openAccount(member, redrawProfile, { first: !member.has_password });
     el.querySelector('#pfdevices').onclick = () => RD.hub.openDevices();
     el.querySelector('#pfinbox').onclick = () => RD.hub.openInbox();
@@ -674,7 +1032,7 @@
     RD.registerSW();
     RD.syncTime();
     RD.hub.keepStorage();
-    // Sin sesión guardada: intenta recuperar la de este mismo dispositivo (cookie) antes de pedir usuario y contraseña
+
     if (!localStorage.getItem('rd_member_token')) {
       const res = await RD.hub.resume();
       if (res && res.token) {
@@ -689,7 +1047,7 @@
     layout();
     const qs = new URLSearchParams(location.search);
     const tab = qs.get('tab');
-    switchTab(['pass', 'train', 'progress', 'profile'].includes(tab) ? tab : 'pass');
+    switchTab(['pass', 'train', 'progress', 'tools', 'profile'].includes(tab) ? tab : 'pass');
     if (qs.get('inbox') === '1') { history.replaceState(null, '', '/'); RD.hub.openInbox(); }
   }
 

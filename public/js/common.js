@@ -679,7 +679,7 @@
   };
 
   RD.registerSW = () => { if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => { }); };
-  RD.GROUP_ICON = { Piernas: '🦵', Glúteos: '🍑', Pecho: '💪', Espalda: '🧗', Hombros: '🏋️', Bíceps: '💪', Tríceps: '💪', Core: '🔥', Cardio: '🏃', Movilidad: '🧘', Otros: '⭐' };
+  RD.GROUP_ICON = { Piernas: '🦵', Glúteos: '🍑', Pecho: '💪', Espalda: '🧗', Hombros: '🏋️', Bíceps: '💪', Tríceps: '💪', Antebrazos: '🦾', Trapecio: '🦬', Core: '🔥', Cardio: '🏃', Movilidad: '🧘', Otros: '⭐' };
 
   // ---------- Sistema de Tema (Claro / Oscuro) ----------
   RD.getTheme = () => document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';

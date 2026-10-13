@@ -1844,14 +1844,54 @@ api.get('/member/measurements', memberAuth, wrap((req, res) => res.json(q.all('S
 api.post('/member/measurements', memberAuth, wrap((req, res) => {
   const b = req.body || {};
   const f = k => (b[k] === '' || b[k] == null ? null : num(b[k], null));
-  if (f('weight') == null && f('waist') == null && f('chest') == null) return bad(res, 'Ingresa al menos un dato');
-  if (f('weight') != null && (f('weight') < 20 || f('weight') > 300)) return bad(res, 'Peso fuera de rango');
+  const hasAny = ['weight', 'height', 'chest', 'waist', 'hip', 'arm', 'thigh', 'body_fat'].some(k => f(k) != null);
+  if (!hasAny) return bad(res, 'Ingresa al menos un dato (peso, cintura, brazo, etc.)');
+  if (f('weight') != null && (f('weight') < 20 || f('weight') > 300)) return bad(res, 'Peso fuera de rango (20-300 kg)');
+  const day = b.day && /^\d{4}-\d{2}-\d{2}$/.test(b.day) ? b.day : L.limaDay();
   q.run('INSERT INTO measurements(member_id,day,weight,height,chest,waist,hip,arm,thigh,body_fat,note) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
-    req.member.id, L.limaDay(), f('weight'), f('height'), f('chest'), f('waist'), f('hip'), f('arm'), f('thigh'), f('body_fat'), b.note);
+    req.member.id, day, f('weight'), f('height'), f('chest'), f('waist'), f('hip'), f('arm'), f('thigh'), f('body_fat'), b.note || null);
   res.json({ ok: true });
 }));
 api.delete('/member/measurements/:id', memberAuth, wrap((req, res) => {
   q.run('DELETE FROM measurements WHERE id=? AND member_id=?', num(req.params.id), req.member.id); res.json({ ok: true });
+}));
+api.get('/member/analytics', memberAuth, wrap((req, res) => {
+  const mid = req.member.id;
+  const muscleDistribution = q.all(`
+    SELECT e.grupo, COUNT(*) as sets_count, COALESCE(SUM(s.reps * s.weight), 0) as volume
+    FROM set_logs s
+    JOIN exercises e ON e.id = s.ex_id
+    WHERE s.member_id = ?
+    GROUP BY e.grupo
+    ORDER BY sets_count DESC
+  `, mid);
+
+  const weeklyVolume = q.all(`
+    SELECT strftime('%Y-W%W', day) as week, COALESCE(SUM(volume), 0) as volume, COUNT(*) as workouts
+    FROM workouts
+    WHERE member_id = ?
+    GROUP BY week
+    ORDER BY week DESC
+    LIMIT 12
+  `, mid).reverse();
+
+  const totalStats = q.get(`
+    SELECT COUNT(*) as total_workouts, COALESCE(SUM(volume), 0) as total_volume,
+           COALESCE(SUM(duration_sec), 0) as total_duration_sec
+    FROM workouts
+    WHERE member_id = ?
+  `, mid);
+
+  const totalSets = q.get('SELECT COUNT(*) as c FROM set_logs WHERE member_id=?', mid)?.c || 0;
+
+  res.json({
+    muscleDistribution,
+    weeklyVolume,
+    totalWorkouts: totalStats.total_workouts || 0,
+    totalVolume: totalStats.total_volume || 0,
+    totalDurationSec: totalStats.total_duration_sec || 0,
+    totalSets
+  });
 }));
 
 // ---------------- Hub del socio: acceso propio, dispositivos, avisos y push ----------------

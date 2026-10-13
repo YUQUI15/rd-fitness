@@ -702,3 +702,214 @@ canvas.chart{width:100%;height:180px;display:block}
     color: #000 !important;
   }
 }
+
+/* ============================================================ */
+/* DASHBOARDS Y HERRAMIENTAS PRO PARA SOCIOS (RD FITNESS) */
+/* ============================================================ */
+.svg-chart-container {
+  width: 100%;
+  position: relative;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0.9rem;
+  margin-top: 0.6rem;
+  overflow: hidden;
+}
+[data-theme="light"] .svg-chart-container {
+  background: #ffffff;
+  border-color: var(--line);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+}
+.svg-chart {
+  width: 100%;
+  height: 200px;
+  overflow: visible;
+  display: block;
+}
+.svg-chart text {
+  font-family: system-ui, -apple-system, sans-serif;
+  user-select: none;
+}
+.chart-tooltip {
+  position: absolute;
+  padding: 5px 9px;
+  background: rgba(11, 11, 13, 0.95);
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  font-size: 0.72rem;
+  color: #fff;
+  pointer-events: none;
+  transform: translate(-50%, -120%);
+  white-space: nowrap;
+  z-index: 10;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+  transition: opacity .15s ease;
+}
+[data-theme="light"] .chart-tooltip {
+  background: #ffffff;
+  color: #1e1b20;
+  border-color: var(--gold);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Calculadora de Discos de Barra */
+.barbell-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+[data-theme="light"] .barbell-visual {
+  background: #f8fafc;
+}
+.bar-shaft {
+  height: 14px;
+  background: #94a3b8;
+  border-radius: 4px;
+  min-width: 50px;
+  flex: 1;
+  position: relative;
+}
+.bar-collar {
+  width: 10px;
+  height: 38px;
+  background: #475569;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.bar-sleeve {
+  height: 18px;
+  background: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 4px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  min-width: 100px;
+}
+.plate {
+  border-radius: 3px;
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  border: 1px solid rgba(0,0,0,0.3);
+  box-shadow: 1px 0 4px rgba(0,0,0,0.3);
+  flex-shrink: 0;
+}
+.plate-25 { height: 96px; width: 22px; background: #dc2626; }
+.plate-20 { height: 88px; width: 20px; background: #2563eb; }
+.plate-15 { height: 78px; width: 18px; background: #eab308; color: #000; }
+.plate-10 { height: 68px; width: 16px; background: #16a34a; }
+.plate-5 { height: 54px; width: 14px; background: #f8fafc; color: #000; }
+.plate-2_5 { height: 44px; width: 12px; background: #1e293b; }
+.plate-1_25 { height: 34px; width: 10px; background: #94a3b8; }
+
+/* Tarjetas de Macronutrientes y Nutrición */
+.macro-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  margin: 0.8rem 0;
+}
+.macro-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+}
+[data-theme="light"] .macro-box {
+  background: #ffffff;
+}
+.macro-val {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--gold);
+}
+.macro-lbl {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Distribución Muscular */
+.muscle-track-row {
+  margin-bottom: 0.7rem;
+}
+.muscle-track-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  margin-bottom: 4px;
+}
+.muscle-track-bg {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 99px;
+  overflow: hidden;
+}
+[data-theme="light"] .muscle-track-bg {
+  background: #e2e8f0;
+}
+.muscle-track-bar {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--gold);
+  transition: width 0.5s ease;
+}
+
+/* Tabla 1RM */
+.rm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 0.8rem;
+}
+.rm-table th, .rm-table td {
+  padding: 0.5rem 0.6rem;
+  text-align: center;
+  border-bottom: 1px solid var(--line);
+}
+.rm-table th {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.rm-table tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Asistente Inteligente de Rutinas */
+.wizard-option {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.9rem;
+  margin-bottom: 0.65rem;
+  cursor: pointer;
+  transition: all .15s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.wizard-option:hover {
+  border-color: var(--gold);
+  background: rgba(183, 110, 121, 0.08);
+}
+.wizard-option.selected {
+  border-color: var(--gold);
+  background: rgba(183, 110, 121, 0.16);
+  box-shadow: 0 0 0 1px var(--gold);
+}
+
