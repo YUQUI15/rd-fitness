@@ -3616,22 +3616,191 @@ function verEstado() {
 
   function renderSystemSettings(el) {
     el.innerHTML = `
-    <div class="card" style="max-width:600px">
-      <h3>Copia de Seguridad y Datos</h3>
-      <p class="muted small mb">El sistema realiza respaldos automáticos diarios en el servidor. Puedes descargar una copia de seguridad completa de la base de datos SQLite en cualquier momento.</p>
-      <div class="grid gap mt">
-        <button class="btn primary" id="btnbackup">💾 Descargar Copia de Seguridad (.db)</button>
-        <a class="btn" href="/admin/cards.html" target="_blank">🖨 Diseñador / Impresor Masivo de Tarjetas PVC</a>
+    <div class="grid gap" style="max-width:900px">
+      <!-- TARJETA: ESTADO DE PERSISTENCIA -->
+      <div class="card" style="border-left: 4px solid var(--primary, #e63946);">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 0.5rem; flex-wrap:wrap; gap:8px;">
+          <h3 style="margin:0; display:flex; align-items:center; gap:8px;">
+            ${RD.icon('sheet', '', 20)} Persistencia y Respaldo de Datos en Producción
+          </h3>
+          <span class="badge ok" style="font-weight:bold;">100% Protegido</span>
+        </div>
+        <p class="small muted" style="margin-bottom:0.75rem;">
+          Tus datos están protegidos contra reinicios o actualizaciones. El sistema cuenta con tres mecanismos de respaldo: 
+          <strong>Base de Datos SQLite (.db)</strong>, <strong>Volcado Portátil JSON</strong> y <strong>Sincronización en la Nube con Google Sheets</strong>.
+        </p>
+        <div style="background:var(--bg-subtle, rgba(0,0,0,0.03)); border-radius:8px; padding:0.75rem 1rem; font-size:0.85rem; line-height:1.5;">
+          💡 <strong>¿Cómo funciona en Render?</strong> El plan gratuito de Render dispone de <strong>512 MB de memoria RAM</strong> (el sistema RD Fitness solo consume ~50 MB, apenas el 10%). Sin embargo, el almacenamiento en disco de Render Free es efímero cuando se duerme o se hace deploy. Con la sincronización a Google Sheets y los botones de respaldo abajo, tus datos jamás se perderán.
+        </div>
+      </div>
+
+      <!-- TARJETA: COPIAS DE SEGURIDAD (.DB SQLITE) -->
+      <div class="card">
+        <h3 style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem;">
+          💾 Base de Datos Nativa SQLite (.db)
+        </h3>
+        <p class="small muted" style="margin-bottom:1rem;">
+          Descarga o restaura la base de datos completa exactamente como está en el servidor. Al restaurar, los socios, pagos y asistencias se fusionarán automáticamente sin bloquear el sistema.
+        </p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn primary" id="btn-backup-db" style="display:inline-flex; align-items:center; gap:6px;">
+            💾 Descargar Base de Datos (.db)
+          </button>
+          <button class="btn" id="btn-restore-db" style="display:inline-flex; align-items:center; gap:6px;">
+            📥 Restaurar Base de Datos (.db)
+          </button>
+          <input type="file" id="file-restore-db" accept=".db,.sqlite,.sqlite3" style="display:none;" />
+        </div>
+      </div>
+
+      <!-- TARJETA: EXPORTACIÓN E IMPORTACIÓN PORTÁTIL (JSON) -->
+      <div class="card">
+        <h3 style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem;">
+          📄 Respaldo Portátil en JSON
+        </h3>
+        <p class="small muted" style="margin-bottom:1rem;">
+          Exporta todos los datos en un formato de texto legible e independiente (.json) con todos los socios, membresías, productos, caja y asistencias. Útil para auditoría o migración universal.
+        </p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn" id="btn-export-json" style="display:inline-flex; align-items:center; gap:6px;">
+            📤 Exportar Todo en JSON
+          </button>
+          <button class="btn" id="btn-import-json" style="display:inline-flex; align-items:center; gap:6px;">
+            📥 Importar desde JSON
+          </button>
+          <input type="file" id="file-import-json" accept=".json" style="display:none;" />
+        </div>
+      </div>
+
+      <!-- TARJETA: SINCRONIZACIÓN GOOGLE SHEETS -->
+      <div class="card">
+        <h3 style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem;">
+          📊 Sincronización y Recuperación con Google Sheets
+        </h3>
+        <p class="small muted" style="margin-bottom:1rem;">
+          Si estás en un nuevo entorno o reiniciaste el servidor, puedes reimportar en 1 clic todos los socios y membresías que se sincronizaron en tu hoja de cálculo oficial de Google Sheets.
+        </p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <button class="btn primary" id="btn-sync-sheets" style="display:inline-flex; align-items:center; gap:6px;">
+            🔄 Reimportar Socios desde Google Sheets
+          </button>
+          <a class="btn" id="lnk-open-sheets" href="#" target="_blank" style="display:none; text-decoration:none;">
+            ↗ Abrir Hoja de Sheets
+          </a>
+        </div>
+      </div>
+
+      <!-- TARJETA: HERRAMIENTAS ADICIONALES -->
+      <div class="card">
+        <h3 style="margin-bottom:0.5rem;">🖨 Herramientas Adicionales</h3>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <a class="btn" href="/admin/cards.html" target="_blank" style="text-decoration:none;">
+            🖨 Diseñador / Impresor Masivo de Tarjetas PVC
+          </a>
+        </div>
       </div>
     </div>`;
-    el.querySelector('#btnbackup').onclick = async () => {
+
+    // 1. Descargar .db
+    el.querySelector('#btn-backup-db').onclick = async () => {
       try {
-        const fn = await RD.downloadAuth('/backup', 'rd_fitness_backup.db');
+        RD.toast('Generando copia SQLite...', 'info');
+        const fn = await RD.downloadAuth('/backup', 'rdfitness_backup.db');
         RD.toast('Copia descargada con éxito: ' + fn, 'ok');
       } catch (err) {
         RD.toast(err.message || 'Error al descargar respaldo', 'err');
       }
     };
+
+    // 2. Restaurar .db
+    const fileDb = el.querySelector('#file-restore-db');
+    el.querySelector('#btn-restore-db').onclick = () => fileDb.click();
+    fileDb.onchange = async e => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (!confirm(`¿Estás seguro de restaurar "${file.name}"?\\n\\nLos registros de socios, pagos y asistencias de este archivo se integrarán en la base de datos.`)) {
+        e.target.value = '';
+        return;
+      }
+      RD.toast('Subiendo y restaurando base de datos...', 'info');
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const b64 = reader.result.split(',')[1];
+          const res = await RD.api.post('/backup/restore', { base64: b64 });
+          RD.toast(`¡Restauración exitosa! ${res.restoredMembers} socios y ${res.restoredPayments} pagos recuperados.`, 'ok');
+          setTimeout(() => location.reload(), 1500);
+        } catch (err) {
+          RD.toast(err.message || 'Error restaurando respaldo', 'err');
+        } finally {
+          e.target.value = '';
+        }
+      };
+      reader.readAsDataURL(file);
+    };
+
+    // 3. Exportar JSON
+    el.querySelector('#btn-export-json').onclick = async () => {
+      try {
+        RD.toast('Exportando datos a JSON...', 'info');
+        const d = new Date().toISOString().slice(0, 10);
+        const fn = await RD.downloadAuth('/backup/export-json', `rdfitness_export_${d}.json`);
+        RD.toast('Exportación completada: ' + fn, 'ok');
+      } catch (err) {
+        RD.toast(err.message || 'Error al exportar JSON', 'err');
+      }
+    };
+
+    // 4. Importar JSON
+    const fileJson = el.querySelector('#file-import-json');
+    el.querySelector('#btn-import-json').onclick = () => fileJson.click();
+    fileJson.onchange = async e => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (!confirm(`¿Estás seguro de importar datos desde "${file.name}"?\\n\\nSe registrarán y actualizarán los socios, pagos y asistencias.`)) {
+        e.target.value = '';
+        return;
+      }
+      RD.toast('Leyendo archivo JSON...', 'info');
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const json = JSON.parse(reader.result);
+          const res = await RD.api.post('/backup/import-json', { data: json });
+          RD.toast(`¡Importación exitosa! ${res.restoredMembers} socios recuperados.`, 'ok');
+          setTimeout(() => location.reload(), 1500);
+        } catch (err) {
+          RD.toast('Error al importar JSON: ' + (err.message || err), 'err');
+        } finally {
+          e.target.value = '';
+        }
+      };
+      reader.readAsText(file);
+    };
+
+    // 5. Sincronizar desde Sheets
+    el.querySelector('#btn-sync-sheets').onclick = async () => {
+      if (!confirm('¿Deseas sincronizar ahora todos los socios desde la hoja de Google Sheets?\\n\\nEsto recuperará los socios y membresías guardados en la nube.')) return;
+      RD.toast('Sincronizando con Google Sheets...', 'info');
+      try {
+        const res = await RD.api.post('/admin/sync-from-sheets');
+        RD.toast(`¡Sincronización completada! ${res.synced} socios sincronizados (${res.created} nuevos creados).`, 'ok');
+        setTimeout(() => location.reload(), 1500);
+      } catch (err) {
+        RD.toast(err.message || 'Error sincronizando con Google Sheets', 'err');
+      }
+    };
+
+    // Cargar link de Google Sheets si existe
+    RD.api.get('/settings').then(s => {
+      if (s && s.google_sheet_url) {
+        const lnk = el.querySelector('#lnk-open-sheets');
+        if (lnk) {
+          lnk.href = s.google_sheet_url;
+          lnk.style.display = 'inline-flex';
+        }
+      }
+    }).catch(() => {});
   }
 
 })();

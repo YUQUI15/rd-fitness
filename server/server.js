@@ -10,8 +10,8 @@ const { buildXlsx } = require('./xlsx-report');
 const L = require('./lib');
 
 const app = express();
-app.disable('x-powered-by');
-app.use(express.json({ limit: '4mb' }));
+app.use(express.json({ limit: '25mb' }));
+app.use(express.raw({ type: ['application/x-sqlite3', 'application/octet-stream'], limit: '50mb' }));
 
 // ---------------- Utilidades ----------------
 const wrap = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -1751,6 +1751,239 @@ api.get('/backup', staff('admin'), wrap((req, res) => {
   stream.on('close', () => {
     try { fs.unlinkSync(f); } catch { }
   });
+}));
+
+// Exportar todos los datos estructurados en JSON portátil
+api.get('/backup/export-json', staff('admin'), wrap((req, res) => {
+  const data = {
+    gym_name: getSettings().gym_name || 'RD Fitness Club',
+    exported_at: new Date().toISOString(),
+    version: '2.7',
+    members: q.all('SELECT * FROM members'),
+    memberships: q.all('SELECT * FROM memberships'),
+    payments: q.all('SELECT * FROM payments'),
+    attendance: q.all('SELECT * FROM attendance'),
+    daily_passes: q.all('SELECT * FROM daily_passes'),
+    products: q.all('SELECT * FROM products'),
+    plans: q.all('SELECT * FROM plans'),
+    settings: q.all('SELECT * FROM settings'),
+    member_credentials: q.all('SELECT * FROM member_credentials'),
+    member_prefs: q.all('SELECT * FROM member_prefs'),
+    announcements: q.all('SELECT * FROM announcements'),
+    workouts: q.all('SELECT * FROM workouts'),
+    set_logs: q.all('SELECT * FROM set_logs'),
+    measurements: q.all('SELECT * FROM measurements'),
+    cash_shifts: q.all('SELECT * FROM cash_shifts')
+  };
+  const filename = `rdfitness-data-${L.limaDay()}.json`;
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(JSON.stringify(data, null, 2));
+}));
+
+// Importar / Restaurar datos desde JSON portátil
+api.post('/backup/import-json', staff('admin'), wrap((req, res) => {
+  const d = (req.body && req.body.data) ? req.body.data : (req.body || {});
+  if (!d.members || !Array.isArray(d.members)) {
+    return bad(res, 'Formato de archivo inválido. Debe contener el campo "members".');
+  }
+
+  const insertOrReplaceRows = (table, rows) => {
+    if (!Array.isArray(rows) || rows.length === 0) return 0;
+    let colInfo;
+    try {
+      colInfo = q.all(`PRAGMA table_info(${table})`).map(c => c.name);
+    } catch {
+      return 0;
+    }
+    const colSet = new Set(colInfo);
+    let count = 0;
+    for (const row of rows) {
+      if (!row || typeof row !== 'object') continue;
+      const keys = Object.keys(row).filter(k => colSet.has(k));
+      if (keys.length === 0) continue;
+      const placeholders = keys.map(() => '?').join(', ');
+      const sql = `INSERT OR REPLACE INTO ${table} (${keys.join(', ')}) VALUES (${placeholders})`;
+      const vals = keys.map(k => row[k]);
+      try {
+        q.run(sql, ...vals);
+        count++;
+      } catch (e) {
+        console.warn(`Aviso importando fila a ${table}:`, e.message);
+      }
+    }
+    return count;
+  };
+
+  let restoredMembers = 0, restoredPayments = 0, restoredAttendance = 0;
+
+  q.tx(() => {
+    insertOrReplaceRows('settings', d.settings);
+    insertOrReplaceRows('plans', d.plans);
+    insertOrReplaceRows('products', d.products);
+    restoredMembers = insertOrReplaceRows('members', d.members);
+    insertOrReplaceRows('memberships', d.memberships);
+    restoredPayments = insertOrReplaceRows('payments', d.payments);
+    restoredAttendance = insertOrReplaceRows('attendance', d.attendance);
+    insertOrReplaceRows('member_credentials', d.member_credentials);
+    insertOrReplaceRows('member_prefs', d.member_prefs);
+    insertOrReplaceRows('measurements', d.measurements);
+    insertOrReplaceRows('workouts', d.workouts);
+    insertOrReplaceRows('set_logs', d.set_logs);
+    insertOrReplaceRows('cash_shifts', d.cash_shifts);
+    insertOrReplaceRows('announcements', d.announcements);
+  });
+
+  checkpoint();
+  audit(req.user.id, 'backup.import_json', { restoredMembers, restoredPayments, restoredAttendance });
+  res.json({ ok: true, restoredMembers, restoredPayments, restoredAttendance });
+}));
+
+// Restaurar copia de seguridad binaria (.db SQLite) mediante ATTACH DATABASE
+api.post('/backup/restore', staff('admin'), wrap((req, res) => {
+  let buf = null;
+  if (Buffer.isBuffer(req.body)) {
+    buf = req.body;
+  } else if (req.body && (req.body.db_base64 || req.body.base64)) {
+    buf = Buffer.from(req.body.db_base64 || req.body.base64, 'base64');
+  } else {
+    return bad(res, 'No se recibió archivo de base de datos');
+  }
+
+  if (buf.length < 100 || !buf.subarray(0, 15).toString().startsWith('SQLite format 3')) {
+    return bad(res, 'El archivo subido no es una base de datos SQLite válida');
+  }
+
+  const dir = path.join(DATA_DIR, 'backups');
+  fs.mkdirSync(dir, { recursive: true });
+  const tempPath = path.join(dir, `restore-tmp-${Date.now()}.db`);
+  fs.writeFileSync(tempPath, buf);
+
+  const safePath = tempPath.split(path.sep).join('/');
+  let restoredMembers = 0, restoredPayments = 0;
+
+  try {
+    db.exec(`ATTACH DATABASE '${safePath}' AS backup_db;`);
+    const tables = q.all("SELECT name FROM backup_db.sqlite_master WHERE type='table'").map(t => t.name);
+    if (!tables.includes('members')) {
+      db.exec('DETACH DATABASE backup_db;');
+      try { fs.unlinkSync(tempPath); } catch {}
+      return bad(res, 'El archivo de respaldo no contiene la tabla de socios requerida');
+    }
+
+    q.tx(() => {
+      const copyTable = tbl => {
+        if (!tables.includes(tbl)) return;
+        try { db.exec(`INSERT OR REPLACE INTO ${tbl} SELECT * FROM backup_db.${tbl};`); }
+        catch (e) { console.warn(`Aviso copiando ${tbl}:`, e.message); }
+      };
+
+      copyTable('settings');
+      copyTable('plans');
+      copyTable('products');
+      copyTable('members');
+      copyTable('memberships');
+      copyTable('payments');
+      copyTable('attendance');
+      copyTable('daily_passes');
+      copyTable('member_credentials');
+      copyTable('member_prefs');
+      copyTable('announcements');
+      copyTable('workouts');
+      copyTable('set_logs');
+      copyTable('measurements');
+      copyTable('cash_shifts');
+
+      restoredMembers = q.get('SELECT COUNT(*) c FROM members')?.c || 0;
+      restoredPayments = q.get('SELECT COUNT(*) c FROM payments')?.c || 0;
+    });
+
+    db.exec('DETACH DATABASE backup_db;');
+    try { fs.unlinkSync(tempPath); } catch {}
+    checkpoint();
+    audit(req.user.id, 'backup.restore_db', { restoredMembers, restoredPayments });
+    res.json({ ok: true, restoredMembers, restoredPayments });
+  } catch (err) {
+    try { db.exec('DETACH DATABASE backup_db;'); } catch {}
+    try { fs.unlinkSync(tempPath); } catch {}
+    throw err;
+  }
+}));
+
+// Restaurar / Sincronizar socios desde Google Sheets
+api.post('/admin/sync-from-sheets', staff('admin'), wrap(async (req, res) => {
+  const settings = getSettings();
+  const url = req.body?.url || settings.google_sheet_url;
+  if (!url || !/^https?:\/\//i.test(url)) {
+    return bad(res, 'No se ha configurado la URL de Google Sheets en los ajustes del gimnasio');
+  }
+
+  let csvUrl = url;
+  const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  if (match) {
+    const sheetId = match[1];
+    csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Socios`;
+  }
+
+  const response = await fetch(csvUrl);
+  if (!response.ok) {
+    return bad(res, 'No se pudo conectar a Google Sheets. Verifica que la hoja tenga permisos de lectura o esté compartida.');
+  }
+
+  const csvText = await response.text();
+  const lines = csvText.split(/\r?\n/).filter(l => l.trim().length > 0);
+  if (lines.length < 2) return bad(res, 'La hoja de Google Sheets no contiene filas de socios');
+
+  const parseRow = line => {
+    const res = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if (c === ',' && !inQ) { res.push(cur.trim()); cur = ''; }
+      else { cur += c; }
+    }
+    res.push(cur.trim());
+    return res;
+  };
+
+  const header = parseRow(lines[0]).map(h => h.toLowerCase().replace(/["']/g, ''));
+  const codeIdx = header.findIndex(h => h.includes('código') || h.includes('codigo') || h === 'code');
+  const nameIdx = header.findIndex(h => h.includes('nombre') || h.includes('socio') || h === 'name');
+  const dniIdx = header.findIndex(h => h.includes('dni'));
+  const phoneIdx = header.findIndex(h => h.includes('tel') || h.includes('celular') || h === 'phone');
+
+  if (nameIdx === -1) return bad(res, 'No se encontró la columna "Nombre" en la hoja de Google Sheets');
+
+  let imported = 0;
+  q.tx(() => {
+    for (let i = 1; i < lines.length; i++) {
+      const row = parseRow(lines[i]);
+      const name = (row[nameIdx] || '').replace(/["']/g, '').trim();
+      if (!name) continue;
+      const code = codeIdx !== -1 && row[codeIdx] ? row[codeIdx].replace(/["']/g, '').trim() : null;
+      const dni = dniIdx !== -1 && row[dniIdx] ? row[dniIdx].replace(/["']/g, '').trim() : null;
+      const phone = phoneIdx !== -1 && row[phoneIdx] ? row[phoneIdx].replace(/["']/g, '').trim() : null;
+
+      const existing = (code && q.get('SELECT id FROM members WHERE code=?', code)) ||
+                       (dni && q.get('SELECT id FROM members WHERE dni=?', dni));
+
+      if (existing) {
+        q.run('UPDATE members SET name=?, phone=COALESCE(?, phone), updated_at=? WHERE id=?',
+          name, phone, L.limaDay(), existing.id);
+      } else {
+        const r = q.run("INSERT INTO members(name, dni, phone, created_at, status, qr_key) VALUES(?, ?, ?, ?, 'active', ?)",
+          name, dni, phone, L.limaDay(), require('crypto').randomBytes(16).toString('hex'));
+        const newCode = code || memberCode(r.lastInsertRowid);
+        q.run('UPDATE members SET code=? WHERE id=?', newCode, r.lastInsertRowid);
+      }
+      imported++;
+    }
+  });
+
+  checkpoint();
+  audit(req.user.id, 'sheets.import_members', { count: imported });
+  res.json({ ok: true, imported });
 }));
 
 // ---------------- API del socio (app) ----------------
