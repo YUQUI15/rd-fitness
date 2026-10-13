@@ -4,7 +4,7 @@
   const { esc, money } = RD;
 
   let member = JSON.parse(localStorage.getItem('rd_member_data') || 'null');
-  const api = RD.makeApi('rd_member_token', () => logout(true));
+  const api = RD.makeApi('rd_member_token', () => handleAuthFail());
   const root = document.getElementById('root');
   let currentTab = 'pass';
   let qrTimer = null;
@@ -25,9 +25,11 @@
 
   // ---------------- LOGIN DEL SOCIO ----------------
   function showLogin(err) {
+    RD.hub.stop();
+    const themeLbl = () => RD.getTheme && RD.getTheme() === 'light' ? '🌙 Modo Oscuro' : '☀️ Modo Claro (Pastel)';
     root.innerHTML = `
     <div class="auth">
-      <form class="box" id="mlf">
+      <form class="box" id="mlf" autocomplete="on">
         <div class="brand">
           <img class="logo" src="/logo.svg" alt="RD">
           <h1>RD FITNESS CLUB</h1>
@@ -35,45 +37,43 @@
         </div>
         ${err ? `<div class="banner err">${esc(err)}</div>` : ''}
         <label class="field">
-          <span>Código de socio (ej. RD-0001 o solo el número) *</span>
-          <input name="code" placeholder="RD-0001" required autocomplete="off" autofocus>
+          <span>Usuario o código de socio</span>
+          <input name="username" placeholder="Tu usuario o RD-0001" required autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" autofocus>
         </label>
         <label class="field">
-          <span>Número de DNI *</span>
-          <input name="dni" inputmode="numeric" placeholder="8 dígitos" required autocomplete="off">
+          <span>Contraseña</span>
+          <div class="pw"><input name="password" type="password" placeholder="Tu contraseña" required autocomplete="current-password"><button type="button" class="pw-eye" data-eye aria-label="Mostrar contraseña">👁</button></div>
+          <small class="tiny muted">¿Primera vez? Tu contraseña inicial es tu <b>DNI</b>. Luego podrás crear tu propio usuario y contraseña.</small>
         </label>
         <button class="btn primary block" type="submit">Ingresar a mi App</button>
+        <p class="center small mt2"><a href="#" id="forgot">¿Olvidaste tu contraseña?</a></p>
+        <p class="center muted tiny mt2">Este dispositivo recordará tu sesión: no tendrás que ingresar cada vez.</p>
         <div class="card flat mt center small muted">
           ¿Aún no estás registrado? Acércate a recepción en Calle Sucre Lt. 10 para obtener tu código y credencial.
         </div>
         <p class="center muted tiny mt">Personal del gimnasio: <a href="/admin/">Acceso al panel</a></p>
         <div class="center mt2">
-          <button type="button" class="btn ghost sm" id="loginthemebtn" data-theme-toggle>${RD.getTheme && RD.getTheme() === 'light' ? '🌙 Modo Oscuro' : '☀️ Modo Claro (Pastel)'}</button>
+          <button type="button" class="btn ghost sm" id="loginthemebtn" data-theme-toggle>${themeLbl()}</button>
         </div>
       </form>
     </div>`;
 
     const ltb = document.getElementById('loginthemebtn');
-    if (ltb) {
-      ltb.onclick = () => {
-        RD.toggleTheme();
-        ltb.textContent = RD.getTheme() === 'light' ? '🌙 Modo Oscuro' : '☀️ Modo Claro (Pastel)';
-      };
-    }
+    ltb.onclick = () => { RD.toggleTheme(); ltb.textContent = themeLbl(); };
+    root.querySelector('[data-eye]').onclick = e => { const i = e.currentTarget.previousElementSibling; i.type = i.type === 'password' ? 'text' : 'password'; };
+    document.getElementById('forgot').onclick = e => { e.preventDefault(); RD.hub.forgot(); };
 
     document.getElementById('mlf').onsubmit = async e => {
       e.preventDefault();
       const f = e.target;
-      await RD.busy(f.querySelector('button'), async () => {
+      await RD.busy(f.querySelector('button[type=submit]'), async () => {
         try {
           const res = await api.post('/auth/member-login', {
-            code: f.code.value.trim(),
-            dni: f.dni.value.trim()
+            id: f.username.value.trim(),
+            secret: f.password.value,
+            ...RD.hub.deviceInfo()
           });
-          localStorage.setItem('rd_member_token', res.token);
-          localStorage.setItem('rd_member_data', JSON.stringify(res.member));
-          member = res.member;
-          boot();
+          startSession(res);
         } catch (error) {
           RD.toast(error.message, 'err');
         }
@@ -81,12 +81,34 @@
     };
   }
 
+  function startSession(res) {
+    localStorage.setItem('rd_member_token', res.token);
+    localStorage.setItem('rd_member_data', JSON.stringify(res.member));
+    member = res.member;
+    RD.hub.keepStorage();
+    boot();
+  }
+
+  // Si el servidor rechaza el token (401) se intenta recuperar la sesión de este dispositivo antes de pedir login
+  let recovering = false;
+  async function handleAuthFail() {
+    if (recovering) return;
+    recovering = true;
+    try {
+      const res = await RD.hub.resume();
+      if (res && res.token) { startSession(res); return; }
+    } finally { recovering = false; }
+    logout(true);
+  }
+
   function logout(auto) {
     clearInterval(qrTimer);
+    RD.hub.stop();
+    if (!auto) api.post('/auth/logout').catch(() => { });
     localStorage.removeItem('rd_member_token');
     localStorage.removeItem('rd_member_data');
     member = null;
-    showLogin(auto ? 'Tu sesión caducó. Ingresa de nuevo.' : '');
+    showLogin(auto ? 'Tu sesión terminó. Ingresa de nuevo.' : '');
   }
 
   // ---------------- NAVEGACIÓN Y ESTRUCTURA ----------------
@@ -97,9 +119,11 @@
       <header class="topbar">
         <img src="/logo.svg" alt="RD">
         <div class="t" id="apptitle">RD FITNESS CLUB</div>
+        <button class="icon-btn bell" id="bellbtn" title="Avisos" aria-label="Avisos">🔔<span class="bell-dot" id="belldot" hidden></span></button>
         <button class="icon-btn theme-toggle" id="appthemetoggle" data-theme-toggle title="${isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro (Pastel)'}">${isLight ? '🌙' : '☀️'}</button>
         <button class="icon-btn" id="logoutbtn" title="Cerrar sesión">✕</button>
       </header>
+      <div id="noticebar"></div>
       <main class="page" id="mainview"></main>
       <nav class="nav">
         <button data-tab="pass" class="on"><span class="i">🪪</span>Acceso</button>
@@ -114,6 +138,8 @@
     });
 
     document.getElementById('appthemetoggle').onclick = () => RD.toggleTheme();
+    document.getElementById('bellbtn').onclick = () => RD.hub.openInbox();
+    RD.hub.start(api);
 
     document.getElementById('logoutbtn').onclick = async () => {
       if (await RD.confirm('Cerrar sesión', '¿Deseas salir de tu cuenta en este dispositivo?', 'Salir', true)) {
@@ -155,7 +181,24 @@
     const renewMsg = `Hola, soy ${member.name} (${member.code}). Quiero renovar mi membresía en ${gymName}.`;
     const renewWa = RD.waLink(fresh.settings?.gym_phone || '982404043', renewMsg);
 
+    const snoozed = Date.now() - Number(localStorage.getItem('rd_setup_snooze') || 0) < 14 * 86400000;
+    const showSetup = !member.has_password && !snoozed;
+
     el.innerHTML = `
+    ${showSetup ? `
+    <div class="card flat mb setup-card" id="setupcard">
+      <div class="row gap">
+        <div style="font-size:1.6rem">✨</div>
+        <div class="grow">
+          <b>Crea tu usuario y contraseña</b>
+          <div class="small muted">Ingresa con tu propio alias y protege tu cuenta. Tu código ${esc(member.code)} no cambia.</div>
+        </div>
+      </div>
+      <div class="row end gap mt2">
+        <button class="btn sm ghost" id="setuplater">Ahora no</button>
+        <button class="btn sm primary" id="setupnow">Configurar</button>
+      </div>
+    </div>` : ''}
     <div class="idcard">
       <div class="row between">
         <img src="/logo.svg" style="height:32px" alt="RD">
@@ -212,6 +255,14 @@
         Consultas y WhatsApp: <b>${esc(fresh.settings?.gym_phone || '982 404 043')}</b>.
       </p>
     </div>`;
+
+    const setupLater = el.querySelector('#setuplater');
+    if (setupLater) {
+      setupLater.onclick = () => { localStorage.setItem('rd_setup_snooze', String(Date.now())); el.querySelector('#setupcard').remove(); };
+      el.querySelector('#setupnow').onclick = () => RD.hub.openAccount(member, m => {
+        member = m; localStorage.setItem('rd_member_data', JSON.stringify(m)); el.querySelector('#setupcard')?.remove();
+      }, { first: true });
+    }
 
     const qrBox = el.querySelector('#qrcodebox');
     const cdBar = el.querySelector('#cdbar');
@@ -544,16 +595,55 @@
     </div>
 
     <div class="card mb">
-      <h3>Apariencia</h3>
-      <div class="row between">
-        <span>Tema visual (Modo Claro / Oscuro):</span>
+      <h3>Mi cuenta y acceso</h3>
+      <div class="list small">
+        <div class="item"><span class="muted">Código de socio:</span> <b class="grow right">${esc(member.code)}</b></div>
+        <div class="item"><span class="muted">Mi usuario:</span> <b class="grow right">${member.alias ? esc(member.alias) : '<span class="muted">Sin crear</span>'}</b></div>
+        <div class="item"><span class="muted">Contraseña:</span> <b class="grow right">${member.has_password ? 'Propia ✔' : 'Inicial (tu DNI)'}</b></div>
+      </div>
+      <div class="grid g2 keep mt2">
+        <button class="btn sm ${member.has_password ? '' : 'primary'}" id="pfaccount">${member.has_password ? '🔐 Cambiar acceso' : '✨ Crear usuario y contraseña'}</button>
+        <button class="btn sm" id="pfdevices">📱 Mis dispositivos</button>
+      </div>
+    </div>
+
+    <div class="card mb">
+      <h3>Avisos y preferencias</h3>
+      <p class="small muted">Tú decides qué ver y cuándo. Nada de acoso: lo importante aparece en la campana 🔔.</p>
+      <div class="grid g2 keep">
+        <button class="btn sm" id="pfinbox">🔔 Ver mis avisos</button>
+        <button class="btn sm" id="pfprefs">⚙️ Preferencias</button>
+      </div>
+    </div>
+
+    <div class="card mb">
+      <h3>Aplicación</h3>
+      <div class="row between wrap gap">
+        <span class="small">Tema visual</span>
         <button class="btn sm" id="profilethemebtn">${RD.getTheme && RD.getTheme() === 'light' ? '🌙 Modo Oscuro' : '☀️ Modo Claro (Pastel)'}</button>
+      </div>
+      <div class="row between wrap gap mt2" id="installrow">
+        ${RD.hub.isStandalone()
+          ? '<span class="small">✅ App instalada en este dispositivo</span>'
+          : RD.hub.canInstall()
+            ? '<span class="small">Instálala: abre más rápido y se actualiza sola</span><button class="btn sm primary" id="pfinstall">📲 Instalar app</button>'
+            : RD.hub.isIOS()
+              ? '<span class="small">Para instalarla: toca <b>Compartir</b> ➜ <b>Añadir a pantalla de inicio</b>. Se actualizará sola.</span>'
+              : '<span class="small">Para instalarla usa el menú del navegador ➜ <b>Instalar app</b> / <b>Añadir a pantalla de inicio</b>.</span>'}
       </div>
     </div>
 
     <div class="grid gap">
       <button class="btn danger block" id="outbtn">Cerrar Sesión</button>
     </div>`;
+
+    const redrawProfile = m => { member = m; localStorage.setItem('rd_member_data', JSON.stringify(m)); renderProfileTab(el); };
+    el.querySelector('#pfaccount').onclick = () => RD.hub.openAccount(member, redrawProfile, { first: !member.has_password });
+    el.querySelector('#pfdevices').onclick = () => RD.hub.openDevices();
+    el.querySelector('#pfinbox').onclick = () => RD.hub.openInbox();
+    el.querySelector('#pfprefs').onclick = () => RD.hub.openPrefs();
+    const pfi = el.querySelector('#pfinstall');
+    if (pfi) pfi.onclick = async () => { if (await RD.hub.install()) { RD.toast('App instalada ✔'); renderProfileTab(el); } };
 
     const ptb = el.querySelector('#profilethemebtn');
     if (ptb) {
@@ -564,7 +654,7 @@
     }
 
     el.querySelector('#outbtn').onclick = async () => {
-      if (await RD.confirm('Cerrar sesión', '¿Deseas cerrar tu sesión?', 'Salir', true)) {
+      if (await RD.confirm('Cerrar sesión', '¿Deseas cerrar tu sesión? Tendrás que ingresar de nuevo en este dispositivo.', 'Salir', true)) {
         logout(false);
       }
     };
@@ -574,11 +664,24 @@
   async function boot() {
     RD.registerSW();
     RD.syncTime();
+    RD.hub.keepStorage();
+    // Sin sesión guardada: intenta recuperar la de este mismo dispositivo (cookie) antes de pedir usuario y contraseña
     if (!localStorage.getItem('rd_member_token')) {
-      return showLogin();
+      const res = await RD.hub.resume();
+      if (res && res.token) {
+        localStorage.setItem('rd_member_token', res.token);
+        localStorage.setItem('rd_member_data', JSON.stringify(res.member));
+        member = res.member;
+      } else {
+        return showLogin();
+      }
     }
+    if (!member) member = JSON.parse(localStorage.getItem('rd_member_data') || 'null');
     layout();
-    switchTab('pass');
+    const qs = new URLSearchParams(location.search);
+    const tab = qs.get('tab');
+    switchTab(['pass', 'train', 'progress', 'profile'].includes(tab) ? tab : 'pass');
+    if (qs.get('inbox') === '1') { history.replaceState(null, '', '/'); RD.hub.openInbox(); }
   }
 
   window.RDMemberBoot = boot;

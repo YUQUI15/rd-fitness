@@ -1,8 +1,8 @@
 /* RD Fitness Club - Service Worker (funciona sin internet) */
-const VERSION = 'rd-v2.3';
+const VERSION = 'rd-v2.4';
 const SHELL = [
   '/', '/index.html', '/admin/', '/admin/index.html', '/admin/cards.html',
-  '/css/style.css', '/js/common.js', '/js/app.js', '/js/admin-core.js', '/js/admin-scan.js', '/js/admin-members.js', '/js/admin-other.js', '/js/workout.js',
+  '/css/style.css', '/js/common.js', '/js/member-hub.js', '/js/app.js', '/js/admin-core.js', '/js/admin-scan.js', '/js/admin-members.js', '/js/admin-other.js', '/js/admin-announce.js', '/js/workout.js',
   '/vendor/qrcode.js', '/vendor/jsQR.js', '/logo.svg', '/manifest.json', '/admin/manifest.json',
   '/icons/icon-192.png', '/icons/icon-512.png'
 ];
@@ -44,4 +44,32 @@ self.addEventListener('message', e => {
   if (e.data && e.data.type === 'precache' && Array.isArray(e.data.urls)) {
     e.waitUntil(caches.open(VERSION).then(c => Promise.all(e.data.urls.map(u => c.match(u).then(h => h || c.add(u).catch(() => { }))))));
   }
+});
+
+// ---- Notificaciones push (opt-in del socio; sin acoso) ----
+self.addEventListener('push', e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch { d = { title: 'RD Fitness Club', body: e.data ? e.data.text() : '' }; }
+  e.waitUntil(self.registration.showNotification(d.title || 'RD Fitness Club', {
+    body: d.body || '',
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+    tag: d.tag || 'rd-aviso',          // un aviso nuevo reemplaza al anterior con la misma etiqueta
+    renotify: false,
+    silent: d.silent === true,
+    data: { url: d.url || '/?inbox=1' }
+  }));
+});
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || '/?inbox=1';
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+    for (const c of list) {
+      if (new URL(c.url).origin === self.location.origin && !c.url.includes('/admin')) {
+        c.postMessage({ type: 'open-inbox' });
+        return c.focus();
+      }
+    }
+    return self.clients.openWindow(url);
+  }));
 });

@@ -104,6 +104,7 @@
     cash: ['💰', 'Caja', ['admin', 'recepcion']],
     routines: ['🏋️', 'Rutinas', ['admin', 'recepcion', 'entrenador']],
     reports: ['📈', 'Reportes', ['admin', 'recepcion']],
+    announcements: ['📢', 'Avisos', ['admin', 'recepcion']],
     settings: ['⚙️', 'Ajustes', ['admin']]
   };
   function layout() {

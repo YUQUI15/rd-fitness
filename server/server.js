@@ -37,8 +37,15 @@ function loadSession(req) {
   const h = req.headers.authorization || '';
   const token = h.startsWith('Bearer ') ? h.slice(7) : null;
   if (!token) return null;
-  const s = q.get("SELECT * FROM sessions WHERE token=? AND created_at > datetime('now','-90 days')", token);
-  return s || null;
+  // Socios: vigencia deslizante de 365 días desde el último uso. Personal: 90 días fijos.
+  const s = q.get(`SELECT * FROM sessions WHERE token=? AND (
+    (kind='member' AND COALESCE(last_seen,created_at) > datetime('now','-365 days')) OR
+    (kind<>'member' AND created_at > datetime('now','-90 days')))`, token);
+  if (!s) return null;
+  if (s.kind === 'member' && (!s.last_seen || s.last_seen < new Date(Date.now() - 3600e3).toISOString().slice(0, 19).replace('T', ' '))) {
+    try { q.run("UPDATE sessions SET last_seen=datetime('now') WHERE token=?", s.token); } catch { }
+  }
+  return s;
 }
 const staff = (...roles) => (req, res, next) => {
   const s = loadSession(req);
@@ -105,22 +112,11 @@ api.post('/auth/login', wrap((req, res) => {
   res.json({ token, user: { id: u.id, username: u.username, name: u.name, role: u.role, must_change: u.must_change } });
 }));
 
-api.post('/auth/member-login', wrap((req, res) => {
-  if (limited(req)) return bad(res, 'Demasiados intentos. Espera un minuto.', 429);
-  let { code, dni } = req.body || {};
-  code = String(code || '').trim().toUpperCase().replace(/\s/g, '');
-  if (/^\d+$/.test(code)) code = memberCode(parseInt(code, 10));
-  dni = String(dni || '').trim();
-  const m = q.get('SELECT * FROM members WHERE code=?', code);
-  if (!m || !dni || String(m.dni || '').trim() !== dni) return bad(res, 'Código o DNI incorrecto', 401);
-  if (m.status === 'inactive') return bad(res, 'Cuenta dada de baja. Consulta en recepción.', 403);
-  const token = L.randomToken();
-  q.run("INSERT INTO sessions(token,kind,ref_id) VALUES(?,?,?)", token, 'member', m.id);
-  res.json({ token, member: memberPublic(m, true) });
-}));
+// /auth/member-login y /auth/resume: ver server/member-hub.js
 
 api.post('/auth/logout', wrap((req, res) => {
   const s = loadSession(req); if (s) q.run('DELETE FROM sessions WHERE token=?', s.token);
+  res.setHeader('Set-Cookie', 'rd_m=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');
   res.json({ ok: true });
 }));
 
@@ -168,6 +164,9 @@ function memberPublic(m, includeKey = false) {
     access: s.access, access_reason: s.access_reason, days_left: s.days_left, frozen: s.frozen, created_at: s.created_at,
     health: s.health, emergency: s.emergency
   };
+  const cr = q.get('SELECT alias, pass_hash FROM member_credentials WHERE member_id=?', m.id);
+  out.alias = cr?.alias || null;
+  out.has_password = !!cr?.pass_hash;
   if (includeKey) { out.qr_key = m.qr_key; out.phys_ver = m.phys_ver; }
   return out;
 }
@@ -330,7 +329,13 @@ api.get('/members/:id', staff(), wrap((req, res) => {
     attendance_30: q.get("SELECT COUNT(DISTINCT day) n FROM attendance WHERE member_id=? AND result IN ('ok','warn') AND day>=?", id, L.addDays(L.limaDay(), -29)).n,
     measurements: q.all('SELECT * FROM measurements WHERE member_id=? ORDER BY day DESC, id DESC LIMIT 30', id),
     routines: q.all(`SELECT a.id AS assignment_id, r.id, r.name, a.assigned_at FROM assignments a JOIN routines r ON r.id=a.routine_id WHERE a.member_id=? AND a.active=1 ORDER BY a.id DESC`, id),
-    workouts: q.all('SELECT id,title,day,duration_sec,volume FROM workouts WHERE member_id=? ORDER BY id DESC LIMIT 15', id)
+    workouts: q.all('SELECT id,title,day,duration_sec,volume FROM workouts WHERE member_id=? ORDER BY id DESC LIMIT 15', id),
+    credentials: {
+      alias: q.get('SELECT alias FROM member_credentials WHERE member_id=?', id)?.alias || null,
+      custom_password: !!q.get('SELECT 1 x FROM member_credentials WHERE member_id=? AND pass_hash IS NOT NULL', id),
+      devices: q.get("SELECT COUNT(*) n FROM sessions WHERE kind='member' AND ref_id=?", id).n,
+      push_devices: q.get('SELECT COUNT(*) n FROM push_subs WHERE member_id=?', id).n
+    }
   });
 }));
 
@@ -1407,6 +1412,9 @@ api.post('/member/measurements', memberAuth, wrap((req, res) => {
 api.delete('/member/measurements/:id', memberAuth, wrap((req, res) => {
   q.run('DELETE FROM measurements WHERE id=? AND member_id=?', num(req.params.id), req.member.id); res.json({ ok: true });
 }));
+
+// ---------------- Hub del socio: acceso propio, dispositivos, avisos y push ----------------
+require('./member-hub')(api, { q, db, bad, wrap, num, staff, memberAuth, loadSession, limited, memberPublic, withState, MEMBER_SELECT, numSettings, getSettings, audit, L, bcrypt, memberCode });
 
 api.use((req, res) => bad(res, 'Ruta no encontrada', 404));
 app.use('/api', api);

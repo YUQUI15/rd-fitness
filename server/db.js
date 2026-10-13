@@ -137,8 +137,45 @@ CREATE TABLE IF NOT EXISTS audit (
 );
 `);
 
+// ---------- Hub del socio: credenciales propias, avisos, preferencias y notificaciones push ----------
+// Las credenciales viven en su propia tabla: el código RD-xxxx (identificador interno) nunca cambia.
+db.exec(`
+CREATE TABLE IF NOT EXISTS member_credentials (
+  member_id INTEGER PRIMARY KEY REFERENCES members(id) ON DELETE CASCADE,
+  alias TEXT UNIQUE COLLATE NOCASE, pass_hash TEXT, updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS announcements (
+  id INTEGER PRIMARY KEY, kind TEXT NOT NULL DEFAULT 'aviso', title TEXT NOT NULL, body TEXT,
+  audience TEXT NOT NULL DEFAULT 'all', member_id INTEGER, priority TEXT NOT NULL DEFAULT 'info',
+  pinned INTEGER DEFAULT 0, starts_at TEXT, ends_at TEXT, cta_label TEXT, cta_url TEXT,
+  push INTEGER DEFAULT 0, push_sent INTEGER DEFAULT 0, archived INTEGER DEFAULT 0,
+  created_by INTEGER, created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_ann_active ON announcements(archived, starts_at, ends_at);
+CREATE TABLE IF NOT EXISTS inbox_reads (
+  member_id INTEGER NOT NULL, ref TEXT NOT NULL, read_at TEXT DEFAULT CURRENT_TIMESTAMP, dismissed INTEGER DEFAULT 0,
+  PRIMARY KEY (member_id, ref)
+);
+CREATE TABLE IF NOT EXISTS member_prefs (
+  member_id INTEGER PRIMARY KEY, show_promos INTEGER DEFAULT 1, show_reminders INTEGER DEFAULT 1,
+  push_critical INTEGER DEFAULT 1, push_news INTEGER DEFAULT 0, push_promos INTEGER DEFAULT 0, last_push_at TEXT
+);
+CREATE TABLE IF NOT EXISTS push_subs (
+  id INTEGER PRIMARY KEY, member_id INTEGER NOT NULL, endpoint TEXT UNIQUE NOT NULL, p256dh TEXT NOT NULL, auth TEXT NOT NULL,
+  device_id TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_push_member ON push_subs(member_id);
+`);
+
 // Migración segura de columnas en bases de datos existentes
 function ensureColumns() {
+  // Sesiones por dispositivo (sesión persistente con vigencia deslizante)
+  try {
+    const sc = q.all('PRAGMA table_info(sessions)').map(c => c.name);
+    for (const [col, def] of [['device_id', 'TEXT'], ['device_label', 'TEXT'], ['last_seen', 'TEXT'], ['ua', 'TEXT']]) {
+      if (!sc.includes(col)) db.exec(`ALTER TABLE sessions ADD COLUMN ${col} ${def}`);
+    }
+  } catch (e) { console.error('Migración sesiones:', e.message); }
   const addCol = (tbl, col, def) => {
     const cols = q.all(`PRAGMA table_info(${tbl})`).map(c => c.name);
     if (!cols.includes(col)) {

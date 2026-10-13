@@ -545,6 +545,7 @@
         ${can('admin', 'recepcion') ? '<button class="btn sm" data-a="checkin">Ingreso manual</button>' : ''}
         ${can('admin', 'recepcion') ? `<button class="btn sm" data-a="freeze">${m.frozen ? '▶ Reanudar membresía' : '❄ Congelar'}</button>` : ''}
         ${can('admin', 'recepcion') ? '<button class="btn sm" data-a="reissue">♻ Reemitir tarjeta</button>' : ''}
+        ${can('admin', 'recepcion') ? '<button class="btn sm ghost" data-a="reset-cred" title="Restablece la clave a su DNI">🔐 Restablecer acceso</button>' : ''}
         ${can('admin', 'recepcion') ? `<button class="btn sm danger" data-a="${m.status === 'blocked' ? 'unblock' : 'block'}">${m.status === 'blocked' ? 'Desbloquear' : 'Bloquear'}</button>` : ''}
         ${can('admin') ? `<button class="btn sm ghost" data-a="${m.status === 'inactive' ? 'reactivate' : 'inactive'}">${m.status === 'inactive' ? 'Reactivar' : 'Dar de baja'}</button>` : ''}
       </div>
@@ -608,6 +609,15 @@
             if (await RD.confirm('Reemitir tarjeta', 'La tarjeta física anterior dejará de funcionar. Luego imprime la nueva. El QR digital de la app no cambia.', 'Anular y reemitir', true)) {
               await RD.api.post(`/members/${id}/reissue-card`); await RD.syncMembers().catch(() => { });
               RD.toast('Tarjeta anterior anulada'); window.open('/admin/cards.html?ids=' + id, '_blank'); redraw();
+            }
+          } else if (a === 'reset-cred') {
+            if (await RD.confirm(
+              'Restablecer acceso',
+              `¿Deseas restablecer la contraseña de ${m.name}? La clave volverá a ser su DNI (${m.dni || 'sin DNI'}), conservando su alias y código de socio.`,
+              'Restablecer'
+            )) {
+              const res = await RD.api.post(`/members/${id}/reset-credentials`);
+              RD.toast(res.msg || 'Acceso restablecido ✔');
             }
           } else if (a === 'block' || a === 'inactive') {
             const reason = await RD.prompt(a === 'block' ? 'Bloquear socio' : 'Dar de baja', 'Motivo', 'Ej. conducta, deuda, retiro voluntario');
