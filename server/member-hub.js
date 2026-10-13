@@ -208,19 +208,30 @@ module.exports = function mountMemberHub(api, ctx) {
   // ---------------- Preferencias ----------------
   const PREF_KEYS = ['show_promos', 'show_reminders', 'push_critical', 'push_news', 'push_promos'];
   function getPrefs(mid) {
-    let p = q.get('SELECT * FROM member_prefs WHERE member_id=?', mid);
-    if (!p) {
-      q.run('INSERT OR IGNORE INTO member_prefs(member_id, show_promos, show_reminders, push_critical, push_news, push_promos, alert_mode) VALUES(?, 1, 1, 1, 1, 1, "sound")', mid);
-      p = q.get('SELECT * FROM member_prefs WHERE member_id=?', mid);
+    const id = Number(mid);
+    let p = null;
+    try {
+      p = q.get('SELECT * FROM member_prefs WHERE member_id=?', id);
+      if (!p) {
+        q.run("INSERT OR IGNORE INTO member_prefs(member_id, show_promos, show_reminders, push_critical, push_news, push_promos, alert_mode) VALUES(?, 1, 1, 1, 1, 1, 'sound')", id);
+        p = q.get('SELECT * FROM member_prefs WHERE member_id=?', id);
+      }
+    } catch (err) {
+      console.error('[MEMBER_PREFS] Error en getPrefs:', err.message);
     }
-    return p;
+    return p || { member_id: id, show_promos: 1, show_reminders: 1, push_critical: 1, push_news: 1, push_promos: 1, alert_mode: 'sound' };
   }
   const prefsOut = (mid) => {
-    const p = getPrefs(mid);
+    const id = Number(mid);
+    const p = getPrefs(id) || {};
     const out = {};
     PREF_KEYS.forEach(k => out[k] = !!p[k]);
     out.alert_mode = ['sound', 'vibrate', 'silent'].includes(p.alert_mode) ? p.alert_mode : 'sound';
-    out.push_devices = q.get('SELECT COUNT(*) n FROM push_subs WHERE member_id=?', mid).n;
+    try {
+      out.push_devices = (q.get('SELECT COUNT(*) n FROM push_subs WHERE member_id=?', id)?.n) || 0;
+    } catch {
+      out.push_devices = 0;
+    }
     return out;
   };
   api.get('/member/prefs', memberAuth, wrap((req, res) => res.json(prefsOut(req.member.id))));

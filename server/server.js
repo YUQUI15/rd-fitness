@@ -429,6 +429,9 @@ api.post('/members', staff('admin', 'recepcion'), wrap((req, res) => {
     });
     return { id, ms };
   });
+  try {
+    q.run("INSERT OR IGNORE INTO member_prefs(member_id, show_promos, show_reminders, push_critical, push_news, push_promos, alert_mode) VALUES(?, 1, 1, 1, 1, 1, 'sound')", result.id);
+  } catch {}
   audit(req.user.id, 'member.create', { id: result.id, name });
   try { saveVault(); } catch {}
   const m = q.get('SELECT * FROM members WHERE id=?', result.id);
@@ -1831,7 +1834,7 @@ api.post('/backup/import-json', staff('admin'), wrap((req, res) => {
             } catch {}
           }
           try {
-            q.run('INSERT OR IGNORE INTO member_prefs(member_id, show_promos, show_reminders, push_critical, push_news, push_promos, alert_mode) VALUES(?, 1, 1, 1, 1, 1, "sound")', row.id);
+            q.run("INSERT OR IGNORE INTO member_prefs(member_id, show_promos, show_reminders, push_critical, push_news, push_promos, alert_mode) VALUES(?, 1, 1, 1, 1, 1, 'sound')", row.id);
           } catch {}
         }
       } catch (e) {
@@ -2171,7 +2174,7 @@ app.get('/admin', (req, res) => res.redirect('/admin/'));
 app.use((err, req, res, next) => {
   console.error(err);
   if (res.headersSent) return next(err);
-  res.status(500).json({ error: 'Error interno del servidor. Inténtalo otra vez.' });
+  res.status(500).json({ error: err.message || 'Error interno del servidor. Inténtalo otra vez.' });
 });
 
 // ---------------- Arranque ----------------

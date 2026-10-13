@@ -193,10 +193,10 @@ function ensureColumns() {
   addCol('payments', 'category', 'TEXT');
 
   addCol('expenses', 'shift_id', 'INTEGER');
-  addCol('expenses', 'category', 'TEXT DEFAULT "gym"');
+  addCol('expenses', 'category', "TEXT DEFAULT 'gym'");
 
   addCol('products', 'barcode', 'TEXT');
-  addCol('products', 'category', 'TEXT DEFAULT "general"');
+  addCol('products', 'category', "TEXT DEFAULT 'general'");
   addCol('products', 'min_stock', 'INTEGER DEFAULT 5');
 
   addCol('memberships', 'extra_days', 'INTEGER DEFAULT 0');
@@ -207,10 +207,10 @@ function ensureColumns() {
   addCol('products', 'promo_desc', 'TEXT');
   addCol('products', 'description', 'TEXT');
 
-  addCol('attendance', 'direction', 'TEXT DEFAULT "in"');
+  addCol('attendance', 'direction', "TEXT DEFAULT 'in'");
   addCol('attendance', 'exit_ts', 'TEXT');
   addCol('attendance', 'duration_min', 'INTEGER');
-  addCol('attendance', 'status', 'TEXT DEFAULT "inside"');
+  addCol('attendance', 'status', "TEXT DEFAULT 'inside'");
   addCol('attendance', 'notes', 'TEXT');
 
   // Líneas de venta estructuradas (producto, cantidad, precio y costo unitarios) para reportes de rentabilidad
@@ -221,7 +221,7 @@ function ensureColumns() {
 
   // Hub del socio: multimedia en avisos y preferencia de sonido/vibración
   addCol('announcements', 'image_url', 'TEXT');
-  addCol('member_prefs', 'alert_mode', 'TEXT DEFAULT "sound"');
+  addCol('member_prefs', 'alert_mode', "TEXT DEFAULT 'sound'");
 
   // Asegurar que por defecto todas las notificaciones estén activas para todos los socios
   try {
