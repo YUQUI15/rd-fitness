@@ -8,6 +8,17 @@
 
   // ---------- Evaluación universal de cualquier código escaneado ----------
   RD.evaluate = async function (text, scanMode = 'auto') {
+    // 1. Si estamos en línea, delegar al servidor autoritativo con SQLite en tiempo real
+    if (navigator.onLine) {
+      try {
+        const res = await RD.api.post('/attendance/scan', { text, scanMode });
+        if (res) return res;
+      } catch (e) {
+        if (!e.offline && e.data) return e.data;
+      }
+    }
+
+    // 2. Modo fuera de línea (Fallback local con snapshot)
     let snap = RD.snap();
     if (!snap) {
       if (navigator.onLine) { try { snap = await RD.syncMembers(); } catch { } }
@@ -224,7 +235,77 @@
     document.body.appendChild(overlay);
     RD.beep(r.dup ? 'ok' : lvl === 'invalid' ? 'denied' : lvl);
 
-    const close = () => { clearTimeout(hideT); overlay && overlay.remove(); overlay = null; };
+    // Sincronizar estado en la tablet de mostrador (garantía omnicanal)
+    if (r.is_checkout) {
+      RD.setCustomerDisplay({
+        mode: 'goodbye',
+        name: displayName,
+        photo: m?.photo || null,
+        plan: m?.plan || 'Membresía',
+        duration_min: r.duration_min || 0,
+        reason: r.reason,
+        level: 'ok',
+        is_checkout: true
+      }).catch(() => {});
+    } else if (r.is_daily) {
+      if (lvl === 'ok') {
+        RD.setCustomerDisplay({
+          mode: 'daily_welcome',
+          name: displayName,
+          code: r.code,
+          reason: 'Pase diario activo',
+          level: 'ok'
+        }).catch(() => {});
+      } else {
+        RD.setCustomerDisplay({
+          mode: 'denied',
+          name: displayName,
+          code: r.code,
+          reason: r.reason,
+          level: 'denied',
+          is_daily: true
+        }).catch(() => {});
+      }
+    } else if (m) {
+      if (lvl === 'ok' || lvl === 'warn') {
+        RD.setCustomerDisplay({
+          mode: 'welcome',
+          name: m.name,
+          photo: m.photo,
+          plan: m.plan,
+          daysLeft: r.daysLeft,
+          end: m.end,
+          level: lvl,
+          reason: r.reason
+        }).catch(() => {});
+      } else {
+        RD.setCustomerDisplay({
+          mode: 'denied',
+          name: m.name,
+          photo: m.photo,
+          plan: m.plan || 'Sin plan activo',
+          end: m.end,
+          level: 'denied',
+          reason: r.reason || 'Membresía vencida. Por favor acércate a recepción a renovar tu plan.',
+          is_daily: false
+        }).catch(() => {});
+      }
+    } else if (lvl === 'denied' || lvl === 'invalid') {
+      RD.setCustomerDisplay({
+        mode: 'denied',
+        name: displayName,
+        reason: r.reason,
+        level: lvl
+      }).catch(() => {});
+    }
+
+    const close = () => {
+      clearTimeout(hideT);
+      if (overlay) overlay.remove();
+      overlay = null;
+      RD.setCustomerDisplay({ mode: 'idle' }).catch(() => {});
+    };
+
     overlay.addEventListener('click', async e => {
       const a = e.target.closest('[data-a]')?.dataset.a;
       if (a === 'checkout-now') {
@@ -241,7 +322,7 @@
       else if (a === 'profile') { close(); RD.openMember(m.id); }
       else close();
     });
-    const ms = r.dup ? 1800 : lvl === 'ok' ? 2200 : lvl === 'warn' ? 3200 : 9000;
+    const ms = r.dup ? 2500 : lvl === 'ok' ? 4000 : lvl === 'warn' ? 4500 : 9000;
     hideT = setTimeout(close, ms);
   }
 
@@ -471,6 +552,7 @@
         </div>
         <div class="row gap">
           <button class="btn ok sm" id="dpassbtn">🎟️ Pase Diario (S/ 5)</button>
+          <button class="btn sm" id="btn_open_tablet" title="Abrir Pantalla de Cliente / Tablet de Mostrador en 2do Monitor">🖥️ Pantalla Tablet</button>
           <button class="btn sm" id="sync">🔄 Sincronizar</button>
         </div>
       </div>
@@ -607,6 +689,10 @@
       });
 
       view.querySelector('#dpassbtn').onclick = () => dailyPassDialog(() => { drawRecent(); info(); });
+      view.querySelector('#btn_open_tablet')?.addEventListener('click', () => {
+        if (typeof RD.openCustomerDisplayWindow === 'function') RD.openCustomerDisplayWindow();
+        else window.open('/display.html', 'RD_CustomerDisplay', 'width=1024,height=600,menubar=no,toolbar=no');
+      });
 
       // --- Lector USB / Bluetooth 2D (emulación de teclado física) ---
       let buf = '', bufT = 0;
@@ -660,20 +746,13 @@
         const type = it.dataset.type;
         if (type === 'm') {
           const m = RD.findMember(code);
-          if (scanMode === 'out') {
-            try {
-              const res = await RD.api.post('/attendance/checkout-code', { code: m.code });
-              RD.toast(`Salida registrada (${res.duration_min || 0} min) ✔`);
-              recent.unshift({ uid: RD.uid(), code: m.code, ts: RD.now(), result: 'ok', name: m.name, is_checkout: true, duration_min: res.duration_min });
-              drawRecent(); search.value = ''; mres.innerHTML = '';
-            } catch (err) { RD.toast(err.message, 'err'); }
-            return;
+          if (m) {
+            RD.confirm('Registrar Asistencia', `Socio: <b>${esc(m.name)}</b> (DNI: ${esc(m.dni || '—')}, Código: ${esc(m.code)}).<br>¿Procesar registro de entrada/salida?`, 'Registrar').then(ok => {
+              if (!ok) return;
+              onCode(m.code);
+              search.value = ''; mres.innerHTML = '';
+            });
           }
-          const r = decide(m, 'M');
-          RD.confirm('Ingreso manual de socio', `Confirma que verificaste la identidad de ${m.name} (DNI ${m.dni || '—'}). ¿Registrar ingreso?`, 'Registrar').then(ok => {
-            if (!ok) return;
-            record(r, 'M'); showResult(r); drawRecent(); info(); search.value = ''; mres.innerHTML = '';
-          });
         } else if (type === 'p') {
           onCode(code);
           search.value = ''; mres.innerHTML = '';

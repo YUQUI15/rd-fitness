@@ -451,6 +451,196 @@
       animation: countdownBar 5s linear forwards;
     }
 
+    /* ESTADOS DE ACCESO Y ASISTENCIA (BIENVENIDA, SALIDA, DENEGADO) */
+    .access-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      max-width: 820px;
+      width: 100%;
+      background: var(--bg-card);
+      border: 2px solid var(--bg-card-border);
+      border-radius: 28px;
+      padding: 36px 42px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 0 40px var(--gold-glow);
+      animation: popIn .35s ease;
+      position: relative;
+    }
+    .access-card.welcome {
+      border-color: rgba(16, 185, 129, 0.5);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 0 45px rgba(16, 185, 129, 0.25);
+    }
+    .access-card.goodbye {
+      border-color: rgba(56, 189, 248, 0.5);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 0 45px rgba(56, 189, 248, 0.25);
+    }
+    .access-card.denied {
+      border-color: rgba(239, 68, 68, 0.6);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 0 45px rgba(239, 68, 68, 0.3);
+      animation: shakeCard .45s ease;
+    }
+    @keyframes shakeCard {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-10px); }
+      40%, 80% { transform: translateX(10px); }
+    }
+    .member-avatar-wrap {
+      position: relative;
+      margin-bottom: 18px;
+    }
+    .member-avatar-img {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid var(--gold);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      display: block;
+    }
+    .member-avatar-placeholder {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: var(--chip-bg);
+      border: 4px solid var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: var(--gold);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+    .access-card.welcome .member-avatar-img,
+    .access-card.welcome .member-avatar-placeholder {
+      border-color: var(--success);
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
+    }
+    .access-card.goodbye .member-avatar-img,
+    .access-card.goodbye .member-avatar-placeholder {
+      border-color: #38bdf8;
+      box-shadow: 0 0 30px rgba(56, 189, 248, 0.4);
+    }
+    .access-card.denied .member-avatar-img,
+    .access-card.denied .member-avatar-placeholder {
+      border-color: #ef4444;
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: 30px;
+      font-size: 0.95rem;
+      font-weight: 900;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .status-badge.ok {
+      background: rgba(16, 185, 129, 0.16);
+      color: var(--success);
+      border: 1.5px solid var(--success);
+    }
+    .status-badge.goodbye {
+      background: rgba(56, 189, 248, 0.16);
+      color: #38bdf8;
+      border: 1.5px solid #38bdf8;
+    }
+    .status-badge.denied {
+      background: rgba(239, 68, 68, 0.18);
+      color: #ef4444;
+      border: 1.5px solid #ef4444;
+    }
+    .member-name {
+      font-size: 2.3rem;
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+    .member-details-grid {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .detail-pill {
+      background: var(--chip-bg);
+      border: 1px solid var(--chip-border);
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 0.92rem;
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .detail-pill b { color: var(--gold); }
+    .motivational-lead {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .motivational-sub {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 22px;
+    }
+    .denied-alert-box {
+      background: rgba(239, 68, 68, 0.12);
+      border: 2px solid rgba(239, 68, 68, 0.45);
+      border-radius: 16px;
+      padding: 16px 22px;
+      max-width: 640px;
+      margin: 12px auto 22px;
+      text-align: center;
+    }
+    .denied-alert-title {
+      color: #ef4444;
+      font-size: 1.2rem;
+      font-weight: 900;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .denied-alert-text {
+      color: var(--text);
+      font-size: 1.05rem;
+      line-height: 1.45;
+    }
+    .denied-alert-text b {
+      color: var(--gold);
+    }
+    .duration-stat-box {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1.5px solid rgba(56, 189, 248, 0.35);
+      border-radius: 16px;
+      padding: 14px 28px;
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .duration-stat-val {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: #38bdf8;
+      font-family: ui-monospace, monospace;
+      line-height: 1;
+    }
+    .duration-stat-lbl {
+      text-align: left;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
     /* ANIMACIONES */
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes popIn { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
@@ -474,6 +664,8 @@
       .bill-price { font-size: 3rem; }
       .qr-container, .nfc-container { width: 100%; max-width: 240px; }
       .idle-headline { font-size: 2rem; }
+      .member-name { font-size: 1.8rem; }
+      .access-card { padding: 24px 20px; }
     }
   </style>
 </head>
@@ -492,6 +684,9 @@
           <div class="clock-time" id="clock_time">--:--:--</div>
           <div class="clock-date" id="clock_date">--</div>
         </div>
+        <button class="ctrl-btn" id="soundtoggle" title="Probar o Activar Sonido de Bienvenida" aria-label="Sonido">
+          <svg viewBox="0 0 24 24" id="sound_icon"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </button>
         <button class="ctrl-btn" id="themetoggle" title="Alternar Modo Claro / Oscuro" aria-label="Tema">
           <svg viewBox="0 0 24 24" id="theme_icon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
         </button>
@@ -578,23 +773,105 @@
         }
       }
 
-      // ---------------- Sonido de Éxito con Web Audio API ----------------
-      function playChime() {
+      // ---------------- Sistema de Audio con Web Audio API ----------------
+      let audioCtx = null;
+      function getAudioCtx() {
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) audioCtx = new AudioContextClass();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume().catch(() => {});
+        }
+        return audioCtx;
+      }
+
+      function unlockAudio() {
+        const ctx = getAudioCtx();
+        if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {});
+      }
+      document.addEventListener('click', unlockAudio);
+      document.addEventListener('touchstart', unlockAudio);
+
+      // Chime de Bienvenida (Entrada Autorizada) - Acorde ascendente luminoso
+      function beepAdmission() {
         try {
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          const osc1 = ctx.createOscillator(), osc2 = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc1.type = 'sine'; osc2.type = 'sine';
-          osc1.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
-          osc2.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5
-          gain.gain.setValueAtTime(0.01, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.05);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
-          osc1.connect(gain); osc2.connect(gain);
-          gain.connect(ctx.destination);
-          osc1.start(); osc2.start(ctx.currentTime + 0.1);
-          osc1.stop(ctx.currentTime + 0.8); osc2.stop(ctx.currentTime + 0.8);
+          const ctx = getAudioCtx();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+          notes.forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+            gain.gain.setValueAtTime(0.001, now + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.28, now + idx * 0.08 + 0.03);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.08 + 0.7);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 0.7);
+          });
         } catch {}
+      }
+
+      // Chime de Despedida (Salida Registrada) - Campana suave relajante
+      function beepCheckout() {
+        try {
+          const ctx = getAudioCtx();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          const notes = [{ f: 783.99, t: 0 }, { f: 523.25, t: 0.16 }]; // G5 -> C5
+          notes.forEach(n => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(n.f, now + n.t);
+            gain.gain.setValueAtTime(0.001, now + n.t);
+            gain.gain.exponentialRampToValueAtTime(0.25, now + n.t + 0.03);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + n.t + 0.85);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + n.t);
+            osc.stop(now + n.t + 0.85);
+          });
+        } catch {}
+      }
+
+      // Alerta de Membresía Vencida / Acceso Denegado - Tono claro de advertencia
+      function beepDenied() {
+        try {
+          const ctx = getAudioCtx();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          const notes = [{ f: 329.63, t: 0 }, { f: 277.18, t: 0.15 }]; // E4 -> C#4
+          notes.forEach(n => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(n.f, now + n.t);
+            gain.gain.setValueAtTime(0.001, now + n.t);
+            gain.gain.exponentialRampToValueAtTime(0.22, now + n.t + 0.04);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + n.t + 0.45);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + n.t);
+            osc.stop(now + n.t + 0.45);
+          });
+        } catch {}
+      }
+
+      const soundToggleBtn = document.getElementById('soundtoggle');
+      if (soundToggleBtn) {
+        soundToggleBtn.onclick = () => {
+          unlockAudio();
+          beepAdmission();
+        };
+      }
+
+      function playChime() {
+        beepAdmission();
       }
 
       // ---------------- Carrusel de Citas ----------------
@@ -616,6 +893,14 @@
       }, 7000);
 
       let successTimer = null;
+
+      function fmtDuration(mins) {
+        const m = Math.max(1, Number(mins) || 1);
+        if (m < 60) return `${m} min`;
+        const h = Math.floor(m / 60);
+        const rem = m % 60;
+        return rem > 0 ? `${h}h ${rem}m` : `${h}h`;
+      }
 
       // ---------------- Renderizador de Estados ----------------
       function render(state) {
@@ -650,6 +935,106 @@
                 <span class="pay-pill card">💵 Efectivo</span>
               </div>
             </div>`;
+        } else if (mode === 'welcome') {
+          beepAdmission();
+          const name = state.name || 'Socio';
+          const plan = state.plan || 'Membresía Activa';
+          const end = state.end || state.end_date ? (state.end || state.end_date) : '';
+          const daysLeft = state.daysLeft !== undefined && state.daysLeft !== null ? state.daysLeft : null;
+          const photo = state.photo;
+          const avatarHtml = photo
+            ? `<img class="member-avatar-img" src="${esc(photo)}" alt="">`
+            : `<div class="member-avatar-placeholder">${esc(name[0] || '✔')}</div>`;
+
+          stage.innerHTML = `
+            <div class="access-card welcome">
+              <div class="status-badge ok">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                ACCESO AUTORIZADO
+              </div>
+              <div class="member-avatar-wrap">${avatarHtml}</div>
+              <div class="motivational-lead">¡BIENVENIDO A RD FITNESS CLUB!</div>
+              <div class="member-name">${esc(name)}</div>
+              <div class="member-details-grid">
+                <span class="detail-pill">🏆 Plan: <b>${esc(plan)}</b></span>
+                ${end ? `<span class="detail-pill">📅 Vence: <b>${esc(end)}</b>${daysLeft !== null ? ` (${daysLeft} días restantes)` : ''}</span>` : ''}
+              </div>
+              <div class="motivational-sub">${esc(state.reason || '¡Que tengas una excelente sesión de entrenamiento hoy!')}</div>
+              <div class="success-meter" style="max-width:320px"><div class="success-meter-bar"></div></div>
+            </div>`;
+          successTimer = setTimeout(() => { render({ mode: 'idle' }); }, 5500);
+        } else if (mode === 'goodbye') {
+          beepCheckout();
+          const name = state.name || 'Socio';
+          const dur = fmtDuration(state.duration_min || 0);
+          const photo = state.photo;
+          const avatarHtml = photo
+            ? `<img class="member-avatar-img" src="${esc(photo)}" alt="">`
+            : `<div class="member-avatar-placeholder">🚪</div>`;
+
+          stage.innerHTML = `
+            <div class="access-card goodbye">
+              <div class="status-badge goodbye">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                SALIDA REGISTRADA
+              </div>
+              <div class="member-avatar-wrap">${avatarHtml}</div>
+              <div class="motivational-lead">¡HASTA PRONTO!</div>
+              <div class="member-name">${esc(name)}</div>
+              <div class="duration-stat-box">
+                <div class="duration-stat-val">${esc(dur)}</div>
+                <div class="duration-stat-lbl">Tiempo de entrenamiento hoy en RD Fitness</div>
+              </div>
+              <div class="motivational-sub">¡Gran entrenamiento! Hidrátate bien y descansa. Te esperamos pronto.</div>
+              <div class="success-meter" style="max-width:320px"><div class="success-meter-bar" style="background:#38bdf8"></div></div>
+            </div>`;
+          successTimer = setTimeout(() => { render({ mode: 'idle' }); }, 5500);
+        } else if (mode === 'denied') {
+          beepDenied();
+          const name = state.name || 'Socio / Visitante';
+          const photo = state.photo;
+          const avatarHtml = photo
+            ? `<img class="member-avatar-img" src="${esc(photo)}" alt="">`
+            : `<div class="member-avatar-placeholder" style="color:#ef4444;border-color:#ef4444">⚠</div>`;
+          const end = state.end || state.end_date || '';
+          const reason = state.reason || 'Membresía vencida. Por favor acércate a recepción a renovar tu plan.';
+
+          stage.innerHTML = `
+            <div class="access-card denied">
+              <div class="status-badge denied">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                ${state.is_daily ? 'PASE DIARIO CADUCADO' : 'MEMBRESÍA VENCIDA'}
+              </div>
+              <div class="member-avatar-wrap">${avatarHtml}</div>
+              <div class="member-name">${esc(name)}</div>
+              <div class="denied-alert-box">
+                <div class="denied-alert-title">ACCESO NO DISPONIBLE</div>
+                <div class="denied-alert-text">
+                  ${end ? `Tu plan finalizó el <b>${esc(end)}</b>.<br>` : ''}
+                  <b>Por favor acércate a recepción para renovar tu membresía y continuar entrenando.</b>
+                </div>
+              </div>
+              <div class="motivational-sub">${esc(reason)}</div>
+              <div class="success-meter" style="max-width:320px"><div class="success-meter-bar" style="background:#ef4444;animation-duration:6.5s"></div></div>
+            </div>`;
+          successTimer = setTimeout(() => { render({ mode: 'idle' }); }, 6500);
+        } else if (mode === 'daily_welcome') {
+          beepAdmission();
+          const name = state.name || 'Visitante Casual';
+          stage.innerHTML = `
+            <div class="access-card welcome">
+              <div class="status-badge ok">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                PASE DIARIO VÁLIDO (S/ 5)
+              </div>
+              <div class="member-avatar-wrap"><div class="member-avatar-placeholder">🎟️</div></div>
+              <div class="motivational-lead">¡BIENVENIDO A RD FITNESS CLUB!</div>
+              <div class="member-name">${esc(name)}</div>
+              <div class="detail-pill" style="margin-bottom:14px">Válido para entrenamiento libre el día de hoy</div>
+              <div class="motivational-sub">${esc(state.reason || '¡Disfruta de tu entrenamiento en Chivay!')}</div>
+              <div class="success-meter" style="max-width:320px"><div class="success-meter-bar"></div></div>
+            </div>`;
+          successTimer = setTimeout(() => { render({ mode: 'idle' }); }, 5500);
         } else if (mode === 'card' || (mode === 'payment' && state.method === 'tarjeta')) {
           stage.innerHTML = `
             <div class="bill-card">
@@ -721,7 +1106,7 @@
               </div>
             </div>`;
         } else if (mode === 'success') {
-          playChime();
+          beepAdmission();
           stage.innerHTML = `
             <div class="success-box">
               <div class="success-ring">

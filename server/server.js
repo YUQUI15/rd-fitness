@@ -96,11 +96,25 @@ api.get('/public', (req, res) => {
 // Estado de la pantalla para el cliente (Tablet / Segundo Monitor)
 let customerScreenState = { mode: 'idle', updatedAt: Date.now() };
 const screenClients = new Set();
+let screenIdleTimer = null;
+
+function broadcastScreenState(state, autoIdleMs = 0) {
+  clearTimeout(screenIdleTimer);
+  customerScreenState = { ...state, updatedAt: Date.now() };
+  const payload = 'data: ' + JSON.stringify(customerScreenState) + '\n\n';
+  for (const client of screenClients) {
+    try { client.write(payload); } catch { screenClients.delete(client); }
+  }
+  if (autoIdleMs > 0) {
+    screenIdleTimer = setTimeout(() => {
+      broadcastScreenState({ mode: 'idle' }, 0);
+    }, autoIdleMs);
+  }
+}
+
 api.get('/screen/state', (req, res) => res.json(customerScreenState));
 api.post('/screen/state', staff('admin', 'recepcion'), wrap((req, res) => {
-  customerScreenState = { ...req.body, updatedAt: Date.now() };
-  const payload = 'data: ' + JSON.stringify(customerScreenState) + '\n\n';
-  for (const client of screenClients) { try { client.write(payload); } catch { } }
+  broadcastScreenState(req.body, req.body?.auto_idle ? Number(req.body.auto_idle) : 0);
   res.json({ ok: true, state: customerScreenState });
 }));
 api.get('/screen/stream', (req, res) => {
@@ -528,6 +542,19 @@ api.get('/cards', staff('admin', 'recepcion'), wrap((req, res) => {
   });
 }));
 
+function parseScanInput(raw) {
+  const text = String(raw || '').trim();
+  if (!text) return null;
+  const m = /^RD1\.(RD-\d{1,8})\.([PD])(\d+)\.([0-9a-f]{12})$/.exec(text);
+  if (m) return { type: 'member', code: m[1], kind: m[2], n: Number(m[3]), sig: m[4] };
+  const d = /^RD1\.DAY\.(RD-DAY-[A-Za-z0-9\-]+)\.(\d{4}-\d{2}-\d{2})\.([0-9a-f]{12})$/.exec(text);
+  if (d) return { type: 'daily', code: d[1], day: d[2], sig: d[3] };
+  if (/^RD-DAY-[A-Za-z0-9\-]+$/i.test(text)) return { type: 'daily_code', code: text.toUpperCase() };
+  const mc = /^(RD-?\d{1,8})$/i.exec(text);
+  if (mc) return { type: 'member_code', code: mc[1].toUpperCase().replace(/^RD(?=\d)/, 'RD-') };
+  return { type: 'code', code: text };
+}
+
 api.post('/members/:id/checkin', staff('admin', 'recepcion'), wrap((req, res) => {
   const id = num(req.params.id);
   const m = q.get(MEMBER_SELECT + ' WHERE m.id=?', id);
@@ -535,19 +562,365 @@ api.post('/members/:id/checkin', staff('admin', 'recepcion'), wrap((req, res) =>
   const today = L.limaDay();
   const now = new Date();
 
-  // Si se solicita registrar salida
+  // Si se solicita registrar salida manual
   if (req.body?.direction === 'out') {
     const active = getActiveAttendanceSession(m.code, today);
     if (active) {
       const closed = closeAttendanceSession(active.id, now);
+      broadcastScreenState({
+        mode: 'goodbye',
+        name: m.name,
+        code: m.code,
+        photo: m.photo,
+        plan: m.plan_name,
+        duration_min: closed.duration_min,
+        reason: `Salida registrada (${closed.duration_min} min)`,
+        level: 'ok',
+        is_checkout: true
+      }, 5500);
       return res.json({ action: 'checkout', duration_min: closed.duration_min, access: 'ok', reason: `Salida registrada (${closed.duration_min} min)` });
     }
   }
 
   const s = withState(m, numSettings(), today);
   const r = q.run('INSERT INTO attendance(uid,member_id,code,ts,day,hour,result,reason,kind,direction,status,user_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
-    'srv-' + L.randomKey(), id, m.code, now.toISOString(), L.limaDay(now), L.limaHour(now), s.access, s.access_reason, 'M', 'in', 'inside', req.user.id);
+    'srv-' + L.randomKey(), id, m.code, now.toISOString(), L.limaDay(now), L.limaHour(now), s.access, s.access_reason, 'M', 'in', s.access === 'denied' ? 'rejected' : 'inside', req.user.id);
+  
+  if (s.access === 'denied') {
+    broadcastScreenState({
+      mode: 'denied',
+      name: m.name,
+      code: m.code,
+      photo: m.photo,
+      plan: s.plan_name || m.plan_name || 'Sin plan activo',
+      end: s.end_date || m.end_date,
+      reason: s.access_reason,
+      level: 'denied',
+      is_daily: false
+    }, 6500);
+  } else {
+    broadcastScreenState({
+      mode: 'welcome',
+      name: m.name,
+      code: m.code,
+      photo: m.photo,
+      plan: s.plan_name || m.plan_name,
+      daysLeft: s.days_left,
+      end: s.end_date || m.end_date,
+      level: s.access,
+      reason: s.access_reason,
+      is_checkout: false
+    }, 5500);
+  }
   res.json({ action: 'checkin', id: Number(r.lastInsertRowid), access: s.access, reason: s.access_reason });
+}));
+
+// Escaneo universal de acceso con detección automática de entrada / salida y sincronización de tablet
+api.post('/attendance/scan', staff('admin', 'recepcion'), wrap((req, res) => {
+  const { text, code: directCode, scanMode = 'auto' } = req.body || {};
+  const parsed = parseScanInput(text || directCode);
+  if (!parsed) return bad(res, 'Código no reconocido', 400);
+
+  const today = L.limaDay();
+  const now = new Date();
+  const cfg = numSettings();
+
+  // 1. CÓDIGO DE BARRAS DE TIENDA
+  if (parsed.type === 'code') {
+    const prod = q.get('SELECT * FROM products WHERE barcode=? AND active=1', parsed.code);
+    if (prod) {
+      return res.json({ level: 'pos', product: prod });
+    }
+  }
+
+  // 2. PASE DIARIO
+  if (parsed.type === 'daily' || parsed.type === 'daily_code' || String(parsed.code).startsWith('RD-DAY-')) {
+    const passCode = parsed.code.toUpperCase();
+    let dp = q.get('SELECT * FROM daily_passes WHERE code=?', passCode);
+    if (!dp) {
+      dp = q.get('SELECT * FROM daily_passes WHERE dni=? AND day=? ORDER BY id DESC LIMIT 1', parsed.code, today);
+    }
+    if (!dp || dp.day !== today) {
+      broadcastScreenState({
+        mode: 'denied',
+        name: dp ? dp.name : 'Visitante Casual',
+        code: passCode,
+        reason: dp ? `Pase diario vencido (era del ${dp.day}). Debe abonar un nuevo pase de S/ 5.` : 'Pase diario no registrado hoy. Debe abonar S/ 5.',
+        level: 'denied',
+        is_daily: true
+      }, 6500);
+      return res.json({
+        level: 'denied',
+        is_daily: true,
+        code: passCode,
+        name: dp ? dp.name : 'Visitante (Pase anterior)',
+        reason: dp ? `Pase diario vencido (era válido el ${dp.day}). Debe abonar un nuevo pase de S/ 5.` : 'Pase diario no válido para hoy.'
+      });
+    }
+
+    // Verificar si ya está dentro hoy
+    const active = getActiveAttendanceSession(dp.code, today);
+    if (active) {
+      const enterDate = new Date(active.ts);
+      const minsInside = Math.max(0, Math.round((now - enterDate) / 60000));
+      if (scanMode !== 'out' && minsInside < 2) {
+        return res.json({
+          level: 'ok',
+          dup: true,
+          is_daily: true,
+          code: dp.code,
+          name: dp.name,
+          mins: minsInside,
+          reason: `Pase diario ya registrado hace ${minsInside} min. ¡Buen entrenamiento!`
+        });
+      }
+      // Marcar SALIDA automática
+      const closed = closeAttendanceSession(active.id, now);
+      broadcastScreenState({
+        mode: 'goodbye',
+        name: dp.name,
+        code: dp.code,
+        duration_min: closed.duration_min,
+        reason: `Salida completada (${closed.duration_min} min en el gimnasio)`,
+        level: 'ok',
+        is_checkout: true,
+        is_daily: true
+      }, 5500);
+      return res.json({
+        level: 'ok',
+        is_checkout: true,
+        is_daily: true,
+        code: dp.code,
+        name: dp.name,
+        duration_min: closed.duration_min,
+        reason: `Salida completada (${closed.duration_min} min en el gimnasio)`
+      });
+    }
+
+    if (scanMode === 'out') {
+      return res.json({
+        level: 'warn',
+        code: dp.code,
+        is_daily: true,
+        name: dp.name,
+        reason: 'No se encontró un ingreso activo para este pase hoy.'
+      });
+    }
+
+    // Marcar ENTRADA de pase diario
+    const r = q.run('INSERT INTO attendance(uid,code,ts,day,hour,result,reason,kind,direction,status,user_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
+      'srv-' + L.randomKey(), dp.code, now.toISOString(), L.limaDay(now), L.limaHour(now), 'ok', 'Pase diario vigente', 'D', 'in', 'inside', req.user.id);
+    broadcastScreenState({
+      mode: 'daily_welcome',
+      name: dp.name,
+      code: dp.code,
+      reason: 'Pase diario válido por hoy (S/ 5 abonados)',
+      level: 'ok',
+      is_daily: true
+    }, 5500);
+    return res.json({
+      level: 'ok',
+      is_daily: true,
+      code: dp.code,
+      name: dp.name,
+      reason: 'Pase diario vigente (Acceso hoy)',
+      daily: dp
+    });
+  }
+
+  // 3. SOCIO REGISTRADO (por código o DNI)
+  const lookupCode = parsed.code.toUpperCase();
+  let m = q.get(MEMBER_SELECT + ' WHERE m.code=? OR m.dni=?', lookupCode, lookupCode);
+  if (!m) {
+    const pProd = q.get('SELECT * FROM products WHERE barcode=? AND active=1', parsed.code);
+    if (pProd) return res.json({ level: 'pos', product: pProd });
+
+    broadcastScreenState({
+      mode: 'denied',
+      name: 'Código No Reconocido',
+      code: parsed.code,
+      reason: `Código ${parsed.code} no registrado en socios ni pases.`,
+      level: 'invalid'
+    }, 5000);
+    return res.json({ level: 'invalid', code: parsed.code, reason: `Código "${parsed.code}" no encontrado. Verifica si el socio está registrado o sincroniza datos.` });
+  }
+
+  // Verificar firma si fue firmado
+  if (parsed.sig) {
+    const expected = L.sign(m.qr_key, m.code, parsed.kind, parsed.n);
+    if (expected !== parsed.sig) {
+      broadcastScreenState({
+        mode: 'denied',
+        name: m.name,
+        code: m.code,
+        photo: m.photo,
+        reason: 'Código QR no auténtico o alterado.',
+        level: 'denied'
+      }, 5000);
+      return res.json({ level: 'invalid', code: m.code, reason: 'Código QR falsificado o alterado.' });
+    }
+    if (parsed.kind === 'P' && parsed.n < m.phys_ver) {
+      broadcastScreenState({
+        mode: 'denied',
+        name: m.name,
+        code: m.code,
+        photo: m.photo,
+        reason: 'Tarjeta anulada o renovada por una versión más reciente.',
+        level: 'denied'
+      }, 6000);
+      return res.json({ level: 'denied', member: memberPublic(m), code: m.code, kind: parsed.kind, reason: 'Tarjeta anulada o reemplazada por nueva emisión.' });
+    }
+    if (parsed.kind === 'D') {
+      const cur = Math.floor(Date.now() / 60000);
+      if (Math.abs(cur - parsed.n) > 2) {
+        broadcastScreenState({
+          mode: 'denied',
+          name: m.name,
+          code: m.code,
+          photo: m.photo,
+          reason: 'QR digital expirado. Por favor abre nuevamente tu app de socio.',
+          level: 'denied'
+        }, 6000);
+        return res.json({ level: 'denied', member: memberPublic(m), code: m.code, kind: parsed.kind, reason: 'QR digital caducado. El socio debe reabrir su app.' });
+      }
+    }
+  }
+
+  const s = withState(m, cfg, today);
+
+  // Verificar si ya tiene sesión de asistencia activa hoy
+  const active = getActiveAttendanceSession(m.code, today);
+
+  // Si el socio está vencido/bloqueado:
+  if (s.access === 'denied') {
+    // Si ya estaba dentro y pasa para salir, permitimos marcar salida
+    if (active && (scanMode === 'out' || (Date.now() - new Date(active.ts).getTime()) >= 2 * 60000)) {
+      const closed = closeAttendanceSession(active.id, now);
+      broadcastScreenState({
+        mode: 'goodbye',
+        name: m.name,
+        code: m.code,
+        photo: m.photo,
+        plan: s.plan_name || m.plan_name,
+        duration_min: closed.duration_min,
+        reason: `Salida completada (${closed.duration_min} min entrenando)`,
+        level: 'ok',
+        is_checkout: true
+      }, 5500);
+      return res.json({
+        level: 'ok',
+        is_checkout: true,
+        member: memberPublic(m),
+        code: m.code,
+        name: m.name,
+        duration_min: closed.duration_min,
+        reason: `Salida completada (${closed.duration_min} min entrenando)`
+      });
+    }
+
+    // Intento de entrada denegado
+    q.run('INSERT INTO attendance(uid,member_id,code,ts,day,hour,result,reason,kind,direction,status,user_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
+      'srv-' + L.randomKey(), m.id, m.code, now.toISOString(), L.limaDay(now), L.limaHour(now), 'denied', s.access_reason, parsed.kind || 'M', 'in', 'rejected', req.user.id);
+    broadcastScreenState({
+      mode: 'denied',
+      name: m.name,
+      code: m.code,
+      photo: m.photo,
+      plan: s.plan_name || m.plan_name || 'Sin plan activo',
+      end: s.end_date || m.end_date,
+      reason: s.access_reason || 'Tu membresía ha vencido. Acércate a recepción para renovar tu plan.',
+      level: 'denied',
+      is_daily: false
+    }, 6500);
+    return res.json({
+      level: 'denied',
+      reason: s.access_reason,
+      daysLeft: s.days_left,
+      end: s.end_date,
+      member: memberPublic(m),
+      code: m.code,
+      kind: parsed.kind || 'M'
+    });
+  }
+
+  // El socio tiene membresía vigente ('ok' o 'warn')
+  if (active) {
+    const enterDate = new Date(active.ts);
+    const minsInside = Math.max(0, Math.round((now - enterDate) / 60000));
+
+    // Si escaneó hace menos de 2 min y no forzó salida, es anti-pase duplicado
+    if (scanMode !== 'out' && minsInside < 2) {
+      return res.json({
+        level: s.access,
+        dup: true,
+        mins: minsInside,
+        member: memberPublic(m),
+        code: m.code,
+        name: m.name,
+        reason: `Ingreso ya registrado hace ${minsInside} min (no se duplica)`
+      });
+    }
+
+    // AUTOMÁTICO: Si ya estaba dentro hace 2 o más minutos, MARCAR SALIDA
+    const closed = closeAttendanceSession(active.id, now);
+    broadcastScreenState({
+      mode: 'goodbye',
+      name: m.name,
+      code: m.code,
+      photo: m.photo,
+      plan: s.plan_name || m.plan_name,
+      duration_min: closed.duration_min,
+      reason: `Salida completada (${closed.duration_min} min entrenando)`,
+      level: 'ok',
+      is_checkout: true
+    }, 5500);
+    return res.json({
+      level: 'ok',
+      is_checkout: true,
+      member: memberPublic(m),
+      code: m.code,
+      name: m.name,
+      duration_min: closed.duration_min,
+      reason: `Salida completada (${closed.duration_min} min entrenando)`
+    });
+  }
+
+  if (scanMode === 'out') {
+    return res.json({
+      level: 'warn',
+      code: m.code,
+      name: m.name,
+      member: memberPublic(m),
+      reason: 'No se encontró un ingreso activo para registrar salida hoy.'
+    });
+  }
+
+  // AUTOMÁTICO: Si no estaba dentro, MARCAR ENTRADA
+  const r = q.run('INSERT INTO attendance(uid,member_id,code,ts,day,hour,result,reason,kind,direction,status,user_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
+    'srv-' + L.randomKey(), m.id, m.code, now.toISOString(), L.limaDay(now), L.limaHour(now), s.access, s.access_reason, parsed.kind || 'M', 'in', 'inside', req.user.id);
+  broadcastScreenState({
+    mode: 'welcome',
+    name: m.name,
+    code: m.code,
+    photo: m.photo,
+    plan: s.plan_name || m.plan_name,
+    daysLeft: s.days_left,
+    end: s.end_date || m.end_date,
+    level: s.access,
+    reason: s.access_reason,
+    is_checkout: false
+  }, 5500);
+  return res.json({
+    level: s.access,
+    is_checkout: false,
+    member: memberPublic(m),
+    code: m.code,
+    name: m.name,
+    daysLeft: s.days_left,
+    end: s.end_date,
+    reason: s.access_reason,
+    kind: parsed.kind || 'M'
+  });
 }));
 
 // Lista de personas actualmente dentro del gimnasio
@@ -575,6 +948,17 @@ api.post('/attendance/:id/checkout', staff('admin', 'recepcion'), wrap((req, res
   const session = closeAttendanceSession(id);
   if (!session) return bad(res, 'Sesión no encontrada', 404);
   audit(req.user.id, 'attendance.checkout', { id, duration_min: session.duration_min });
+  const mem = session.member_id ? q.get('SELECT name, photo, code FROM members WHERE id=?', session.member_id) : (session.code ? q.get('SELECT name, photo, code FROM members WHERE code=?', session.code) : null);
+  broadcastScreenState({
+    mode: 'goodbye',
+    name: mem?.name || session.name || 'Socio',
+    code: session.code,
+    photo: mem?.photo || null,
+    duration_min: session.duration_min,
+    reason: `Salida registrada (${session.duration_min} min)`,
+    level: 'ok',
+    is_checkout: true
+  }, 5500);
   res.json({ ok: true, session });
 }));
 
@@ -586,6 +970,17 @@ api.post('/attendance/checkout-code', staff('admin', 'recepcion'), wrap((req, re
   if (!active) return bad(res, 'No se encontró un ingreso activo para este código hoy');
   const session = closeAttendanceSession(active.id);
   audit(req.user.id, 'attendance.checkout_code', { code, duration_min: session.duration_min });
+  const mem = q.get('SELECT name, photo, code FROM members WHERE code=? OR dni=?', code, code);
+  broadcastScreenState({
+    mode: 'goodbye',
+    name: mem?.name || session.name || 'Socio',
+    code: session.code,
+    photo: mem?.photo || null,
+    duration_min: session.duration_min,
+    reason: `Salida registrada (${session.duration_min} min)`,
+    level: 'ok',
+    is_checkout: true
+  }, 5500);
   res.json({ ok: true, session, duration_min: session.duration_min });
 }));
 
@@ -1336,7 +1731,7 @@ api.put('/users/:id', staff('admin'), wrap((req, res) => {
 }));
 api.get('/settings', staff(), wrap((req, res) => res.json(getSettings())));
 api.put('/settings', staff('admin'), wrap((req, res) => {
-  const allowed = ['gym_name', 'gym_slogan', 'gym_phone', 'gym_address', 'warn_days', 'grace_days', 'passback_min', 'stay_min', 'opening', 'color'];
+  const allowed = ['gym_name', 'gym_slogan', 'gym_phone', 'gym_address', 'warn_days', 'grace_days', 'passback_min', 'stay_min', 'opening', 'color', 'google_sheet_url', 'yape_phone', 'yape_name'];
   q.tx(() => { for (const k of allowed) if (k in (req.body || {})) q.run('INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)', k, String(req.body[k])); });
   audit(req.user.id, 'settings.update', req.body);
   res.json({ ok: true });

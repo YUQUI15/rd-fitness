@@ -119,20 +119,94 @@
     announcements: ['announcements', 'Avisos', ['admin', 'recepcion']],
     settings: ['settings', 'Ajustes', ['admin']]
   };
+  RD.openCustomerDisplayWindow = () => {
+    const w = 1024, h = 600;
+    const left = window.screen.availWidth ? Math.max(0, window.screen.availWidth - w - 20) : 50;
+    const top = 50;
+    const win = window.open('/display.html', 'RD_CustomerDisplay', `width=${w},height=${h},top=${top},left=${left},resizable=yes,scrollbars=no,status=no`);
+    if (win) {
+      win.focus();
+      RD.toast('Pantalla Tablet / Mostrador acoplada ✔');
+    } else {
+      window.open('/display.html', '_blank');
+    }
+  };
+
+  RD.openGoogleSheetsDirect = async () => {
+    let settings = {};
+    try { settings = await RD.api.get('/settings'); } catch {}
+    const url = String(settings.google_sheet_url || '').trim();
+    if (url && /^https?:\/\//i.test(url)) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+      RD.toast('Abriendo Google Sheets oficial… 📊');
+    } else {
+      const m = RD.openModal('📊 Google Sheets Oficial', `
+        <div class="mb">
+          <p class="muted small mb">Conecta tu hoja de Google Sheets para acceder directamente con un solo clic desde cualquier lugar del sistema.</p>
+          <label class="field"><span>Enlace de tu Hoja en Google Sheets (URL completa)</span>
+            <input id="gs_url_inp" placeholder="https://docs.google.com/spreadsheets/d/..." value="${esc(url)}">
+          </label>
+        </div>
+        <div class="grid g2 keep mb">
+          <button class="btn primary" id="gs_save_btn">Guardar y Abrir</button>
+          <button class="btn" id="gs_new_btn">Crear Hoja Nueva</button>
+        </div>
+        <div class="center mt">
+          <button class="btn ghost sm" id="gs_sync_guide_btn">⚙️ Ver Guía y Código Apps Script</button>
+        </div>
+      `);
+      m.el.querySelector('#gs_save_btn').onclick = async () => {
+        const newUrl = m.el.querySelector('#gs_url_inp').value.trim();
+        if (!newUrl || !/^https?:\/\//i.test(newUrl)) {
+          RD.toast('Ingresa una URL válida que empiece con https://', 'err');
+          return;
+        }
+        try {
+          await RD.api.put('/settings', { google_sheet_url: newUrl });
+          RD.toast('Enlace de Google Sheets guardado ✔');
+          m.close();
+          window.open(newUrl, '_blank', 'noopener,noreferrer');
+        } catch (err) { RD.toast(err.message, 'err'); }
+      };
+      m.el.querySelector('#gs_new_btn').onclick = () => {
+        window.open('https://sheets.new', '_blank', 'noopener,noreferrer');
+      };
+      m.el.querySelector('#gs_sync_guide_btn').onclick = () => {
+        m.close();
+        if (typeof RD.openGoogleSheetsSyncModal === 'function') RD.openGoogleSheetsSyncModal(settings);
+        else go('reports');
+      };
+    }
+  };
+
   function layout() {
     const items = Object.entries(NAV).filter(([, v]) => v[2].includes(RD.user.role));
     const isLight = RD.getTheme && RD.getTheme() === 'light';
     root.innerHTML = `
     <div class="admin">
-      <header class="topbar"><img src="/logo.svg" alt=""><div class="t" id="title">${esc(RD.pub.gym_name || 'RD Fitness Club')}</div><span id="net" class="net">…</span>
-        <button class="icon-btn theme-toggle" id="themetoggle" data-theme-toggle title="${isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro (Pastel)'}">${isLight ? RD.icon('moon', '', 18) : RD.icon('sun', '', 18)}</button>
-        <button class="icon-btn" id="who" title="${esc(RD.user.name)}">${RD.icon('user', '', 18)}</button></header>
+      <header class="topbar">
+        <img src="/logo.svg" alt="">
+        <div class="t" id="title">${esc(RD.pub.gym_name || 'RD Fitness Club')}</div>
+        <span id="net" class="net">…</span>
+        <button class="top-btn" id="btn_customer_screen" title="Abrir Pantalla Tablet / Mostrador en 2do Monitor o Ventana Acoplada">
+          ${RD.icon('monitor', '', 15)} <span>Tablet</span>
+        </button>
+        <button class="top-btn" id="btn_google_sheets" title="Abrir Google Sheets Oficial del Gimnasio">
+          ${RD.icon('sheet', '', 15)} <span>Sheets</span>
+        </button>
+        <button class="icon-btn theme-toggle" id="themetoggle" data-theme-toggle title="${isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro (Pastel)'}">
+          ${isLight ? RD.icon('moon', '', 18) : RD.icon('sun', '', 18)}
+        </button>
+        <button class="icon-btn" id="who" title="${esc(RD.user.name)}">${RD.icon('user', '', 18)}</button>
+      </header>
       <main class="page" id="view"></main>
       <nav class="nav">${items.map(([k, v]) => `<button data-v="${k}"><span class="i">${RD.icon(v[0], '', 20)}</span>${v[1]}</button>`).join('')}</nav>
     </div>`;
     document.querySelectorAll('.nav button').forEach(b => b.onclick = () => go(b.dataset.v));
     $('#themetoggle').onclick = () => { RD.toggleTheme(); layout(); };
     $('#who').onclick = userMenu;
+    $('#btn_customer_screen').onclick = RD.openCustomerDisplayWindow;
+    $('#btn_google_sheets').onclick = RD.openGoogleSheetsDirect;
     updateNet();
   }
   function userMenu() {

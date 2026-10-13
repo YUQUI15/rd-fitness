@@ -1749,6 +1749,7 @@
     }
   };
 
+  RD.openGoogleSheetsSyncModal = googleSheetsSyncModal;
   function googleSheetsSyncModal(settings = {}) {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const prodHost = 'https://rd-fitness.onrender.com';
@@ -2225,7 +2226,8 @@ function verEstado() {
           <div class="row gap wrap no-print">
             <button class="btn sm ok" id="btnexcel">📥 Descargar Excel (.xlsx)</button>
             <button class="btn sm primary" id="btnprint">🖨️ Imprimir / Guardar PDF</button>
-            <button class="btn sm ghost" id="btngsheets">📊 Conectar Google Sheets</button>
+            <button class="btn sm" style="background:#107c41;color:#fff;border-color:#107c41" id="btngsheets" title="Abrir o conectar hoja de Google Sheets en vivo">📊 Google Sheets</button>
+            <button class="btn sm ghost" id="btngsheets_guide" title="Ver Guía y Código Apps Script de Sincronización Automática">⚙️ Apps Script</button>
           </div>
         </div>
 
@@ -2296,7 +2298,8 @@ function verEstado() {
 
         // Handlers de botones de exportación
         view.querySelector('#btnprint').onclick = () => window.print();
-        view.querySelector('#btngsheets').onclick = () => googleSheetsSyncModal(settings);
+        view.querySelector('#btngsheets').onclick = () => RD.openGoogleSheetsDirect();
+        view.querySelector('#btngsheets_guide').onclick = () => googleSheetsSyncModal(settings);
         view.querySelector('#btnexcel').onclick = async () => {
           const btn = view.querySelector('#btnexcel');
           const old = btn.innerHTML;
@@ -3302,6 +3305,9 @@ function verEstado() {
         </div>
         <label class="field"><span>Dirección física</span><input name="gym_address" value="${esc(s.gym_address)}"></label>
         <label class="field"><span>Horario de atención</span><input name="opening" value="${esc(s.opening)}"></label>
+        <label class="field"><span>Enlace Oficial de Google Sheets (Spreadsheet URL)</span>
+          <input name="google_sheet_url" placeholder="https://docs.google.com/spreadsheets/d/..." value="${esc(s.google_sheet_url || '')}">
+        </label>
 
         <h3 class="mt">Reglas del Escáner de Acceso</h3>
         <div class="grid g2 keep">

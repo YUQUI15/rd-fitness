@@ -266,6 +266,7 @@ const DEFAULT_SETTINGS = {
   color: '#f5b400',
   printer_width: '58mm',
   google_sheets_key: require('crypto').randomBytes(12).toString('hex'),
+  google_sheet_url: '',
   yape_phone: '982404043',
   yape_name: 'RD FITNESS CLUB'
 };
