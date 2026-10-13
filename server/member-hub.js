@@ -209,7 +209,10 @@ module.exports = function mountMemberHub(api, ctx) {
   const PREF_KEYS = ['show_promos', 'show_reminders', 'push_critical', 'push_news', 'push_promos'];
   function getPrefs(mid) {
     let p = q.get('SELECT * FROM member_prefs WHERE member_id=?', mid);
-    if (!p) { q.run('INSERT OR IGNORE INTO member_prefs(member_id) VALUES(?)', mid); p = q.get('SELECT * FROM member_prefs WHERE member_id=?', mid); }
+    if (!p) {
+      q.run('INSERT OR IGNORE INTO member_prefs(member_id, show_promos, show_reminders, push_critical, push_news, push_promos, alert_mode) VALUES(?, 1, 1, 1, 1, 1, "sound")', mid);
+      p = q.get('SELECT * FROM member_prefs WHERE member_id=?', mid);
+    }
     return p;
   }
   const prefsOut = (mid) => {
@@ -286,7 +289,7 @@ module.exports = function mountMemberHub(api, ctx) {
       if (!inWindow(a, now) || !matchesAudience(a, m, mp)) continue;
       if (KINDS[a.kind] === 'promos' && !pr.show_promos) continue;
       push('a:' + a.id, {
-        source: 'gym', kind: a.kind, title: a.title, body: a.body || '', priority: a.priority, pinned: !!a.pinned,
+        id: a.id, source: 'gym', kind: a.kind, title: a.title, body: a.body || '', priority: a.priority, pinned: !!a.pinned,
         image_url: a.image_url || null,
         cta: a.cta_label && a.cta_url ? { label: a.cta_label, url: a.cta_url } : null, created_at: asIso(a.starts_at || a.created_at)
       });
@@ -383,18 +386,16 @@ module.exports = function mountMemberHub(api, ctx) {
   async function sendPush(memberIds, payload, category) {
     if (!pushEnabled()) return { sent: 0, skipped: memberIds.length };
     const hour = limaHour();
-    const quiet = hour >= 21 || hour < 7;
     let sent = 0, skipped = 0;
     for (const mid of memberIds) {
       const pr = getPrefs(mid);
       const wants = category === 'critical' ? pr.push_critical : category === 'promos' ? pr.push_promos : pr.push_news;
-      const recent = pr.last_push_at && Date.now() - new Date(asIso(pr.last_push_at)).getTime() < 6 * 3600e3;
-      if (!wants || (category !== 'critical' && (quiet || recent))) { skipped++; continue; }
+      if (!wants) { skipped++; continue; }
       const subs = q.all('SELECT * FROM push_subs WHERE member_id=?', mid);
       let ok = false;
       const alertMode = pr.alert_mode || 'sound';
       const isSilent = alertMode === 'silent';
-      const vibratePattern = alertMode === 'silent' ? [] : [200, 100, 200];
+      const vibratePattern = alertMode === 'silent' ? [] : (alertMode === 'vibrate' ? [300, 150, 300] : [200, 100, 200]);
       const memberPayload = {
         ...payload,
         silent: isSilent,

@@ -352,7 +352,22 @@
   };
   function successDialog(r) {
     const mem = r.member;
-    const msg = `¡Bienvenido a ${RD.pub.gym_name || 'RD Fitness Club'}! 💪 Tu código de socio es ${mem.code}. Abre ${location.origin} e ingresa con tu código y tu DNI para ver tu QR de acceso, tus rutinas y tu progreso.`;
+    const rcptNo = r.receipt?.receipt_no || (r.membership?.payment_id ? `B001-${String(r.membership.payment_id).padStart(6, '0')}` : '');
+    const rcptUrl = (r.receipt?.payment_id || r.membership?.payment_id) ? `${location.origin}/#receipt:${r.receipt?.payment_id || r.membership?.payment_id}` : '';
+    const msg = [
+      `¡Bienvenido(a) a ${RD.pub.gym_name || 'RD Fitness Club'}! 💪`,
+      `Tu membresía ya se encuentra activa:`,
+      `• Socio: *${mem.name}*`,
+      `• Código de Socio: *${mem.code}*`,
+      r.membership ? `• Plan: *${r.membership.plan_name || 'Membresía'}*` : '',
+      r.membership ? `• Vigencia: hasta el *${RD.fmtDate(r.membership.end)}*` : '',
+      rcptNo ? `• Boleta N°: *${rcptNo}*` : '',
+      rcptUrl ? `\n🧾 *Ver tu Boleta Digital:* ${rcptUrl}` : '',
+      `\n📲 *Ingresa a tu App de Socio en tu teléfono:*`,
+      `${location.origin}`,
+      `• Usuario: Tu código *${mem.code}* o tu DNI`,
+      `• Contraseña inicial: Tu número de DNI`
+    ].filter(Boolean).join('\n');
     const wa = RD.waLink(mem.phone, msg);
     const d = RD.openModal('✅ Socio registrado', `
       <div class="center"><div class="row" style="justify-content:center;margin-bottom:8px">${avatar(mem, true)}</div>
@@ -360,9 +375,9 @@
       ${r.membership ? `<p>Membresía vigente hasta <b>${RD.fmtDate(r.membership.end)}</b></p>` : '<p class="muted">Sin membresía activa todavía.</p>'}</div>
       <div class="grid mt">
         ${r.receipt ? `<button class="btn ok" id="rcptbtn">🧾 Ver e Imprimir Boleta</button>` : ''}
+        ${wa ? `<a class="btn ok" target="_blank" rel="noopener" href="${wa}">📲 Enviar Boleta y Acceso por WhatsApp</a>` : ''}
         <a class="btn primary" target="_blank" href="/admin/cards.html?ids=${mem.id}">🖨 Imprimir tarjeta QR</a>
-        ${wa ? `<a class="btn ok" target="_blank" rel="noopener" href="${wa}">📲 Enviar acceso por WhatsApp</a>` : ''}
-        <button class="btn" id="prof">Ver ficha</button>
+        <button class="btn" id="prof">Ver ficha del socio</button>
       </div>`);
     if (r.receipt) {
       d.el.querySelector('#rcptbtn').onclick = () => RD.receiptModal(r.receipt);

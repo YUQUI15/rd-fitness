@@ -82,6 +82,11 @@
         }
       });
     };
+
+    if (location.hash.startsWith('#receipt:')) {
+      const pid = +location.hash.replace('#receipt:', '');
+      if (pid) setTimeout(() => RD.showReceipt(pid), 350);
+    }
   }
 
   function startSession(res) {
@@ -268,14 +273,17 @@
       </div>
     </div>
 
+    <!-- Novedades y Avisos Oficiales del Club -->
+    <div id="pass_announcements_sec"></div>
+
     <!-- Enlaces directos a Boleta y Gimnasio -->
     <div class="card mb">
       <div class="row between">
         <div>
-          <b>🧾 Tu comprobante y boleta de pago</b>
-          <div class="tiny muted">Revisa tu última boleta digital de pago en formato térmico.</div>
+          <b>🧾 Tu comprobante y boletas de pago</b>
+          <div class="tiny muted">Revisa tus boletas digitales de pago en formato de ticket térmico.</div>
         </div>
-        <button class="btn sm ok" id="btn_quick_receipt">Ver Boleta</button>
+        <button class="btn sm ok" id="btn_quick_receipt">Ver Boletas</button>
       </div>
     </div>
 
@@ -287,6 +295,40 @@
         Consultas y WhatsApp: <b>${esc(fresh.settings?.gym_phone || '982 404 043')}</b>.
       </p>
     </div>`;
+
+    // Cargar novedades oficiales en la pantalla principal
+    api.get('/member/inbox').then(inb => {
+      const sec = el.querySelector('#pass_announcements_sec');
+      if (!sec || !inb || !inb.items) return;
+      const gymItems = inb.items.filter(i => i.source === 'gym' && !i.dismissed);
+      if (!gymItems.length) return;
+      const latest = gymItems[0];
+      const kindLabel = { aviso: 'Aviso', evento: 'Evento', tematica: 'Temática', promo: 'Promoción', mantenimiento: 'Mantenimiento', cierre: 'Atención' }[latest.kind] || 'Novedades';
+      const kindIcon = { aviso: '📢', evento: '🎉', tematica: '🎨', promo: '🏷️', mantenimiento: '🛠️', cierre: '⛔' }[latest.kind] || '📢';
+      sec.innerHTML = `
+        <div class="card mb" style="border-left: 4px solid var(--gold);background:var(--bg2)">
+          <div class="row between wrap gap mb2">
+            <span class="badge ${esc(latest.kind || 'aviso')}" style="font-weight:700">${kindIcon} ${esc(kindLabel)}</span>
+            <span class="tiny muted">${RD.ago(latest.created_at)}</span>
+          </div>
+          <b style="font-size:1.05rem;display:block;margin-bottom:6px">${esc(latest.title)}</b>
+          ${latest.image_url ? `
+            <div class="mb" style="max-height:190px;overflow:hidden;border-radius:8px;border:1px solid var(--line);background:var(--bg3);cursor:pointer;" id="ann_hero_img">
+              <img src="${esc(latest.image_url)}" style="width:100%;max-height:190px;object-fit:cover;display:block" alt="${esc(latest.title)}">
+            </div>
+          ` : ''}
+          ${latest.body ? `<div class="small muted mb" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4">${esc(latest.body)}</div>` : ''}
+          <div class="row between wrap gap mt2 pt2" style="border-top:1px solid var(--line);align-items:center">
+            <button class="btn sm ghost" id="btn_open_all_inb">Ver todos (${gymItems.length})</button>
+            <button class="btn sm primary" id="btn_open_hero_ann">👁️ Leer Comunicado</button>
+          </div>
+        </div>
+      `;
+      sec.querySelector('#btn_open_hero_ann').onclick = () => RD.hub.openAnnouncementModal(latest);
+      sec.querySelector('#btn_open_all_inb').onclick = () => RD.hub.openInbox();
+      const heroImg = sec.querySelector('#ann_hero_img');
+      if (heroImg) heroImg.onclick = () => RD.zoomImage(latest.image_url, latest.title);
+    }).catch(() => {});
 
     const setupLater = el.querySelector('#setuplater');
     if (setupLater) {
@@ -1047,8 +1089,17 @@
     layout();
     const qs = new URLSearchParams(location.search);
     const tab = qs.get('tab');
-    switchTab(['pass', 'train', 'progress', 'tools', 'profile'].includes(tab) ? tab : 'pass');
     if (qs.get('inbox') === '1') { history.replaceState(null, '', '/'); RD.hub.openInbox(); }
+    if (location.hash.startsWith('#receipt:')) {
+      const pid = +location.hash.replace('#receipt:', '');
+      if (pid) setTimeout(() => RD.showReceipt(pid), 450);
+    }
+    window.addEventListener('hashchange', () => {
+      if (location.hash.startsWith('#receipt:')) {
+        const pid = +location.hash.replace('#receipt:', '');
+        if (pid) RD.showReceipt(pid);
+      }
+    });
   }
 
   window.RDMemberBoot = boot;

@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS inbox_reads (
 );
 CREATE TABLE IF NOT EXISTS member_prefs (
   member_id INTEGER PRIMARY KEY, show_promos INTEGER DEFAULT 1, show_reminders INTEGER DEFAULT 1,
-  push_critical INTEGER DEFAULT 1, push_news INTEGER DEFAULT 0, push_promos INTEGER DEFAULT 0,
+  push_critical INTEGER DEFAULT 1, push_news INTEGER DEFAULT 1, push_promos INTEGER DEFAULT 1,
   alert_mode TEXT DEFAULT 'sound', last_push_at TEXT
 );
 CREATE TABLE IF NOT EXISTS push_subs (
@@ -222,6 +222,11 @@ function ensureColumns() {
   // Hub del socio: multimedia en avisos y preferencia de sonido/vibración
   addCol('announcements', 'image_url', 'TEXT');
   addCol('member_prefs', 'alert_mode', 'TEXT DEFAULT "sound"');
+
+  // Asegurar que por defecto todas las notificaciones estén activas para todos los socios
+  try {
+    q.run("UPDATE member_prefs SET push_news=1, push_promos=1, show_promos=1, show_reminders=1, push_critical=1 WHERE (push_news=0 AND push_promos=0)");
+  } catch (e) { }
 
   // Asignar categorías iniciales para pagos existentes
   try {
@@ -339,7 +344,6 @@ seedExercises();
 
 // Rutinas plantilla
 function seedRoutines() {
-  if (q.get('SELECT 1 x FROM routines WHERE template=1 LIMIT 1')) return;
   const exists = id => !!q.get('SELECT 1 x FROM exercises WHERE id=?', id);
   // item: [ex_id, series, reps, descanso, segundos?]
   const T = [
@@ -384,10 +388,64 @@ function seedRoutines() {
       description: 'Ejercicios de bajo impacto para mantener fuerza, equilibrio y movilidad. Usa pesos ligeros y avanza despacio. Si tienes alguna condición médica, consulta antes con tu médico.',
       days: [
         ['Sesión suave', [['Walking_Treadmill',1,'10 min',0,600],['Cat_Stretch',2,'8',30],['Butt_Lift_Bridge',2,'10',45],['Seated_Cable_Rows',2,'12',60],['Leg_Press',2,'12',60],['Dead_Bug',2,'6 por lado',45],['Childs_Pose',1,'45 s',0,45]]]
+      ] },
+    { name: 'PPL Hipertrofia Pro (6 días)', goal: 'Hipertrofia muscular acelerada y volumen óptimo', level: 'avanzado', dpw: 6,
+      description: 'Esquema de Empuje/Tirón/Pierna frecuencia 2 (Push-Pull-Legs). Ideal para intermedios y avanzados que buscan maximizar ganancias musculares dividiendo fuerza e hipertrofia.',
+      days: [
+        ['Empuje 1: Fuerza', [['Barbell_Bench_Press_-_Medium_Grip',4,'6-8',120],['Overhead_Press_Barbell',3,'8-10',90],['Incline_Dumbbell_Press',3,'10',75],['Dips_-_Triceps_Version',3,'10-12',60],['Side_Lateral_Raise',4,'12-15',45],['Triceps_Pushdown_-_Rope_Attachment',3,'12',45]]],
+        ['Tirón 1: Fuerza', [['Pullups',4,'8-10',90],['Bent_Over_Barbell_Row',4,'6-8',120],['Seated_Cable_Rows',3,'10',75],['Face_Pull',3,'15',45],['Barbell_Curl',3,'8-10',60],['Hammer_Curls',3,'10-12',45]]],
+        ['Pierna 1: Cuádriceps', [['Barbell_Squat',4,'6-8',150],['Leg_Press',4,'10-12',90],['Romanian_Deadlift',3,'8-10',90],['Leg_Extensions',3,'12-15',60],['Standing_Calf_Raises',4,'15',45],['Plank',3,'40 s',45,40]]],
+        ['Empuje 2: Hipertrofia', [['Incline_Dumbbell_Press',4,'8-10',90],['Dumbbell_Bench_Press',3,'10-12',75],['Arnold_Dumbbell_Press',3,'10-12',75],['Cable_Crossover',3,'12-15',60],['Skull_Crushers',3,'12',60],['Lu_Raises',3,'12-15',45]]],
+        ['Tirón 2: Hipertrofia', [['Wide-Grip_Lat_Pulldown',4,'10-12',75],['T_Bar_Row',4,'8-10',90],['Chest_Supported_Row',3,'10-12',75],['Lat_Prayer_Cable',3,'12-15',60],['Preacher_Curl',3,'10-12',60],['Cable_Bicep_Curl',3,'12-15',45]]],
+        ['Pierna 2: Glúteo & Isquios', [['Barbell_Hip_Thrust',4,'8-10',90],['Bulgarian_Split_Squat',3,'10 por pierna',75],['Lying_Leg_Curls',4,'10-12',60],['Hack_Squat',3,'10-12',75],['Seated_Calf_Raise',4,'15',45],['Ab_Wheel_Rollout',3,'12',45]]]
+      ] },
+    { name: 'Arnold Split Clásico (6 días)', goal: 'Desarrollo muscular completo con superseries antagonistas', level: 'avanzado', dpw: 6,
+      description: 'El clásico esquema de Arnold Schwarzenegger: Pecho y Espalda, Hombros y Brazos, Piernas. Permite entrenar cada músculo dos veces por semana con bombeo legendario.',
+      days: [
+        ['Pecho & Espalda 1', [['Barbell_Bench_Press_-_Medium_Grip',4,'8-10',90],['Bent_Over_Barbell_Row',4,'8-10',90],['Incline_Dumbbell_Press',3,'10',75],['Wide-Grip_Lat_Pulldown',3,'10',75],['Dumbbell_Pullover',3,'12',60]]],
+        ['Hombros & Brazos 1', [['Overhead_Press_Barbell',4,'8-10',90],['Side_Lateral_Raise',4,'12-15',45],['Barbell_Curl',3,'10',60],['Close_Grip_Bench_Press',3,'10',60],['Preacher_Curl',3,'12',45],['Triceps_Pushdown_-_Rope_Attachment',3,'12',45]]],
+        ['Piernas & Core 1', [['Barbell_Squat',4,'8',120],['Romanian_Deadlift',3,'10',90],['Leg_Press',4,'12',90],['Lying_Leg_Curls',3,'12',60],['Standing_Calf_Raises',4,'15',45],['Hanging_Leg_Raise',3,'15',45]]],
+        ['Pecho & Espalda 2', [['Dumbbell_Bench_Press',4,'10',75],['Seated_Cable_Rows',4,'10',75],['Incline_Chest_Cable_Fly',3,'12-15',60],['Pullups',3,'8-10',75],['Chest_Supported_Row',3,'12',60]]],
+        ['Hombros & Brazos 2', [['Arnold_Dumbbell_Press',4,'10',75],['Face_Pull',3,'15',45],['Hammer_Curls',3,'12',60],['EZ-Bar_Skullcrusher',3,'12',60],['Bicep_Curl_21s',2,'21',60],['Bench_Dips',3,'15',45]]],
+        ['Piernas & Core 2', [['Barbell_Hip_Thrust',4,'10',90],['Bulgarian_Split_Squat',3,'10 por pierna',75],['Leg_Extensions',3,'12-15',60],['Seated_Calf_Raise',4,'15',45],['Russian_Twist',3,'20',45],['Dragon_Flag',3,'8-10',60]]]
+      ] },
+    { name: 'Fuerza Máxima 5x5 (3 días)', goal: 'Ganar fuerza bruta en levantamientos multiarticulares', level: 'intermedio', dpw: 3,
+      description: 'Programa lineal enfocado en sentadilla, press de banca, peso muerto y press militar con 5 series pesadas de 5 repeticiones. Descansos completos de 2 a 3 minutos.',
+      days: [
+        ['Fuerza A', [['Barbell_Squat',5,'5',150],['Barbell_Bench_Press_-_Medium_Grip',5,'5',150],['Bent_Over_Barbell_Row',5,'5',120],['Plank',3,'45 s',45,45]]],
+        ['Fuerza B', [['Barbell_Squat',5,'5',150],['Overhead_Press_Barbell',5,'5',150],['Barbell_Deadlift',1,'5 (pesado)',180],['Pullups',3,'6-8',90]]],
+        ['Fuerza C', [['Barbell_Squat',5,'5',150],['Barbell_Bench_Press_-_Medium_Grip',5,'5',150],['Romanian_Deadlift',3,'8',120],['Barbell_Curl',3,'8-10',60]]]
+      ] },
+    { name: 'Booty Builder & Curvas Elite (4 días)', goal: 'Desarrollo supremo de glúteos y piernas con cintura estética', level: 'intermedio', dpw: 4,
+      description: 'Especialización en tren inferior y glúteos con activación neuromuscular, cargas progresivas y tensión metabólica. Ideal para moldear curvas con respaldo científico.',
+      days: [
+        ['Glúteos Máxima Carga', [['Barbell_Hip_Thrust',4,'8-10',90],['Bulgarian_Split_Squat',3,'10 por pierna',75],['Romanian_Deadlift',3,'10',90],['Cable_Glute_Kickback',3,'12-15 por pierna',45],['Abductor_Machine',4,'15-20',45]]],
+        ['Tren Superior & Cintura', [['Wide-Grip_Lat_Pulldown',3,'10-12',60],['Dumbbell_Shoulder_Press',3,'10-12',60],['Seated_Cable_Rows',3,'12',60],['Side_Lateral_Raise',3,'15',45],['Plank',3,'30 s',45,30],['Dead_Bug',3,'10 por lado',45]]],
+        ['Femorales & Glúteos', [['Romanian_Deadlift',4,'10',90],['Leg_Press',4,'12 (pies altos)',75],['Lying_Leg_Curls',4,'12',60],['Butt_Lift_Bridge',3,'15',45],['Seated_Calf_Raise',3,'15',45]]],
+        ['Pump Glúteos & Acondicionamiento', [['Barbell_Hip_Thrust',3,'12 con pausa 2s',75],['Goblet_Squat',3,'12',60],['Adductor_Machine',3,'15',45],['Kettlebell_Swing',3,'15-20',60],['Mountain_Climbers',3,'30 s',30,30]]]
+      ] },
+    { name: 'Definición & HIIT Atlético (5 días)', goal: 'Quema de grasa acelerada, resistencia cardiovascular y tono muscular', level: 'intermedio', dpw: 5,
+      description: 'Fusión de fuerza en superseries con bloques HIIT (alta intensidad). Mantiene el músculo mientras maximiza el gasto calórico diario.',
+      days: [
+        ['Torso Fuerza + HIIT', [['Dumbbell_Bench_Press',3,'10-12',45],['Wide-Grip_Lat_Pulldown',3,'10-12',45],['Pushups',3,'12',45],['Dumbbell_Shoulder_Press',3,'12',45],['Burpees',3,'10',60]]],
+        ['Piernas Potencia + Cardio', [['Goblet_Squat',3,'12',45],['Leg_Press',3,'15',60],['Romanian_Deadlift',3,'12',45],['Rope_Jumping',4,'45 s',30,45],['Running_Treadmill',1,'12 min',0,720]]],
+        ['Core de Acero & HIIT', [['Mountain_Climbers',4,'30 s',30,30],['Russian_Twist',4,'20',30],['Hanging_Knee_Raise',3,'15',45],['Air_Bike',4,'30 s intenso',45,30],['Bicycling_Stationary',1,'15 min',0,900]]],
+        ['Circuito Full Body', [['Dumbbell_Lunges',3,'10 por pierna',30],['Seated_Cable_Rows',3,'12',30],['Incline_Dumbbell_Press',3,'12',30],['Farmers_Walk',3,'40 s',45,40],['Plank',3,'45 s',30,45]]],
+        ['Quema Grasa Final', [['Kettlebell_Swing',4,'20',45],['Running_Treadmill',6,'1 min rápido / 1 min suave',60,60],['Air_Bike',3,'45 s',45,45],['Superman',3,'12',30]]]
+      ] },
+    { name: 'Hipertrofia Torso–Pierna Pro (4 días)', goal: 'Volumen hipertrófico estructurado y ganancias musculares puras', level: 'intermedio', dpw: 4,
+      description: 'División de 4 días enfocada en estímulo mecánico directo (RPE 8-9) combinando barras, mancuernas y poleas para máximo crecimiento.',
+      days: [
+        ['Torso 1: Fuerza & Grosor', [['Barbell_Bench_Press_-_Medium_Grip',4,'6-8',120],['T_Bar_Row',4,'8-10',90],['Overhead_Press_Barbell',3,'8-10',90],['Pullups',3,'8-10',90],['Close_Grip_Bench_Press',3,'10',60]]],
+        ['Pierna 1: Fuerza & Cuádriceps', [['Barbell_Squat',4,'6-8',150],['Hack_Squat',3,'10-12',90],['Romanian_Deadlift',3,'8-10',90],['Standing_Calf_Raises',4,'15',45],['Ab_Wheel_Rollout',3,'10-12',45]]],
+        ['Torso 2: Densidad & Detalle', [['Incline_Dumbbell_Press',4,'8-10',90],['Seated_Cable_Rows',4,'10-12',75],['Incline_Chest_Cable_Fly',3,'12-15',60],['Face_Pull',3,'15',45],['Preacher_Curl',3,'10-12',60],['Triceps_Katana_Extension',3,'12-15',45]]],
+        ['Pierna 2: Glúteo & Cadena Posterior', [['Barbell_Hip_Thrust',4,'8-10',90],['Bulgarian_Split_Squat',3,'10 por pierna',75],['Lying_Leg_Curls',4,'10-12',60],['Leg_Extensions',3,'12-15',60],['Seated_Calf_Raise',4,'15',45],['Hanging_Leg_Raise',3,'12-15',45]]]
       ] }
   ];
   q.tx(() => {
     for (const t of T) {
+      const existing = q.get('SELECT id FROM routines WHERE name=? AND template=1', t.name);
+      if (existing) continue;
       const r = q.run('INSERT INTO routines(name,goal,level,days_per_week,description,template) VALUES(?,?,?,?,?,1)',
         t.name, t.goal, t.level, t.dpw, t.description);
       t.days.forEach(([title, items], di) => items.forEach(([ex, sets, reps, rest, secs], pos) => {

@@ -155,15 +155,82 @@
     const b = document.getElementById('bellbtn');
     if (b) b.title = unread ? `Avisos (${unread} sin leer)` : 'Avisos';
   }
+
+  // Visualizador completo de comunicados y publicaciones del club
+  H.openAnnouncementModal = (a) => {
+    if (!a) return;
+    const kindLabel = KIND_LABEL[a.kind] || 'Aviso';
+    const kindIcon = ICON[a.kind] || '📢';
+    const dateStr = a.created_at ? RD.fmtDateTime(a.created_at) : 'Reciente';
+
+    const m = RD.openModal(`${kindIcon} ${kindLabel}`, `
+      <div class="announcement-detail" style="display:flex;flex-direction:column;gap:12px;">
+        <div>
+          <div class="row between wrap gap mb">
+            <span class="badge ${esc(a.kind || 'aviso')}" style="font-weight:700">${kindIcon} ${esc(kindLabel)}</span>
+            <span class="tiny muted">${esc(dateStr)}</span>
+          </div>
+          <h2 style="margin:4px 0 8px;font-size:1.35rem;line-height:1.3">${esc(a.title)}</h2>
+        </div>
+
+        ${a.image_url ? `
+          <div class="ann-img-card" style="border-radius:12px;overflow:hidden;background:var(--bg3);border:1px solid var(--line);max-height:360px;position:relative;text-align:center;">
+            <img id="ann_full_img" src="${esc(a.image_url)}" alt="${esc(a.title)}" style="max-width:100%;max-height:360px;width:100%;object-fit:contain;display:block;cursor:pointer;">
+          </div>
+          <div class="row end" style="margin-top:-4px">
+            <button type="button" class="btn sm ghost" id="btn_zoom_ann">🔍 Pantalla completa / Zoom</button>
+          </div>
+        ` : ''}
+
+        ${a.body ? `
+          <div class="ann-body-text" style="font-size:0.95rem;line-height:1.65;white-space:pre-wrap;color:var(--text);padding:4px 2px;">
+            ${nl(a.body)}
+          </div>
+        ` : ''}
+
+        ${a.cta ? `
+          <div class="mt pt" style="border-top:1px solid var(--line);display:flex;justify-content:flex-end;">
+            ${ctaHtml(a.cta)}
+          </div>
+        ` : ''}
+
+        <div class="row between wrap gap mt2 pt" style="border-top:1px solid var(--line);align-items:center;">
+          <span class="tiny muted">RD Fitness Club · Comunicación Oficial</span>
+          <button type="button" class="btn sm" id="btn_close_ann">Cerrar</button>
+        </div>
+      </div>
+    `, { wide: true });
+
+    if (a.image_url) {
+      const zoomBtn = m.el.querySelector('#btn_zoom_ann');
+      const imgEl = m.el.querySelector('#ann_full_img');
+      const zoom = () => RD.zoomImage(a.image_url, a.title);
+      if (zoomBtn) zoomBtn.onclick = zoom;
+      if (imgEl) imgEl.onclick = zoom;
+    }
+    const closeBtn = m.el.querySelector('#btn_close_ann');
+    if (closeBtn) closeBtn.onclick = () => m.close();
+
+    // Marcar como leído si tiene ref
+    if (a.ref && api) {
+      api.post('/member/inbox/read', { refs: [a.ref] }).catch(() => {});
+      H.refresh();
+    }
+  };
+
   function paintBanner(banner) {
     const host = document.getElementById('noticebar');
     if (!host) return;
     if (!banner) { host.innerHTML = ''; return; }
     host.innerHTML = `<div class="noticebar ${esc(banner.kind)}" role="status">
       <span class="nb-ico">${ICON[banner.kind] || '📢'}</span>
-      <button class="nb-main" id="nbopen"><b>${esc(banner.title)}</b>${banner.body ? `<span>${esc(banner.body.length > 90 ? banner.body.slice(0, 88) + '…' : banner.body)}</span>` : ''}</button>
-      <button class="nb-x" id="nbx" aria-label="Descartar">✕</button></div>`;
-    host.querySelector('#nbopen').onclick = () => H.openInbox();
+      <button class="nb-main" id="nbopen">
+        <b>${esc(banner.title)}</b>
+        <span>${esc(banner.body ? (banner.body.length > 90 ? banner.body.slice(0, 88) + '…' : banner.body) : 'Toca para leer el comunicado completo')}</span>
+      </button>
+      <button class="nb-x" id="nbx" aria-label="Descartar">✕</button>
+    </div>`;
+    host.querySelector('#nbopen').onclick = () => H.openAnnouncementModal(banner);
     host.querySelector('#nbx').onclick = async () => {
       host.innerHTML = '';
       try { await api.post('/member/inbox/dismiss', { ref: banner.ref }); } catch { }
@@ -185,25 +252,28 @@
   H.stop = () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVis); window.removeEventListener('online', H.refresh); paintBell(0); paintBanner(null); };
 
   H.openInbox = async () => {
-    const m = RD.openModal('🔔 Avisos y Notificaciones', '<div class="empty">Cargando…</div>');
+    const m = RD.openModal('🔔 Avisos y Comunicados', '<div class="empty">Cargando…</div>', { wide: true });
     try {
       const d = await api.get('/member/inbox');
       const unreadRefs = d.items.filter(i => !i.read).map(i => i.ref);
       const draw = () => {
         m.el.innerHTML = `
-          ${d.items.length ? `<div class="inbox">${d.items.map(i => `
-            <div class="inbox-item ${i.kind} ${i.priority === 'importante' ? 'imp' : ''} ${unreadRefs.includes(i.ref) ? 'new' : ''}">
+          ${d.items.length ? `<div class="inbox">${d.items.map((i, idx) => `
+            <div class="inbox-item ${i.kind} ${i.priority === 'importante' ? 'imp' : ''} ${unreadRefs.includes(i.ref) ? 'new' : ''}" data-idx="${idx}">
               <div class="ii-ico">${ICON[i.kind] || '📢'}</div>
               <div class="ii-main">
                 <div class="ii-title">${esc(i.title)}${unreadRefs.includes(i.ref) ? ' <span class="ii-new">Nuevo</span>' : ''}${i.pinned ? ' <span class="ii-pin">📌</span>' : ''}</div>
                 ${i.image_url ? `
-                  <div class="ii-img-wrap mb mt" style="margin:6px 0;max-height:180px;overflow:hidden;border-radius:8px;border:1px solid var(--line);cursor:pointer;background:var(--bg3)" onclick="RD.zoomImage('${esc(i.image_url)}')">
-                    <img src="${esc(i.image_url)}" class="ii-img" alt="${esc(i.title)}" style="width:100%;max-height:180px;object-fit:cover;display:block">
+                  <div class="ii-img-wrap mb mt inb-img-wrap" style="margin:8px 0;max-height:220px;overflow:hidden;border-radius:8px;border:1px solid var(--line);cursor:pointer;background:var(--bg3)">
+                    <img src="${esc(i.image_url)}" class="ii-img" alt="${esc(i.title)}" style="width:100%;max-height:220px;object-fit:cover;display:block">
                   </div>
                 ` : ''}
-                ${i.body ? `<div class="ii-body">${nl(i.body)}</div>` : ''}
+                ${i.body ? `<div class="ii-body" style="white-space:pre-wrap;line-height:1.5;">${nl(i.body)}</div>` : ''}
                 <div class="ii-meta">${esc(KIND_LABEL[i.kind] || 'Aviso')} · ${i.source === 'system' ? 'Tu cuenta' : 'RD Fitness Club'} · ${RD.ago(i.created_at)}</div>
-                ${ctaHtml(i.cta)}
+                <div class="row wrap gap mt2" style="align-items:center">
+                  ${ctaHtml(i.cta)}
+                  <button type="button" class="btn sm ghost inb-read-btn">👁️ Ver completo</button>
+                </div>
               </div>
             </div>`).join('')}</div>`
             : '<div class="empty">🎉 Todo al día.<br><span class="small">No tienes avisos por ahora.</span></div>'}
@@ -212,8 +282,25 @@
               <button class="btn sm ghost" id="inbprefs">⚙️ Preferencias</button>
               <button class="btn sm ok ghost" id="inbreceipts">🧾 Mis Boletas</button>
             </div>
-            <span class="tiny muted">Solo ves lo importante. Tú decides el resto.</span>
+            <span class="tiny muted">RD Fitness Club · Notificaciones oficiales</span>
           </div>`;
+
+        m.el.querySelectorAll('.inbox-item').forEach(itemEl => {
+          const item = d.items[+itemEl.dataset.idx];
+          if (!item) return;
+          const imgWrap = itemEl.querySelector('.inb-img-wrap');
+          if (imgWrap && item.image_url) {
+            imgWrap.onclick = () => RD.zoomImage(item.image_url, item.title);
+          }
+          const readBtn = itemEl.querySelector('.inb-read-btn');
+          if (readBtn) {
+            readBtn.onclick = () => {
+              m.close();
+              H.openAnnouncementModal(item);
+            };
+          }
+        });
+
         m.el.querySelector('#inbprefs').onclick = () => { m.close(); H.openPrefs(); };
         m.el.querySelector('#inbreceipts').onclick = () => { m.close(); H.openReceipts(); };
       };

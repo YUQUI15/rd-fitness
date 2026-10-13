@@ -507,6 +507,7 @@
       `💰 *TOTAL PAGADO:* ${RD.money(r.amount)}`,
       `💳 *Método:* ${(r.method || 'Efectivo').toUpperCase()}${r.op_code ? ` (Op: #${r.op_code})` : ''}`,
       r.is_daily_pass ? `\n🎟️ *PASE DIARIO:* Válido para reingreso hoy mostrando este comprobante o su QR en la puerta.` : '',
+      `\n📲 *Ver Comprobante Digital:* ${location.origin}/#receipt:${r.payment_id}`,
       `\n💪 _${r.gym?.slogan || 'Disciplina · Constancia · Resultados'}_`,
       `¡Gracias por tu preferencia!`
     ].filter(Boolean).join('\n');
@@ -572,11 +573,15 @@
 
   RD.showReceipt = async (paymentId) => {
     try {
-      const token = localStorage.getItem('rd_token') || localStorage.getItem('rd_member_token');
+      const token = localStorage.getItem('rd_member_token') || localStorage.getItem('rd_staff_token') || localStorage.getItem('rd_token') || localStorage.getItem('rd_user_token');
       const res = await fetch(`/api/payments/${paymentId}/receipt`, {
         headers: token ? { Authorization: 'Bearer ' + token } : {}
       });
-      if (!res.ok) throw new Error('No se pudo cargar la boleta');
+      if (!res.ok) {
+        let msg = 'No se pudo cargar la boleta';
+        try { const j = await res.json(); if (j?.error) msg = j.error; } catch {}
+        throw new Error(msg);
+      }
       const r = await res.json();
       RD.receiptModal(r);
     } catch (e) {

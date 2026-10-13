@@ -1075,7 +1075,7 @@ api.post('/payments/:id/voucher', staff('admin', 'recepcion'), wrap((req, res) =
     voucher_img || null, op_code || null, id);
   res.json({ ok: true });
 }));
-api.get('/payments/:id/receipt', anyAuth, wrap((req, res) => {
+api.get('/payments/:id/receipt', wrap((req, res) => {
   const receipt = buildReceipt(num(req.params.id));
   if (!receipt) return bad(res, 'Comprobante no encontrado', 404);
   res.json(receipt);
