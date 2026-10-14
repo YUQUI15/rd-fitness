@@ -16,6 +16,29 @@ class CloudVault {
     return !!CloudVault.getProvider();
   }
 
+  static cleanStr(s) {
+    if (!s) return '';
+    return String(s).trim().replace(/^["']|["']$/g, '').trim();
+  }
+
+  static getUpstashConfig() {
+    const rawUrl = process.env.UPSTASH_REDIS_REST_URL;
+    const rawToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+    if (!rawUrl || !rawToken) return null;
+    const url = CloudVault.cleanStr(rawUrl).replace(/\/+$/, '');
+    const token = CloudVault.cleanStr(rawToken);
+    return { url, token };
+  }
+
+  static getSupabaseConfig() {
+    const rawUrl = process.env.SUPABASE_URL;
+    const rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
+    if (!rawUrl || !rawKey) return null;
+    const url = CloudVault.cleanStr(rawUrl).replace(/\/+$/, '');
+    const key = CloudVault.cleanStr(rawKey);
+    return { url, key };
+  }
+
   // Enviar snapshot completo a la nube
   static async push(vaultData) {
     const provider = CloudVault.getProvider();
@@ -24,12 +47,12 @@ class CloudVault {
     const payload = JSON.stringify(vaultData);
 
     if (provider === 'upstash') {
-      const url = process.env.UPSTASH_REDIS_REST_URL.replace(/\/+$/, '');
-      const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-      const res = await fetch(url, {
+      const cfg = CloudVault.getUpstashConfig();
+      if (!cfg || !cfg.url || !cfg.token) throw new Error('Credenciales de Upstash incompletas');
+      const res = await fetch(cfg.url, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${cfg.token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(['SET', 'rd_fitness_vault', payload]),
@@ -44,13 +67,13 @@ class CloudVault {
     }
 
     if (provider === 'supabase') {
-      const url = process.env.SUPABASE_URL.replace(/\/+$/, '');
-      const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
-      const res = await fetch(`${url}/rest/v1/rd_vault?on_conflict=id`, {
+      const cfg = CloudVault.getSupabaseConfig();
+      if (!cfg || !cfg.url || !cfg.key) throw new Error('Credenciales de Supabase incompletas');
+      const res = await fetch(`${cfg.url}/rest/v1/rd_vault?on_conflict=id`, {
         method: 'POST',
         headers: {
-          'apikey': key,
-          'Authorization': `Bearer ${key}`,
+          'apikey': cfg.key,
+          'Authorization': `Bearer ${cfg.key}`,
           'Content-Type': 'application/json',
           'Prefer': 'resolution=merge-duplicates'
         },
@@ -70,8 +93,8 @@ class CloudVault {
     }
 
     if (provider === 'custom') {
-      const url = process.env.CLOUD_VAULT_URL;
-      const key = process.env.CLOUD_VAULT_KEY || '';
+      const url = CloudVault.cleanStr(process.env.CLOUD_VAULT_URL);
+      const key = CloudVault.cleanStr(process.env.CLOUD_VAULT_KEY || '');
       const res = await fetch(url, {
         method: 'POST',
         headers: {
@@ -95,12 +118,12 @@ class CloudVault {
     if (!provider) return null;
 
     if (provider === 'upstash') {
-      const url = process.env.UPSTASH_REDIS_REST_URL.replace(/\/+$/, '');
-      const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-      const res = await fetch(url, {
+      const cfg = CloudVault.getUpstashConfig();
+      if (!cfg || !cfg.url || !cfg.token) return null;
+      const res = await fetch(cfg.url, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${cfg.token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(['GET', 'rd_fitness_vault']),
@@ -116,7 +139,7 @@ class CloudVault {
       if (typeof raw === 'string') {
         try { raw = JSON.parse(raw); } catch { return null; }
       }
-      if (raw && Array.isArray(raw.members)) {
+      if (raw && (Array.isArray(raw.members) || Array.isArray(raw.users))) {
         CloudVault.lastSync = raw.exported_at || new Date().toISOString();
         return raw;
       }
