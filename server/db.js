@@ -2,6 +2,20 @@
 const { DatabaseSync } = require('node:sqlite');
 const fs = require('fs');
 const path = require('path');
+
+// Cargar .env automáticamente si existe
+try {
+  const envPath = path.join(__dirname, '..', '.env');
+  if (fs.existsSync(envPath)) {
+    fs.readFileSync(envPath, 'utf8').split('\n').forEach(l => {
+      const m = l.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      if (m && !process.env[m[1]]) {
+        process.env[m[1]] = (m[2] || '').trim().replace(/^["']|["']$/g, '');
+      }
+    });
+  }
+} catch {}
+
 const bcrypt = require('bcryptjs');
 const L = require('./lib');
 const CloudVault = require('./cloud-vault');
