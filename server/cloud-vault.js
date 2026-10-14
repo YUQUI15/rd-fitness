@@ -21,12 +21,28 @@ class CloudVault {
     return String(s).trim().replace(/^["']|["']$/g, '').trim();
   }
 
+  static cleanToken(s) {
+    if (!s) return '';
+    let t = String(s).trim().replace(/^["']|["']$/g, '').trim();
+    t = t.replace(/^UPSTASH_REDIS_REST_TOKEN\s*=\s*/i, '');
+    t = t.replace(/^Bearer\s+/i, '');
+    return t.trim().replace(/^["']|["']$/g, '').trim();
+  }
+
+  static cleanUrl(s) {
+    if (!s) return '';
+    let u = String(s).trim().replace(/^["']|["']$/g, '').trim();
+    u = u.replace(/^UPSTASH_REDIS_REST_URL\s*=\s*/i, '');
+    u = u.trim().replace(/^["']|["']$/g, '').trim();
+    return u.replace(/\/+$/, '');
+  }
+
   static getUpstashConfig() {
     const rawUrl = process.env.UPSTASH_REDIS_REST_URL;
     const rawToken = process.env.UPSTASH_REDIS_REST_TOKEN;
     if (!rawUrl || !rawToken) return null;
-    const url = CloudVault.cleanStr(rawUrl).replace(/\/+$/, '');
-    const token = CloudVault.cleanStr(rawToken);
+    const url = CloudVault.cleanUrl(rawUrl);
+    const token = CloudVault.cleanToken(rawToken);
     return { url, token };
   }
 
@@ -34,8 +50,8 @@ class CloudVault {
     const rawUrl = process.env.SUPABASE_URL;
     const rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
     if (!rawUrl || !rawKey) return null;
-    const url = CloudVault.cleanStr(rawUrl).replace(/\/+$/, '');
-    const key = CloudVault.cleanStr(rawKey);
+    const url = CloudVault.cleanUrl(rawUrl);
+    const key = CloudVault.cleanToken(rawKey);
     return { url, key };
   }
 
@@ -185,10 +201,20 @@ class CloudVault {
 
   static status() {
     const provider = CloudVault.getProvider();
+    let diag = {};
+    if (provider === 'upstash') {
+      const cfg = CloudVault.getUpstashConfig();
+      diag = {
+        url: cfg?.url || null,
+        token_len: cfg?.token?.length || 0,
+        token_preview: cfg?.token ? (cfg.token.slice(0, 5) + '...' + cfg.token.slice(-4)) : null
+      };
+    }
     return {
       configured: !!provider,
       provider: provider || 'ninguno (disco local)',
-      last_sync: CloudVault.lastSync || null
+      last_sync: CloudVault.lastSync || null,
+      ...diag
     };
   }
 }
