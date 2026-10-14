@@ -237,7 +237,7 @@
     };
   }
   let lastUnreadCount = null;
-  let lastKnownId = null;
+  let lastKnownId = Number(localStorage.getItem('rd_last_known_ann_id') || 0);
   let isFirstLoad = true;
 
   H.refresh = async () => {
@@ -245,10 +245,14 @@
     try {
       const s = await api.get('/member/inbox/summary');
       const alertMode = s.alert_mode || 'sound';
-      const hasNewId = (lastKnownId !== null && s.latest_id && s.latest_id > lastKnownId);
-      const hasMoreUnread = (lastUnreadCount !== null && typeof s.unread === 'number' && s.unread > lastUnreadCount);
+      const curLatestId = Number(s.latest_id || 0);
+      const curUnread = typeof s.unread === 'number' ? s.unread : 0;
 
-      if (!isFirstLoad && (hasNewId || hasMoreUnread)) {
+      // Detectar aviso nuevo
+      const isNewAnnouncement = (curLatestId > 0 && lastKnownId > 0 && curLatestId > lastKnownId);
+      const isMoreUnread = (!isFirstLoad && lastUnreadCount !== null && curUnread > lastUnreadCount);
+
+      if (isNewAnnouncement || isMoreUnread) {
         try {
           if (typeof RD.playNotificationAlert === 'function') {
             RD.playNotificationAlert(alertMode);
@@ -263,8 +267,11 @@
         }
       }
 
-      if (s.latest_id) lastKnownId = Math.max(lastKnownId || 0, s.latest_id);
-      lastUnreadCount = s.unread;
+      if (curLatestId > 0) {
+        lastKnownId = Math.max(lastKnownId, curLatestId);
+        localStorage.setItem('rd_last_known_ann_id', String(lastKnownId));
+      }
+      lastUnreadCount = curUnread;
       paintBell(s.unread);
       paintBanner(s.banner);
 
@@ -276,18 +283,35 @@
       }
     } catch { }
   };
-  // Sincronización ágil en tiempo real: al abrir, cada 6s mientras está visible y al volver al foco
+  // Sincronización ágil en tiempo real: al abrir, cada 4s mientras está visible, mensajes del Service Worker y al volver al foco
+  const onSwMsg = e => {
+    if (e.data && e.data.type === 'rd-new-announcement') {
+      H.refresh();
+    }
+  };
+  const onVis = () => { if (!document.hidden) H.refresh(); };
   H.start = (apiRef) => {
     api = apiRef; H.stop();
     isFirstLoad = true;
     H.refresh();
     if (typeof H.autoSubscribe === 'function') H.autoSubscribe();
-    timer = setInterval(() => { if (!document.hidden) H.refresh(); }, 6000);
+    timer = setInterval(() => { if (!document.hidden) H.refresh(); }, 4000);
     document.addEventListener('visibilitychange', onVis);
     window.addEventListener('online', H.refresh);
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', onSwMsg);
+    }
   };
-  const onVis = () => { if (!document.hidden) H.refresh(); };
-  H.stop = () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVis); window.removeEventListener('online', H.refresh); paintBell(0); paintBanner(null); };
+  H.stop = () => {
+    clearInterval(timer);
+    document.removeEventListener('visibilitychange', onVis);
+    window.removeEventListener('online', H.refresh);
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.removeEventListener('message', onSwMsg);
+    }
+    paintBell(0);
+    paintBanner(null);
+  };
 
   H.openInbox = async () => {
     const m = RD.openModal('🔔 Avisos y Comunicados', '<div class="empty">Cargando…</div>', { wide: true });
@@ -483,12 +507,10 @@
       if (btChime) {
         btChime.onclick = () => {
           const mode = amSel ? amSel.value : 'sound';
+          RD.playNotificationAlert(mode);
           if (mode === 'sound') {
-            RD.beep('bell');
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-            RD.toast('Reproduciendo timbre y vibración 🔊');
+            RD.toast('Reproduciendo timbre oficial y vibración 🔊');
           } else if (mode === 'vibrate') {
-            if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
             RD.toast('Vibración emitida 📳');
           } else {
             RD.toast('Modo silencioso: sin sonido ni vibración 🔕');

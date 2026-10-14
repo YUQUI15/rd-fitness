@@ -1,5 +1,5 @@
 /* RD Fitness Club - Service Worker (funciona sin internet) */
-const VERSION = 'rd-v3.2';
+const VERSION = 'rd-v3.3';
 const SHELL = [
   '/', '/index.html', '/admin/', '/admin/index.html', '/admin/cards.html',
   '/css/style.css', '/js/common.js', '/js/member-hub.js', '/js/app.js', '/js/admin-core.js', '/js/admin-scan.js', '/js/admin-members.js', '/js/admin-other.js', '/js/admin-announce.js', '/js/workout.js',
@@ -65,6 +65,14 @@ self.addEventListener('push', e => {
     data: { url: d.url || '/?inbox=1' }
   };
   if (d.image) opts.image = d.image;
+
+  try {
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+      for (const client of clients) {
+        client.postMessage({ type: 'rd-new-announcement', data: d });
+      }
+    }).catch(() => {});
+  } catch {}
 
   e.waitUntil(self.registration.showNotification(d.title || 'RD Fitness Club', opts));
 });

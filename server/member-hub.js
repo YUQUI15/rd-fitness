@@ -344,7 +344,14 @@ module.exports = function mountMemberHub(api, ctx) {
     const b = buildInbox(req.member);
     const pr = getPrefs(req.member.id);
     const gymItems = (b.items || []).filter(i => i.source === 'gym');
-    const latestGym = gymItems[0] || null;
+    let maxId = 0, latestGym = null;
+    for (const g of gymItems) {
+      if ((g.id || 0) > maxId) {
+        maxId = g.id;
+        latestGym = g;
+      }
+    }
+    if (!latestGym && gymItems.length) latestGym = gymItems[0];
     res.json({
       unread: b.unread,
       banner: b.banner,
@@ -417,7 +424,7 @@ module.exports = function mountMemberHub(api, ctx) {
       let ok = false;
       const alertMode = pr.alert_mode || 'sound';
       const isSilent = alertMode === 'silent';
-      const vibratePattern = alertMode === 'silent' ? [] : (alertMode === 'vibrate' ? [300, 150, 300] : [200, 100, 200]);
+      const vibratePattern = alertMode === 'silent' ? [] : (alertMode === 'vibrate' ? [350, 150, 350, 150, 450] : [250, 120, 250, 120, 400]);
       const memberPayload = {
         ...payload,
         silent: isSilent,
@@ -426,7 +433,7 @@ module.exports = function mountMemberHub(api, ctx) {
       };
       for (const s of subs) {
         try {
-          await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify(memberPayload), { TTL: 6 * 3600, urgency: category === 'critical' ? 'high' : 'low' });
+          await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify(memberPayload), { TTL: 6 * 3600, urgency: 'high' });
           ok = true;
         } catch (e) {
           if (e && (e.statusCode === 404 || e.statusCode === 410)) q.run('DELETE FROM push_subs WHERE id=?', s.id);

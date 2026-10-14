@@ -327,16 +327,17 @@
 
     // Función global para refrescar novedades oficiales en tiempo real
     const updateHeroAnnouncement = () => {
-      const sec = el.querySelector('#pass_announcements_sec');
+      const sec = document.getElementById('pass_announcements_sec');
       if (!sec) return;
       api.get('/member/inbox').then(inb => {
-        if (!sec || !inb || !inb.items) return;
+        const liveSec = document.getElementById('pass_announcements_sec');
+        if (!liveSec || !inb || !inb.items) return;
         const gymItems = inb.items.filter(i => i.source === 'gym' && !i.dismissed);
-        if (!gymItems.length) { sec.innerHTML = ''; return; }
+        if (!gymItems.length) { liveSec.innerHTML = ''; return; }
         const latest = gymItems[0];
         const kindLabel = { aviso: 'Aviso', evento: 'Evento', tematica: 'Temática', promo: 'Promoción', mantenimiento: 'Mantenimiento', cierre: 'Atención' }[latest.kind] || 'Novedades';
         const kindIcon = { aviso: '📢', evento: '🎉', tematica: '🎨', promo: '🏷️', mantenimiento: '🛠️', cierre: '⛔' }[latest.kind] || '📢';
-        sec.innerHTML = `
+        liveSec.innerHTML = `
           <div class="card mb" style="border-left: 4px solid var(--gold);background:var(--bg2)">
             <div class="row between wrap gap mb2">
               <span class="badge ${esc(latest.kind || 'aviso')}" style="font-weight:700">${kindIcon} ${esc(kindLabel)}</span>
@@ -355,9 +356,9 @@
             </div>
           </div>
         `;
-        sec.querySelector('#btn_open_hero_ann').onclick = () => RD.hub.openAnnouncementModal(latest);
-        sec.querySelector('#btn_open_all_inb').onclick = () => RD.hub.openInbox();
-        const heroImg = sec.querySelector('#ann_hero_img');
+        liveSec.querySelector('#btn_open_hero_ann').onclick = () => RD.hub.openAnnouncementModal(latest);
+        liveSec.querySelector('#btn_open_all_inb').onclick = () => RD.hub.openInbox();
+        const heroImg = liveSec.querySelector('#ann_hero_img');
         if (heroImg) heroImg.onclick = () => RD.zoomImage(latest.image_url, latest.title);
       }).catch(() => {});
     };
@@ -1123,6 +1124,7 @@
     layout();
     const qs = new URLSearchParams(location.search);
     const tab = qs.get('tab');
+    switchTab(['pass', 'train', 'progress', 'tools', 'profile'].includes(tab) ? tab : 'pass');
     if (qs.get('inbox') === '1') { history.replaceState(null, '', '/'); RD.hub.openInbox(); }
     if (location.hash.startsWith('#receipt:')) {
       const pid = +location.hash.replace('#receipt:', '');

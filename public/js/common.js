@@ -207,8 +207,8 @@
     try { return await fn(); } finally { if (btn) { btn.disabled = false; btn.textContent = btn.dataset.t; } }
   };
 
-  // ---------- Sonidos y Alertas Táctiles ----------
-  let actx;
+  // ---------- Sonidos y Alertas Táctiles (Dual-Engine: HTML5 Audio Blob + Web Audio) ----------
+  let actx = null;
   const ensureAudio = () => {
     try {
       actx = actx || new (window.AudioContext || window.webkitAudioContext)();
@@ -216,8 +216,86 @@
     } catch {}
     return actx;
   };
-  ['click', 'touchstart', 'pointerdown'].forEach(ev => {
-    window.addEventListener(ev, ensureAudio, { once: true, passive: true });
+
+  // Genera un audio WAV PCM puro en memoria (Blob URL) con timbre de campana armónica
+  let chimeBlobUrl = null;
+  function getChimeBlobUrl() {
+    if (chimeBlobUrl) return chimeBlobUrl;
+    try {
+      const sampleRate = 22050;
+      const duration = 0.85;
+      const numSamples = Math.floor(sampleRate * duration);
+      const wavBytes = new Uint8Array(44 + numSamples * 2);
+      const view = new DataView(wavBytes.buffer);
+
+      view.setUint32(0, 0x52494646, false); // "RIFF"
+      view.setUint32(4, 36 + numSamples * 2, true);
+      view.setUint32(8, 0x57415645, false); // "WAVE"
+      view.setUint32(12, 0x666d7420, false); // "fmt "
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true); // PCM
+      view.setUint16(22, 1, true); // Mono
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * 2, true);
+      view.setUint16(32, 2, true);
+      view.setUint16(34, 16, true);
+      view.setUint32(36, 0x64617461, false); // "data"
+      view.setUint32(40, numSamples * 2, true);
+
+      for (let i = 0; i < numSamples; i++) {
+        const t = i / sampleRate;
+        const decay = Math.exp(-4.2 * t);
+        const s = (Math.sin(2 * Math.PI * 880 * t) * 0.5 +
+                   Math.sin(2 * Math.PI * 1108.73 * t) * 0.3 +
+                   Math.sin(2 * Math.PI * 1318.51 * t) * 0.35 +
+                   Math.sin(2 * Math.PI * 1760 * t) * 0.2) * decay;
+        const val = Math.max(-1, Math.min(1, s * 0.85));
+        view.setInt16(44 + i * 2, val < 0 ? val * 0x8000 : val * 0x7FFF, true);
+      }
+      const blob = new Blob([wavBytes], { type: 'audio/wav' });
+      chimeBlobUrl = URL.createObjectURL(blob);
+      return chimeBlobUrl;
+    } catch {
+      return null;
+    }
+  }
+
+  let chimeAudio = null;
+  const getChimeAudio = () => {
+    if (!chimeAudio) {
+      try {
+        const url = getChimeBlobUrl();
+        if (url) {
+          chimeAudio = new Audio(url);
+          chimeAudio.volume = 1.0;
+        }
+      } catch {}
+    }
+    return chimeAudio;
+  };
+
+  // Desbloqueo activo en móviles en cualquier toque o clic
+  let audioUnlocked = false;
+  const unlockAudio = () => {
+    try {
+      ensureAudio();
+      const a = getChimeAudio();
+      if (a && !audioUnlocked) {
+        a.volume = 0.001;
+        const p = a.play();
+        if (p && typeof p.then === 'function') {
+          p.then(() => {
+            a.pause();
+            a.currentTime = 0;
+            a.volume = 1.0;
+            audioUnlocked = true;
+          }).catch(() => {});
+        }
+      }
+    } catch {}
+  };
+  ['click', 'touchstart', 'touchend', 'pointerdown'].forEach(ev => {
+    window.addEventListener(ev, unlockAudio, { passive: true });
   });
 
   RD.beep = (kind) => {
@@ -238,7 +316,7 @@
         o.type = kind === 'denied' ? 'sawtooth' : kind === 'bell' ? 'triangle' : 'sine';
         o.frequency.value = f;
         g.gain.setValueAtTime(0.0001, t);
-        g.gain.exponentialRampToValueAtTime(kind === 'bell' ? 0.6 : 0.4, t + 0.01);
+        g.gain.exponentialRampToValueAtTime(kind === 'bell' ? 0.7 : 0.4, t + 0.01);
         g.gain.exponentialRampToValueAtTime(0.0001, t + d);
         o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + d + 0.02); t += d + 0.05;
       });
@@ -251,12 +329,33 @@
   RD.playNotificationAlert = (mode = 'sound') => {
     try {
       if (mode === 'silent') return;
-      if (mode === 'vibrate') {
-        if (navigator.vibrate) navigator.vibrate([350, 150, 350, 150, 500]);
-        return;
+      // 1. Vibración táctil física distintiva
+      if (navigator.vibrate) {
+        try {
+          navigator.vibrate(mode === 'vibrate' ? [350, 150, 350, 150, 450] : [250, 120, 250, 120, 400]);
+        } catch {}
       }
-      if (navigator.vibrate) navigator.vibrate([350, 150, 350, 150, 500]);
-      RD.beep('bell');
+      if (mode === 'vibrate') return;
+
+      // 2. Timbre acústico de alta claridad (Motor A: HTML5 Audio)
+      try {
+        const a = getChimeAudio();
+        if (a) {
+          a.currentTime = 0;
+          a.volume = 1.0;
+          const p = a.play();
+          if (p && typeof p.then === 'function') {
+            p.catch(() => { RD.beep('bell'); });
+          }
+        } else {
+          RD.beep('bell');
+        }
+      } catch {
+        RD.beep('bell');
+      }
+
+      // Motor B: Web Audio API Oscillator
+      try { RD.beep('bell'); } catch {}
     } catch {}
   };
 
