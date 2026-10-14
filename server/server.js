@@ -3,7 +3,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
-const { q, db, DATA_DIR, getSettings, numSettings, backup, checkpoint, saveVault, restoreVault, nextReceiptNo, dailyPassCode, getActiveShift, computeShiftTotals, getActiveAttendanceSession, closeAttendanceSession } = require('./db');
+const { q, db, DATA_DIR, getSettings, numSettings, backup, checkpoint, saveVault, restoreVault, restoreVaultFromCloud, getVaultData, CloudVault, nextReceiptNo, dailyPassCode, getActiveShift, computeShiftTotals, getActiveAttendanceSession, closeAttendanceSession } = require('./db');
 const { getScopedReportData, getMemberAttendanceDetail } = require('./reports');
 const { buildDataset, searchPeople, getPersonReport, tableToCsv } = require('./dataset');
 const { buildXlsx } = require('./xlsx-report');
@@ -1048,6 +1048,7 @@ api.post('/payments', staff('admin', 'recepcion'), wrap((req, res) => {
   const r = q.run('INSERT INTO payments(member_id,concept,amount,method,note,day,user_id,op_code,voucher_img,receipt_no,shift_id,category) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
     b.member_id || null, b.concept, num(b.amount), b.method, b.note, L.limaDay(), req.user.id, b.op_code || null, b.voucher_img || null, receipt_no, shift_id, category);
   const payId = Number(r.lastInsertRowid);
+  try { saveVault(); } catch {}
   const receipt = buildReceipt(payId);
   res.json({ id: payId, receipt_no, receipt });
 }));
@@ -1061,6 +1062,7 @@ api.post('/payments/:id/void', staff('admin'), wrap((req, res) => {
     if (p.membership_id) q.run("UPDATE memberships SET status='cancelled' WHERE id=?", p.membership_id);
   });
   audit(req.user.id, 'payment.void', { id: p.id, amount: p.amount, reason: req.body.reason });
+  try { saveVault(); } catch {}
   res.json({ ok: true });
 }));
 api.post('/payments/:id/verify', staff('admin'), wrap((req, res) => {
@@ -1130,6 +1132,7 @@ api.post('/daily-passes', staff('admin', 'recepcion'), wrap((req, res) => {
   });
 
   audit(req.user.id, 'dailypass.create', { code, name, price, method, op_code });
+  try { saveVault(); } catch {}
   const receipt = buildReceipt(result.payId);
   res.json({
     ok: true,
@@ -1299,11 +1302,13 @@ api.post('/expenses', staff('admin', 'recepcion'), wrap((req, res) => {
   const category = b.category === 'store' ? 'store' : 'gym';
   const r = q.run('INSERT INTO expenses(concept,amount,method,day,user_id,shift_id,category) VALUES(?,?,?,?,?,?,?)',
     b.concept, num(b.amount), b.method || 'efectivo', L.limaDay(), req.user.id, shift_id, category);
+  try { saveVault(); } catch {}
   res.json({ id: Number(r.lastInsertRowid) });
 }));
 api.post('/expenses/:id/void', staff('admin'), wrap((req, res) => {
   q.run('UPDATE expenses SET voided=1 WHERE id=?', num(req.params.id));
   audit(req.user.id, 'expense.void', { id: req.params.id });
+  try { saveVault(); } catch {}
   res.json({ ok: true });
 }));
 
@@ -1374,6 +1379,7 @@ api.post('/sales', staff('admin', 'recepcion'), wrap((req, res) => {
       p.id, qty, unitPrice, p.cost || 0);
     payId = Number(pay.lastInsertRowid);
   });
+  try { saveVault(); } catch {}
   const receipt = buildReceipt(payId);
   res.json({ ok: true, total, receipt_no, payment_id: payId, receipt });
 }));
@@ -1868,6 +1874,31 @@ api.post('/backup/import-json', staff('admin'), wrap((req, res) => {
   res.json({ ok: true, restoredMembers, restoredPayments, restoredAttendance });
 }));
 
+// Estado y sincronización manual de la Bóveda en la Nube (Cloud Vault)
+api.get('/cloud-vault/status', staff('admin'), wrap((req, res) => {
+  res.json(CloudVault.status());
+}));
+
+api.post('/cloud-vault/sync', staff('admin'), wrap(async (req, res) => {
+  if (!CloudVault.isConfigured()) {
+    return bad(res, 'No hay Bóveda en la Nube configurada (falta UPSTASH_REDIS_REST_URL o similar en variables de entorno)');
+  }
+  saveVault();
+  const data = getVaultData();
+  const r = await CloudVault.push(data);
+  audit(req.user.id, 'cloud_vault.sync', r);
+  res.json({ ok: true, ...r });
+}));
+
+api.post('/cloud-vault/pull', staff('admin'), wrap(async (req, res) => {
+  if (!CloudVault.isConfigured()) {
+    return bad(res, 'No hay Bóveda en la Nube configurada');
+  }
+  const restored = await restoreVaultFromCloud();
+  audit(req.user.id, 'cloud_vault.pull', { restored });
+  res.json({ ok: true, restored });
+}));
+
 // Restaurar copia de seguridad binaria (.db SQLite) mediante ATTACH DATABASE
 api.post('/backup/restore', staff('admin'), wrap((req, res) => {
   let buf = null;
@@ -2179,8 +2210,17 @@ app.use((err, req, res, next) => {
 
 // ---------------- Arranque ----------------
 const PORT = process.env.PORT || 3000;
-function start() {
+async function start() {
   restoreVault();
+  if (CloudVault.isConfigured()) {
+    try {
+      console.log(`[START] Conectando con Bóveda en la Nube (${CloudVault.getProvider()})...`);
+      const restored = await restoreVaultFromCloud();
+      console.log(`[START] Bóveda en la Nube lista (${restored} socios listos).`);
+    } catch (e) {
+      console.warn('[START] Error sincronizando bóveda en la nube al arranque:', e.message);
+    }
+  }
   backup();
   checkpoint();
   saveVault();

@@ -3634,6 +3634,30 @@ function verEstado() {
         </div>
       </div>
 
+      <!-- TARJETA: BÓVEDA PERSISTENTE EN LA NUBE (CLOUD VAULT) -->
+      <div class="card" style="border: 2px solid #f59e0b; background: linear-gradient(180deg, rgba(245,158,11,0.06) 0%, transparent 100%);">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:0.75rem;">
+          <h3 style="display:flex; align-items:center; gap:8px; margin:0;">
+            ☁️ Bóveda Persistente en la Nube (Cloud Vault)
+          </h3>
+          <span id="cloud-vault-badge" class="badge" style="background:#4b5563; color:#fff; font-size:0.8rem; padding:4px 10px; border-radius:12px;">
+            Consultando...
+          </span>
+        </div>
+        <p class="small muted" style="margin-bottom:1rem; line-height:1.5;">
+          Protege tus socios, pagos, accesos y contraseñas de forma permanente. Cada vez que se registra un socio o pago, se respalda automáticamente en la nube. Al reiniciar o actualizar el servidor, se restaura todo al instante.
+        </p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:0.75rem;">
+          <button class="btn primary" id="btn-cloud-sync" style="display:inline-flex; align-items:center; gap:6px;">
+            ☁️ Sincronizar Ahora a la Nube
+          </button>
+          <button class="btn" id="btn-cloud-pull" style="display:inline-flex; align-items:center; gap:6px;">
+            📥 Recuperar desde la Nube
+          </button>
+        </div>
+        <div id="cloud-vault-info" class="small muted" style="display:none; padding:8px 12px; background:rgba(0,0,0,0.2); border-radius:6px; font-family:monospace;"></div>
+      </div>
+
       <!-- TARJETA: COPIAS DE SEGURIDAD (.DB SQLITE) -->
       <div class="card">
         <h3 style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem;">
@@ -3700,6 +3724,52 @@ function verEstado() {
         </div>
       </div>
     </div>`;
+
+    // 0. Cloud Vault status & actions
+    const badgeVault = el.querySelector('#cloud-vault-badge');
+    const infoVault = el.querySelector('#cloud-vault-info');
+    const refreshVaultStatus = async () => {
+      try {
+        const st = await RD.api.get('/cloud-vault/status');
+        if (st && st.configured) {
+          badgeVault.textContent = `🟢 Conectado (${st.provider})`;
+          badgeVault.style.background = '#059669';
+          infoVault.style.display = 'block';
+          infoVault.textContent = `Proveedor: ${st.provider.toUpperCase()} | Última sincro: ${st.last_sync ? new Date(st.last_sync).toLocaleString() : 'Pendiente'}`;
+        } else {
+          badgeVault.textContent = '🟡 Bóveda Local (.json)';
+          badgeVault.style.background = '#d97706';
+          infoVault.style.display = 'block';
+          infoVault.innerHTML = 'Sin nube externa configurada. Los datos se guardan en el archivo local <code>storage/backup-vault.json</code>. Configura <code>UPSTASH_REDIS_REST_URL</code> y <code>UPSTASH_REDIS_REST_TOKEN</code> en Render para activar la nube gratis permanente.';
+        }
+      } catch (e) {
+        if (badgeVault) badgeVault.textContent = '⚪ Local';
+      }
+    };
+    refreshVaultStatus();
+
+    el.querySelector('#btn-cloud-sync').onclick = async () => {
+      RD.toast('Enviando copia a la nube...', 'info');
+      try {
+        const res = await RD.api.post('/cloud-vault/sync');
+        RD.toast('¡Bóveda en la nube sincronizada con éxito!', 'ok');
+        refreshVaultStatus();
+      } catch (err) {
+        RD.toast(err.message || 'Error al sincronizar con la nube', 'err');
+      }
+    };
+
+    el.querySelector('#btn-cloud-pull').onclick = async () => {
+      if (!confirm('¿Deseas restaurar la información guardada en la Bóveda en la Nube?\n\nEsto actualizará socios, pagos y asistencias con la última versión de la nube.')) return;
+      RD.toast('Descargando y restaurando desde la nube...', 'info');
+      try {
+        const res = await RD.api.post('/cloud-vault/pull');
+        RD.toast(`¡Restauración exitosa! ${res.restored} socios sincronizados desde la nube.`, 'ok');
+        setTimeout(() => location.reload(), 1500);
+      } catch (err) {
+        RD.toast(err.message || 'Error al restaurar desde la nube', 'err');
+      }
+    };
 
     // 1. Descargar .db
     el.querySelector('#btn-backup-db').onclick = async () => {

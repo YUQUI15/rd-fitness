@@ -3,7 +3,6 @@ storage/*.db
 storage/*.db-journal
 storage/*.db-wal
 storage/*.db-shm
-storage/backup-vault.json
 storage/backups/
 storage/photos/
 .env

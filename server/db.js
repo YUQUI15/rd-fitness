@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const L = require('./lib');
+const CloudVault = require('./cloud-vault');
 
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '..', 'storage');
 fs.mkdirSync(path.join(DATA_DIR, 'photos'), { recursive: true });
@@ -458,30 +459,40 @@ function seedRoutines() {
 }
 seedRoutines();
 
-// ---------- Bóveda Automática Persistente (JSON Vault) ----------
+// ---------- Bóveda Automática Persistente (JSON Vault & Cloud Vault Sync) ----------
+function getVaultData() {
+  return {
+    gym_name: getSettings().gym_name || 'RD Fitness Club',
+    exported_at: new Date().toISOString(),
+    version: '2.8',
+    users: q.all('SELECT id, username, name, role, pass_hash, active, must_change, created_at FROM users'),
+    members: q.all('SELECT * FROM members'),
+    memberships: q.all('SELECT * FROM memberships'),
+    payments: q.all('SELECT * FROM payments'),
+    expenses: q.all('SELECT * FROM expenses'),
+    attendance: q.all('SELECT * FROM attendance'),
+    daily_passes: q.all('SELECT * FROM daily_passes'),
+    products: q.all('SELECT * FROM products'),
+    plans: q.all('SELECT * FROM plans'),
+    settings: q.all('SELECT * FROM settings'),
+    member_credentials: q.all('SELECT * FROM member_credentials'),
+    member_prefs: q.all('SELECT * FROM member_prefs'),
+    announcements: q.all('SELECT * FROM announcements'),
+    inbox_reads: q.all('SELECT * FROM inbox_reads'),
+    push_subs: q.all('SELECT * FROM push_subs'),
+    routines: q.all('SELECT * FROM routines'),
+    routine_items: q.all('SELECT * FROM routine_items'),
+    assignments: q.all('SELECT * FROM assignments'),
+    workouts: q.all('SELECT * FROM workouts'),
+    set_logs: q.all('SELECT * FROM set_logs'),
+    measurements: q.all('SELECT * FROM measurements'),
+    cash_shifts: q.all('SELECT * FROM cash_shifts')
+  };
+}
+
 function saveVault() {
   try {
-    const data = {
-      gym_name: getSettings().gym_name || 'RD Fitness Club',
-      exported_at: new Date().toISOString(),
-      version: '2.8',
-      members: q.all('SELECT * FROM members'),
-      memberships: q.all('SELECT * FROM memberships'),
-      payments: q.all('SELECT * FROM payments'),
-      attendance: q.all('SELECT * FROM attendance'),
-      daily_passes: q.all('SELECT * FROM daily_passes'),
-      products: q.all('SELECT * FROM products'),
-      plans: q.all('SELECT * FROM plans'),
-      settings: q.all('SELECT * FROM settings'),
-      member_credentials: q.all('SELECT * FROM member_credentials'),
-      member_prefs: q.all('SELECT * FROM member_prefs'),
-      announcements: q.all('SELECT * FROM announcements'),
-      workouts: q.all('SELECT * FROM workouts'),
-      set_logs: q.all('SELECT * FROM set_logs'),
-      measurements: q.all('SELECT * FROM measurements'),
-      cash_shifts: q.all('SELECT * FROM cash_shifts')
-    };
-
+    const data = getVaultData();
     const targetPaths = [
       path.join(DATA_DIR, 'backup-vault.json'),
       path.join(__dirname, '..', 'storage', 'backup-vault.json')
@@ -493,6 +504,13 @@ function saveVault() {
         fs.writeFileSync(p, JSON.stringify(data, null, 2), 'utf8');
       } catch {}
     }
+
+    if (CloudVault.isConfigured()) {
+      CloudVault.push(data).catch(e => {
+        console.warn('[CLOUD VAULT] Sync error:', e.message);
+      });
+    }
+
     return true;
   } catch (e) {
     console.warn('[VAULT] Error guardando bóveda JSON:', e.message);
@@ -500,9 +518,56 @@ function saveVault() {
   }
 }
 
+function applyVaultData(d) {
+  if (!d || (!Array.isArray(d.members) && !Array.isArray(d.users))) return 0;
+  let restored = 0;
+  q.tx(() => {
+    const insertRows = (tbl, rows) => {
+      if (!Array.isArray(rows) || !rows.length) return 0;
+      let c = 0;
+      for (const r of rows) {
+        const keys = Object.keys(r);
+        const cols = keys.join(', ');
+        const ph = keys.map(() => '?').join(', ');
+        const vals = Object.values(r);
+        try {
+          q.run(`INSERT OR REPLACE INTO ${tbl} (${cols}) VALUES (${ph})`, ...vals);
+          c++;
+        } catch (e) {}
+      }
+      return c;
+    };
+
+    insertRows('settings', d.settings);
+    insertRows('users', d.users);
+    insertRows('plans', d.plans);
+    insertRows('products', d.products);
+    restored = insertRows('members', d.members);
+    insertRows('memberships', d.memberships);
+    insertRows('payments', d.payments);
+    insertRows('expenses', d.expenses);
+    insertRows('attendance', d.attendance);
+    insertRows('daily_passes', d.daily_passes);
+    insertRows('member_credentials', d.member_credentials);
+    insertRows('member_prefs', d.member_prefs);
+    insertRows('announcements', d.announcements);
+    insertRows('inbox_reads', d.inbox_reads);
+    insertRows('push_subs', d.push_subs);
+    insertRows('routines', d.routines);
+    insertRows('routine_items', d.routine_items);
+    insertRows('assignments', d.assignments);
+    insertRows('workouts', d.workouts);
+    insertRows('set_logs', d.set_logs);
+    insertRows('measurements', d.measurements);
+    insertRows('cash_shifts', d.cash_shifts);
+  });
+  checkpoint();
+  return restored;
+}
+
 function restoreVault() {
   const memberCount = q.get('SELECT COUNT(*) c FROM members')?.c || 0;
-  if (memberCount > 0) return 0;
+  if (memberCount > 0) return memberCount;
 
   const vaultPaths = [
     path.join(DATA_DIR, 'backup-vault.json'),
@@ -515,51 +580,41 @@ function restoreVault() {
   try {
     const raw = fs.readFileSync(vaultFile, 'utf8');
     const d = JSON.parse(raw);
-    if (!d || !Array.isArray(d.members) || d.members.length === 0) return 0;
-
-    let restored = 0;
-    q.tx(() => {
-      const insertRows = (tbl, rows) => {
-        if (!Array.isArray(rows) || !rows.length) return 0;
-        let c = 0;
-        for (const r of rows) {
-          const keys = Object.keys(r);
-          const cols = keys.join(', ');
-          const ph = keys.map(() => '?').join(', ');
-          const vals = Object.values(r);
-          try {
-            q.run(`INSERT OR REPLACE INTO ${tbl} (${cols}) VALUES (${ph})`, ...vals);
-            c++;
-          } catch (e) {}
-        }
-        return c;
-      };
-
-      insertRows('settings', d.settings);
-      insertRows('plans', d.plans);
-      insertRows('products', d.products);
-      restored = insertRows('members', d.members);
-      insertRows('memberships', d.memberships);
-      insertRows('payments', d.payments);
-      insertRows('attendance', d.attendance);
-      insertRows('daily_passes', d.daily_passes);
-      insertRows('member_credentials', d.member_credentials);
-      insertRows('member_prefs', d.member_prefs);
-      insertRows('announcements', d.announcements);
-      insertRows('workouts', d.workouts);
-      insertRows('set_logs', d.set_logs);
-      insertRows('measurements', d.measurements);
-      insertRows('cash_shifts', d.cash_shifts);
-    });
-
-    console.log(`[VAULT] Restauración automática de bóveda completada: ${restored} socios recuperados desde ${path.basename(vaultFile)}.`);
-    checkpoint();
+    const restored = applyVaultData(d);
+    console.log(`[VAULT] Restauración de bóveda completada: ${restored} socios recuperados desde ${path.basename(vaultFile)}.`);
     return restored;
   } catch (err) {
     console.error('[VAULT] Error restaurando bóveda automática:', err.message);
     return 0;
   }
 }
+
+async function restoreVaultFromCloud() {
+  if (!CloudVault.isConfigured()) return 0;
+  try {
+    const d = await CloudVault.pull();
+    if (!d) return 0;
+    const restored = applyVaultData(d);
+    if (restored > 0) {
+      try {
+        const targetPaths = [
+          path.join(DATA_DIR, 'backup-vault.json'),
+          path.join(__dirname, '..', 'storage', 'backup-vault.json')
+        ];
+        for (const p of targetPaths) {
+          fs.mkdirSync(path.dirname(p), { recursive: true });
+          fs.writeFileSync(p, JSON.stringify(d, null, 2), 'utf8');
+        }
+      } catch {}
+    }
+    console.log(`[CLOUD VAULT] Sincronización desde la nube completada (${CloudVault.getProvider()}): ${restored} socios restaurados.`);
+    return restored;
+  } catch (err) {
+    console.warn('[CLOUD VAULT] Error en restoreVaultFromCloud:', err.message);
+    return 0;
+  }
+}
+
 restoreVault();
 
 // ---------- Consolidación WAL y Respaldo automático ----------
@@ -669,6 +724,6 @@ function closeAttendanceSession(id, exitTime) {
 }
 
 module.exports = {
-  db, q, DATA_DIR, getSettings, numSettings, backup, checkpoint, saveVault, restoreVault, seedExercises, nextReceiptNo, dailyPassCode,
-  getActiveShift, computeShiftTotals, getActiveAttendanceSession, closeAttendanceSession
+  db, q, DATA_DIR, getSettings, numSettings, backup, checkpoint, saveVault, restoreVault, restoreVaultFromCloud, getVaultData, CloudVault,
+  seedExercises, nextReceiptNo, dailyPassCode, getActiveShift, computeShiftTotals, getActiveAttendanceSession, closeAttendanceSession
 };
