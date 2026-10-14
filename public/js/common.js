@@ -207,11 +207,23 @@
     try { return await fn(); } finally { if (btn) { btn.disabled = false; btn.textContent = btn.dataset.t; } }
   };
 
-  // ---------- Sonidos ----------
+  // ---------- Sonidos y Alertas Táctiles ----------
   let actx;
-  RD.beep = (kind) => {
+  const ensureAudio = () => {
     try {
       actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if (actx && actx.state === 'suspended') actx.resume().catch(() => {});
+    } catch {}
+    return actx;
+  };
+  ['click', 'touchstart', 'pointerdown'].forEach(ev => {
+    window.addEventListener(ev, ensureAudio, { once: true, passive: true });
+  });
+
+  RD.beep = (kind) => {
+    try {
+      const ctx = ensureAudio();
+      if (!ctx) return;
       const seq = {
         ok: [[880, .12]],
         warn: [[660, .12], [660, .12]],
@@ -220,18 +232,32 @@
         done: [[880, .15], [1175, .25]],
         bell: [[523.25, .15], [659.25, .15], [783.99, .25], [1046.50, .4]]
       }[kind] || [];
-      let t = actx.currentTime;
+      let t = ctx.currentTime;
       seq.forEach(([f, d]) => {
-        const o = actx.createOscillator(), g = actx.createGain();
+        const o = ctx.createOscillator(), g = ctx.createGain();
         o.type = kind === 'denied' ? 'sawtooth' : kind === 'bell' ? 'triangle' : 'sine';
         o.frequency.value = f;
         g.gain.setValueAtTime(0.0001, t);
-        g.gain.exponentialRampToValueAtTime(kind === 'bell' ? 0.45 : 0.35, t + 0.01);
+        g.gain.exponentialRampToValueAtTime(kind === 'bell' ? 0.6 : 0.4, t + 0.01);
         g.gain.exponentialRampToValueAtTime(0.0001, t + d);
-        o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + d + 0.02); t += d + 0.05;
+        o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + d + 0.02); t += d + 0.05;
       });
-      if ((kind === 'denied' || kind === 'bell') && navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      if ((kind === 'denied' || kind === 'bell') && navigator.vibrate) {
+        navigator.vibrate(kind === 'bell' ? [300, 150, 300, 150, 450] : [200, 100, 200]);
+      }
     } catch { }
+  };
+
+  RD.playNotificationAlert = (mode = 'sound') => {
+    try {
+      if (mode === 'silent') return;
+      if (mode === 'vibrate') {
+        if (navigator.vibrate) navigator.vibrate([350, 150, 350, 150, 500]);
+        return;
+      }
+      if (navigator.vibrate) navigator.vibrate([350, 150, 350, 150, 500]);
+      RD.beep('bell');
+    } catch {}
   };
 
   // ---------- QR ----------

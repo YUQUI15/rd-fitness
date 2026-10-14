@@ -1,5 +1,5 @@
 /* RD Fitness Club - Service Worker (funciona sin internet) */
-const VERSION = 'rd-v3.1';
+const VERSION = 'rd-v3.2';
 const SHELL = [
   '/', '/index.html', '/admin/', '/admin/index.html', '/admin/cards.html',
   '/css/style.css', '/js/common.js', '/js/member-hub.js', '/js/app.js', '/js/admin-core.js', '/js/admin-scan.js', '/js/admin-members.js', '/js/admin-other.js', '/js/admin-announce.js', '/js/workout.js',
@@ -51,14 +51,15 @@ self.addEventListener('push', e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch { d = { title: 'RD Fitness Club', body: e.data ? e.data.text() : '' }; }
   const isSilent = d.silent === true;
-  const vibratePattern = Array.isArray(d.vibrate) ? d.vibrate : (isSilent ? [] : [200, 100, 200]);
+  const vibratePattern = Array.isArray(d.vibrate) && d.vibrate.length ? d.vibrate : (isSilent ? [] : [350, 150, 350, 150, 500]);
 
   const opts = {
     body: d.body || '',
     icon: '/icons/icon-192.png',
     badge: '/icons/icon-192.png',
-    tag: d.tag || 'rd-aviso',          // un aviso nuevo reemplaza al anterior con la misma etiqueta
-    renotify: d.renotify !== false,
+    tag: d.tag || ('rd-aviso-' + Date.now()),
+    renotify: true,
+    requireInteraction: false,
     silent: isSilent,
     vibrate: vibratePattern,
     data: { url: d.url || '/?inbox=1' }

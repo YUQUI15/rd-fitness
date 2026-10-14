@@ -139,6 +139,7 @@
                   ${!a.archived ? `<button class="btn sm" data-edit="${a.id}">✏️ Editar</button>` : ''}
                   <button class="btn sm ${a.archived ? 'ok' : 'danger'}" data-archive="${a.id}">${a.archived ? 'Desarchivar' : 'Archivar'}</button>
                 </div>
+              </div>
               ${a.image_url ? `
                 <div style="margin:8px 0;max-height:160px;overflow:hidden;border-radius:8px;border:1px solid var(--line);cursor:pointer;background:var(--bg3)" onclick="RD.zoomImage('${esc(a.image_url)}')">
                   <img src="${esc(a.image_url)}" style="width:100%;max-height:160px;object-fit:cover;display:block" alt="${esc(a.title)}">

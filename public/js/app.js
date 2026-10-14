@@ -85,6 +85,7 @@
 
     if (location.hash.startsWith('#receipt:')) {
       const pid = +location.hash.replace('#receipt:', '');
+      history.replaceState(null, '', location.pathname + location.search);
       if (pid) setTimeout(() => RD.showReceipt(pid), 350);
     }
   }
@@ -1125,11 +1126,13 @@
     if (qs.get('inbox') === '1') { history.replaceState(null, '', '/'); RD.hub.openInbox(); }
     if (location.hash.startsWith('#receipt:')) {
       const pid = +location.hash.replace('#receipt:', '');
+      history.replaceState(null, '', location.pathname + location.search);
       if (pid) setTimeout(() => RD.showReceipt(pid), 450);
     }
     window.addEventListener('hashchange', () => {
       if (location.hash.startsWith('#receipt:')) {
         const pid = +location.hash.replace('#receipt:', '');
+        history.replaceState(null, '', location.pathname + location.search);
         if (pid) RD.showReceipt(pid);
       }
     });

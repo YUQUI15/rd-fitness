@@ -342,7 +342,18 @@ module.exports = function mountMemberHub(api, ctx) {
   api.get('/member/inbox', memberAuth, wrap((req, res) => res.json(buildInbox(req.member))));
   api.get('/member/inbox/summary', memberAuth, wrap((req, res) => {
     const b = buildInbox(req.member);
-    res.json({ unread: b.unread, banner: b.banner, now: Date.now() });
+    const pr = getPrefs(req.member.id);
+    const gymItems = (b.items || []).filter(i => i.source === 'gym');
+    const latestGym = gymItems[0] || null;
+    res.json({
+      unread: b.unread,
+      banner: b.banner,
+      latest_id: latestGym ? latestGym.id : null,
+      latest_title: latestGym ? latestGym.title : null,
+      latest_kind: latestGym ? latestGym.kind : null,
+      alert_mode: pr?.alert_mode || 'sound',
+      now: Date.now()
+    });
   }));
   const markRead = (mid, refs, dismiss) => q.tx(() => {
     for (const ref of refs) {

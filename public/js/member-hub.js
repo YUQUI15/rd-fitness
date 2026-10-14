@@ -237,26 +237,52 @@
     };
   }
   let lastUnreadCount = null;
+  let lastKnownId = null;
+  let isFirstLoad = true;
+
   H.refresh = async () => {
     if (!api) return;
     try {
       const s = await api.get('/member/inbox/summary');
-      if (lastUnreadCount !== null && typeof s.unread === 'number' && s.unread > lastUnreadCount) {
-        try { if (typeof RD.beep === 'function') RD.beep('bell'); } catch {}
-        try { RD.toast('📢 Nuevo comunicado oficial de RD Fitness Club', 'info', 6000); } catch {}
+      const alertMode = s.alert_mode || 'sound';
+      const hasNewId = (lastKnownId !== null && s.latest_id && s.latest_id > lastKnownId);
+      const hasMoreUnread = (lastUnreadCount !== null && typeof s.unread === 'number' && s.unread > lastUnreadCount);
+
+      if (!isFirstLoad && (hasNewId || hasMoreUnread)) {
+        try {
+          if (typeof RD.playNotificationAlert === 'function') {
+            RD.playNotificationAlert(alertMode);
+          } else if (typeof RD.beep === 'function' && alertMode !== 'silent') {
+            RD.beep('bell');
+          }
+        } catch {}
+        const titleMsg = s.latest_title ? `📢 ${s.latest_title}` : '📢 Nuevo comunicado oficial de RD Fitness Club';
+        try { RD.toast(titleMsg, 'info', 7000); } catch {}
+        if (typeof H.updateHeroAnnouncement === 'function') {
+          try { H.updateHeroAnnouncement(); } catch {}
+        }
       }
+
+      if (s.latest_id) lastKnownId = Math.max(lastKnownId || 0, s.latest_id);
       lastUnreadCount = s.unread;
       paintBell(s.unread);
       paintBanner(s.banner);
-      if (typeof H.updateHeroAnnouncement === 'function') H.updateHeroAnnouncement();
+
+      if (isFirstLoad) {
+        isFirstLoad = false;
+        if (typeof H.updateHeroAnnouncement === 'function') {
+          try { H.updateHeroAnnouncement(); } catch {}
+        }
+      }
     } catch { }
   };
-  // Sincronización ágil: al abrir, al volver a la app y cada 25 s mientras está visible
+  // Sincronización ágil en tiempo real: al abrir, cada 6s mientras está visible y al volver al foco
   H.start = (apiRef) => {
     api = apiRef; H.stop();
+    isFirstLoad = true;
     H.refresh();
     if (typeof H.autoSubscribe === 'function') H.autoSubscribe();
-    timer = setInterval(() => { if (!document.hidden) H.refresh(); }, 25000);
+    timer = setInterval(() => { if (!document.hidden) H.refresh(); }, 6000);
     document.addEventListener('visibilitychange', onVis);
     window.addEventListener('online', H.refresh);
   };
