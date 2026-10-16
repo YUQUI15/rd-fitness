@@ -1590,6 +1590,8 @@ api.get('/reports', staff('admin', 'recepcion'), wrap((req, res) => {
     newMembers: data.newMembers,
     renewals: data.renewals,
     expiredPeriod: data.expiredPeriod,
+    expiringSoon: data.expiringSoon,
+    atRiskMembers: data.atRiskMembers,
     // Canales separados
     gym: {
       income: data.totalGymIncome,
@@ -1598,15 +1600,20 @@ api.get('/reports', staff('admin', 'recepcion'), wrap((req, res) => {
       byMethod: data.gymByMethod,
       payments: data.gymPayments,
       dailyPasses: data.dailyPasses,
-      byPlan: data.byPlan
+      byPlan: data.byPlan,
+      expiringSoon: data.expiringSoon,
+      atRiskMembers: data.atRiskMembers
     },
     store: {
       income: data.totalStoreIncome,
       expenses: data.totalStoreExpense,
+      costOfGoods: data.totalStoreCost,
+      grossProfit: data.totalStoreGrossProfit,
       net: data.storeNet,
       byMethod: data.storeByMethod,
       payments: data.storePayments,
       productStats: data.productStats,
+      topSelling: [...data.productStats].filter(p => (p.sold_qty || 0) > 0).sort((a, b) => (b.sold_total || 0) - (a.sold_total || 0)),
       lowStock: data.productStats.filter(p => p.stock <= p.min_stock)
     },
     consolidated: {
@@ -1617,9 +1624,30 @@ api.get('/reports', staff('admin', 'recepcion'), wrap((req, res) => {
       totalExpense: data.totalExpense,
       totalGymExpense: data.totalGymExpense,
       totalStoreExpense: data.totalStoreExpense,
+      totalStoreCost: data.totalStoreCost,
+      totalStoreGrossProfit: data.totalStoreGrossProfit,
+      storeCostOfGoods: data.totalStoreCost,
+      storeGrossProfit: data.totalStoreGrossProfit,
       netProfit: data.netProfit,
+      marginPct: data.marginPct,
+      avgDailyIncome: data.avgDailyIncome,
+      txCount: data.gymPayments.length + data.storePayments.length + data.otherPayments.length,
+      cashGross: data.totalByMethod.efectivo || 0,
       cashInDrawer: data.cashInDrawer,
       digitalTotal: data.digitalTotal,
+      activeDaysCount: data.dailyComparison.filter(x => x.total > 0 || x.visits > 0).length,
+      yapeAudit: data.yapeAudit,
+      totalByMethod: data.totalByMethod,
+      gymByMethod: data.gymByMethod,
+      storeByMethod: data.storeByMethod,
+      expensesList: data.expenses,
+      expensesByCat: Object.entries(
+        data.expenses.reduce((acc, e) => {
+          const cat = e.category || 'Operativo';
+          acc[cat] = (acc[cat] || 0) + Number(e.amount || 0);
+          return acc;
+        }, {})
+      ).map(([category, total]) => ({ category, total })).sort((a, b) => b.total - a.total),
       dailyComparison: data.dailyComparison,
       shifts: data.shifts
     },
@@ -2231,14 +2259,14 @@ api.get('/member/last-weights', memberAuth, wrap((req, res) => {
   res.json(Object.fromEntries(rows.map(r => [r.ex_id, { weight: r.weight, reps: r.reps }])));
 }));
 api.get('/member/prs', memberAuth, wrap((req, res) => {
-  res.json(q.all(`SELECT s.ex_id, e.nombre, MAX(s.weight) weight, s.reps FROM set_logs s JOIN exercises e ON e.id=s.ex_id
-    WHERE s.member_id=? AND s.weight>0 GROUP BY s.ex_id ORDER BY weight DESC LIMIT 20`, req.member.id));
+  res.json(q.all(`SELECT s.ex_id, e.nombre, e.grupo, MAX(s.weight) weight, s.reps, MAX(s.day) day FROM set_logs s JOIN exercises e ON e.id=s.ex_id
+    WHERE s.member_id=? AND s.weight>0 GROUP BY s.ex_id ORDER BY weight DESC LIMIT 25`, req.member.id));
 }));
 api.get('/member/attendance', memberAuth, wrap((req, res) => {
-  res.json(q.all("SELECT ts,day FROM attendance WHERE member_id=? AND result IN ('ok','warn') ORDER BY ts DESC LIMIT 90", req.member.id));
+  res.json(q.all("SELECT id,ts,exit_ts,duration_min,hour,day,status FROM attendance WHERE member_id=? AND result IN ('ok','warn') ORDER BY ts DESC LIMIT 90", req.member.id));
 }));
 api.get('/member/payments', memberAuth, wrap((req, res) => {
-  res.json(q.all('SELECT day,concept,amount,method FROM payments WHERE member_id=? AND voided=0 ORDER BY id DESC LIMIT 30', req.member.id));
+  res.json(q.all('SELECT id,day,concept,amount,method,receipt_no FROM payments WHERE member_id=? AND voided=0 ORDER BY id DESC LIMIT 30', req.member.id));
 }));
 api.get('/member/measurements', memberAuth, wrap((req, res) => res.json(q.all('SELECT * FROM measurements WHERE member_id=? ORDER BY day, id', req.member.id))));
 api.post('/member/measurements', memberAuth, wrap((req, res) => {
@@ -2257,6 +2285,10 @@ api.delete('/member/measurements/:id', memberAuth, wrap((req, res) => {
 }));
 api.get('/member/analytics', memberAuth, wrap((req, res) => {
   const mid = req.member.id;
+  const today = L.limaDay();
+  const d30 = L.addDays(today, -29);
+  const d90 = L.addDays(today, -89);
+
   const muscleDistribution = q.all(`
     SELECT e.grupo, COUNT(*) as sets_count, COALESCE(SUM(s.reps * s.weight), 0) as volume
     FROM set_logs s
@@ -2284,9 +2316,185 @@ api.get('/member/analytics', memberAuth, wrap((req, res) => {
 
   const totalSets = q.get('SELECT COUNT(*) as c FROM set_logs WHERE member_id=?', mid)?.c || 0;
 
+  // Top ejercicios dominados (correlación de fuerza, repeticiones y volumen)
+  const topExercises = q.all(`
+    SELECT s.ex_id, e.nombre, e.grupo,
+           COUNT(*) as sets_count,
+           MAX(s.weight) as max_weight,
+           MAX(s.reps) as max_reps,
+           ROUND(COALESCE(SUM(s.reps * s.weight), 0)) as total_volume
+    FROM set_logs s
+    JOIN exercises e ON e.id = s.ex_id
+    WHERE s.member_id = ?
+    GROUP BY s.ex_id
+    ORDER BY total_volume DESC, sets_count DESC
+    LIMIT 8
+  `, mid).map(x => ({
+    ...x,
+    est_1rm: x.max_weight > 0 ? Math.round(x.max_weight * (1 + Math.min(15, x.max_reps || 1) / 30)) : 0
+  }));
+
+  // Rutina activa asignada y adherencia
+  const activeRoutine = q.get(`
+    SELECT r.id, r.name, r.goal, r.level, r.days_per_week, a.assigned_at, a.note,
+           (SELECT COUNT(DISTINCT day_index) FROM routine_items WHERE routine_id=r.id) as routine_days
+    FROM assignments a
+    JOIN routines r ON r.id = a.routine_id
+    WHERE a.member_id = ? AND a.active = 1 AND r.active = 1
+    ORDER BY a.id DESC LIMIT 1
+  `, mid);
+
+  // Análisis de asistencias, permanencia y horarios
+  const attRows = q.all(`
+    SELECT day, hour, duration_min, ts, exit_ts
+    FROM attendance
+    WHERE member_id = ? AND result IN ('ok','warn') AND day >= ?
+    ORDER BY ts DESC
+  `, mid, d90);
+
+  const totalVisitsAll = q.get("SELECT COUNT(DISTINCT day) c FROM attendance WHERE member_id=? AND result IN ('ok','warn')", mid)?.c || 0;
+  const visits30 = new Set(attRows.filter(r => r.day >= d30).map(r => r.day)).size;
+  const visits90 = new Set(attRows.map(r => r.day)).size;
+
+  // Inicio de semana actual (Lunes)
+  const dtToday = new Date(today + 'T00:00:00Z');
+  const dowToday = (dtToday.getUTCDay() + 6) % 7;
+  const weekStart = L.addDays(today, -dowToday);
+  const visitsThisWeek = new Set(attRows.filter(r => r.day >= weekStart).map(r => r.day)).size;
+  const workoutsThisWeek = q.get('SELECT COUNT(*) c FROM workouts WHERE member_id=? AND day>=?', mid, weekStart)?.c || 0;
+
+  const targetDaysPerWeek = activeRoutine?.days_per_week || activeRoutine?.routine_days || 4;
+  const weeklyAdherencePct = Math.min(100, Math.round((Math.max(visitsThisWeek, workoutsThisWeek) / Math.max(1, targetDaysPerWeek)) * 100));
+  const monthlyTargetDays = targetDaysPerWeek * 4;
+  const monthlyAdherencePct = Math.min(100, Math.round((visits30 / Math.max(1, monthlyTargetDays)) * 100));
+
+  // Duración promedio de sesión (combinando asistencia en sala y sesiones registradas)
+  const withDur = attRows.filter(r => r.duration_min && r.duration_min > 0);
+  const avgAttMin = withDur.length
+    ? Math.round(withDur.reduce((a, b) => a + b.duration_min, 0) / withDur.length)
+    : (totalStats.total_workouts > 0 ? Math.round((totalStats.total_duration_sec / 60) / totalStats.total_workouts) : 65);
+  const totalGymMinutes = withDur.reduce((a, b) => a + b.duration_min, 0) + Math.round((totalStats.total_duration_sec || 0) / 60);
+
+  // Distribución horaria (Mañana / Tarde / Noche) y día de la semana
+  let morning = 0, afternoon = 0, evening = 0;
+  const hourMap = {};
+  const dowCounts = [0, 0, 0, 0, 0, 0, 0]; // Lun..Dom
+  attRows.forEach(r => {
+    const h = typeof r.hour === 'number' ? r.hour : (r.ts ? new Date(r.ts).getHours() : 18);
+    if (h < 12) morning++;
+    else if (h < 18) afternoon++;
+    else evening++;
+    hourMap[h] = (hourMap[h] || 0) + 1;
+    if (r.day) {
+      const d = new Date(r.day + 'T00:00:00Z');
+      const idx = (d.getUTCDay() + 6) % 7;
+      if (idx >= 0 && idx < 7) dowCounts[idx]++;
+    }
+  });
+
+  let peakHour = 18;
+  let maxHourCount = 0;
+  for (const [h, cnt] of Object.entries(hourMap)) {
+    if (cnt > maxHourCount) { maxHourCount = cnt; peakHour = Number(h); }
+  }
+  const chronotype = morning >= afternoon && morning >= evening && morning > 0
+    ? 'Atleta Matutino (6:00 - 12:00)'
+    : afternoon >= evening && afternoon > 0
+      ? 'Turno Vespertino (12:00 - 18:00)'
+      : evening > 0
+        ? 'Élite Nocturno (18:00 - 21:00)'
+        : 'Horario Flexible';
+
+  const dayNames = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  const weekdayDistribution = dayNames.map((label, i) => ({ day: label, count: dowCounts[i] }));
+
+  // Comparativa corporal (Primera medición vs Última medición)
+  const measList = q.all('SELECT * FROM measurements WHERE member_id=? ORDER BY day ASC, id ASC', mid);
+  let bodyDelta = null;
+  if (measList.length >= 1) {
+    const first = measList[0];
+    const latest = measList[measList.length - 1];
+    const diff = k => (first[k] != null && latest[k] != null) ? +(latest[k] - first[k]).toFixed(1) : null;
+    bodyDelta = {
+      firstDay: first.day,
+      latestDay: latest.day,
+      count: measList.length,
+      latestWeight: latest.weight,
+      latestWaist: latest.waist,
+      latestArm: latest.arm,
+      latestChest: latest.chest,
+      latestThigh: latest.thigh,
+      latestHip: latest.hip,
+      latestFat: latest.body_fat,
+      weightDiff: diff('weight'),
+      waistDiff: diff('waist'),
+      armDiff: diff('arm'),
+      chestDiff: diff('chest'),
+      thighDiff: diff('thigh'),
+      hipDiff: diff('hip'),
+      fatDiff: diff('body_fat')
+    };
+  }
+
+  // Score integral de desarrollo y recomendaciones inteligentes
+  const streak = streakWeeks(mid, today);
+  const score = Math.min(100, Math.round(
+    (monthlyAdherencePct * 0.45) +
+    (Math.min(100, (totalStats.total_workouts || 0) * 8) * 0.25) +
+    (Math.min(100, muscleDistribution.length * 16) * 0.15) +
+    (Math.min(100, streak * 20) * 0.15)
+  ));
+  const athleteLevel = score >= 80 ? 'Élite Disciplinado' : score >= 55 ? 'Constante Avanzado' : score >= 30 ? 'En Progreso Activo' : 'Iniciando Desarrollo';
+
+  const insights = [];
+  if (activeRoutine) {
+    insights.push(`Sigues el plan "${activeRoutine.name}" (${targetDaysPerWeek} días/sem). Esta semana llevas ${Math.max(visitsThisWeek, workoutsThisWeek)}/${targetDaysPerWeek} sesiones completadas (${weeklyAdherencePct}%).`);
+  } else {
+    insights.push('Aún no tienes una rutina activa vinculada. Activa una plantilla en la pestaña Entrenar para correlacionar tus días meta.');
+  }
+  if (attRows.length > 0) {
+    insights.push(`Tu horario predilecto de entrenamiento es alrededor de las ${peakHour}:00 hrs (${chronotype}), con una permanencia media de ${avgAttMin} min por visita.`);
+  }
+  if (muscleDistribution.length > 0) {
+    const topM = muscleDistribution[0].grupo;
+    const trainedGroups = new Set(muscleDistribution.map(m => m.grupo));
+    const missing = ['Piernas', 'Espalda', 'Pecho', 'Hombros', 'Core'].filter(g => !trainedGroups.has(g));
+    insights.push(`Tu grupo muscular más trabajado es ${topM} (${muscleDistribution[0].sets_count} series).${missing.length ? ` Sugerencia: incorpora más series de ${missing.slice(0, 2).join(' y ')} para un desarrollo simétrico.` : ' ¡Excelente balance muscular integral!'}`);
+  }
+
   res.json({
     muscleDistribution,
     weeklyVolume,
+    topExercises,
+    activeRoutine: activeRoutine || null,
+    adherence: {
+      targetDaysPerWeek,
+      visitsThisWeek,
+      workoutsThisWeek,
+      weeklyAdherencePct,
+      visits30,
+      visits90,
+      totalVisitsAll,
+      monthlyTargetDays,
+      monthlyAdherencePct,
+      streakWeeks: streak
+    },
+    schedule: {
+      morning,
+      afternoon,
+      evening,
+      peakHour: `${String(peakHour).padStart(2, '0')}:00`,
+      chronotype,
+      avgDurationMin: avgAttMin,
+      totalGymHours: +(totalGymMinutes / 60).toFixed(1),
+      weekdayDistribution
+    },
+    bodyDelta,
+    development: {
+      score,
+      athleteLevel,
+      insights
+    },
     totalWorkouts: totalStats.total_workouts || 0,
     totalVolume: totalStats.total_volume || 0,
     totalDurationSec: totalStats.total_duration_sec || 0,

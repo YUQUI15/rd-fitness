@@ -292,9 +292,43 @@
     box.appendChild(t);
     setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, ms);
   };
+  // Permite iconos vectoriales internos (<svg class="svg-icon"...>) dentro de títulos escapando cualquier otro texto
+  RD.safeTitle = str => String(str ?? '')
+    .split(/(<svg\s+class="svg-icon[^"]*"[^>]*>[\s\S]*?<\/svg>)/g)
+    .map(part => /^<svg\s+class="svg-icon/.test(part) ? part : RD.esc(part))
+    .join('');
+
+  RD.LOGO_SVG = function (size = 54) {
+    return `<svg viewBox="0 0 100 100" style="width:${size}px;height:${size}px;display:inline-block;vertical-align:middle;flex-shrink:0">
+      <defs>
+        <linearGradient id="rdGold" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#fbbf24"/>
+          <stop offset="50%" stop-color="#f59e0b"/>
+          <stop offset="100%" stop-color="#b45309"/>
+        </linearGradient>
+        <linearGradient id="rdDark" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#1e293b"/>
+          <stop offset="100%" stop-color="#0f172a"/>
+        </linearGradient>
+      </defs>
+      <polygon points="50,4 92,20 84,72 50,96 16,72 8,20" fill="url(#rdDark)" stroke="url(#rdGold)" stroke-width="3.5" stroke-linejoin="round"/>
+      <polygon points="50,11 85,25 78,68 50,88 22,68 15,25" fill="none" stroke="url(#rdGold)" stroke-width="1.2" opacity="0.6"/>
+      <rect x="26" y="32" width="48" height="3.5" rx="1.5" fill="url(#rdGold)"/>
+      <rect x="22" y="27" width="5" height="13.5" rx="1.5" fill="url(#rdGold)"/>
+      <rect x="73" y="27" width="5" height="13.5" rx="1.5" fill="url(#rdGold)"/>
+      <rect x="18" y="29.5" width="3" height="8.5" rx="1" fill="#fbbf24"/>
+      <rect x="79" y="29.5" width="3" height="8.5" rx="1" fill="#fbbf24"/>
+      <text x="50" y="62" font-family="'Impact', 'Arial Black', sans-serif" font-weight="900" font-size="25" fill="url(#rdGold)" text-anchor="middle" letter-spacing="1.5">RD</text>
+      <text x="50" y="74" font-family="'Arial Black', sans-serif" font-weight="800" font-size="6" fill="#f8fafc" text-anchor="middle" letter-spacing="2">FITNESS CLUB</text>
+      <polygon points="50,78 51.5,82 55.5,82 52.5,84 53.5,88 50,85.5 46.5,88 47.5,84 44.5,82 48.5,82" fill="url(#rdGold)"/>
+      <polygon points="41,79 42,81.5 44.5,81.5 42.5,83 43.2,85.5 41,84 38.8,85.5 39.5,83 37.5,81.5 40,81.5" fill="url(#rdGold)" opacity="0.8"/>
+      <polygon points="59,79 60,81.5 62.5,81.5 60.5,83 61.2,85.5 59,84 56.8,85.5 57.5,83 55.5,81.5 58,81.5" fill="url(#rdGold)" opacity="0.8"/>
+    </svg>`;
+  };
+
   RD.openModal = (title, html, opts = {}) => {
     const back = document.createElement('div'); back.className = 'modal-back';
-    back.innerHTML = `<div class="modal ${opts.wide ? 'wide' : ''}" role="dialog" aria-modal="true"><div class="modal-head"><h3>${RD.esc(title)}</h3><button class="icon-btn" data-close aria-label="Cerrar">${RD.icon('x', '', 18)}</button></div><div class="modal-body">${html}</div></div>`;
+    back.innerHTML = `<div class="modal ${opts.wide ? 'wide' : ''}" role="dialog" aria-modal="true"><div class="modal-head"><h3 style="display:flex;align-items:center;gap:8px">${RD.safeTitle(title)}</h3><button class="icon-btn" data-close aria-label="Cerrar">${RD.icon('x', '', 18)}</button></div><div class="modal-body">${html}</div></div>`;
     document.body.appendChild(back);
     document.body.classList.add('no-scroll');
     const close = () => { back.remove(); if (!document.querySelector('.modal-back')) document.body.classList.remove('no-scroll'); opts.onClose && opts.onClose(); };
@@ -302,7 +336,7 @@
     return { el: back.querySelector('.modal-body'), root: back, close };
   };
   RD.confirm = (title, text, okLabel = 'Confirmar', danger = false) => new Promise(resolve => {
-    const m = RD.openModal(title, `<p>${RD.esc(text)}</p><div class="row end gap"><button class="btn ghost" data-no>Cancelar</button><button class="btn ${danger ? 'danger' : 'primary'}" data-yes>${RD.esc(okLabel)}</button></div>`, { onClose: () => resolve(false) });
+    const m = RD.openModal(title, `<p>${RD.esc(text)}</p><div class="row end gap"><button class="btn ghost" data-no>Cancelar</button><button class="btn ${danger ? 'danger' : 'primary'}" data-yes>${RD.safeTitle(okLabel)}</button></div>`, { onClose: () => resolve(false) });
     m.el.querySelector('[data-no]').onclick = () => { m.close(); resolve(false); };
     m.el.querySelector('[data-yes]').onclick = () => { m.root.remove(); document.body.classList.remove('no-scroll'); resolve(true); };
   });
@@ -315,8 +349,8 @@
     inp.onkeydown = e => { if (e.key === 'Enter') done(inp.value.trim() || null); };
   });
   RD.busy = async (btn, fn) => {
-    if (btn) { btn.disabled = true; btn.dataset.t = btn.textContent; btn.textContent = 'Procesando…'; }
-    try { return await fn(); } finally { if (btn) { btn.disabled = false; btn.textContent = btn.dataset.t; } }
+    if (btn) { btn.disabled = true; btn.dataset.t = btn.innerHTML; btn.innerHTML = `${RD.icon('hourglass', '', 14)} Procesando…`; }
+    try { return await fn(); } finally { if (btn) { btn.disabled = false; if (btn.dataset.t !== undefined) btn.innerHTML = btn.dataset.t; } }
   };
 
   // ---------- Sonidos y Alertas Táctiles (Dual-Engine: HTML5 Audio Blob + Web Audio) ----------
@@ -735,11 +769,17 @@
     refInp.onkeydown = e => { if (e.key === 'Enter') doConfirm(); };
   };
 
+  // Limpiador oficial de dirección (elimina referencias externas no autorizadas)
+  RD.cleanAddress = addr => String(addr || 'Calle Antonio José de Sucre Lt. 10, Chivay')
+    .replace(/\s*\(?\s*al costado de\s+(la\s+)?discoteca\s+muya\s*\)?/gi, '')
+    .trim() || 'Calle Antonio José de Sucre Lt. 10, Chivay';
+
   // ---------- Generador de Boletas / Tickets (Térmico 58mm/80mm y WhatsApp) ----------
   RD.waReceiptText = (r) => {
+    const cleanAddr = RD.cleanAddress(r.gym?.address || 'Calle Antonio José de Sucre Lt. 10, Chivay');
     return [
       `*${r.gym?.name || 'RD FITNESS CLUB'}*`,
-      `Sede: ${r.gym?.address || 'Chivay, Colca'}`,
+      `Sede: ${cleanAddr}`,
       `Cel: ${r.gym?.phone || '982404043'}`,
       `--------------------------------`,
       `*COMPROBANTE:* ${r.receipt_no}`,
@@ -763,13 +803,16 @@
     const waText = RD.waReceiptText(r);
     const waUrl = RD.waLink(r.client?.phone, waText);
     const qrSvg = r.qr_payload ? RD.qrSvg(r.qr_payload, { margin: 1 }) : null;
+    const cleanAddr = RD.cleanAddress(r.gym?.address);
 
-    const modal = RD.openModal('Comprobante de Pago', `
+    const modal = RD.openModal(`${RD.icon('receipt')} Comprobante Oficial de Pago`, `
       <div class="receipt-wrap" id="rprint">
-        <div class="receipt-ticket">
+        <div class="receipt-ticket watermark-container" style="position:relative">
+          <div class="watermark-bg" style="font-size:2.4rem;color:rgba(0,0,0,0.05)">RD FITNESS</div>
+          <div class="r-center" style="margin-bottom:4px">${RD.LOGO_SVG(42)}</div>
           <div class="r-center r-bold" style="font-size:1.15rem">${RD.esc(r.gym?.name || 'RD FITNESS CLUB')}</div>
-          <div class="r-center r-small muted">${RD.esc(r.gym?.slogan || '')}</div>
-          <div class="r-center r-small">${RD.esc(r.gym?.address || '')}</div>
+          <div class="r-center r-small muted">${RD.esc(r.gym?.slogan || 'Disciplina · Constancia · Resultados')}</div>
+          <div class="r-center r-small">${RD.esc(cleanAddr)}</div>
           <div class="r-center r-small">RUC: ${RD.esc(r.gym?.ruc || '10702548911')} · Cel: ${RD.esc(r.gym?.phone || '982404043')}</div>
           <div class="r-line">================================</div>
           <div class="r-row"><span class="r-bold">BOLETA:</span> <span class="r-bold">${RD.esc(r.receipt_no)}</span></div>
@@ -851,6 +894,7 @@
     const s = data.shift || {};
     const t = data.totals || {};
     const settings = data.settings || {};
+    const cleanAddr = RD.cleanAddress(settings.gym_address);
     const diff = Number(s.diff_cash ?? data.diff_cash ?? 0);
     let diffLabel = 'CUADRADO EXACTO (S/ 0.00)';
     let diffClass = 'ok';
@@ -862,12 +906,14 @@
       diffClass = 'bad';
     }
 
-    const modal = RD.openModal('Acta de Cierre de Turno', `
+    const modal = RD.openModal(`${RD.icon('file-text')} Acta de Cierre de Turno`, `
       <div class="receipt-wrap" id="rprint">
-        <div class="receipt-ticket">
+        <div class="receipt-ticket watermark-container" style="position:relative">
+          <div class="watermark-bg" style="font-size:2.4rem;color:rgba(0,0,0,0.05)">RD FITNESS</div>
+          <div class="r-center" style="margin-bottom:4px">${RD.LOGO_SVG(42)}</div>
           <div class="r-center r-bold" style="font-size:1.15rem">${RD.esc(settings.gym_name || 'RD FITNESS CLUB')}</div>
           <div class="r-center r-small muted">${RD.esc(settings.gym_slogan || 'Disciplina · Constancia · Resultados')}</div>
-          <div class="r-center r-small">${RD.esc(settings.gym_address || 'Calle Antonio José de Sucre Lt. 10, Chivay')}</div>
+          <div class="r-center r-small">${RD.esc(cleanAddr)}</div>
           <div class="r-center r-small">RUC: ${RD.esc(settings.gym_ruc || '10702548911')} · Cel: ${RD.esc(settings.gym_phone || '982404043')}</div>
           <div class="r-line">================================</div>
           <div class="r-center r-bold" style="font-size:1.05rem">ACTA DE CIERRE DE TURNO</div>

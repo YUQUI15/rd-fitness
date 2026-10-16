@@ -215,30 +215,34 @@
       </div>
     </div>` : ''}
 
-    <div class="idcard">
-      <div class="row between">
+    <div class="idcard watermark-container">
+      <div class="idcard-watermark" aria-hidden="true">
+        ${RD.LOGO_SVG(170)}
+        <span>RD FITNESS CLUB</span>
+      </div>
+      <div class="row between" style="position:relative;z-index:1">
         <div class="row gap" style="align-items:center">
-          <img src="/logo.svg" style="height:32px;width:32px;object-fit:contain" alt="RD" width="32" height="32">
-          <span class="vip-pill"><span class="vip-dot"></span>VIP MEMBER</span>
+          ${RD.LOGO_SVG(36)}
+          <span class="vip-pill"><span class="vip-dot"></span>SOCIO OFICIAL</span>
         </div>
         <span class="tag-loc" style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1px">CHIVAY · 3,635m</span>
       </div>
 
-      <div class="center mt2">
+      <div class="center mt2" style="position:relative;z-index:1">
         <h2 style="margin:0">${esc(member.name)}</h2>
         <div class="gold" style="font-size:1.4rem;font-weight:900;letter-spacing:1px">${esc(member.code)}</div>
       </div>
 
-      <div class="qr" id="qrcodebox">
+      <div class="qr" id="qrcodebox" style="position:relative;z-index:1">
         <div class="empty">Generando código…</div>
       </div>
 
-      <div class="countdown" title="Código de seguridad dinámico">
+      <div class="countdown" title="Código de seguridad dinámico" style="position:relative;z-index:1">
         <i id="cdbar" style="width:100%"></i>
       </div>
-      <div class="muted tiny mt2 center" style="display:flex;align-items:center;justify-content:center;gap:5px">${RD.icon('shield', 'muted', 12)} Código dinámico de alta seguridad (renovación cada 60s)</div>
+      <div class="muted tiny mt2 center" style="display:flex;align-items:center;justify-content:center;gap:5px;position:relative;z-index:1">${RD.icon('shield', 'muted', 12)} Código dinámico de alta seguridad (renovación cada 60s)</div>
 
-      <div class="statusbar ${st} mt">
+      <div class="statusbar ${st} mt" style="position:relative;z-index:1">
         <div style="font-size:1.05rem;font-weight:900;display:flex;align-items:center;justify-content:center;gap:6px">
           ${isOk ? `${RD.icon('check-circle', '', 18)} MEMBRESÍA VIGENTE` : isWarn ? `${RD.icon('alert-triangle', '', 18)} POR VENCER` : `${RD.icon('x-circle', '', 18)} NO VIGENTE`}
         </div>
@@ -247,7 +251,7 @@
       </div>
 
       ${(!isOk) ? `
-      <div class="mt">
+      <div class="mt" style="position:relative;z-index:1">
         <a class="btn primary block" target="_blank" rel="noopener" href="${renewWa}" style="display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('whatsapp', '', 18)} Renovar Membresía por WhatsApp</a>
       </div>` : ''}
     </div>
@@ -314,13 +318,18 @@
       </div>
     </div>
 
-    <div class="card">
-      <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('map-pin', 'gold', 20)} RD Fitness Club · Chivay</h3>
-      <p class="muted small">
-        Calle Antonio José de Sucre Lt. 10 (al costado de discoteca Muya).<br>
-        Horario: ${esc(fresh.settings?.opening || 'Lun a Sáb 6:00 a 21:00')}.<br>
-        Consultas y WhatsApp: <b>${esc(fresh.settings?.gym_phone || '982 404 043')}</b>.
-      </p>
+    <div class="card watermark-container">
+      <div class="watermark-bg">RD FITNESS</div>
+      <div class="row gap" style="align-items:center;position:relative;z-index:1">
+        ${RD.LOGO_SVG(42)}
+        <div>
+          <h3 style="margin:0;display:flex;align-items:center;gap:6px">${RD.icon('map-pin', 'gold', 18)} RD Fitness Club · Sede Oficial Chivay</h3>
+          <p class="muted small" style="margin:4px 0 0">
+            ${esc(RD.cleanAddress(fresh.settings?.gym_address || 'Calle Antonio José de Sucre Lt. 10, Chivay'))}.<br>
+            Horario: ${esc(fresh.settings?.opening || 'Lun a Sáb 6:00 a 21:00')} · WhatsApp: <b>${esc(fresh.settings?.gym_phone || '982 404 043')}</b>.
+          </p>
+        </div>
+      </div>
     </div>`;
 
     const dPush = el.querySelector('#btn_dismiss_push');
@@ -701,7 +710,7 @@
     };
   }
 
-  // ---------------- TAB 3: PROGRESO Y RÉCORDS (GRÁFICOS, MEDIDAS, PRs) ----------------
+  // ---------------- TAB 3: PROGRESO Y DESARROLLO INTEGRAL (CORRELACIÓN EJERCICIOS + ASISTENCIAS + RUTINAS + HORARIOS) ----------------
   async function renderProgressTab(el) {
     const [prs, workouts, measurements, attendance, payments, analytics] = await Promise.all([
       api.get('/member/prs').catch(() => []),
@@ -709,94 +718,286 @@
       api.get('/member/measurements').catch(() => []),
       api.get('/member/attendance').catch(() => []),
       api.get('/member/payments').catch(() => []),
-      api.get('/member/analytics').catch(() => ({ muscleDistribution: [], weeklyVolume: [] }))
+      api.get('/member/analytics').catch(() => ({ muscleDistribution: [], weeklyVolume: [], topExercises: [] }))
     ]);
+
+    const adh = analytics.adherence || {};
+    const sch = analytics.schedule || {};
+    const dev = analytics.development || { score: 0, athleteLevel: 'En Progreso Activo', insights: [] };
+    const actR = analytics.activeRoutine;
+    const bDelta = analytics.bodyDelta;
+    const topEx = analytics.topExercises || [];
 
     el.innerHTML = `
     <div class="chips mb" id="ptabs">
-      <span class="chip on" data-pt="charts" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('chart', '', 14)}<span>Evolución</span></span>
-      <span class="chip" data-pt="prs" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('trophy', '', 14)}<span>Récords (PRs)</span></span>
+      <span class="chip on" data-pt="charts" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('chart', '', 14)}<span>Desarrollo Integral</span></span>
+      <span class="chip" data-pt="prs" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('trophy', '', 14)}<span>Récords (${prs.length})</span></span>
       <span class="chip" data-pt="body" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('ruler', '', 14)}<span>Medidas (${measurements.length})</span></span>
-      <span class="chip" data-pt="history" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('activity', '', 14)}<span>Historial (${workouts.length})</span></span>
+      <span class="chip" data-pt="history" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('activity', '', 14)}<span>Asistencias y Sesiones</span></span>
       <span class="chip" data-pt="payments" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('receipt', '', 14)}<span>Pagos (${payments.length})</span></span>
     </div>
     <div id="progresssubview"></div>`;
 
     const subview = el.querySelector('#progresssubview');
 
+    function fmtDelta(val, unit = '', invertGood = false) {
+      if (val == null || isNaN(val)) return '<span class="muted">—</span>';
+      if (val === 0) return `<span class="badge ghost tiny">0${unit}</span>`;
+      const pos = val > 0;
+      const isGood = invertGood ? !pos : pos;
+      return `<span class="badge ${isGood ? 'ok' : 'info'} tiny">${pos ? '+' : ''}${val}${unit}</span>`;
+    }
+
     function showSubTab(tab) {
       el.querySelectorAll('#ptabs .chip').forEach(c => c.classList.toggle('on', c.dataset.pt === tab));
 
       if (tab === 'charts') {
+        const shiftTotal = Math.max(1, (sch.morning || 0) + (sch.afternoon || 0) + (sch.evening || 0));
+        const pctM = Math.round(((sch.morning || 0) / shiftTotal) * 100);
+        const pctA = Math.round(((sch.afternoon || 0) / shiftTotal) * 100);
+        const pctE = Math.round(((sch.evening || 0) / shiftTotal) * 100);
+        const weekdays = sch.weekdayDistribution || [
+          { day: 'Lun', count: 0 }, { day: 'Mar', count: 0 }, { day: 'Mié', count: 0 },
+          { day: 'Jue', count: 0 }, { day: 'Vie', count: 0 }, { day: 'Sáb', count: 0 }, { day: 'Dom', count: 0 }
+        ];
+        const maxDow = Math.max(1, ...weekdays.map(w => w.count || 0));
+
         subview.innerHTML = `
-          <!-- Gráfico de Peso Corporal -->
+          <!-- TARJETA EJECUTIVA CON MARCA DE AGUA OFICIAL Y EXPEDIENTE IMPRIMIBLE -->
+          <div class="card mb watermark-container" style="border:1px solid var(--gold);background:linear-gradient(145deg,rgba(15,23,42,0.92),rgba(183,110,121,0.12))">
+            <div class="watermark-bg">RD FITNESS CLUB</div>
+            <div class="row between wrap gap" style="position:relative;z-index:1;align-items:center">
+              <div class="row gap" style="align-items:center">
+                ${RD.LOGO_SVG(48)}
+                <div>
+                  <div class="tiny gold" style="font-weight:800;letter-spacing:1px;text-transform:uppercase">Expediente Deportivo Oficial · Chivay</div>
+                  <h3 style="margin:2px 0">${esc(member.name)} <span class="badge ok">${esc(dev.athleteLevel)}</span></h3>
+                  <div class="tiny muted">Código: <b>${esc(member.code)}</b> · Índice de Desarrollo: <b class="gold">${dev.score}/100 pts</b></div>
+                </div>
+              </div>
+              <button class="btn sm primary" id="btn_open_member_dossier" style="display:flex;align-items:center;gap:6px">
+                ${RD.icon('printer', '', 15)} Ficha Oficial de Progreso (PDF)
+              </button>
+            </div>
+
+            <div class="grid g4 keep gap mt" style="position:relative;z-index:1">
+              <div class="stat gold" style="padding:10px 8px">
+                <div class="v" style="font-size:1.3rem">${adh.visits30 || 0} días</div>
+                <div class="l">Asistencias (30d)</div>
+              </div>
+              <div class="stat" style="padding:10px 8px">
+                <div class="v" style="font-size:1.3rem;color:#38bdf8">${sch.totalGymHours || 0} h</div>
+                <div class="l">Horas Entrenadas</div>
+              </div>
+              <div class="stat" style="padding:10px 8px">
+                <div class="v" style="font-size:1.3rem;color:#4ade80">${adh.weeklyAdherencePct || 0}%</div>
+                <div class="l">Cumplimiento Sem.</div>
+              </div>
+              <div class="stat" style="padding:10px 8px">
+                <div class="v" style="font-size:1.3rem;color:#f59e0b">${Math.round((analytics.totalVolume || 0) / 1000 * 10) / 10}t</div>
+                <div class="l">Tonelaje Movido</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CORRELACIÓN: MI RUTINA ACTIVA + ASISTENCIAS + HORARIOS -->
+          <div class="card mb watermark-container">
+            <div class="watermark-bg">DISCIPLINA</div>
+            <div style="position:relative;z-index:1">
+              <div class="row between wrap gap mb">
+                <div>
+                  <h3 style="margin:0;display:flex;align-items:center;gap:6px">${RD.icon('layers', 'gold', 18)} Sinergia: Rutina Activa, Asistencia y Horarios</h3>
+                  <div class="tiny muted">Relación directa entre tu plan asignado, tus ingresos por puerta y tus horas de mayor rendimiento</div>
+                </div>
+                <span class="badge info">${esc(sch.chronotype || 'Horario Flexible')}</span>
+              </div>
+
+              <!-- Bloque de Rutina vs Asistencia Semanal -->
+              <div class="p mb" style="background:rgba(255,255,255,0.03);border:1px solid var(--line);border-radius:10px;padding:12px">
+                <div class="row between wrap gap">
+                  <div>
+                    <div class="tiny muted">RUTINA VINCULADA ACTUALMENTE:</div>
+                    <b style="font-size:1.05rem;color:var(--gold)">${actR ? esc(actR.name) : 'Sin rutina fija activa (Modo Libre)'}</b>
+                    <div class="tiny muted">${actR ? `${esc(actR.goal || '')} · Meta: ${adh.targetDaysPerWeek || 4} sesiones por semana` : 'Ve a la pestaña Entrenar para elegir una rutina estructurada'}</div>
+                  </div>
+                  <div class="right">
+                    <div class="small bold">${Math.max(adh.visitsThisWeek || 0, adh.workoutsThisWeek || 0)} de ${adh.targetDaysPerWeek || 4} días esta semana</div>
+                    <div class="tiny muted">Racha: <b>${adh.streakWeeks || 0} sem.</b> · Permanencia prom: <b>${sch.avgDurationMin || 65} min/visita</b></div>
+                  </div>
+                </div>
+                <div class="muscle-track-bg mt2" style="height:10px">
+                  <div class="muscle-track-bar" style="width:${adh.weeklyAdherencePct || 0}%;background:linear-gradient(90deg,var(--gold),#22c55e)"></div>
+                </div>
+              </div>
+
+              <!-- Distribución por Turno Horario y Días de la Semana -->
+              <div class="grid g2 gap">
+                <div style="background:rgba(255,255,255,0.02);border:1px solid var(--line);border-radius:10px;padding:12px">
+                  <div class="small bold mb2" style="display:flex;align-items:center;gap:6px">${RD.icon('clock', 'gold', 15)} Tus Horarios de Entrenamiento (Hora Pico: ${esc(sch.peakHour || '18:00')})</div>
+                  <div class="muscle-track-row">
+                    <div class="muscle-track-head"><span>Mañana (06:00 - 12:00)</span><b>${sch.morning || 0} vis. (${pctM}%)</b></div>
+                    <div class="muscle-track-bg"><div class="muscle-track-bar" style="width:${pctM}%;background:#38bdf8"></div></div>
+                  </div>
+                  <div class="muscle-track-row">
+                    <div class="muscle-track-head"><span>Tarde (12:00 - 18:00)</span><b>${sch.afternoon || 0} vis. (${pctA}%)</b></div>
+                    <div class="muscle-track-bg"><div class="muscle-track-bar" style="width:${pctA}%;background:#f59e0b"></div></div>
+                  </div>
+                  <div class="muscle-track-row" style="margin-bottom:0">
+                    <div class="muscle-track-head"><span>Noche (18:00 - 21:00)</span><b>${sch.evening || 0} vis. (${pctE}%)</b></div>
+                    <div class="muscle-track-bg"><div class="muscle-track-bar" style="width:${pctE}%;background:#a855f7"></div></div>
+                  </div>
+                </div>
+
+                <div style="background:rgba(255,255,255,0.02);border:1px solid var(--line);border-radius:10px;padding:12px">
+                  <div class="small bold mb2" style="display:flex;align-items:center;gap:6px">${RD.icon('calendar', 'gold', 15)} Frecuencia por Día de la Semana</div>
+                  <div class="bars" style="height:95px;align-items:flex-end;gap:6px;padding-top:14px">
+                    ${weekdays.map(w => `
+                      <div class="b" style="height:${Math.max(6, Math.round((w.count / maxDow) * 100))}%;background:var(--gold);border-radius:5px 5px 0 0">
+                        <span style="font-size:0.7rem;font-weight:800">${w.count || ''}</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                  <div class="bars-l" style="font-size:0.72rem;font-weight:700">${weekdays.map(w => `<span>${w.day}</span>`).join('')}</div>
+                </div>
+              </div>
+
+              <!-- Diagnóstico Inteligente del Socio -->
+              ${(dev.insights && dev.insights.length) ? `
+              <div class="mt2" style="background:rgba(245,180,0,0.07);border-left:3px solid var(--gold);padding:10px 12px;border-radius:0 8px 8px 0">
+                <div class="tiny bold gold mb2" style="display:flex;align-items:center;gap:5px">${RD.icon('sparkles', 'gold', 14)} DIAGNÓSTICO DE RENDIMIENTO PERSONALIZADO:</div>
+                ${dev.insights.map(ins => `<div class="tiny" style="margin-bottom:4px;line-height:1.4">• ${esc(ins)}</div>`).join('')}
+              </div>` : ''}
+            </div>
+          </div>
+
+          <!-- TRANSFORMACIÓN Y CURVA DE PESO CORPORAL -->
           <div class="card mb">
             <div class="row between wrap gap">
-              <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('scale', 'gold', 18)} Curva de Peso Corporal</h3>
-              <button class="btn sm ghost" id="btn_add_meas_quick" style="display:flex;align-items:center;gap:5px">${RD.icon('plus', '', 14)} Registrar Peso</button>
+              <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('scale', 'gold', 18)} Evolución Corporal y Curva de Peso</h3>
+              <button class="btn sm ghost" id="btn_add_meas_quick" style="display:flex;align-items:center;gap:5px">${RD.icon('plus', '', 14)} Registrar Peso / Medidas</button>
             </div>
+            ${bDelta ? `
+            <div class="grid g4 keep gap mt2 mb" style="background:rgba(255,255,255,0.02);padding:10px;border-radius:10px;border:1px solid var(--line)">
+              <div class="center">
+                <div class="tiny muted">Peso Actual</div>
+                <div class="bold">${bDelta.latestWeight ? bDelta.latestWeight + ' kg' : '—'}</div>
+                <div>${fmtDelta(bDelta.weightDiff, ' kg')}</div>
+              </div>
+              <div class="center">
+                <div class="tiny muted">Cintura</div>
+                <div class="bold">${bDelta.latestWaist ? bDelta.latestWaist + ' cm' : '—'}</div>
+                <div>${fmtDelta(bDelta.waistDiff, ' cm', true)}</div>
+              </div>
+              <div class="center">
+                <div class="tiny muted">Brazo</div>
+                <div class="bold">${bDelta.latestArm ? bDelta.latestArm + ' cm' : '—'}</div>
+                <div>${fmtDelta(bDelta.armDiff, ' cm')}</div>
+              </div>
+              <div class="center">
+                <div class="tiny muted">% Grasa</div>
+                <div class="bold">${bDelta.latestFat ? bDelta.latestFat + '%' : '—'}</div>
+                <div>${fmtDelta(bDelta.fatDiff, '%', true)}</div>
+              </div>
+            </div>` : ''}
             ${RD.renderWeightSvgChart(measurements)}
           </div>
 
           <!-- Gráfico de Volumen de Carga Semanal -->
           <div class="card mb">
             <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('activity', 'gold', 18)} Volumen Semanal de Cargas (Kg Levantados)</h3>
-            <p class="muted tiny">Muestra el trabajo acumulado por semana para verificar la sobrecarga progresiva.</p>
+            <p class="muted tiny">Muestra el trabajo acumulado por semana (${analytics.totalSets || 0} series registradas en ${analytics.totalWorkouts || 0} sesiones).</p>
             ${RD.renderVolumeSvgChart(analytics.weeklyVolume)}
           </div>
 
           <!-- Gráfico de Distribución Muscular -->
           <div class="card mb">
-            <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('target', 'gold', 18)} Distribución de Series por Grupo Muscular</h3>
-            <p class="muted tiny">Asegura que tu entrenamiento esté balanceado y sin descompensaciones posturales.</p>
+            <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('target', 'gold', 18)} Balance Muscular por Series y Grupo</h3>
+            <p class="muted tiny">Equilibrio entre tren superior, tren inferior y core según tus ejercicios realizados.</p>
             ${RD.renderMuscleDistribution(analytics.muscleDistribution)}
+          </div>
+
+          <!-- TOP EJERCICIOS DOMINADOS Y FUERZA 1RM -->
+          <div class="card mb">
+            <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('dumbbell', 'gold', 18)} Tus Ejercicios Más Fuertes (Correlación Carga × Volumen)</h3>
+            <div class="tbl-wrap mt2">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Ejercicio</th>
+                    <th>Grupo</th>
+                    <th>Series</th>
+                    <th>Peso Máx</th>
+                    <th>1RM Est.</th>
+                    <th>Volumen Acum.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${topEx.map(ex => `
+                  <tr>
+                    <td><b>${esc(ex.nombre)}</b></td>
+                    <td><span class="badge tiny">${esc(ex.grupo)}</span></td>
+                    <td>${ex.sets_count} series</td>
+                    <td class="gold bold">${ex.max_weight} kg <span class="tiny muted">(${ex.max_reps}r)</span></td>
+                    <td style="font-weight:700;color:#38bdf8">${ex.est_1rm} kg</td>
+                    <td class="small muted">${Number(ex.total_volume || 0).toLocaleString('es-PE')} kg</td>
+                  </tr>`).join('') || '<tr><td colspan="6" class="empty">Registra tus series en la pestaña Entrenar para analizar tu fuerza por ejercicio</td></tr>'}
+                </tbody>
+              </table>
+            </div>
           </div>`;
 
         subview.querySelector('#btn_add_meas_quick').onclick = () => openAddMeasurementModal(() => renderProgressTab(el));
+        subview.querySelector('#btn_open_member_dossier').onclick = () => openMemberOfficialProgressModal({ prs, workouts, measurements, attendance, analytics });
       } else if (tab === 'prs') {
         subview.innerHTML = `
-          <div class="card mb">
-            <div class="row between wrap gap mb">
+          <div class="card mb watermark-container">
+            <div class="watermark-bg">RECORDS PR</div>
+            <div class="row between wrap gap mb" style="position:relative;z-index:1">
               <div>
-                <h3 style="margin:0;display:flex;align-items:center;gap:6px">${RD.icon('trophy', 'gold', 20)} Récords Personales (PRs)</h3>
-                <div class="muted tiny">Tus cargas máximas históricas en cada ejercicio</div>
+                <h3 style="margin:0;display:flex;align-items:center;gap:6px">${RD.icon('trophy', 'gold', 20)} Récords Personales Históricos (PRs)</h3>
+                <div class="muted tiny">Cargas máximas verificadas y estimación de 1 Repetición Máxima (1RM Epley)</div>
               </div>
               <button class="btn sm primary" id="btn_open_1rm_tool" style="display:flex;align-items:center;gap:5px">${RD.icon('dumbbell', '', 14)} Calcular 1RM</button>
             </div>
-            <div class="list">
-              ${prs.map(p => `
-              <div class="item">
-                <span class="grow">
-                  <b>${esc(p.nombre)}</b>
-                  <div class="muted tiny">Carga registrada: ${p.weight} kg</div>
-                </span>
-                <span class="gold" style="font-size:1.3rem;font-weight:900">${p.weight} kg</span>
-              </div>`).join('') || '<div class="empty">Registra tus sesiones guiadas o libres para desbloquear tus récords personales.</div>'}
+            <div class="list" style="position:relative;z-index:1">
+              ${prs.map(p => {
+                const est1rm = Math.round(p.weight * (1 + Math.min(15, p.reps || 1) / 30));
+                return `
+                <div class="item">
+                  <span class="grow">
+                    <b>${esc(p.nombre)}</b> ${p.grupo ? `<span class="badge tiny">${esc(p.grupo)}</span>` : ''}
+                    <div class="muted tiny">Mejor serie: <b>${p.weight} kg × ${p.reps || 1} reps</b> · 1RM estimado: <b style="color:#38bdf8">${est1rm} kg</b> ${p.day ? `· ${RD.fmtDate(p.day)}` : ''}</div>
+                  </span>
+                  <span class="gold" style="font-size:1.3rem;font-weight:900">${p.weight} kg</span>
+                </div>`;
+              }).join('') || '<div class="empty">Registra tus sesiones guiadas o libres para desbloquear tus récords personales.</div>'}
             </div>
           </div>`;
 
         subview.querySelector('#btn_open_1rm_tool').onclick = () => RD.open1RMCalculator(70, 8);
       } else if (tab === 'body') {
         subview.innerHTML = `
-          <div class="card mb">
-            <div class="row between wrap gap mb">
-              <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('ruler', 'gold', 18)} Historial de Medidas Corporales</h3>
+          <div class="card mb watermark-container">
+            <div class="watermark-bg">RD FITNESS</div>
+            <div class="row between wrap gap mb" style="position:relative;z-index:1">
+              <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('ruler', 'gold', 18)} Historial de Medidas Corporales y Antropometría</h3>
               <button class="btn sm primary" id="btn_add_meas" style="display:flex;align-items:center;gap:5px">${RD.icon('plus', '', 14)} Registrar Medidas</button>
             </div>
-            <div class="tbl-wrap">
+            <div class="tbl-wrap" style="position:relative;z-index:1">
               <table>
-                <thead><tr><th>Fecha</th><th>Peso</th><th>Cintura</th><th>Pecho</th><th>Brazo</th><th>Pierna</th><th>Cadera</th></tr></thead>
+                <thead><tr><th>Fecha</th><th>Peso</th><th>% Grasa</th><th>Cintura</th><th>Pecho</th><th>Brazo</th><th>Pierna</th><th>Cadera</th></tr></thead>
                 <tbody>
-                  ${measurements.map(m => `
+                  ${measurements.slice().reverse().map(m => `
                   <tr>
-                    <td>${RD.fmtDate(m.day)}</td>
-                    <td style="font-weight:700">${m.weight ? m.weight + ' kg' : '—'}</td>
+                    <td><b>${RD.fmtDate(m.day)}</b></td>
+                    <td style="font-weight:700;color:var(--gold)">${m.weight ? m.weight + ' kg' : '—'}</td>
+                    <td>${m.body_fat ? m.body_fat + ' %' : '—'}</td>
                     <td>${m.waist ? m.waist + ' cm' : '—'}</td>
                     <td>${m.chest ? m.chest + ' cm' : '—'}</td>
                     <td>${m.arm ? m.arm + ' cm' : '—'}</td>
                     <td>${m.thigh ? m.thigh + ' cm' : '—'}</td>
                     <td>${m.hip ? m.hip + ' cm' : '—'}</td>
-                  </tr>`).join('') || '<tr><td colspan="7" class="empty">Sin medidas registradas aún</td></tr>'}
+                  </tr>`).join('') || '<tr><td colspan="8" class="empty">Sin medidas registradas aún</td></tr>'}
                 </tbody>
               </table>
             </div>
@@ -806,49 +1007,74 @@
       } else if (tab === 'history') {
         subview.innerHTML = `
           <div class="card mb">
-            <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('activity', 'gold', 18)} Sesiones de Entrenamiento Completadas (${workouts.length})</h3>
+            <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('activity', 'gold', 18)} Sesiones de Rutina Completadas (${workouts.length})</h3>
             <div class="list">
               ${workouts.map(w => `
               <div class="item">
                 <div class="grow">
                   <b>${esc(w.title)}</b>
-                  <div class="muted small">${RD.fmtDate(w.day)} · Duración: ${RD.fmtDur(w.duration_sec)}</div>
+                  <div class="muted small">${RD.fmtDate(w.day)} · Duración de rutina: ${RD.fmtDur(w.duration_sec)}</div>
                 </div>
                 <div class="right">
                   <span class="badge info">${Math.round(w.volume)} kg</span>
                 </div>
-              </div>`).join('') || '<div class="empty">Aún no has completado entrenamientos</div>'}
+              </div>`).join('') || '<div class="empty">Aún no has completado entrenamientos guiados</div>'}
             </div>
           </div>
           <div class="card mb">
-            <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('calendar', 'gold', 18)} Historial de Asistencias en Gimnasio (${attendance.length})</h3>
-            <div class="list small">
-              ${attendance.slice(0, 20).map(a => `
-              <div class="item">
-                <span class="badge ok" style="display:inline-flex;align-items:center;gap:4px">${RD.icon('check', '', 12)}<span>Presente</span></span>
-                <span class="grow">${RD.fmtDateTime(a.ts)}</span>
-              </div>`).join('') || '<div class="empty">Sin asistencias registradas</div>'}
+            <div class="row between wrap gap mb">
+              <h3 style="margin:0;display:flex;align-items:center;gap:6px">${RD.icon('calendar', 'gold', 18)} Registro Oficial de Asistencias y Permanencia (${attendance.length})</h3>
+              <button class="btn sm ghost" id="btn_hist_dossier">${RD.icon('printer', '', 14)} Imprimir Ficha</button>
             </div>
-          </div>`;
-      } else if (tab === 'payments') {
-        subview.innerHTML = `
-          <div class="card">
-            <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('receipt', 'gold', 18)} Tus Pagos y Membresías</h3>
             <div class="tbl-wrap">
               <table>
-                <thead><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Método</th></tr></thead>
+                <thead><tr><th>Fecha</th><th>Entrada</th><th>Salida</th><th>Permanencia</th><th>Estado</th></tr></thead>
                 <tbody>
-                  ${payments.map(p => `
-                  <tr>
-                    <td>${RD.fmtDate(p.day)}</td>
-                    <td><b>${esc(p.concept)}</b></td>
-                    <td style="font-weight:700">${money(p.amount)}</td>
-                    <td><span class="badge">${esc(p.method)}</span></td>
-                  </tr>`).join('') || '<tr><td colspan="4" class="empty">Sin pagos</td></tr>'}
+                  ${attendance.slice(0, 35).map(a => {
+                    const enterT = a.ts ? RD.fmtTime(a.ts) : '—';
+                    const exitT = a.exit_ts ? RD.fmtTime(a.exit_ts) : (a.status === 'inside' ? 'En sala' : '—');
+                    const dur = a.duration_min ? `${a.duration_min} min` : '—';
+                    return `
+                    <tr>
+                      <td><b>${RD.fmtDate(a.day)}</b></td>
+                      <td style="font-family:monospace">${enterT}</td>
+                      <td style="font-family:monospace">${exitT}</td>
+                      <td style="font-weight:700;color:var(--gold)">${dur}</td>
+                      <td><span class="badge ok tiny">${RD.icon('check', '', 11)} Asistió</span></td>
+                    </tr>`;
+                  }).join('') || '<tr><td colspan="5" class="empty">Sin asistencias registradas</td></tr>'}
                 </tbody>
               </table>
             </div>
           </div>`;
+
+        subview.querySelector('#btn_hist_dossier').onclick = () => openMemberOfficialProgressModal({ prs, workouts, measurements, attendance, analytics });
+      } else if (tab === 'payments') {
+        subview.innerHTML = `
+          <div class="card watermark-container">
+            <div class="watermark-bg">RD FITNESS</div>
+            <h3 style="display:flex;align-items:center;gap:6px;position:relative;z-index:1">${RD.icon('receipt', 'gold', 18)} Tus Pagos, Membresías y Boletas Electrónicas</h3>
+            <div class="tbl-wrap" style="position:relative;z-index:1">
+              <table>
+                <thead><tr><th>Fecha</th><th>N° Boleta</th><th>Concepto</th><th>Monto</th><th>Método</th><th>Ticket</th></tr></thead>
+                <tbody>
+                  ${payments.map(p => `
+                  <tr>
+                    <td>${RD.fmtDate(p.day)}</td>
+                    <td style="font-family:monospace" class="small muted">${esc(p.receipt_no || ('B001-' + String(p.id || 0).padStart(6, '0')))}</td>
+                    <td><b>${esc(p.concept)}</b></td>
+                    <td style="font-weight:700;color:var(--gold)">${money(p.amount)}</td>
+                    <td><span class="badge">${esc(p.method)}</span></td>
+                    <td>${p.id ? `<button class="btn sm ghost" data-payreceipt="${p.id}">${RD.icon('receipt', '', 13)} Boleta</button>` : ''}</td>
+                  </tr>`).join('') || '<tr><td colspan="6" class="empty">Sin pagos registrados</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          </div>`;
+
+        subview.querySelectorAll('[data-payreceipt]').forEach(btn => {
+          btn.onclick = () => RD.showReceipt(+btn.dataset.payreceipt);
+        });
       }
     }
 
@@ -858,6 +1084,133 @@
     };
 
     showSubTab('charts');
+  }
+
+  function openMemberOfficialProgressModal({ prs, workouts, measurements, attendance, analytics }) {
+    const adh = analytics.adherence || {};
+    const sch = analytics.schedule || {};
+    const dev = analytics.development || {};
+    const actR = analytics.activeRoutine;
+    const topEx = analytics.topExercises || [];
+    const pub = JSON.parse(localStorage.getItem('rd_public') || '{}');
+
+    const m = RD.openModal(`${RD.icon('award')} Informe Oficial de Progreso y Rendimiento Deportivo`, `
+      <div class="member-sheet-card watermark-container">
+        <div class="watermark-bg">RD FITNESS CLUB</div>
+
+        <div class="member-sheet-header">
+          <div class="logo-box">${RD.LOGO_SVG(58)}</div>
+          <div class="grow">
+            <h2 style="margin:0;color:var(--gold);font-weight:900;letter-spacing:1px">${esc(pub.gym_name || 'RD FITNESS CLUB')} · SEDE CHIVAY</h2>
+            <div class="small muted">${esc(pub.gym_slogan || 'Disciplina · Constancia · Resultados · Valle del Colca')}</div>
+            <div class="tiny muted">RUC: 10702548911 · ${esc(RD.cleanAddress(pub.gym_address))} · Tel: ${esc(pub.gym_phone || '982404043')}</div>
+          </div>
+          <div class="no-print">
+            <button class="btn primary sm" id="btn_print_member_dossier">${RD.icon('printer', '', 14)} Imprimir / Guardar PDF</button>
+          </div>
+        </div>
+
+        <div class="member-sheet-profile">
+          <div>
+            ${member.photo ? `<img src="${esc(member.photo)}" style="width:64px;height:64px;border-radius:10px;object-fit:cover;border:2px solid var(--gold)">` : `<div style="width:64px;height:64px;border-radius:10px;background:#334155;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:bold">${esc((member.name || 'S')[0])}</div>`}
+          </div>
+          <div>
+            <div style="font-size:1.15rem;font-weight:800">${esc(member.name)}</div>
+            <div class="small"><b>Código:</b> <span class="badge">${esc(member.code)}</span> · <b>DNI:</b> ${esc(member.dni || '—')} · <b>Objetivo:</b> ${esc(member.goal || 'Desarrollo Integral')}</div>
+            <div class="tiny muted mt2">Rutina Activa: <b>${actR ? esc(actR.name) : 'Entrenamiento Libre'}</b> · Horario Habitual: <b>${esc(sch.chronotype || 'Flexible')} (Pico ${esc(sch.peakHour || '18:00')})</b></div>
+          </div>
+          <div class="right">
+            <div class="badge ok">${esc(dev.athleteLevel || 'Socio Activo')}</div>
+            <div class="small mt2"><b>Score:</b> <span class="gold bold">${dev.score || 0}/100 pts</span></div>
+            <div class="tiny muted">Emitido: ${new Date().toLocaleDateString('es-PE')}</div>
+          </div>
+        </div>
+
+        <div class="member-sheet-kpis">
+          <div class="kpi-box">
+            <div style="font-size:1.3rem;font-weight:800;color:var(--gold)">${adh.visits30 || 0} días</div>
+            <div class="tiny muted">Asistencias (Últ. 30 días)</div>
+          </div>
+          <div class="kpi-box">
+            <div style="font-size:1.3rem;font-weight:800;color:#38bdf8">${sch.totalGymHours || 0} hrs</div>
+            <div class="tiny muted">Tiempo Total de Entreno</div>
+          </div>
+          <div class="kpi-box">
+            <div style="font-size:1.3rem;font-weight:800;color:#4ade80">${adh.monthlyAdherencePct || 0}%</div>
+            <div class="tiny muted">Cumplimiento de Meta</div>
+          </div>
+          <div class="kpi-box">
+            <div style="font-size:1.3rem;font-weight:800;color:#a855f7">${Number(analytics.totalVolume || 0).toLocaleString('es-PE')} kg</div>
+            <div class="tiny muted">Volumen Total Levantado</div>
+          </div>
+        </div>
+
+        <div class="grid g2 gap mb" style="position:relative;z-index:1">
+          <div>
+            <h4 class="mb2">Top Ejercicios y Récords de Fuerza (PRs)</h4>
+            <table>
+              <thead><tr><th>Ejercicio</th><th>Grupo</th><th>Peso Máx</th><th>1RM Est.</th></tr></thead>
+              <tbody>
+                ${(topEx.length ? topEx : prs).slice(0, 6).map(x => `
+                <tr>
+                  <td><b>${esc(x.nombre)}</b></td>
+                  <td>${esc(x.grupo || 'Fuerza')}</td>
+                  <td class="bold">${x.max_weight || x.weight} kg</td>
+                  <td>${x.est_1rm || Math.round((x.weight || 0) * 1.15)} kg</td>
+                </tr>`).join('') || '<tr><td colspan="4" class="empty">Sin registros de fuerza</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <h4 class="mb2">Control Antropométrico Reciente</h4>
+            <table>
+              <thead><tr><th>Fecha</th><th>Peso</th><th>Cintura</th><th>Brazo</th><th>% Grasa</th></tr></thead>
+              <tbody>
+                ${measurements.slice(-5).reverse().map(ms => `
+                <tr>
+                  <td>${RD.fmtDate(ms.day)}</td>
+                  <td><b>${ms.weight ? ms.weight + ' kg' : '—'}</b></td>
+                  <td>${ms.waist ? ms.waist + ' cm' : '—'}</td>
+                  <td>${ms.arm ? ms.arm + ' cm' : '—'}</td>
+                  <td>${ms.body_fat ? ms.body_fat + '%' : '—'}</td>
+                </tr>`).join('') || '<tr><td colspan="5" class="empty">Sin mediciones registradas</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <h4 class="mb2" style="position:relative;z-index:1">Últimas Asistencias Verificadas en Recepción</h4>
+        <div class="tbl-wrap" style="position:relative;z-index:1">
+          <table>
+            <thead><tr><th>#</th><th>Fecha</th><th>Hora Ingreso</th><th>Hora Salida</th><th>Permanencia</th><th>Estado</th></tr></thead>
+            <tbody>
+              ${attendance.slice(0, 12).map((a, idx) => `
+              <tr>
+                <td>${idx + 1}</td>
+                <td><b>${RD.fmtDate(a.day)}</b></td>
+                <td style="font-family:monospace">${a.ts ? RD.fmtTime(a.ts) : '—'}</td>
+                <td style="font-family:monospace">${a.exit_ts ? RD.fmtTime(a.exit_ts) : '—'}</td>
+                <td><b>${a.duration_min ? a.duration_min + ' min' : 'Sesión estándar'}</b></td>
+                <td>Ingreso Verificado QR</td>
+              </tr>`).join('') || '<tr><td colspan="6" class="empty">Sin asistencias recientes</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="member-sheet-signatures">
+          <div class="sig-box">
+            <b>${esc(member.name)}</b><br>
+            <span class="muted">Socio Oficial (${esc(member.code)})</span>
+          </div>
+          <div class="sig-box">
+            <b>DIRECCIÓN DEPORTIVA</b><br>
+            <span class="muted">RD Fitness Club · Chivay<br>Certificación Digital de Progreso</span>
+          </div>
+        </div>
+      </div>
+    `, { wide: true });
+
+    m.el.querySelector('#btn_print_member_dossier')?.addEventListener('click', () => window.print());
   }
 
   function openAddMeasurementModal(onDone) {
@@ -1020,19 +1373,26 @@
   // ---------------- TAB 5: PERFIL Y BOLETAS DIGITALES ----------------
   async function renderProfileTab(el) {
     el.innerHTML = `
-    <div class="card mb center">
-      <div class="row" style="justify-content:center;margin-bottom:8px">
-        <div class="avatar lg">${member.photo ? `<img src="${esc(member.photo)}" alt="">` : esc((member.name || '?')[0])}</div>
-      </div>
-      <h2>${esc(member.name)}</h2>
-      <div class="gold" style="font-size:1.3rem;font-weight:900">${esc(member.code)}</div>
-      <div class="muted small mt2">Socio desde ${RD.fmtDate(member.created_at)}</div>
-      <div class="row gap mt2" style="justify-content:center">
-        <label class="btn sm ghost" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px">
-          ${RD.icon('camera', '', 14)} Cambiar mi foto
-          <input type="file" id="pfphotof" accept="image/*" hidden>
-        </label>
-        <button class="btn sm" id="pfeditinfo" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('edit', '', 14)} Editar mis datos</button>
+    <div class="card mb center watermark-container">
+      <div class="watermark-bg">RD FITNESS CLUB</div>
+      <div style="position:relative;z-index:1">
+        <div class="row between mb2">
+          ${RD.LOGO_SVG(36)}
+          <span class="badge ok">${RD.icon('shield', '', 12)} Socio Verificado</span>
+        </div>
+        <div class="row" style="justify-content:center;margin-bottom:8px">
+          <div class="avatar lg">${member.photo ? `<img src="${esc(member.photo)}" alt="">` : esc((member.name || '?')[0])}</div>
+        </div>
+        <h2>${esc(member.name)}</h2>
+        <div class="gold" style="font-size:1.3rem;font-weight:900">${esc(member.code)}</div>
+        <div class="muted small mt2">Socio desde ${RD.fmtDate(member.created_at)}</div>
+        <div class="row gap mt2" style="justify-content:center">
+          <label class="btn sm ghost" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px">
+            ${RD.icon('camera', '', 14)} Cambiar mi foto
+            <input type="file" id="pfphotof" accept="image/*" hidden>
+          </label>
+          <button class="btn sm" id="pfeditinfo" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('edit', '', 14)} Editar mis datos</button>
+        </div>
       </div>
     </div>
 

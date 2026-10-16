@@ -1624,10 +1624,13 @@
       const s = data.stats || {};
       const recs = data.records || [];
       const set = data.settings || {};
+      const routine = data.activeRoutine || null;
+      const topPrs = data.topPrs || [];
+      const meas = data.latestMeas || null;
 
-      const d = RD.openModal(`${RD.icon('reports')} Ficha de Asistencia: ${m.name}`, `
+      const d = RD.openModal(`${RD.icon('reports')} Ficha Integral del Socio: ${m.name}`, `
         <div class="member-sheet-card watermark-container">
-          <div class="watermark-bg">RD FITNESS</div>
+          <div class="watermark-bg">RD FITNESS CLUB</div>
 
           <!-- ENCABEZADO OFICIAL CON LOGO SVG -->
           <div class="member-sheet-header">
@@ -1637,17 +1640,17 @@
             <div class="grow">
               <h2 style="color:var(--gold);font-weight:900;letter-spacing:1px">${esc(set.gym_name || 'RD FITNESS CLUB')} - CHIVAY</h2>
               <div class="small muted">${esc(set.gym_slogan || 'Disciplina · Constancia · Resultados · Valle del Colca')}</div>
-              <div class="tiny muted">RUC: ${esc(set.gym_ruc || '10702548911')} · ${esc(set.gym_address || 'Calle Antonio José de Sucre Lt. 10, Chivay')} · Tel: ${esc(set.gym_phone || '982404043')}</div>
+              <div class="tiny muted">RUC: ${esc(set.gym_ruc || '10702548911')} · ${esc(RD.cleanAddress(set.gym_address))} · Tel: ${esc(set.gym_phone || '982404043')}</div>
             </div>
             <div class="text-right no-print">
               <button class="btn primary sm" id="btnprintsheet">${RD.icon('printer')} Imprimir / Guardar PDF</button>
             </div>
           </div>
 
-          <div class="row between wrap gap mb" style="border-bottom:1px dashed var(--border,#334155);padding-bottom:.6rem">
+          <div class="row between wrap gap mb" style="border-bottom:1px dashed var(--border,#334155);padding-bottom:.6rem;position:relative;z-index:1">
             <div>
-              <h3 style="margin:0;font-size:1.1rem">FICHA OFICIAL DE CONTROL DE ASISTENCIA Y RENDIMIENTO</h3>
-              <div class="small muted">Auditoría de Entradas, Salidas y Horas de Entrenamiento</div>
+              <h3 style="margin:0;font-size:1.1rem">FICHA OFICIAL DE ASISTENCIA, RUTINA Y RENDIMIENTO DEPORTIVO</h3>
+              <div class="small muted">Auditoría correlacionada de asistencias, horarios, rutinas, récords y progreso físico</div>
             </div>
             <div class="small">
               <b>Período evaluado:</b> ${from} al ${to}<br>
@@ -1663,7 +1666,7 @@
             <div>
               <div style="font-size:1.15rem;font-weight:800">${esc(m.name)}</div>
               <div class="small"><b>DNI:</b> ${esc(m.dni || '—')} · <b>Código:</b> <span class="badge" style="font-family:monospace;font-weight:bold">${esc(m.code)}</span> · <b>Cel:</b> ${esc(m.phone || '—')}</div>
-              <div class="small muted mt2">Socio registrado desde: ${RD.fmtDate(m.created_at)}</div>
+              <div class="small muted mt2">Socio desde: ${RD.fmtDate(m.created_at)} · <b>Horario preferido:</b> <span style="color:var(--gold);font-weight:700">${esc(s.preferredSchedule || 'Por definir')}</span></div>
             </div>
             <div class="text-right">
               <div><b>Plan Actual:</b> <span class="gold" style="font-weight:700">${esc(m.current_plan || 'Sin plan activo')}</span></div>
@@ -1672,29 +1675,62 @@
             </div>
           </div>
 
-          <!-- METRICAS DE ASISTENCIA Y DISCIPLINA -->
+          <!-- METRICAS DE ASISTENCIA, HORARIO Y VOLUMEN -->
           <div class="member-sheet-kpis">
             <div class="kpi-box">
-              <div style="font-size:1.4rem;font-weight:800;color:var(--gold)">${s.daysAttended || 0} días</div>
-              <div class="small muted">Días asistidos en el mes</div>
+              <div style="font-size:1.35rem;font-weight:800;color:var(--gold)">${s.daysAttended || 0} días</div>
+              <div class="small muted">Días asistidos (${s.totalSessions || 0} ses.)</div>
             </div>
             <div class="kpi-box">
-              <div style="font-size:1.4rem;font-weight:800;color:#60a5fa">${s.totalHours || 0} hrs</div>
-              <div class="small muted">Total horas de entrenamiento</div>
+              <div style="font-size:1.35rem;font-weight:800;color:#60a5fa">${s.totalHours || 0} hrs</div>
+              <div class="small muted">Total horas en sala</div>
             </div>
             <div class="kpi-box">
-              <div style="font-size:1.4rem;font-weight:800;color:#4ade80">${s.avgDaysPerWeek || 0} d/sem</div>
-              <div class="small muted">Frecuencia semanal prom.</div>
+              <div style="font-size:1.35rem;font-weight:800;color:#4ade80">${s.avgDaysPerWeek || 0} d/sem</div>
+              <div class="small muted">Frecuencia (${s.consistencyRate || 0}% constancia)</div>
             </div>
             <div class="kpi-box">
-              <div style="font-size:1.4rem;font-weight:800;color:#a78bfa">${s.consistencyRate || 0}%</div>
-              <div class="small muted">Constancia y disciplina</div>
+              <div style="font-size:1.35rem;font-weight:800;color:#a78bfa">${Number(s.volumeMoved || 0).toLocaleString('es-PE')} kg</div>
+              <div class="small muted">Volumen (${s.workoutsLogged || 0} rutinas reg.)</div>
+            </div>
+          </div>
+
+          <!-- CORRELACIÓN DE RUTINA ACTIVA, PRs Y COMPOSICIÓN CORPORAL -->
+          <div class="grid g3 gap mb" style="position:relative;z-index:1">
+            <div style="background:rgba(15,23,42,0.5);border:1px solid var(--border,#334155);border-radius:8px;padding:.75rem">
+              <div class="tiny muted" style="font-weight:800;letter-spacing:.5px">${RD.icon('dumbbell', '', 13)} RUTINA Y PLAN DE ENTRENAMIENTO</div>
+              ${routine ? `
+                <div style="font-weight:800;color:var(--gold);margin-top:4px">${esc(routine.name)}</div>
+                <div class="tiny muted">${esc(routine.goal || 'General')} · ${esc(routine.level || 'Intermedio')} · ${routine.days_per_week || 4} días/sem</div>
+              ` : `<div class="small muted mt2">Entrenamiento libre (sin rutina asignada)</div>`}
+            </div>
+            <div style="background:rgba(15,23,42,0.5);border:1px solid var(--border,#334155);border-radius:8px;padding:.75rem">
+              <div class="tiny muted" style="font-weight:800;letter-spacing:.5px">${RD.icon('trophy', '', 13)} TOP RÉCORDS PERSONALES (PRs)</div>
+              ${topPrs.length ? topPrs.slice(0, 3).map(pr => `
+                <div class="row between tiny" style="margin-top:3px">
+                  <span>${esc(pr.exercise)}</span>
+                  <b class="gold">${pr.weight_kg}kg × ${pr.reps}</b>
+                </div>
+              `).join('') : `<div class="small muted mt2">Sin PRs registrados aún</div>`}
+            </div>
+            <div style="background:rgba(15,23,42,0.5);border:1px solid var(--border,#334155);border-radius:8px;padding:.75rem">
+              <div class="tiny muted" style="font-weight:800;letter-spacing:.5px">${RD.icon('scale', '', 13)} ÚLTIMO CONTROL CORPORAL</div>
+              ${meas ? `
+                <div class="row between tiny" style="margin-top:4px">
+                  <span>Peso: <b>${meas.weight_kg || '—'} kg</b></span>
+                  <span>Cintura: <b>${meas.waist_cm || '—'} cm</b></span>
+                </div>
+                <div class="row between tiny" style="margin-top:3px">
+                  <span>Grasa: <b>${meas.body_fat_pct ? meas.body_fat_pct + '%' : '—'}</b></span>
+                  <span class="muted">Fecha: ${meas.day}</span>
+                </div>
+              ` : `<div class="small muted mt2">Sin mediciones registradas</div>`}
             </div>
           </div>
 
           <!-- TABLA DETALLADA DE SESIONES -->
-          <h4 class="mb mt">Historial de Sesiones (Entradas y Salidas)</h4>
-          <div class="tbl-wrap">
+          <h4 class="mb mt" style="position:relative;z-index:1">Historial de Sesiones (Entradas, Salidas y Permanencia)</h4>
+          <div class="tbl-wrap" style="position:relative;z-index:1">
             <table>
               <thead>
                 <tr>
@@ -2252,10 +2288,10 @@ function verEstado() {
             ${RD.LOGO_SVG(46)}
             <div>
               <h2 style="margin:0">${esc(settings.gym_name || 'RD FITNESS CLUB')} - CHIVAY</h2>
-              <p class="small muted" style="margin:0">RUC: ${esc(settings.gym_ruc || '10702548911')} · ${esc(settings.gym_address || 'Calle Antonio José de Sucre Lt. 10, Chivay')} · Tel: ${esc(settings.gym_phone || '982404043')}</p>
+              <p class="small muted" style="margin:0">RUC: ${esc(settings.gym_ruc || '10702548911')} · ${esc(RD.cleanAddress(settings.gym_address))} · Tel: ${esc(settings.gym_phone || '982404043')}</p>
             </div>
           </div>
-          <h3>REPORTE: ${channel === 'consolidated' ? 'CONSOLIDADO GENERAL EJECUTIVO' : channel === 'gym' ? 'INGRESOS EXCLUSIVOS DEL GIMNASIO' : channel === 'store' ? 'VENTAS DE TIENDITA Y POS' : channel === 'attendance' ? 'CONTROL DE ASISTENCIAS, AFORO Y ENTRADAS/SALIDAS' : channel === 'security' ? 'VERIFICACIÓN DE PRESENCIA Y AUDITORÍA DE ACCESOS' : 'HISTORIAL Y AUDITORÍA DE TURNOS'}</h3>
+          <h3>REPORTE: ${channel === 'consolidated' ? 'CONSOLIDADO GENERAL EJECUTIVO' : channel === 'gym' ? 'INGRESOS Y RETENCIÓN DEL GIMNASIO' : channel === 'store' ? 'VENTAS, INVENTARIO Y RENTABILIDAD DE TIENDITA' : channel === 'attendance' ? 'CONTROL DE ASISTENCIAS, HORARIOS Y RENDIMIENTO' : channel === 'security' ? 'VERIFICACIÓN DE PRESENCIA Y AUDITORÍA DE ACCESOS' : 'HISTORIAL Y AUDITORÍA DE TURNOS'}</h3>
           <p class="small"><b>Período:</b> ${from} al ${to} · <b>Generado el:</b> ${new Date().toLocaleString('es-PE')}</p>
           <hr class="mt mb">
         </div>
@@ -2320,48 +2356,181 @@ function verEstado() {
       // ---------------- 1. CANAL CONSOLIDADO GENERAL ----------------
       function renderConsolidated(el, d) {
         const c = d.consolidated || {};
-        const maxDay = Math.max(1, ...(c.dailyComparison || []).map(x => x.total));
+        const daily = c.dailyComparison || [];
+        const maxDay = Math.max(1, ...daily.map(x => Math.max(x.total || 0, x.expense || 0)));
+        const totIncome = Number(c.totalIncome || 0);
+        const gymPct = totIncome > 0 ? Math.round((Number(c.totalGymIncome || 0) / totIncome) * 100) : 0;
+        const storePct = totIncome > 0 ? Math.round((Number(c.totalStoreIncome || 0) / totIncome) * 100) : 0;
+        const yapeAudit = c.yapeAudit || { totalCount: 0, verifiedCount: 0, pendingCount: 0, pendingAmount: 0 };
+        const gymByMethod = c.gymByMethod || {};
+        const storeByMethod = c.storeByMethod || {};
+        const totalByMethod = c.totalByMethod || {};
+        const byMethodArr = d.byMethod || [];
+        const expCat = c.expensesByCat || d.expenses?.byCat || [];
+
+        // Construir matriz cruzada Método × Canal
+        const methodsOrder = ['efectivo', 'yape', 'plin', 'tarjeta', 'transferencia'];
+        const methodLabels = { efectivo: 'Efectivo Físico', yape: 'Yape (QR / Celular)', plin: 'Plin', tarjeta: 'Tarjeta POS', transferencia: 'Transferencia' };
+        const matrixRows = methodsOrder.map(m => {
+          const gymAmt = Number(gymByMethod[m] || 0);
+          const storeAmt = Number(storeByMethod[m] || 0);
+          const totalAmt = Number(totalByMethod[m] || (gymAmt + storeAmt));
+          const totRow = byMethodArr.find(x => x.method === m);
+          const txCount = Number(totRow?.n || 0);
+          return { method: m, label: methodLabels[m] || m, gymAmt, storeAmt, totalAmt, txCount };
+        }).filter(r => r.totalAmt > 0 || r.method === 'efectivo' || r.method === 'yape');
 
         el.innerHTML = `
+        <!-- KPI EJECUTIVOS DE ALTA VISIBILIDAD -->
         <div class="grid g4 mb">
-          <div class="stat gold">
+          <div class="stat gold watermark-container">
+            <div class="watermark-bg" style="font-size:2.4rem">RD</div>
             <div class="v">${money(c.totalIncome || 0)}</div>
-            <div class="l">Total Ingresos Consolidados</div>
+            <div class="l">${RD.icon('chart')} Ingresos Consolidados (${c.txCount || 0} cobros)</div>
+            <div class="tiny muted mt2">Promedio diario: <b class="gold">${money(c.avgDailyIncome || 0)}/día</b></div>
           </div>
           <div class="stat">
             <div class="v" style="color:#f5b400">${money(c.totalGymIncome || 0)}</div>
-            <div class="l">${RD.icon('dumbbell')} Ingresos Gimnasio (Membresías + Pases)</div>
+            <div class="l">${RD.icon('dumbbell')} Caja Gimnasio (${gymPct}% del total)</div>
+            <div class="tiny muted mt2">${d.newMembers || 0} nuevos · ${d.renewals || 0} renovaciones</div>
           </div>
           <div class="stat">
             <div class="v" style="color:#60a5fa">${money(c.totalStoreIncome || 0)}</div>
-            <div class="l">${RD.icon('cart')} Ventas Tiendita (Aguas, Bebidas)</div>
+            <div class="l">${RD.icon('cart')} Ventas Tiendita (${storePct}% del total)</div>
+            <div class="tiny muted mt2">Ganancia comercial: <b style="color:#4ade80">${money(c.storeGrossProfit || 0)}</b></div>
           </div>
-          <div class="stat">
+          <div class="stat" style="border-color:${(c.netProfit || 0) >= 0 ? 'rgba(74,222,128,.45)' : 'rgba(248,113,113,.45)'}">
             <div class="v" style="color:${(c.netProfit || 0) >= 0 ? '#4ade80' : '#f87171'}">${money(c.netProfit || 0)}</div>
-            <div class="l">Utilidad Neta (Ingresos - Gastos)</div>
+            <div class="l">${RD.icon('trophy')} Utilidad Neta Libre (Margen ${c.marginPct || 0}%)</div>
+            <div class="tiny muted mt2">Gastos: <b class="bad">-${money(c.totalExpense || 0)}</b> · Costo prod: <b>-${money(c.storeCostOfGoods || 0)}</b></div>
           </div>
         </div>
 
-        <div class="card mb">
-          <div class="row between wrap gap">
+        <!-- ARQUEO GLOBAL Y AUDITORÍA ANTIFRAUDE DIGITAL -->
+        <div class="card mb watermark-container">
+          <div class="watermark-bg">AUDITORIA RD</div>
+          <div class="row between wrap gap" style="position:relative;z-index:1">
             <div>
-              <h3>Resumen de Arqueo Global del Período</h3>
-              <p class="muted small">Separación estricta entre efectivo físico en caja y dinero digital en cuentas bancarias.</p>
+              <h3>${RD.icon('shield')} Arqueo Financiero y Separación de Fondos</h3>
+              <p class="muted small">Conciliación exacta entre dinero físico en gaveta, billeteras digitales (Yape/Plin) y egresos operativos.</p>
             </div>
-            <span class="badge ok">Balance Auditado</span>
+            <div class="row gap">
+              ${yapeAudit.pendingCount > 0
+                ? `<span class="badge warn">${RD.icon('info')} ${yapeAudit.pendingCount} Yape/Plin por verificar (${money(yapeAudit.pendingAmount)})</span>`
+                : `<span class="badge ok">${RD.icon('check')} 100% Digital Verificado (${yapeAudit.verifiedCount} op.)</span>`}
+              <span class="badge ok">Balance Auditado</span>
+            </div>
           </div>
-          <div class="grid g4 mt2">
-            <div class="small">${RD.icon('cash')} Efectivo neto en gaveta: <b style="color:#4ade80">${money(c.cashInDrawer || 0)}</b></div>
-            <div class="small">${RD.icon('qr')} Dinero digital (Yape/Plin): <b style="color:#a78bfa">${money(c.digitalTotal || 0)}</b></div>
-            <div class="small">${RD.icon('expense')} Gastos operativos totales: <b class="bad">-${money(c.totalExpense || 0)}</b></div>
-            <div class="small">${RD.icon('clock')} Turnos auditados: <b>${(c.shifts || []).length} turnos</b></div>
+          <div class="grid g4 mt2" style="position:relative;z-index:1">
+            <div style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);padding:.75rem;border-radius:10px">
+              <div class="tiny muted">${RD.icon('cash', '', 13)} EFECTIVO NETO EN GAVETA</div>
+              <div style="font-size:1.3rem;font-weight:900;color:#4ade80;margin-top:2px">${money(c.cashInDrawer || 0)}</div>
+              <div class="tiny muted">Cobros efec. (${money(c.cashGross || 0)}) − Gastos</div>
+            </div>
+            <div style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.25);padding:.75rem;border-radius:10px">
+              <div class="tiny muted">${RD.icon('qr', '', 13)} DINERO DIGITAL (YAPE / PLIN / POS)</div>
+              <div style="font-size:1.3rem;font-weight:900;color:#a78bfa;margin-top:2px">${money(c.digitalTotal || 0)}</div>
+              <div class="tiny muted">Directo a cuenta bancaria</div>
+            </div>
+            <div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);padding:.75rem;border-radius:10px">
+              <div class="tiny muted">${RD.icon('expense', '', 13)} GASTOS OPERATIVOS REGISTRADOS</div>
+              <div style="font-size:1.3rem;font-weight:900;color:#f87171;margin-top:2px">-${money(c.totalExpense || 0)}</div>
+              <div class="tiny muted">${(c.expensesList || []).length} egresos documentados</div>
+            </div>
+            <div style="background:rgba(245,180,0,0.08);border:1px solid rgba(245,180,0,0.25);padding:.75rem;border-radius:10px">
+              <div class="tiny muted">${RD.icon('clock', '', 13)} TURNOS DE CAJA AUDITADOS</div>
+              <div style="font-size:1.3rem;font-weight:900;color:var(--gold);margin-top:2px">${(c.shifts || []).length} turnos</div>
+              <div class="tiny muted">${c.activeDaysCount || 0} días con movimiento comercial</div>
+            </div>
           </div>
         </div>
 
-        <!-- GRÁFICO COMPARATIVO DÍA POR DÍA -->
+        <!-- GRÁFICO VISUAL DE EVOLUCIÓN DIARIA (APILADO GIMNASIO + TIENDA vs GASTOS) -->
         <div class="card mb">
-          <h3>${RD.icon('chart')} Comparativa Diaria: Gimnasio vs Tiendita</h3>
-          <p class="muted small mb">Evolución de recaudación por día durante el período seleccionado.</p>
+          <div class="row between wrap gap mb">
+            <div>
+              <h3>${RD.icon('chart')} Evolución Visual de Ingresos Diarios (Gimnasio + Tiendita)</h3>
+              <p class="muted small">Barras apiladas proporcionales por fecha: <span style="color:#f5b400;font-weight:700">■ Gimnasio</span> · <span style="color:#60a5fa;font-weight:700">■ Tiendita</span> · <span style="color:#4ade80;font-weight:700">● Utilidad Neta</span></p>
+            </div>
+          </div>
+          ${daily.length ? `
+            <div class="bars" style="height:165px;align-items:flex-end;gap:6px;padding-top:22px;overflow-x:auto">
+              ${daily.slice(-31).map(row => {
+                const gH = Math.max(0, (row.gym / maxDay) * 100);
+                const sH = Math.max(0, (row.store / maxDay) * 100);
+                const totH = Math.max(4, gH + sH);
+                return `
+                  <div style="flex:1;min-width:22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center" title="${row.day}: Total ${money(row.total)} (Gym: ${money(row.gym)} | Tienda: ${money(row.store)} | Neto: ${money(row.net)})">
+                    <div class="tiny" style="font-size:.63rem;font-weight:800;color:var(--gold);margin-bottom:3px;white-space:nowrap">${row.total > 0 ? Math.round(row.total) : ''}</div>
+                    <div style="width:100%;height:${totH}%;display:flex;flex-direction:column;justify-content:flex-end;border-radius:5px 5px 0 0;overflow:hidden;background:rgba(255,255,255,0.04)">
+                      ${row.store > 0 ? `<div style="height:${(row.store / row.total) * 100}%;background:#60a5fa;width:100%"></div>` : ''}
+                      ${row.gym > 0 ? `<div style="height:${(row.gym / row.total) * 100}%;background:var(--gold);width:100%"></div>` : ''}
+                    </div>
+                  </div>`;
+              }).join('')}
+            </div>
+            <div class="bars-l" style="gap:6px;overflow-x:auto">
+              ${daily.slice(-31).map(row => `<span style="min-width:22px;font-size:.65rem">${row.day.slice(5)}</span>`).join('')}
+            </div>
+          ` : `<div class="empty">Sin movimientos financieros en el rango de fechas seleccionado</div>`}
+        </div>
+
+        <!-- MATRIZ DE CONCILIACIÓN POR MÉTODO Y DESGLOSE DE GASTOS -->
+        <div class="grid g2 mb">
+          <div class="card">
+            <h3>${RD.icon('cash')} Matriz de Conciliación: Método × Canal</h3>
+            <p class="muted small mb">Relación exacta entre medio de pago y origen del ingreso para cuadre bancario y de gaveta.</p>
+            <div class="tbl-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Método de Pago</th>
+                    <th>Gimnasio</th>
+                    <th>Tiendita</th>
+                    <th>Op.</th>
+                    <th>Total Recaudado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${matrixRows.map(r => `
+                    <tr>
+                      <td><b>${esc(r.label)}</b></td>
+                      <td style="color:#f5b400">${money(r.gymAmt)}</td>
+                      <td style="color:#60a5fa">${money(r.storeAmt)}</td>
+                      <td class="muted small">${r.txCount}</td>
+                      <td style="font-weight:800;color:#4ade80">${money(r.totalAmt)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>${RD.icon('expense')} Estructura de Gastos Operativos</h3>
+            <p class="muted small mb">Distribución de egresos por categoría registrados en el período.</p>
+            ${expCat.length ? `
+              <div style="display:flex;flex-direction:column;gap:.65rem;margin-top:.8rem">
+                ${expCat.map(e => {
+                  const pct = c.totalExpense > 0 ? Math.round((e.total / c.totalExpense) * 100) : 0;
+                  return `
+                    <div>
+                      <div class="row between small" style="margin-bottom:3px">
+                        <span><b>${esc(e.category)}</b></span>
+                        <span class="bad"><b>-${money(e.total)}</b> <span class="tiny muted">(${pct}%)</span></span>
+                      </div>
+                      <div class="muscle-track-bg"><div class="muscle-track-bar" style="width:${pct}%;background:#f87171"></div></div>
+                    </div>`;
+                }).join('')}
+              </div>
+            ` : `<div class="empty">No se registraron gastos operativos en este período</div>`}
+          </div>
+        </div>
+
+        <!-- TABLA COMPARATIVA DÍA POR DÍA CON FILA DE TOTALES -->
+        <div class="card mb">
+          <h3>${RD.icon('reports')} Desglose Contable Día por Día</h3>
+          <p class="muted small mb">Auditoría cronológica de ingresos por unidad de negocio, gastos y utilidad neta diaria.</p>
           <div class="tbl-wrap">
             <table>
               <thead>
@@ -2372,182 +2541,330 @@ function verEstado() {
                   <th>Ingreso Total (S/)</th>
                   <th>Gastos (S/)</th>
                   <th>Utilidad Neta (S/)</th>
+                  <th style="width:120px" class="no-print">Proporción</th>
                 </tr>
               </thead>
               <tbody>
-                ${(c.dailyComparison || []).map(row => `
-                <tr>
-                  <td><b>${row.day}</b></td>
-                  <td style="color:#f5b400;font-weight:700">${money(row.gym)}</td>
-                  <td style="color:#60a5fa;font-weight:700">${money(row.store)}</td>
-                  <td style="font-weight:700">${money(row.total)}</td>
-                  <td class="bad">${row.expense > 0 ? '-' + money(row.expense) : 'S/ 0'}</td>
-                  <td style="font-weight:700;color:${row.net >= 0 ? '#4ade80' : '#f87171'}">${money(row.net)}</td>
-                </tr>`).join('') || '<tr><td colspan="6" class="empty">Sin movimientos en este período</td></tr>'}
+                ${daily.map(row => {
+                  const gW = row.total > 0 ? Math.round((row.gym / row.total) * 100) : 0;
+                  const sW = 100 - gW;
+                  return `
+                  <tr>
+                    <td><b>${row.day}</b></td>
+                    <td style="color:#f5b400;font-weight:700">${money(row.gym)}</td>
+                    <td style="color:#60a5fa;font-weight:700">${money(row.store)}</td>
+                    <td style="font-weight:800">${money(row.total)}</td>
+                    <td class="bad">${row.expense > 0 ? '-' + money(row.expense) : 'S/ 0.00'}</td>
+                    <td style="font-weight:800;color:${row.net >= 0 ? '#4ade80' : '#f87171'}">${money(row.net)}</td>
+                    <td class="no-print">
+                      <div style="display:flex;height:8px;border-radius:99px;overflow:hidden;background:rgba(255,255,255,0.08)">
+                        <div style="width:${gW}%;background:#f5b400" title="Gimnasio ${gW}%"></div>
+                        <div style="width:${sW}%;background:#60a5fa" title="Tiendita ${sW}%"></div>
+                      </div>
+                    </td>
+                  </tr>`;
+                }).join('') || '<tr><td colspan="7" class="empty">Sin movimientos en este período</td></tr>'}
               </tbody>
+              ${daily.length ? `
+              <tfoot>
+                <tr style="background:rgba(245,180,0,0.1);font-weight:900;border-top:2px solid var(--gold)">
+                  <td>TOTAL PERÍODO (${daily.length} días)</td>
+                  <td style="color:#f5b400">${money(c.totalGymIncome || 0)}</td>
+                  <td style="color:#60a5fa">${money(c.totalStoreIncome || 0)}</td>
+                  <td>${money(c.totalIncome || 0)}</td>
+                  <td class="bad">-${money(c.totalExpense || 0)}</td>
+                  <td style="color:${(c.netProfit || 0) >= 0 ? '#4ade80' : '#f87171'}">${money(c.netProfit || 0)}</td>
+                  <td class="no-print small muted">${gymPct}% Gym / ${storePct}% POS</td>
+                </tr>
+              </tfoot>` : ''}
             </table>
           </div>
         </div>`;
       }
 
-      // ---------------- 2. CANAL CAJA GIMNASIO ----------------
+      // ---------------- 2. CANAL CAJA GIMNASIO (MEMBRESÍAS, PASES Y RETENCIÓN) ----------------
       function renderGym(el, d) {
         const g = d.gym || {};
-        const hoursAll = Array.from({ length: 16 }, (_, i) => i + 6);
-        const hoursMap = Object.fromEntries((d.peak || []).map(x => [x.hour, x.n]));
-        const maxH = Math.max(1, ...(d.peak || []).map(x => x.n));
+        const payments = g.payments || [];
+        const dailyPasses = g.dailyPasses || [];
+        const byPlan = g.byPlan || [];
+        const expiringSoon = g.expiringSoon || [];
+        const atRisk = g.atRiskMembers || [];
+        const dailyPassTotal = dailyPasses.reduce((a, b) => a + Number(b.price || 0), 0);
+        const maxPlanTotal = Math.max(1, ...byPlan.map(p => Number(p.total || 0)), dailyPassTotal);
 
         el.innerHTML = `
         <div class="grid g4 mb">
           <div class="stat gold">
             <div class="v">${money(g.income || 0)}</div>
-            <div class="l">Total Recaudado Gimnasio</div>
+            <div class="l">${RD.icon('dumbbell')} Total Recaudado Gimnasio</div>
+            <div class="tiny muted mt2">${payments.length} cobros registrados</div>
           </div>
           <div class="stat">
-            <div class="v" style="color:#f5b400">${(g.dailyPasses || []).length} pases</div>
-            <div class="l">${RD.icon('ticket')} Pases Diarios (S/ 5.00)</div>
+            <div class="v" style="color:#f5b400">${dailyPasses.length} pases (${money(dailyPassTotal)})</div>
+            <div class="l">${RD.icon('ticket')} Pases Diarios Emitidos</div>
+            <div class="tiny muted mt2">Ingreso rápido de visitantes</div>
           </div>
           <div class="stat">
-            <div class="v" style="color:#4ade80">${d.newMembers || 0} nuevos</div>
-            <div class="l">${RD.icon('users')} Socios Nuevos Inscritos</div>
+            <div class="v" style="color:#4ade80">${d.newMembers || 0} nuevos / ${d.renewals || 0} renov.</div>
+            <div class="l">${RD.icon('users')} Altas y Renovaciones del Período</div>
+            <div class="tiny muted mt2">Crecimiento de cartera activa</div>
           </div>
-          <div class="stat">
-            <div class="v" style="color:#60a5fa">${d.renewals || 0} renovados</div>
-            <div class="l">${RD.icon('refresh')} Renovaciones de Socios</div>
+          <div class="stat" style="border-color:${expiringSoon.length ? 'rgba(245,158,11,.45)' : 'var(--line)'}">
+            <div class="v" style="color:${expiringSoon.length ? '#f59e0b' : '#4ade80'}">${expiringSoon.length} por vencer · ${atRisk.length} ausentes</div>
+            <div class="l">${RD.icon('bell')} Alertas de Retención y Renovación</div>
+            <div class="tiny muted mt2">Próximos 7 días y ausentes +10d</div>
           </div>
         </div>
 
         <div class="grid g2 mb">
-          <!-- VENTAS POR PLAN -->
+          <!-- RENDIMIENTO POR PLAN CON BARRAS PROPORCIONALES -->
           <div class="card">
-            <h3>Membresías por Plan Vendido</h3>
-            <div class="tbl-wrap mt">
+            <div class="row between wrap gap mb">
+              <div>
+                <h3>${RD.icon('trophy')} Recaudación por Tipo de Membresía y Pase</h3>
+                <p class="muted small">Participación financiera de cada plan en los ingresos del gimnasio.</p>
+              </div>
+            </div>
+            <div class="tbl-wrap">
               <table>
-                <thead><tr><th>Plan</th><th>Ventas</th><th>Total Recaudado</th></tr></thead>
+                <thead><tr><th>Plan / Modalidad</th><th>Ventas</th><th>Total Recaudado</th><th style="width:110px">Participación</th></tr></thead>
                 <tbody>
-                  ${(g.byPlan || []).map(p => `
-                  <tr>
-                    <td><b>${esc(p.plan_name)}</b></td>
-                    <td>${p.n} membresías</td>
-                    <td class="gold" style="font-weight:700">${money(p.total)}</td>
-                  </tr>`).join('') || '<tr><td colspan="3" class="empty">Sin membresías vendidas</td></tr>'}
-                  <tr style="background:rgba(245,180,0,.08)">
-                    <td><b>${RD.icon('ticket')} Pase Diario (S/ 5.00)</b></td>
-                    <td>${(g.dailyPasses || []).length} pases</td>
-                    <td class="gold" style="font-weight:700">${money((g.dailyPasses || []).reduce((a, b) => a + b.price, 0))}</td>
+                  ${byPlan.map(p => {
+                    const pct = g.income > 0 ? Math.round((p.total / g.income) * 100) : 0;
+                    const barW = Math.max(6, Math.round((p.total / maxPlanTotal) * 100));
+                    return `
+                    <tr>
+                      <td><b>${esc(p.plan_name)}</b></td>
+                      <td>${p.n} memb.</td>
+                      <td class="gold" style="font-weight:800">${money(p.total)}</td>
+                      <td>
+                        <div class="tiny muted" style="margin-bottom:2px">${pct}%</div>
+                        <div class="muscle-track-bg"><div class="muscle-track-bar" style="width:${barW}%"></div></div>
+                      </td>
+                    </tr>`;
+                  }).join('') || '<tr><td colspan="4" class="empty">Sin membresías vendidas en este rango</td></tr>'}
+                  <tr style="background:rgba(245,180,0,.07)">
+                    <td><b>${RD.icon('ticket')} Pase Diario / Visita Libre</b></td>
+                    <td>${dailyPasses.length} pases</td>
+                    <td class="gold" style="font-weight:800">${money(dailyPassTotal)}</td>
+                    <td>
+                      <div class="tiny muted" style="margin-bottom:2px">${g.income > 0 ? Math.round((dailyPassTotal / g.income) * 100) : 0}%</div>
+                      <div class="muscle-track-bg"><div class="muscle-track-bar" style="width:${Math.max(4, Math.round((dailyPassTotal / maxPlanTotal) * 100))}%;background:#60a5fa"></div></div>
+                    </td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-          <!-- HORAS PICO DE ENTRENAMIENTO -->
+          <!-- INTELIGENCIA DE RETENCIÓN: POR VENCER Y EN RIESGO DE ABANDONO -->
           <div class="card">
-            <h3>${RD.icon('clock')} Horas Pico de Entrenamiento (Asistencias)</h3>
-            <p class="muted small mb">Afluencia de personas en el salón de máquinas de Chivay.</p>
-            <div class="bars" style="height:140px">
-              ${hoursAll.map(h => {
-                const count = hoursMap[h] || 0;
-                return `<div class="b" style="height:${Math.max(2, count / maxH * 100)}%;background:var(--gold)"><span>${count || ''}</span></div>`;
-              }).join('')}
+            <div class="row between wrap gap mb">
+              <div>
+                <h3>${RD.icon('refresh')} Centro de Retención y Seguimiento de Socios</h3>
+                <p class="muted small">Acción directa por WhatsApp para asegurar renovaciones y recuperar socios inactivos.</p>
+              </div>
             </div>
-            <div class="bars-l">${hoursAll.map(h => `<span>${h}h</span>`).join('')}</div>
+
+            <div class="tiny muted" style="font-weight:800;letter-spacing:.5px;margin-bottom:6px;color:#f59e0b">${RD.icon('clock', '', 13)} MEMBRESÍAS POR VENCER EN LOS PRÓXIMOS 7 DÍAS (${expiringSoon.length})</div>
+            <div style="max-height:145px;overflow-y:auto;margin-bottom:.9rem;border:1px solid var(--line);border-radius:8px;padding:.4rem">
+              ${expiringSoon.length ? expiringSoon.map(m => `
+                <div class="row between gap" style="padding:.35rem .4rem;border-bottom:1px solid var(--line)">
+                  <div>
+                    <b class="small">${esc(m.name)}</b> <span class="badge warn tiny">${m.days_left === 0 ? 'Vence Hoy' : `En ${m.days_left}d`}</span>
+                    <div class="tiny muted">${esc(m.plan_name)} · Vence: ${m.end_date}</div>
+                  </div>
+                  <div class="row gap no-print">
+                    ${m.phone ? `<a class="btn sm ok" target="_blank" href="${RD.waLink(m.phone, `Hola ${m.name}, te saludamos de RD Fitness Club. Tu membresía (${m.plan_name}) vence el ${m.end_date}. ¡Te esperamos para renovarla y seguir entrenando con todo!`)}">${RD.icon('whatsapp')} Avisar</a>` : ''}
+                    <button class="btn sm ghost" data-membersheet="${m.id}">${RD.icon('reports')}</button>
+                  </div>
+                </div>
+              `).join('') : `<div class="small muted p">Ninguna membresía vence en los próximos 7 días.</div>`}
+            </div>
+
+            <div class="tiny muted" style="font-weight:800;letter-spacing:.5px;margin-bottom:6px;color:#f87171">${RD.icon('heart-pulse', '', 13)} SOCIOS ACTIVOS CON +10 DÍAS SIN ASISTIR (${atRisk.length})</div>
+            <div style="max-height:145px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:.4rem">
+              ${atRisk.length ? atRisk.map(m => `
+                <div class="row between gap" style="padding:.35rem .4rem;border-bottom:1px solid var(--line)">
+                  <div>
+                    <b class="small">${esc(m.name)}</b> <span class="badge denied tiny">${m.days_absent !== null ? `${m.days_absent}d sin venir` : 'Sin ingresos'}</span>
+                    <div class="tiny muted">Última visita: ${m.last_visit_day || 'Nunca'} · Vence: ${m.end_date}</div>
+                  </div>
+                  <div class="row gap no-print">
+                    ${m.phone ? `<a class="btn sm" target="_blank" href="${RD.waLink(m.phone, `¡Hola ${m.name}! Te extrañamos en RD Fitness Club. Notamos que llevas unos días sin venir a entrenar. ¡Retoma tu rutina esta semana, la constancia hace al campeón!`)}">${RD.icon('whatsapp')} Motivar</a>` : ''}
+                    <button class="btn sm ghost" data-membersheet="${m.id}">${RD.icon('reports')}</button>
+                  </div>
+                </div>
+              `).join('') : `<div class="small muted p">¡Excelente! Todos los socios activos están asistiendo regularmente.</div>`}
+            </div>
           </div>
         </div>
 
-        <!-- DETALLE DE PAGOS DEL GIMNASIO -->
+        <!-- DETALLE DE PAGOS DEL GIMNASIO CON BUSCADOR -->
         <div class="card mb">
-          <h3>Detalle de Cobros del Gimnasio (${(g.payments || []).length} registros)</h3>
-          <div class="tbl-wrap mt">
+          <div class="row between wrap gap mb">
+            <div>
+              <h3>${RD.icon('receipt')} Libro de Cobros del Gimnasio (${payments.length} registros)</h3>
+              <p class="muted small">Registro íntegro de membresías y pases diarios con verificación de medio de pago.</p>
+            </div>
+            <div class="no-print">
+              <input type="text" id="gym_pay_filter" placeholder="Buscar por socio, boleta o método..." style="min-height:34px;width:240px">
+            </div>
+          </div>
+          <div class="tbl-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Fecha</th>
+                  <th>Fecha y Hora</th>
                   <th>Boleta</th>
                   <th>Socio / Visitante</th>
                   <th>Concepto</th>
                   <th>Método</th>
+                  <th>Verificación</th>
                   <th>Monto</th>
-                  <th class="no-print"></th>
+                  <th class="no-print">Boleta</th>
                 </tr>
               </thead>
-              <tbody>
-                ${(g.payments || []).map(p => `
-                <tr>
-                  <td class="small muted">${p.day} ${p.created_at ? p.created_at.slice(11, 16) : ''}</td>
-                  <td class="small muted" style="font-family:monospace">${esc(p.receipt_no || ('REC-' + p.id))}</td>
-                  <td><b>${esc(p.member_name || p.dp_name || 'Visitante')}</b> ${p.member_code ? `<span class="badge">${esc(p.member_code)}</span>` : ''}</td>
-                  <td class="small">${esc(p.concept)}</td>
-                  <td><span class="badge ${p.method === 'yape' ? 'warn' : p.method === 'plin' ? 'info' : 'ok'}">${esc(p.method)}</span></td>
-                  <td style="font-weight:700;color:#f5b400">${money(p.amount)}</td>
-                  <td class="no-print"><button class="icon-btn" data-receipt="${p.id}" title="Ver e Imprimir Boleta">${RD.icon('receipt')}</button></td>
-                </tr>`).join('') || '<tr><td colspan="7" class="empty">Sin cobros de membresías o pases</td></tr>'}
+              <tbody id="gym_pay_tbody">
+                ${payments.map(p => {
+                  const isDigital = p.method === 'yape' || p.method === 'plin';
+                  const isVer = Boolean(p.verified || p.yape_verified);
+                  const opCode = p.op_code || p.yape_op_code || '';
+                  const verBadge = isDigital
+                    ? (isVer ? `<span class="badge ok tiny">${RD.icon('check', '', 11)} Verificado ${opCode ? '#' + esc(opCode) : ''}</span>` : `<span class="badge warn tiny">Por validar</span>`)
+                    : `<span class="tiny muted">Caja física</span>`;
+                  return `
+                  <tr data-search="${esc((p.member_name || p.dp_name || '') + ' ' + (p.receipt_no || '') + ' ' + (p.concept || '') + ' ' + (p.method || '')).toLowerCase()}">
+                    <td class="small muted">${p.day} ${p.created_at ? p.created_at.slice(11, 16) : ''}</td>
+                    <td class="small muted" style="font-family:monospace">${esc(p.receipt_no || ('REC-' + p.id))}</td>
+                    <td><b>${esc(p.member_name || p.dp_name || 'Visitante')}</b> ${p.member_code ? `<span class="badge">${esc(p.member_code)}</span>` : ''}</td>
+                    <td class="small">${esc(p.concept)}</td>
+                    <td><span class="badge ${p.method === 'yape' ? 'warn' : p.method === 'plin' ? 'info' : 'ok'}">${esc(p.method)}</span></td>
+                    <td>${verBadge}</td>
+                    <td style="font-weight:800;color:#f5b400">${money(p.amount)}</td>
+                    <td class="no-print"><button class="icon-btn" data-receipt="${p.id}" title="Ver e Imprimir Boleta">${RD.icon('receipt')}</button></td>
+                  </tr>`;
+                }).join('') || '<tr><td colspan="8" class="empty">Sin cobros de membresías o pases</td></tr>'}
               </tbody>
             </table>
           </div>
         </div>`;
 
         attachReceiptButtons(el);
+        el.querySelectorAll('[data-membersheet]').forEach(btn => {
+          btn.onclick = () => RD.memberAttendanceSheetModal(btn.dataset.membersheet, from, to);
+        });
+        const gFilter = el.querySelector('#gym_pay_filter');
+        if (gFilter) {
+          gFilter.oninput = () => {
+            const q = gFilter.value.toLowerCase().trim();
+            el.querySelectorAll('#gym_pay_tbody tr[data-search]').forEach(tr => {
+              tr.style.display = !q || tr.dataset.search.includes(q) ? '' : 'none';
+            });
+          };
+        }
       }
 
-      // ---------------- 3. CANAL TIENDITA Y POS ----------------
+      // ---------------- 3. CANAL TIENDITA Y POS (VENTAS, COSTOS Y MARGEN) ----------------
       function renderStore(el, d) {
         const s = d.store || {};
         const prods = s.productStats || [];
+        const topSelling = s.topSelling || [];
         const lowStock = s.lowStock || [];
         const totalUnits = prods.reduce((a, b) => a + (b.sold_qty || 0), 0);
+        const maxSoldTotal = Math.max(1, ...topSelling.map(p => Number(p.sold_total || 0)));
 
         el.innerHTML = `
-        <div class="grid g3 mb">
+        <div class="grid g4 mb">
           <div class="stat gold">
             <div class="v">${money(s.income || 0)}</div>
-            <div class="l">Total Ventas Tiendita</div>
+            <div class="l">${RD.icon('cart')} Total Ventas Tiendita</div>
+            <div class="tiny muted mt2">${(s.payments || []).length} tickets emitidos</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:#4ade80">${money(s.grossProfit || 0)}</div>
+            <div class="l">${RD.icon('trophy')} Ganancia Neta Comercial</div>
+            <div class="tiny muted mt2">Costo mercadería: <b>${money(s.costOfGoods || 0)}</b></div>
           </div>
           <div class="stat">
             <div class="v" style="color:#60a5fa">${totalUnits} unidades</div>
-            <div class="l">${RD.icon('cart')} Productos Vendidos en el Período</div>
+            <div class="l">${RD.icon('box')} Productos Despachados</div>
+            <div class="tiny muted mt2">${prods.length} referencias activas</div>
           </div>
           <div class="stat">
             <div class="v" style="color:${lowStock.length ? '#f87171' : '#4ade80'}">${lowStock.length} productos</div>
-            <div class="l">${RD.icon('info')} Alerta de Stock Bajo (Reabastecer)</div>
+            <div class="l">${RD.icon('info')} Alerta de Stock Crítico</div>
+            <div class="tiny muted mt2">${lowStock.length ? 'Requiere reposición' : 'Inventario saludable'}</div>
           </div>
         </div>
 
-        <!-- CONTROL DE INVENTARIO Y STOCK -->
+        ${topSelling.length ? `
         <div class="card mb">
-          <h3>${RD.icon('box')} Control de Inventario y Ventas por Producto</h3>
-          <p class="muted small mb">Seguimiento de existencias de aguas, bebidas hidratantes y suplementos.</p>
+          <h3>${RD.icon('chart')} Ranking de Productos Más Vendidos y Rentabilidad</h3>
+          <p class="muted small mb">Comparativa visual entre ingresos brutos (<span style="color:#60a5fa">■ Ventas</span>) y ganancia neta comercial (<span style="color:#4ade80">■ Ganancia</span>).</p>
+          <div class="grid g2 gap">
+            ${topSelling.slice(0, 6).map(p => {
+              const w = Math.max(6, Math.round(((p.sold_total || 0) / maxSoldTotal) * 100));
+              const unitMargin = (p.price || 0) - (p.cost || 0);
+              const netProfit = (p.sold_qty || 0) * unitMargin;
+              return `
+                <div style="background:rgba(255,255,255,0.03);border:1px solid var(--line);border-radius:10px;padding:.65rem .8rem">
+                  <div class="row between small" style="margin-bottom:4px">
+                    <b>${esc(p.name)} <span class="badge tiny">${p.sold_qty} un.</span></b>
+                    <span><b style="color:#60a5fa">${money(p.sold_total || 0)}</b> <span class="tiny" style="color:#4ade80">(+${money(netProfit)} neto)</span></span>
+                  </div>
+                  <div class="muscle-track-bg"><div class="muscle-track-bar" style="width:${w}%;background:linear-gradient(90deg,#60a5fa,#4ade80)"></div></div>
+                </div>`;
+            }).join('')}
+          </div>
+        </div>` : ''}
+
+        <!-- CONTROL DE INVENTARIO, COSTOS Y MARGEN POR PRODUCTO -->
+        <div class="card mb">
+          <h3>${RD.icon('box')} Control de Inventario, Costos y Margen por Producto</h3>
+          <p class="muted small mb">Auditoría de existencias, costo unitario, precio de venta y utilidad generada por cada ítem.</p>
           <div class="tbl-wrap">
             <table>
               <thead>
                 <tr>
                   <th>Producto</th>
                   <th>Categoría</th>
+                  <th>Costo Unit.</th>
                   <th>Precio Venta</th>
                   <th>Stock Actual</th>
-                  <th>Stock Mínimo</th>
-                  <th>Unidades Vendidas</th>
-                  <th>Total Recaudado</th>
+                  <th>Vendidos</th>
+                  <th>Total Venta</th>
+                  <th>Ganancia Neta</th>
                   <th class="no-print">Acción</th>
                 </tr>
               </thead>
               <tbody>
-                ${prods.map(p => `
-                <tr class="${p.stock <= p.min_stock ? 'row-warn' : ''}">
-                  <td><b>${esc(p.name)}</b> ${p.barcode ? `<div class="tiny muted">BC: ${esc(p.barcode)}</div>` : ''}</td>
-                  <td><span class="badge">${esc(p.category)}</span></td>
-                  <td>${money(p.price)}</td>
-                  <td>
-                    <b style="color:${p.stock <= p.min_stock ? '#f87171' : '#4ade80'}">${p.stock} un.</b>
-                    ${p.stock <= p.min_stock ? '<span class="badge warn tiny">¡Bajo!</span>' : ''}
-                  </td>
-                  <td class="muted">${p.min_stock} un.</td>
-                  <td style="font-weight:700">${p.sold_qty || 0} un.</td>
-                  <td style="font-weight:700;color:#60a5fa">${money(p.sold_total || 0)}</td>
-                  <td class="no-print">
-                    <button class="btn sm" data-addstock="${p.id}" data-pname="${esc(p.name)}">＋ Stock</button>
-                  </td>
-                </tr>`).join('') || '<tr><td colspan="8" class="empty">Sin productos registrados</td></tr>'}
+                ${prods.map(p => {
+                  const cost = Number(p.cost || 0);
+                  const price = Number(p.price || 0);
+                  const soldQty = Number(p.sold_qty || 0);
+                  const soldTot = Number(p.sold_total || 0);
+                  const profit = soldTot - (soldQty * cost);
+                  return `
+                  <tr class="${p.stock <= p.min_stock ? 'row-warn' : ''}">
+                    <td><b>${esc(p.name)}</b> ${p.barcode ? `<div class="tiny muted">BC: ${esc(p.barcode)}</div>` : ''}</td>
+                    <td><span class="badge">${esc(p.category)}</span></td>
+                    <td class="muted small">${money(cost)}</td>
+                    <td style="font-weight:700">${money(price)}</td>
+                    <td>
+                      <b style="color:${p.stock <= p.min_stock ? '#f87171' : '#4ade80'}">${p.stock} un.</b>
+                      <span class="tiny muted">(mín ${p.min_stock})</span>
+                      ${p.stock <= p.min_stock ? '<span class="badge warn tiny">¡Bajo!</span>' : ''}
+                    </td>
+                    <td style="font-weight:700">${soldQty} un.</td>
+                    <td style="font-weight:700;color:#60a5fa">${money(soldTot)}</td>
+                    <td style="font-weight:800;color:#4ade80">${money(profit)}</td>
+                    <td class="no-print">
+                      <button class="btn sm" data-addstock="${p.id}" data-pname="${esc(p.name)}">＋ Stock</button>
+                    </td>
+                  </tr>`;
+                }).join('') || '<tr><td colspan="9" class="empty">Sin productos registrados</td></tr>'}
               </tbody>
             </table>
           </div>
@@ -2555,7 +2872,7 @@ function verEstado() {
 
         <!-- DETALLE DE VENTAS DE TIENDA -->
         <div class="card mb">
-          <h3>Tickets de Venta de Tienda (${(s.payments || []).length} ventas)</h3>
+          <h3>${RD.icon('receipt')} Tickets de Venta de Tienda (${(s.payments || []).length} ventas)</h3>
           <div class="tbl-wrap mt">
             <table>
               <thead>
@@ -2565,7 +2882,7 @@ function verEstado() {
                   <th>Detalle / Producto</th>
                   <th>Método</th>
                   <th>Monto</th>
-                  <th class="no-print"></th>
+                  <th class="no-print">Ticket</th>
                 </tr>
               </thead>
               <tbody>
@@ -2603,8 +2920,31 @@ function verEstado() {
       // ---------------- 4. CANAL HISTORIAL DE TURNOS ----------------
       function renderShifts(el, d) {
         const shifts = d.consolidated?.shifts || [];
+        const closedShifts = shifts.filter(s => s.status !== 'open');
+        const exactShifts = closedShifts.filter(s => Math.abs(Number(s.diff_cash || 0)) < 0.01).length;
+        const netDiff = closedShifts.reduce((a, b) => a + Number(b.diff_cash || 0), 0);
+        const totalExpectedCash = shifts.reduce((a, b) => a + Number(b.expected_cash || 0), 0);
 
         el.innerHTML = `
+        <div class="grid g4 mb">
+          <div class="stat gold">
+            <div class="v">${shifts.length} turnos</div>
+            <div class="l">${RD.icon('clock')} Turnos Registrados en el Período</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:#4ade80">${exactShifts} / ${closedShifts.length}</div>
+            <div class="l">${RD.icon('check')} Cierres con Cuadre Exacto (S/ 0.00)</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:#60a5fa">${money(totalExpectedCash)}</div>
+            <div class="l">${RD.icon('cash')} Efectivo Acumulado en Turnos</div>
+          </div>
+          <div class="stat">
+            <div class="v" style="color:${netDiff >= 0 ? '#4ade80' : '#f87171'}">${netDiff >= 0 ? '+' : ''}${money(netDiff)}</div>
+            <div class="l">${RD.icon('shield')} Balance Neto de Diferencias</div>
+          </div>
+        </div>
+
         <div class="card mb">
           <div class="row between wrap gap">
             <div>
@@ -2686,12 +3026,16 @@ function verEstado() {
         });
       }
 
-      // ---------------- 5. CANAL ASISTENCIAS Y AFORO ----------------
+      // ---------------- 5. CANAL ASISTENCIAS, HORARIOS Y RENDIMIENTO ----------------
       function renderAttendance(el, d, settings) {
         const att = d.attendance || {};
         const rows = att.rows || [];
         const insideNow = att.insideNow || [];
         const topMembers = att.topMembers || [];
+        const shifts = att.byShiftBlock || { morning: 0, afternoon: 0, evening: 0 };
+        const totShift = Math.max(1, (shifts.morning || 0) + (shifts.afternoon || 0) + (shifts.evening || 0));
+        const byWeekday = att.byWeekday || [];
+        const maxW = Math.max(1, ...byWeekday.map(w => w.count || 0));
         const hoursAll = Array.from({ length: 16 }, (_, i) => i + 6);
         const hoursMap = Object.fromEntries((d.peak || []).map(x => [x.hour, x.n]));
         const maxH = Math.max(1, ...(d.peak || []).map(x => x.n));
@@ -2709,7 +3053,7 @@ function verEstado() {
           </div>
           <div class="stat">
             <div class="v" style="color:#f5b400">${att.memberVisits || 0} socios / ${att.dailyVisits || 0} pases</div>
-            <div class="l">${RD.icon('dumbbell')} Socios vs ${RD.icon('ticket')} Pases Diarios (S/ 5)</div>
+            <div class="l">${RD.icon('dumbbell')} Socios vs ${RD.icon('ticket')} Pases Diarios</div>
           </div>
           <div class="stat">
             <div class="v" style="color:#60a5fa">${att.avgDurationMin || 75} min</div>
@@ -2778,12 +3122,12 @@ function verEstado() {
         </div>
 
         <div class="grid g2 mb">
-          <!-- RANKING TOP 10 SOCIOS MAS DISCIPLINADOS -->
+          <!-- RANKING TOP 10 SOCIOS MAS DISCIPLINADOS (CORRELACIONADO CON RUTINA Y VOLUMEN) -->
           <div class="card">
             <div class="row between wrap gap">
               <div>
-                <h3>${RD.icon('trophy')} Top Socios Más Disciplinados</h3>
-                <p class="muted small">Ranking de constancia y fidelidad del período.</p>
+                <h3>${RD.icon('trophy')} Top Socios Más Disciplinados y Rendimiento</h3>
+                <p class="muted small">Correlación de asistencia, rutina activa, volumen de carga y permanencia.</p>
               </div>
               <span class="badge ok">Constancia</span>
             </div>
@@ -2793,7 +3137,8 @@ function verEstado() {
                   <tr>
                     <th>#</th>
                     <th>Socio</th>
-                    <th>Días Asistidos</th>
+                    <th>Rutina Activa</th>
+                    <th>Asistencia</th>
                     <th>Promedio</th>
                     <th class="no-print">Ficha</th>
                   </tr>
@@ -2803,34 +3148,68 @@ function verEstado() {
                     const badgeRank = idx === 0 ? '1°' : idx === 1 ? '2°' : idx === 2 ? '3°' : `${idx + 1}°`;
                     return `
                     <tr>
-                      <td style="font-size:1.1rem;font-weight:bold">${badgeRank}</td>
+                      <td style="font-size:1.05rem;font-weight:900;color:var(--gold)">${badgeRank}</td>
                       <td>
                         <b>${esc(m.name)}</b>
                         <div class="tiny muted">${esc(m.code)} ${m.dni ? '· DNI ' + esc(m.dni) : ''}</div>
                       </td>
+                      <td>
+                        <span class="badge">${esc(m.active_routine || 'Entrenamiento Libre')}</span>
+                        ${m.volume_moved > 0 ? `<div class="tiny muted mt2">${Number(m.volume_moved).toLocaleString('es-PE')} kg movidos</div>` : ''}
+                      </td>
                       <td style="font-weight:bold;color:var(--gold)">${m.days_attended} días <span class="tiny muted">(${m.total_sessions} ses.)</span></td>
                       <td class="small muted">${m.avg_min || 75} min</td>
                       <td class="no-print">
-                        <button class="btn sm ghost" data-membersheet="${m.id}" title="Ver Ficha Oficial">${RD.icon('reports')} Ver Ficha</button>
+                        <button class="btn sm ghost" data-membersheet="${m.id}" title="Ver Ficha Oficial Integral">${RD.icon('reports')} Ficha</button>
                       </td>
                     </tr>`;
-                  }).join('') || '<tr><td colspan="5" class="empty">Sin asistencias registradas en este período</td></tr>'}
+                  }).join('') || '<tr><td colspan="6" class="empty">Sin asistencias registradas en este período</td></tr>'}
                 </tbody>
               </table>
             </div>
           </div>
 
-          <!-- HORAS PICO DE ENTRENAMIENTO -->
+          <!-- DISTRIBUCIÓN HORARIA, TURNOS Y DÍAS DE LA SEMANA -->
           <div class="card">
-            <h3>${RD.icon('clock')} Horas Pico de Entrenamiento (Chivay)</h3>
-            <p class="muted small mb">Distribución horaria de ingresos al salón de máquinas.</p>
-            <div class="bars" style="height:140px">
+            <h3>${RD.icon('clock')} Analítica de Horarios, Turnos y Afluencia</h3>
+            <p class="muted small mb">Distribución por bloques horarios y horas pico en sala de máquinas.</p>
+
+            <div class="grid g3 gap mb">
+              <div style="background:rgba(245,180,0,0.08);border:1px solid rgba(245,180,0,0.22);border-radius:8px;padding:.55rem;text-align:center">
+                <div class="tiny muted">MAÑANA (05h-12h)</div>
+                <div style="font-size:1.15rem;font-weight:900;color:var(--gold)">${shifts.morning || 0} <span class="tiny">(${Math.round(((shifts.morning || 0) / totShift) * 100)}%)</span></div>
+              </div>
+              <div style="background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.22);border-radius:8px;padding:.55rem;text-align:center">
+                <div class="tiny muted">TARDE (12h-18h)</div>
+                <div style="font-size:1.15rem;font-weight:900;color:#60a5fa">${shifts.afternoon || 0} <span class="tiny">(${Math.round(((shifts.afternoon || 0) / totShift) * 100)}%)</span></div>
+              </div>
+              <div style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.22);border-radius:8px;padding:.55rem;text-align:center">
+                <div class="tiny muted">NOCHE (18h-23h)</div>
+                <div style="font-size:1.15rem;font-weight:900;color:#a78bfa">${shifts.evening || 0} <span class="tiny">(${Math.round(((shifts.evening || 0) / totShift) * 100)}%)</span></div>
+              </div>
+            </div>
+
+            <div class="bars" style="height:115px">
               ${hoursAll.map(h => {
                 const count = hoursMap[h] || 0;
                 return `<div class="b" style="height:${Math.max(2, count / maxH * 100)}%;background:var(--gold)"><span>${count || ''}</span></div>`;
               }).join('')}
             </div>
             <div class="bars-l">${hoursAll.map(h => `<span>${h}h</span>`).join('')}</div>
+
+            ${byWeekday.length ? `
+              <div class="mt2 pt" style="border-top:1px dashed var(--border,#334155)">
+                <div class="tiny muted mb" style="font-weight:700">AFLUENCIA POR DÍA DE LA SEMANA:</div>
+                <div class="grid" style="grid-template-columns:repeat(7,1fr);gap:6px;text-align:center">
+                  ${byWeekday.map(w => `
+                    <div style="background:rgba(255,255,255,0.03);border:1px solid var(--line);border-radius:6px;padding:4px 2px">
+                      <div class="tiny muted">${w.label}</div>
+                      <div style="font-weight:800;font-size:.85rem;color:${w.count === maxW && w.count > 0 ? 'var(--gold)' : 'var(--text)'}">${w.count}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
 
             <!-- BUSCADOR RAPIDO PARA FICHA INDIVIDUAL -->
             <div class="mt2 pt" style="border-top:1px dashed var(--border,#334155)">

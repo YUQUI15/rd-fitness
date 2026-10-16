@@ -282,11 +282,19 @@ function ensureColumns() {
 ensureColumns();
 
 // ---------- Ajustes ----------
+const CLEAN_GYM_ADDRESS = 'Calle Antonio José de Sucre Lt. 10, Chivay';
+const sanitizeGymAddress = val => {
+  const s = String(val || CLEAN_GYM_ADDRESS)
+    .replace(/\s*\(?\s*al costado de\s+(la\s+)?discoteca\s+muya\s*\)?/gi, '')
+    .trim();
+  return s || CLEAN_GYM_ADDRESS;
+};
+
 const DEFAULT_SETTINGS = {
   gym_name: 'RD Fitness Club',
   gym_slogan: 'Disciplina · Constancia · Resultados',
   gym_phone: '982404043',
-  gym_address: 'Calle Antonio José de Sucre Lt. 10, Chivay (al costado de la discoteca Muya)',
+  gym_address: CLEAN_GYM_ADDRESS,
   gym_ruc: '10702548911',
   receipt_prefix: 'B001',
   daily_pass_price: '5',
@@ -305,10 +313,16 @@ const DEFAULT_SETTINGS = {
 for (const [k, v] of Object.entries(DEFAULT_SETTINGS)) {
   q.run('INSERT OR IGNORE INTO settings(key,value) VALUES(?,?)', k, v);
 }
+// Limpieza permanente de referencias comerciales externas en dirección oficial
+q.run("UPDATE settings SET value=? WHERE key='gym_address' AND LOWER(value) LIKE '%muya%'", CLEAN_GYM_ADDRESS);
 // La clave antigua era adivinable y daba acceso a datos financieros y personales: se reemplaza por una aleatoria
 q.run("UPDATE settings SET value=? WHERE key='google_sheets_key' AND (value='RD-CHIVAY-2026' OR value IS NULL OR value='')",
   require('crypto').randomBytes(12).toString('hex'));
-const getSettings = () => Object.fromEntries(q.all('SELECT key,value FROM settings').map(r => [r.key, r.value]));
+const getSettings = () => {
+  const map = Object.fromEntries(q.all('SELECT key,value FROM settings').map(r => [r.key, r.value]));
+  if (map.gym_address) map.gym_address = sanitizeGymAddress(map.gym_address);
+  return map;
+};
 const numSettings = () => {
   const s = getSettings();
   return { ...s, warn_days: +s.warn_days, grace_days: +s.grace_days, passback_min: +s.passback_min, stay_min: +s.stay_min, daily_pass_price: +s.daily_pass_price || 5 };
@@ -610,7 +624,13 @@ function applyVaultData(d) {
       return c;
     };
 
+    if (Array.isArray(d.settings)) {
+      d.settings.forEach(s => {
+        if (s && s.key === 'gym_address') s.value = sanitizeGymAddress(s.value);
+      });
+    }
     insertRows('settings', d.settings);
+    q.run("UPDATE settings SET value=? WHERE key='gym_address' AND LOWER(value) LIKE '%muya%'", CLEAN_GYM_ADDRESS);
     insertRows('users', d.users);
     insertRows('plans', d.plans);
     insertRows('products', d.products);
