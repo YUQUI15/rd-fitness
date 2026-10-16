@@ -170,8 +170,39 @@ module.exports = function mountMemberHub(api, ctx) {
         ON CONFLICT(member_id) DO UPDATE SET alias=excluded.alias, pass_hash=excluded.pass_hash, updated_at=excluded.updated_at`, m.id, alias, hash);
     } catch (e) { return bad(res, 'Ese usuario ya está en uso. Prueba con otro.'); }
     if (np) q.run("DELETE FROM sessions WHERE kind='member' AND ref_id=? AND token<>?", m.id, req.token); // cerrar sesión en los demás dispositivos
+    try { saveVault(); } catch {}
     audit(null, 'member.credentials', { member: m.code, alias_changed: !!wantAlias, password_changed: !!np });
     res.json({ ok: true, member: memberPublic(m, true) });
+  }));
+
+  // Foto de perfil y actualización de datos propios del socio
+  api.post('/member/photo', memberAuth, wrap((req, res) => {
+    const rawData = String(req.body?.data || '');
+    const match = /^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/.exec(rawData);
+    if (!match) return bad(res, 'Imagen inválida');
+    const buf = Buffer.from(match[2], 'base64');
+    if (buf.length > 1.5 * 1024 * 1024) return bad(res, 'La foto es muy pesada');
+    q.run('UPDATE members SET photo=? WHERE id=?', rawData, req.member.id);
+    try { saveVault(); } catch {}
+    const updated = q.get('SELECT * FROM members WHERE id=?', req.member.id);
+    res.json({ ok: true, photo: rawData, member: memberPublic(updated, true) });
+  }));
+
+  api.put('/member/profile', memberAuth, wrap((req, res) => {
+    const b = req.body || {};
+    const phone = clip(b.phone ?? req.member.phone, 30);
+    const email = clip(b.email ?? req.member.email, 80);
+    const goal = clip(b.goal ?? req.member.goal, 80);
+    const level = ['principiante', 'intermedio', 'avanzado'].includes(String(b.level || '').toLowerCase())
+      ? String(b.level).toLowerCase()
+      : (req.member.level || 'principiante');
+    const emergency = clip(b.emergency ?? req.member.emergency, 100);
+    const health = clip(b.health ?? req.member.health, 250);
+    q.run('UPDATE members SET phone=?, email=?, goal=?, level=?, emergency=?, health=?, consent=1 WHERE id=?',
+      phone, email, goal, level, emergency, health, req.member.id);
+    try { saveVault(); } catch {}
+    const updated = q.get('SELECT * FROM members WHERE id=?', req.member.id);
+    res.json({ ok: true, member: memberPublic(updated, true) });
   }));
 
   // ---------------- Dispositivos ----------------
@@ -201,6 +232,7 @@ module.exports = function mountMemberHub(api, ctx) {
     if (req.body && req.body.clear_alias) q.run('DELETE FROM member_credentials WHERE member_id=?', id);
     else q.run('UPDATE member_credentials SET pass_hash=NULL, updated_at=datetime(\'now\') WHERE member_id=?', id);
     q.run("DELETE FROM sessions WHERE kind='member' AND ref_id=?", id);
+    try { saveVault(); } catch {}
     audit(req.user.id, 'member.credentials.reset', { member: m.code, clear_alias: !!(req.body && req.body.clear_alias) });
     res.json({ ok: true });
   }));
@@ -243,6 +275,7 @@ module.exports = function mountMemberHub(api, ctx) {
       const mode = ['sound', 'vibrate', 'silent'].includes(b.alert_mode) ? b.alert_mode : 'sound';
       q.run('UPDATE member_prefs SET alert_mode=? WHERE member_id=?', mode, req.member.id);
     }
+    try { saveVault(); } catch {}
     res.json(prefsOut(req.member.id));
   }));
 

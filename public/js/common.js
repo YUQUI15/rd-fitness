@@ -971,6 +971,109 @@
     }
   };
 
+  // Compresor universal de fotografías en navegador (JPEG 260x260 ligero para Bóveda Cloud)
+  RD.compressPhoto = file => new Promise((resolve, reject) => {
+    if (!file) return reject(new Error('Selecciona una imagen'));
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('No se pudo leer la imagen'));
+    reader.onload = ev => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Formato de imagen no soportado'));
+      img.onload = () => {
+        const size = 260;
+        const c = document.createElement('canvas');
+        c.width = size; c.height = size;
+        const ctx = c.getContext('2d');
+        const minSide = Math.min(img.width, img.height);
+        const sx = (img.width - minSide) / 2;
+        const sy = (img.height - minSide) / 2;
+        ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+        resolve(c.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // ---------- Centro Legal, Normas del Gimnasio, Privacidad (Ley N° 29733) y Derechos de Autor ----------
+  RD.openLegalModal = (initialTab = 'normas') => {
+    const year = new Date().getFullYear();
+    const m = RD.openModal('Centro Legal, Normas y Seguridad · RD Fitness Club', `
+      <div class="chips mb" id="legaltabs">
+        <span class="chip ${initialTab === 'normas' ? 'on' : ''}" data-lt="normas" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('award', '', 14)} Reglamento del Club</span>
+        <span class="chip ${initialTab === 'privacidad' ? 'on' : ''}" data-lt="privacidad" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('shield', '', 14)} Privacidad (Ley 29733)</span>
+        <span class="chip ${initialTab === 'terminos' ? 'on' : ''}" data-lt="terminos" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('file-text', '', 14)} Términos y Membresías</span>
+        <span class="chip ${initialTab === 'copyright' ? 'on' : ''}" data-lt="copyright" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('lock', '', 14)} Derechos y Ciberseguridad</span>
+      </div>
+      <div id="legalbody"></div>
+    `, { wide: true });
+
+    const sections = {
+      normas: `
+        <div class="card flat mb">
+          <h3 style="display:flex;align-items:center;gap:8px;color:var(--gold)">${RD.icon('award', 'gold', 20)} Reglamento Interno y Normas de Convivencia</h3>
+          <p class="small muted">Para garantizar un ambiente seguro, higiénico y profesional para todos los socios de <b>RD Fitness Club (Chivay)</b>, es obligatorio el cumplimiento de las siguientes normas:</p>
+          <ol class="steps mt">
+            <li><div><b>Higiene y Toalla Personal:</b> Es obligatorio el uso de toalla personal al utilizar bancas, tapices y máquinas, así como limpiar el sudor tras finalizar tus series.</div></li>
+            <li><div><b>Orden de Discos y Mancuernas:</b> Todo socio debe descargar las barras, prensas y máquinas al terminar su ejercicio y devolver las mancuernas y discos a su soporte correspondiente.</div></li>
+            <li><div><b>Calzado e Indumentaria Deportiva:</b> El ingreso al área de entrenamiento requiere ropa deportiva adecuada y zapatillas cerradas limpias (prohibido entrenar en sandalias, zapatos de vestir o torso descubierto).</div></li>
+            <li><div><b>Uso Personal del Pase QR:</b> La credencial digital QR dinámica y el carnet físico son estrictamente personales e intransferibles. El préstamo de código a terceros genera el bloqueo automático de la membresía.</div></li>
+            <li><div><b>Respeto y Uso Compartido:</b> En horas de alta afluencia, permite alternar series en las máquinas y poleas durante tus tiempos de descanso. Evita azotar innecesariamente las pesas contra el piso.</div></li>
+            <li><div><b>Salud y Entrenamiento en Altura (3,635 msnm):</b> Si presentas mareos, dolor torácico o falta de aire inusual, detén el ejercicio de inmediato y avisa al personal de recepción o entrenador.</div></li>
+          </ol>
+        </div>`,
+      privacidad: `
+        <div class="card flat mb">
+          <h3 style="display:flex;align-items:center;gap:8px;color:var(--gold)">${RD.icon('shield', 'gold', 20)} Política de Privacidad y Protección de Datos (Ley N° 29733 - Perú)</h3>
+          <p class="small muted">En cumplimiento de la <b>Ley N° 29733 — Ley de Protección de Datos Personales del Perú</b> y su Reglamento (D.S. N° 003-2013-JUS), RD Fitness Club garantiza la confidencialidad y seguridad de la información de sus socios:</p>
+          <div class="list small mt">
+            <div class="item"><div><b>1. Finalidad del Tratamiento:</b> Los datos registrados (nombre, DNI, teléfono, fecha de nacimiento, fotografía de control de acceso, historial de pagos, asistencias y mediciones corporales) se utilizan exclusivamente para la gestión de tu membresía, seguridad de ingreso al local y seguimiento deportivo.</div></div>
+            <div class="item"><div><b>2. Confidencialidad y No Divulgación:</b> RD Fitness Club jamás vende, alquila ni cede tus datos personales o teléfonos a terceros ni empresas externas.</div></div>
+            <div class="item"><div><b>3. Derechos ARCO (Acceso, Rectificación, Cancelación y Oposición):</b> Como titular de tus datos, puedes actualizar tu información desde tu pestaña Perfil o solicitar la rectificación o baja de tus datos en recepción en cualquier momento.</div></div>
+            <div class="item"><div><b>4. Cifrado de Credenciales:</b> Las contraseñas de socios y personal se almacenan mediante algoritmo criptográfico unidireccional <b>Bcrypt (Factor 10)</b>; ni siquiera el administrador puede ver tu contraseña en texto plano.</div></div>
+          </div>
+        </div>`,
+      terminos: `
+        <div class="card flat mb">
+          <h3 style="display:flex;align-items:center;gap:8px;color:var(--gold)">${RD.icon('file-text', 'gold', 20)} Términos de Membresías, Congelamiento y Pagos</h3>
+          <p class="small muted">Condiciones claras alineadas con el <b>Código de Protección y Defensa del Consumidor (Ley N° 29571 - INDECOPI)</b>:</p>
+          <div class="list small mt">
+            <div class="item"><div><b>Vigencia de Planes:</b> Las membresías (1 mes, 3 meses, 6 meses, 1 año) tienen vigencia continua desde la fecha de inicio elegida (inmediata o programada) hasta la fecha de vencimiento indicada en tu boleta digital.</div></div>
+            <div class="item"><div><b>Congelamiento de Membresía:</b> En planes trimestrales, semestrales o anuales, el socio puede solicitar en recepción el congelamiento temporal de su plan por motivos de viaje o salud justificados; al descongelar, el sistema repone automáticamente los días exactos restantes.</div></div>
+            <div class="item"><div><b>Comprobantes y Boletas Digitales:</b> Todo pago en efectivo, Yape, Plin, tarjeta POS o transferencia genera un comprobante electrónico verificable en tiempo real desde la sección <b>Perfil → Mis Boletas</b>.</div></div>
+            <div class="item"><div><b>Pases Diarios:</b> El Pase Diario es válido únicamente durante la fecha de su emisión (horario de atención del club).</div></div>
+          </div>
+        </div>`,
+      copyright: `
+        <div class="card flat mb">
+          <h3 style="display:flex;align-items:center;gap:8px;color:var(--gold)">${RD.icon('lock', 'gold', 20)} Propiedad Intelectual, Derechos de Autor y Ciberseguridad</h3>
+          <div class="list small mt">
+            <div class="item"><div><b>Propiedad Intelectual y Marca:</b> © ${year} <b>RD Fitness Club · Chivay, Caylloma, Arequipa - Perú</b>. Todos los derechos reservados. El nombre comercial, logotipo, diseño de interfaz, código fuente, arquitectura de base de datos, rutinas estructuradas y sistema de control de acceso son propiedad exclusiva de RD Fitness Club. Queda prohibida su reproducción, copia o distribución no autorizada conforme al <b>Decreto Legislativo N° 822 (Ley sobre el Derecho de Autor en el Perú)</b>.</div></div>
+            <div class="item"><div><b>Arquitectura Anti-Hackeo y Ciberdefensa:</b>
+              <ul style="margin:.4rem 0 0 1.1rem;padding:0">
+                <li><b>Anti-Inyección SQL (SQLi):</b> 100% de consultas ejecutadas con sentencias preparadas parametrizadas en motor SQLite WAL.</li>
+                <li><b>Anti-Falsificación de QR:</b> Firma criptográfica <code>HMAC-SHA256</code> dinámica que cambia cada 60 segundos; las capturas de pantalla caducan automáticamente.</li>
+                <li><b>Anti-Fuerza Bruta y DDoS:</b> Bloqueo automático temporal por IP y por cuenta ante intentos fallidos repetidos de inicio de sesión.</li>
+                <li><b>Cabeceras de Seguridad Bancaria:</b> Protección activa <code>X-Frame-Options: SAMEORIGIN</code>, <code>X-Content-Type-Options: nosniff</code>, <code>Strict-Transport-Security (HSTS)</code> y cookies seguras <code>HttpOnly</code>.</li>
+                <li><b>Respaldo Triple Inmune a Caídas:</b> Sincronización continua en Base de Datos Local WAL + Bóveda JSON + Nube Cifrada <b>Upstash Redis</b>.</li>
+              </ul>
+            </div></div>
+          </div>
+        </div>`
+    };
+
+    const bodyEl = m.el.querySelector('#legalbody');
+    const drawTab = k => {
+      bodyEl.innerHTML = sections[k] || sections.normas;
+      m.el.querySelectorAll('#legaltabs .chip').forEach(c => c.classList.toggle('on', c.dataset.lt === k));
+    };
+    m.el.querySelector('#legaltabs').onclick = e => {
+      const c = e.target.closest('[data-lt]');
+      if (c) drawTab(c.dataset.lt);
+    };
+    drawTab(initialTab);
+  };
+
   RD.initTheme();
 
   // Protección global contra imágenes rotas (ejercicios, fotos de socios, avatares)

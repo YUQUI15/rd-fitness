@@ -26,7 +26,7 @@ fs.mkdirSync(path.join(DATA_DIR, 'backups'), { recursive: true });
 const DB_FILE = path.join(DATA_DIR, 'rdfitness.db');
 
 const db = new DatabaseSync(DB_FILE);
-db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;');
+db.exec('PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000; PRAGMA cache_size = -16000; PRAGMA temp_store = MEMORY;');
 
 const clean = a => a.map(v => (v === undefined ? null : (typeof v === 'boolean' ? (v ? 1 : 0) : v)));
 const q = {
@@ -264,8 +264,20 @@ function ensureColumns() {
     }
   } catch (e) { console.error('Backfill de ventas:', e.message); }
 
-  try { db.exec('CREATE INDEX IF NOT EXISTS idx_att_exit ON attendance(exit_ts)'); } catch (e) { }
-  try { db.exec('CREATE INDEX IF NOT EXISTS idx_pay_product ON payments(product_id)'); } catch (e) { }
+  try {
+    db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_att_exit ON attendance(exit_ts);
+      CREATE INDEX IF NOT EXISTS idx_pay_product ON payments(product_id);
+      CREATE INDEX IF NOT EXISTS idx_pay_shift ON payments(shift_id, voided);
+      CREATE INDEX IF NOT EXISTS idx_exp_shift ON expenses(shift_id, voided);
+      CREATE INDEX IF NOT EXISTS idx_exp_day ON expenses(day, voided);
+      CREATE INDEX IF NOT EXISTS idx_workouts_member ON workouts(member_id, day);
+      CREATE INDEX IF NOT EXISTS idx_ri_routine ON routine_items(routine_id, day_index, pos);
+      CREATE INDEX IF NOT EXISTS idx_assign_member ON assignments(member_id, active);
+      CREATE INDEX IF NOT EXISTS idx_meas_member ON measurements(member_id, day);
+      CREATE INDEX IF NOT EXISTS idx_sessions_ref ON sessions(kind, ref_id);
+    `);
+  } catch (e) { }
 }
 ensureColumns();
 

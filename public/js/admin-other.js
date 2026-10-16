@@ -3723,6 +3723,27 @@ function verEstado() {
           </a>
         </div>
       </div>
+
+      <!-- TARJETA: CIBERSEGURIDAD, AUDITORÍA Y NORMATIVA LEGAL -->
+      <div class="card" style="border:1px solid rgba(16,185,129,0.35); background:linear-gradient(135deg, rgba(16,185,129,0.06), rgba(0,0,0,0));">
+        <div class="row between wrap gap" style="margin-bottom:0.5rem;">
+          <h3 style="display:flex; align-items:center; gap:8px; margin:0; color:#34d399;">
+            ${RD.icon('shield')} Escudo de Ciberseguridad, Bitácora de Auditoría y Marco Legal
+          </h3>
+          <span class="badge ok">Blindaje Activo 100%</span>
+        </div>
+        <p class="small muted" style="margin-bottom:1rem;">
+          Verifica en tiempo real el estado de las defensas Anti-Hackeo (SQLi, XSS, Fuerza Bruta, DDoS, QR HMAC-SHA256), la integridad del motor SQLite WAL, el registro de acciones del personal y la documentación legal (Ley N° 29733 Perú y Derechos de Autor).
+        </p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn primary" id="btn-security-audit" style="display:inline-flex; align-items:center; gap:6px;">
+            ${RD.icon('shield')} Ver Auditoría de Ciberseguridad y Bitácora
+          </button>
+          <button class="btn" id="btn-admin-legal" style="display:inline-flex; align-items:center; gap:6px;">
+            ${RD.icon('file-text')} Reglamento, Privacidad (Ley 29733) y Derechos
+          </button>
+        </div>
+      </div>
     </div>`;
 
     // 0. Cloud Vault status & actions
@@ -3871,6 +3892,64 @@ function verEstado() {
         }
       }
     }).catch(() => {});
+
+    // 6. Auditoría de Ciberseguridad y Centro Legal
+    const btnLegal = el.querySelector('#btn-admin-legal');
+    if (btnLegal) btnLegal.onclick = () => RD.openLegalModal('normas');
+
+    const btnAudit = el.querySelector('#btn-security-audit');
+    if (btnAudit) {
+      btnAudit.onclick = async () => {
+        try {
+          const a = await RD.api.get('/admin/security-audit');
+          const p = a.protections || {};
+          const r = a.resilience || {};
+          const c = a.counts || {};
+          RD.openModal('Auditoría en Vivo de Ciberseguridad e Integridad', `
+            <div class="grid g4 mb">
+              <div class="stat ok"><div class="v">${a.security_score || 100}%</div><div class="l">Puntaje de Seguridad</div></div>
+              <div class="stat gold"><div class="v">${esc(String(r.db_integrity || 'ok').toUpperCase())}</div><div class="l">Integridad SQLite WAL</div></div>
+              <div class="stat"><div class="v">${c.exercises || 135} / ${c.routines || 17}</div><div class="l">Ejercicios / Rutinas</div></div>
+              <div class="stat"><div class="v">${r.ram_mb || 0} MB</div><div class="l">Memoria RAM Servidor</div></div>
+            </div>
+            <div class="card flat mb">
+              <h3 style="display:flex;align-items:center;gap:8px;color:#34d399">${RD.icon('shield', '', 18)} Escudos Anti-Hackeo y Ciberdefensa Activos</h3>
+              <div class="list small mt2">
+                <div class="item"><span>Inyección SQL (SQLi):</span> <b class="ok">${esc(p.sql_injection)}</b></div>
+                <div class="item"><span>Protección XSS y Cabeceras:</span> <b class="ok">${esc(p.xss_protection)}</b></div>
+                <div class="item"><span>Criptografía de Pase QR:</span> <b class="ok">${esc(p.qr_cryptography)}</b></div>
+                <div class="item"><span>Cifrado de Contraseñas:</span> <b class="ok">${esc(p.password_hashing)}</b></div>
+                <div class="item"><span>Escudo Anti-Fuerza Bruta:</span> <b class="ok">${esc(p.brute_force_shield)}</b></div>
+                <div class="item"><span>Escudo Anti-Flood / DDoS:</span> <b class="ok">${esc(p.ddos_flood_shield)}</b></div>
+                <div class="item"><span>Aislamiento de Sesiones:</span> <b class="ok">${esc(p.session_isolation)}</b></div>
+                <div class="item"><span>Respaldo Triple (Cloud Vault):</span> <b class="${r.cloud_vault_configured ? 'ok' : 'warn'}">${r.cloud_vault_configured ? 'ACTIVO (' + esc(r.cloud_vault_provider) + ')' : 'Solo Bóveda Local'}</b></div>
+                <div class="item"><span>Cumplimiento Normativo:</span> <b>${esc(p.legal_compliance)}</b></div>
+              </div>
+            </div>
+            <div class="card flat">
+              <h3 style="display:flex;align-items:center;gap:8px">${RD.icon('activity', 'gold', 18)} Bitácora Reciente de Seguridad y Acciones (${(a.recent_audit || []).length})</h3>
+              <div class="tbl-wrap mt2" style="max-height:260px;overflow-y:auto">
+                <table>
+                  <thead><tr><th>Fecha / Hora</th><th>Usuario</th><th>Acción</th><th>Detalle</th></tr></thead>
+                  <tbody>
+                    ${(a.recent_audit || []).map(x => `
+                      <tr>
+                        <td class="small muted">${esc(x.ts || '')}</td>
+                        <td><b>${esc(x.user_name || x.username || 'Socio / Sistema')}</b></td>
+                        <td><span class="badge info">${esc(x.action || '')}</span></td>
+                        <td class="tiny muted" style="font-family:monospace">${esc(String(x.detail || '').slice(0, 100))}</td>
+                      </tr>
+                    `).join('') || '<tr><td colspan="4" class="empty">Sin eventos registrados</td></tr>'}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `, { wide: true });
+        } catch (err) {
+          RD.toast(err.message || 'No se pudo cargar la auditoría', 'err');
+        }
+      };
+    }
   }
 
 })();

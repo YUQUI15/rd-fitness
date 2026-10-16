@@ -52,17 +52,20 @@
         <div class="card flat mt center small muted">
           ¿Aún no estás registrado? Acércate a recepción en Calle Sucre Lt. 10 para obtener tu código y credencial.
         </div>
-        <p class="center muted tiny mt">Personal del gimnasio: <a href="/admin/">Acceso al panel</a></p>
+        <p class="center muted tiny mt">Personal del gimnasio: <a href="/admin/">Acceso al panel</a> · <a href="#" id="loginlegal">Reglamento y Privacidad</a></p>
         <div class="center mt2">
           <button type="button" class="btn ghost sm" id="loginthemebtn" data-theme-toggle style="display:inline-flex;align-items:center;gap:6px">${themeLbl()}</button>
         </div>
+        <div class="center muted tiny mt2">© ${new Date().getFullYear()} RD Fitness Club · Chivay · Derechos Reservados</div>
       </form>
     </div>`;
 
     const ltb = document.getElementById('loginthemebtn');
-    ltb.onclick = () => { RD.toggleTheme(); ltb.textContent = themeLbl(); };
+    ltb.onclick = () => { RD.toggleTheme(); ltb.innerHTML = themeLbl(); };
     const bli = document.getElementById('btn_login_install');
     if (bli) bli.onclick = () => RD.hub.openInstallGuide();
+    const lleg = document.getElementById('loginlegal');
+    if (lleg) lleg.onclick = e => { e.preventDefault(); RD.openLegalModal('normas'); };
     root.querySelector('[data-eye]').onclick = e => { const i = e.currentTarget.previousElementSibling; i.type = i.type === 'password' ? 'text' : 'password'; };
     document.getElementById('forgot').onclick = e => { e.preventDefault(); RD.hub.forgot(); };
 
@@ -1024,6 +1027,13 @@
       <h2>${esc(member.name)}</h2>
       <div class="gold" style="font-size:1.3rem;font-weight:900">${esc(member.code)}</div>
       <div class="muted small mt2">Socio desde ${RD.fmtDate(member.created_at)}</div>
+      <div class="row gap mt2" style="justify-content:center">
+        <label class="btn sm ghost" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px">
+          ${RD.icon('camera', '', 14)} Cambiar mi foto
+          <input type="file" id="pfphotof" accept="image/*" hidden>
+        </label>
+        <button class="btn sm" id="pfeditinfo" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('edit', '', 14)} Editar mis datos</button>
+      </div>
     </div>
 
     <div class="card mb">
@@ -1063,6 +1073,17 @@
     </div>
 
     <div class="card mb">
+      <h3>Normas del Club, Privacidad y Seguridad</h3>
+      <p class="small muted">Consulta el reglamento interno de convivencia, tu protección de datos (Ley N° 29733) y términos de membresía.</p>
+      <div class="grid g2 keep gap">
+        <button class="btn sm ghost" id="pf_normas" style="display:flex;align-items:center;justify-content:center;gap:5px">${RD.icon('award', '', 14)} Reglamento del Club</button>
+        <button class="btn sm ghost" id="pf_privacidad" style="display:flex;align-items:center;justify-content:center;gap:5px">${RD.icon('shield', '', 14)} Privacidad y Datos</button>
+        <button class="btn sm ghost" id="pf_terminos" style="display:flex;align-items:center;justify-content:center;gap:5px">${RD.icon('file-text', '', 14)} Términos de Planes</button>
+        <button class="btn sm ghost" id="pf_copyright" style="display:flex;align-items:center;justify-content:center;gap:5px">${RD.icon('lock', '', 14)} Derechos y Seguridad</button>
+      </div>
+    </div>
+
+    <div class="card mb">
       <h3>Aplicación</h3>
       <div class="row between wrap gap">
         <span class="small">Tema visual</span>
@@ -1081,13 +1102,78 @@
 
     <div class="grid gap">
       <button class="btn danger block" id="outbtn" style="display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('power', '', 16)} Cerrar Sesión</button>
-    </div>`;
+    </div>
+    <div class="center muted tiny mt">© ${new Date().getFullYear()} RD Fitness Club · Chivay, Arequipa · Todos los derechos reservados</div>`;
 
     const redrawProfile = m => {
       member = m;
       localStorage.setItem('rd_member_data', JSON.stringify(m));
       renderProfileTab(el);
     };
+
+    const photoInput = el.querySelector('#pfphotof');
+    if (photoInput) {
+      photoInput.onchange = async e => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        try {
+          const data = await RD.compressPhoto(file);
+          const res = await api.post('/member/photo', { data });
+          RD.toast('Foto de perfil actualizada');
+          redrawProfile(res.member || { ...member, photo: res.photo });
+        } catch (err) {
+          RD.toast(err.message || 'No se pudo actualizar la foto', 'err');
+        }
+      };
+    }
+
+    el.querySelector('#pfeditinfo').onclick = () => {
+      const m = RD.openModal('Editar mis datos de perfil', `
+        <form id="pfeditform">
+          <div class="grid g2 gap">
+            <label class="field"><span>Celular / WhatsApp</span><input name="phone" value="${esc(member.phone || '')}" placeholder="987654321"></label>
+            <label class="field"><span>Correo electrónico</span><input name="email" type="email" value="${esc(member.email || '')}" placeholder="correo@ejemplo.com"></label>
+            <label class="field"><span>Objetivo deportivo</span>
+              <select name="goal">
+                ${['Ganar masa muscular', 'Bajar grasa corporal', 'Fuerza y potencia', 'Tonificar glúteos y piernas', 'Salud y condición física', 'Rendimiento atlético'].map(g => `<option value="${esc(g)}" ${member.goal === g ? 'selected' : ''}>${esc(g)}</option>`).join('')}
+              </select>
+            </label>
+            <label class="field"><span>Nivel de experiencia</span>
+              <select name="level">
+                ${[['principiante', 'Principiante'], ['intermedio', 'Intermedio'], ['avanzado', 'Avanzado']].map(([v, l]) => `<option value="${v}" ${(member.level || 'principiante') === v ? 'selected' : ''}>${l}</option>`).join('')}
+              </select>
+            </label>
+          </div>
+          <label class="field mt2"><span>Contacto de emergencia (Nombre y teléfono)</span><input name="emergency" value="${esc(member.emergency || '')}" placeholder="Ej. María (Madre) - 987654321"></label>
+          <label class="field mt2"><span>Observaciones médicas o lesiones a considerar</span><input name="health" value="${esc(member.health || '')}" placeholder="Ej. Ninguna / Molestia lumbar leve"></label>
+          <div class="row end gap mt">
+            <button type="button" class="btn ghost" id="pfcancel">Cancelar</button>
+            <button type="submit" class="btn primary">${RD.icon('check', '', 14)} Guardar cambios</button>
+          </div>
+        </form>
+      `);
+      m.el.querySelector('#pfcancel').onclick = m.close;
+      m.el.querySelector('#pfeditform').onsubmit = async ev => {
+        ev.preventDefault();
+        const fd = Object.fromEntries(new FormData(ev.target));
+        await RD.busy(ev.target.querySelector('button[type=submit]'), async () => {
+          try {
+            const res = await api.put('/member/profile', fd);
+            m.close();
+            RD.toast('Tus datos se actualizaron correctamente');
+            redrawProfile(res.member);
+          } catch (err) {
+            RD.toast(err.message, 'err');
+          }
+        });
+      };
+    };
+
+    el.querySelector('#pf_normas').onclick = () => RD.openLegalModal('normas');
+    el.querySelector('#pf_privacidad').onclick = () => RD.openLegalModal('privacidad');
+    el.querySelector('#pf_terminos').onclick = () => RD.openLegalModal('terminos');
+    el.querySelector('#pf_copyright').onclick = () => RD.openLegalModal('copyright');
+
     el.querySelector('#pfaccount').onclick = () => RD.hub.openAccount(member, redrawProfile, { first: !member.has_password });
     el.querySelector('#pfdevices').onclick = () => RD.hub.openDevices();
     el.querySelector('#pfinbox').onclick = () => RD.hub.openInbox();
