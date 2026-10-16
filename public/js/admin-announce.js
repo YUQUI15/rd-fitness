@@ -4,22 +4,22 @@
   const { esc } = RD;
 
   const KINDS = [
-    ['aviso', '📢 Aviso General', 'Comunicado regular para los socios'],
-    ['mantenimiento', '🛠️ Mantenimiento', 'Aparece como franja de aviso en la cabecera'],
-    ['cierre', '⛔ Cierre / Horario Especial', 'Avisos de feriado o cierre temporal'],
-    ['promo', '🏷️ Promoción o Descuento', 'Ofertas y beneficios especiales'],
-    ['evento', '🎉 Evento o Clase Especial', 'Actividades, temáticas o retos']
+    ['aviso', 'Aviso General', 'Comunicado regular para los socios'],
+    ['mantenimiento', 'Mantenimiento', 'Aparece como franja de aviso en la cabecera'],
+    ['cierre', 'Cierre / Horario Especial', 'Avisos de feriado o cierre temporal'],
+    ['promo', 'Promoción o Descuento', 'Ofertas y beneficios especiales'],
+    ['evento', 'Evento o Clase Especial', 'Actividades, temáticas o retos']
   ];
 
   const AUDIENCES = [
-    ['all', '👥 Todos los socios'],
-    ['active', '🟢 Solo socios con membresía activa'],
-    ['expiring', '⚠️ Socios por vencer (en alerta)'],
-    ['expired', '❌ Socios con membresía vencida'],
-    ['member', '👤 Un socio específico']
+    ['all', 'Todos los socios'],
+    ['active', 'Solo socios con membresía activa'],
+    ['expiring', 'Socios por vencer (en alerta)'],
+    ['expired', 'Socios con membresía vencida'],
+    ['member', 'Un socio específico']
   ];
 
-  const KIND_ICON = { aviso: '📢', mantenimiento: '🛠️', cierre: '⛔', promo: '🏷️', evento: '🎉', pago: '🧾', recordatorio: '⏰' };
+  const KIND_ICON = { aviso: 'megaphone', mantenimiento: 'wrench', cierre: 'shield-alert', promo: 'tag', evento: 'party', pago: 'receipt', recordatorio: 'clock' };
 
   let currentTab = 'all';
   let listCache = [];
@@ -30,7 +30,7 @@
       view.innerHTML = `
         <div class="row between wrap gap mb">
           <div>
-            <h2 style="margin:0">📢 Avisos, Novedades y Notificaciones</h2>
+            <h2 style="margin:0;display:flex;align-items:center;gap:8px">${RD.icon('megaphone', '', 22)} Avisos, Novedades y Notificaciones</h2>
             <p class="muted small" style="margin:.2rem 0 0">
               Publica comunicados oficiales, avisos de mantenimiento, horarios especiales y promociones. Se reflejan en tiempo real en la app del socio.
             </p>
@@ -47,11 +47,11 @@
 
         <div class="chips mb" id="anntabs">
           <span class="chip on" data-t="all">Todos</span>
-          <span class="chip" data-t="active">🟢 Activos</span>
-          <span class="chip" data-t="scheduled">⏳ Programados</span>
-          <span class="chip" data-t="maintenance">🛠️ Cierres / Mantenimiento</span>
-          <span class="chip" data-t="promos">🏷️ Promociones</span>
-          <span class="chip" data-t="archived">📦 Archivados</span>
+          <span class="chip" data-t="active">Activos</span>
+          <span class="chip" data-t="scheduled">Programados</span>
+          <span class="chip" data-t="maintenance">Cierres / Mantenimiento</span>
+          <span class="chip" data-t="promos">Promociones</span>
+          <span class="chip" data-t="archived">Archivados</span>
         </div>
 
         <div id="annlist"><div class="empty">Cargando comunicados…</div></div>
@@ -80,7 +80,7 @@
       renderList(view);
     } catch (e) {
       const el = view.querySelector('#annlist');
-      if (el) el.innerHTML = `<div class="empty">${e.offline ? '📡 Sin conexión.' : esc(e.message)}</div>`;
+      if (el) el.innerHTML = `<div class="empty">${e.offline ? 'Sin conexión.' : esc(e.message)}</div>`;
     }
   }
 
@@ -121,7 +121,7 @@
           const isBanner = a.priority === 'importante' && ['mantenimiento', 'cierre'].includes(a.kind);
           return `
           <div class="card mb item" style="padding:1rem;align-items:flex-start">
-            <div style="font-size:1.8rem;line-height:1;margin-right:.4rem">${KIND_ICON[a.kind] || '📢'}</div>
+            <div style="margin-right:.6rem;color:var(--gold);display:flex;align-items:center">${RD.icon(KIND_ICON[a.kind] || 'megaphone', '', 26)}</div>
             <div class="grow" style="min-width:0">
               <div class="row between wrap gap">
                 <div>
@@ -129,14 +129,14 @@
                   <div class="row gap wrap">
                     <span class="badge ${a.status === 'activo' ? 'ok' : a.status === 'programado' ? 'warn' : 'ghost'}">${esc(a.status.toUpperCase())}</span>
                     <span class="badge">${esc(kindLbl)}</span>
-                    <span class="badge ${isBanner ? 'bad' : 'ghost'}">${isBanner ? '⚠️ Franja Destacada' : 'ℹ️ Normal'}</span>
-                    ${a.pinned ? '<span class="badge ok">📌 Fijado</span>' : ''}
-                    ${a.push ? '<span class="badge info">📲 Push ' + (a.push_sent ? 'enviado' : 'programado') + '</span>' : ''}
+                    <span class="badge ${isBanner ? 'bad' : 'ghost'}">${isBanner ? 'Franja Destacada' : 'Normal'}</span>
+                    ${a.pinned ? '<span class="badge ok">Fijado</span>' : ''}
+                    ${a.push ? '<span class="badge info">Push ' + (a.push_sent ? 'enviado' : 'programado') + '</span>' : ''}
                   </div>
                 </div>
                 <div class="row gap">
-                  ${!a.archived ? `<button class="btn sm" data-send-push="${a.id}" title="Enviar o reenviar notificación push al celular de los socios">📲 Enviar Push</button>` : ''}
-                  ${!a.archived ? `<button class="btn sm" data-edit="${a.id}">✏️ Editar</button>` : ''}
+                  ${!a.archived ? `<button class="btn sm" data-send-push="${a.id}" title="Enviar o reenviar notificación push al celular de los socios">${RD.icon('smartphone', '', 14)} Enviar Push</button>` : ''}
+                  ${!a.archived ? `<button class="btn sm" data-edit="${a.id}">${RD.icon('edit', '', 14)} Editar</button>` : ''}
                   <button class="btn sm ${a.archived ? 'ok' : 'danger'}" data-archive="${a.id}">${a.archived ? 'Desarchivar' : 'Archivar'}</button>
                 </div>
               </div>
@@ -154,8 +154,8 @@
                   ${a.starts_at ? ` · Desde: <b>${RD.fmtDate(a.starts_at)}</b>` : ''}
                   ${a.ends_at ? ` · Hasta: <b>${RD.fmtDate(a.ends_at)}</b>` : ''}
                 </div>
-                <div>
-                  👁️ <b>${a.reads || 0}</b> socios leyeron este aviso en su app
+                <div style="display:flex;align-items:center;gap:5px">
+                  ${RD.icon('eye', '', 14)} <b>${a.reads || 0}</b> socios leyeron este aviso en su app
                 </div>
               </div>
             </div>
@@ -173,7 +173,7 @@
           try {
             const res = await RD.api.post(`/announcements/${id}/send-push`);
             const p = res.push || {};
-            RD.toast(`📲 Notificaciones enviadas: ${p.sent || 0} entregadas (${p.skipped || 0} sin dispositivo suscrito)`, 'ok', 5000);
+            RD.toast(`Notificaciones enviadas: ${p.sent || 0} entregadas (${p.skipped || 0} sin dispositivo suscrito)`, 'ok', 5000);
             loadData(view);
           } catch (err) {
             RD.toast(err.message, 'err');
@@ -246,8 +246,8 @@
           <label class="field">
             <span>Prioridad</span>
             <select name="priority">
-              <option value="info" ${item?.priority === 'info' ? 'selected' : ''}>ℹ️ Normal (Solo en bandeja 🔔)</option>
-              <option value="importante" ${item?.priority === 'importante' ? 'selected' : ''}>⚠️ Importante (Franja destacada en la app)</option>
+              <option value="info" ${item?.priority === 'info' ? 'selected' : ''}>Normal (Solo en bandeja de avisos)</option>
+              <option value="importante" ${item?.priority === 'importante' ? 'selected' : ''}>Importante (Franja destacada en la app)</option>
             </select>
           </label>
           <label class="field">
@@ -289,14 +289,14 @@
 
         <div class="card flat mt mb" style="background:var(--bg2);border:1px solid var(--line);padding:12px">
           <label class="field mb">
-            <span>🖼️ Imagen / Banner Multimedia (Opcional)</span>
+            <span>Imagen / Banner Multimedia (Opcional)</span>
             <div class="row gap wrap">
               <input name="image_url" id="ann_image_url" class="grow" placeholder="https://... o sube una imagen de tu dispositivo" value="${esc(item?.image_url || '')}">
-              <label class="btn sm" style="cursor:pointer">
-                📷 Subir Imagen
+              <label class="btn sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+                ${RD.icon('camera', '', 14)} Subir Imagen
                 <input type="file" id="ann_file_inp" accept="image/*" class="hidden">
               </label>
-              <button type="button" class="btn sm ghost ${item?.image_url ? '' : 'hidden'}" id="btn_clear_img">✕ Quitar</button>
+              <button type="button" class="btn sm ghost ${item?.image_url ? '' : 'hidden'}" id="btn_clear_img">${RD.icon('x', '', 14)} Quitar</button>
             </div>
             <small class="tiny muted">Ideal para banners de promociones, eventos o afiches informativos. Se muestra en la app del socio y en notificaciones push.</small>
           </label>
@@ -308,17 +308,17 @@
         <div class="card flat mt mb" style="background:var(--bg3)">
           <label class="check">
             <input type="checkbox" name="pinned" ${item?.pinned ? 'checked' : ''}>
-            <span>📌 <b>Fijar al inicio de la bandeja</b> del socio</span>
+            <span><b>Fijar al inicio de la bandeja</b> del socio</span>
           </label>
           <label class="check mt2">
             <input type="checkbox" name="push" ${item ? (item.push ? 'checked' : '') : 'checked'}>
-            <span>📲 <b>Enviar notificación Push al celular</b> de los socios suscritos (respeta horario nocturno y preferencias)</span>
+            <span><b>Enviar notificación Push al celular</b> de los socios suscritos (respeta horario nocturno y preferencias)</span>
           </label>
         </div>
 
         <div class="row end gap">
           <button type="button" class="btn ghost" data-close>Cancelar</button>
-          <button type="submit" class="btn primary">${isEdit ? 'Guardar Cambios' : '📢 Publicar Comunicado'}</button>
+          <button type="submit" class="btn primary">${isEdit ? 'Guardar Cambios' : 'Publicar Comunicado'}</button>
         </div>
       </form>
     `, { wide: true });
@@ -356,7 +356,7 @@
         const b64 = await RD.resizeImage(file, 1200, 0.85);
         imgUrlInp.value = b64;
         updatePreview(b64);
-        RD.toast('Imagen cargada ✔');
+        RD.toast('Imagen cargada con éxito');
       } catch (err) {
         RD.toast('Error cargando imagen: ' + err.message, 'err');
       }

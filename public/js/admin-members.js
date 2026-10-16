@@ -38,7 +38,7 @@
     if (m.status === 'blocked') return '<span class="badge denied">Bloqueado</span>';
     if (m.status === 'inactive') return '<span class="badge">De baja</span>';
     if (m.frozen) return '<span class="badge info">Congelado</span>';
-    if (m.scheduled) return '<span class="badge info">📅 ' + esc(m.access_reason) + '</span>';
+    if (m.scheduled) return '<span class="badge info" style="display:inline-flex;align-items:center;gap:4px">' + RD.icon('calendar', '', 13) + ' ' + esc(m.access_reason) + '</span>';
     if (m.access === 'ok') return '<span class="badge ok">Vigente</span>';
     if (m.access === 'warn') return '<span class="badge warn">' + esc(m.access_reason) + '</span>';
     return '<span class="badge denied">' + (m.end_date ? 'Vencido' : 'Sin plan') + '</span>';
@@ -89,7 +89,7 @@
 
     const m = RD.openModal('Nuevo socio', `
     <form id="nf">
-      <div class="row gap2 mb"><label class="avatar lg" id="pbox" style="cursor:pointer">📷</label><div class="grow muted small">Toca para tomar o elegir una foto. Ayuda a validar la identidad en la puerta.<input id="photo" type="file" accept="image/*" capture="user" class="hidden"></div></div>
+      <div class="row gap2 mb"><label class="avatar lg" id="pbox" style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center">${RD.icon('camera', '', 26)}</label><div class="grow muted small">Toca para tomar o elegir una foto. Ayuda a validar la identidad en la puerta.<input id="photo" type="file" accept="image/*" capture="user" class="hidden"></div></div>
       <label class="field"><span>Nombres y apellidos *</span><input name="name" required autocomplete="off"></label>
       <div class="grid g2 keep"><label class="field"><span>DNI *</span><input name="dni" inputmode="numeric" maxlength="12" required autocomplete="off" placeholder="8 dígitos (extranjero: 6-12)"></label>
       <label class="field"><span>Celular (WhatsApp)</span><input name="phone" inputmode="tel" placeholder="9XXXXXXXX" autocomplete="off"></label></div>
@@ -105,7 +105,7 @@
       <div class="chips mb" id="plans">${plans.map((p, i) => `<span class="chip ${i === 0 ? 'on' : ''}" data-id="${p.id}">${esc(p.name)} · ${money(p.price)}</span>`).join('')}<span class="chip" data-id="">Sin plan (solo registrar)</span></div>
       <div id="paybox">
         <div class="card mb" style="background:var(--bg2);border:1px solid var(--line);padding:12px">
-          <div class="small bold muted mb">📅 ¿Cuándo inicia su membresía?</div>
+          <div class="small bold muted mb" style="display:flex;align-items:center;gap:6px">${RD.icon('calendar', '', 15)} ¿Cuándo inicia su membresía?</div>
           <div class="chips mb" id="start_chips">
             <span class="chip on" data-s="today">Hoy (${RD.fmtDate(today)})</span>
             <span class="chip" data-s="tomorrow">Mañana</span>
@@ -114,12 +114,12 @@
           </div>
           <input type="date" id="custom_start_in" class="hidden mb" style="max-width:200px" value="${today}">
 
-          <div class="small bold muted mb mt">🎁 Días extra de promoción / inauguración:</div>
+          <div class="small bold muted mb mt" style="display:flex;align-items:center;gap:6px">${RD.icon('gift', '', 15)} Días extra de promoción / inauguración:</div>
           <div class="chips mb" id="promo_chips">
             <span class="chip on" data-d="0">Sin promo (+0d)</span>
-            <span class="chip" data-d="7">🎁 +7 días (1 sem gratis)</span>
-            <span class="chip" data-d="15">🎁 +15 días</span>
-            <span class="chip" data-d="30">🎁 +30 días (+1 mes gratis)</span>
+            <span class="chip" data-d="7">+7 días (1 sem gratis)</span>
+            <span class="chip" data-d="15">+15 días</span>
+            <span class="chip" data-d="30">+30 días (+1 mes gratis)</span>
             <span class="chip" data-d="custom">Otro</span>
           </div>
           <div class="grid g2 keep mb hidden" id="custom_promo_box">
@@ -129,11 +129,11 @@
         </div>
 
         <div class="grid g2 keep"><label class="field"><span>Monto a cobrar (S/)</span><input name="price" type="number" step="0.5" min="0"></label>
-        <label class="field"><span>Método de pago *</span><select name="method" id="nfmeth"><option value="efectivo">💵 Efectivo</option><option value="yape">🟣 Yape</option><option value="plin">🔵 Plin</option><option value="tarjeta">💳 Tarjeta</option><option value="transferencia">🏦 Transferencia</option></select></label></div>
+        <label class="field"><span>Método de pago *</span><select name="method" id="nfmeth"><option value="efectivo">Efectivo</option><option value="yape">Yape</option><option value="plin">Plin</option><option value="tarjeta">Tarjeta POS</option><option value="transferencia">Transferencia Bancaria</option></select></label></div>
         
         <div class="row gap wrap mb">
-          <button type="button" class="btn small ok" id="btnyapeqr">📱 QR Yape/Plin</button>
-          <button type="button" class="btn small info" id="btncardpos" style="background:#0284c7;color:#fff">💳 Tarjeta POS</button>
+          <button type="button" class="btn small ok" id="btnyapeqr">${RD.icon('qr', '', 14)} QR Yape/Plin</button>
+          <button type="button" class="btn small info" id="btncardpos" style="background:#0284c7;color:#fff">${RD.icon('card', '', 14)} Tarjeta POS</button>
         </div>
 
         <div class="yape-box hidden mb mt" id="nf_yape">
@@ -155,7 +155,7 @@
       f.price.value = plan.price;
       const pv = RD.previewEnd(null, plan, selStart, extraDays);
       const isFuture = selStart > today;
-      m.el.querySelector('#prev').innerHTML = `Plan <b>${esc(plan.name)}</b>: ${isFuture ? '📅 <i>(Inicio programado)</i> ' : ''}del <b>${RD.fmtDate(pv.start)}</b> al <b>${RD.fmtDate(pv.end)}</b> ${extraDays > 0 ? `<span class="badge info" style="margin-left:6px">+${extraDays}d promo gratis</span>` : ''}`;
+      m.el.querySelector('#prev').innerHTML = `Plan <b>${esc(plan.name)}</b>: ${isFuture ? '<i>(Inicio programado)</i> ' : ''}del <b>${RD.fmtDate(pv.start)}</b> al <b>${RD.fmtDate(pv.end)}</b> ${extraDays > 0 ? `<span class="badge info" style="margin-left:6px">+${extraDays}d promo gratis</span>` : ''}`;
       m.el.querySelector('#dn').classList.add('hidden');
     };
     refresh();
@@ -240,7 +240,7 @@
             f.op_code.value = op;
             f.method.value = 'yape';
             updateMethodFields('yape');
-            RD.toast('N° de operación cargado ✔');
+            RD.toast('N° de operación cargado');
           }
         }
       });
@@ -258,7 +258,7 @@
             f.op_code.value = ref;
             f.method.value = 'tarjeta';
             updateMethodFields('tarjeta');
-            RD.toast('Ref. de tarjeta cargada ✔');
+            RD.toast('Ref. de tarjeta cargada');
           }
         }
       });
@@ -297,7 +297,7 @@
             <div class="card mb" style="border:1px solid #f59e0b;background:rgba(245,158,11,0.08);padding:10px;border-radius:8px">
               <div class="row between wrap gap">
                 <div>
-                  <span class="bold" style="color:#d97706">⚠️ Este DNI ya está registrado en el gimnasio</span>
+                  <span class="bold" style="color:#d97706;display:inline-flex;align-items:center;gap:6px">${RD.icon('alert-triangle', '', 14)} Este DNI ya está registrado en el gimnasio</span>
                   <div class="small"><b>${esc(found.name)}</b> (${esc(found.code)}) · Estado: <span class="badge ${isAct ? 'ok' : 'bad'} tiny">${isAct ? 'Activo' : 'Vencido / Ex-socio'}</span></div>
                   ${found.end_date ? `<div class="tiny muted">Última membresía: hasta ${RD.fmtDate(found.end_date)}</div>` : ''}
                 </div>
@@ -355,28 +355,28 @@
     const rcptNo = r.receipt?.receipt_no || (r.membership?.payment_id ? `B001-${String(r.membership.payment_id).padStart(6, '0')}` : '');
     const rcptUrl = (r.receipt?.payment_id || r.membership?.payment_id) ? `${location.origin}/#receipt:${r.receipt?.payment_id || r.membership?.payment_id}` : '';
     const msg = [
-      `¡Bienvenido(a) a ${RD.pub.gym_name || 'RD Fitness Club'}! 💪`,
+      `¡Bienvenido(a) a ${RD.pub.gym_name || 'RD Fitness Club'}!`,
       `Tu membresía ya se encuentra activa:`,
       `• Socio: *${mem.name}*`,
       `• Código de Socio: *${mem.code}*`,
       r.membership ? `• Plan: *${r.membership.plan_name || 'Membresía'}*` : '',
       r.membership ? `• Vigencia: hasta el *${RD.fmtDate(r.membership.end)}*` : '',
       rcptNo ? `• Boleta N°: *${rcptNo}*` : '',
-      rcptUrl ? `\n🧾 *Ver tu Boleta Digital:* ${rcptUrl}` : '',
-      `\n📲 *Ingresa a tu App de Socio en tu teléfono:*`,
+      rcptUrl ? `\n*Ver tu Boleta Digital:* ${rcptUrl}` : '',
+      `\n*Ingresa a tu App de Socio en tu teléfono:*`,
       `${location.origin}`,
       `• Usuario: Tu código *${mem.code}* o tu DNI`,
       `• Contraseña inicial: Tu número de DNI`
     ].filter(Boolean).join('\n');
     const wa = RD.waLink(mem.phone, msg);
-    const d = RD.openModal('✅ Socio registrado', `
+    const d = RD.openModal('Socio registrado con éxito', `
       <div class="center"><div class="row" style="justify-content:center;margin-bottom:8px">${avatar(mem, true)}</div>
       <h2>${esc(mem.name)}</h2><div class="gold" style="font-size:1.6rem;font-weight:800">${esc(mem.code)}</div>
       ${r.membership ? `<p>Membresía vigente hasta <b>${RD.fmtDate(r.membership.end)}</b></p>` : '<p class="muted">Sin membresía activa todavía.</p>'}</div>
       <div class="grid mt">
-        ${r.receipt ? `<button class="btn ok" id="rcptbtn">🧾 Ver e Imprimir Boleta</button>` : ''}
-        ${wa ? `<a class="btn ok" target="_blank" rel="noopener" href="${wa}">📲 Enviar Boleta y Acceso por WhatsApp</a>` : ''}
-        <a class="btn primary" target="_blank" href="/admin/cards.html?ids=${mem.id}">🖨 Imprimir tarjeta QR</a>
+        ${r.receipt ? `<button class="btn ok" id="rcptbtn">${RD.icon('receipt', '', 15)} Ver e Imprimir Boleta</button>` : ''}
+        ${wa ? `<a class="btn ok" target="_blank" rel="noopener" href="${wa}">${RD.icon('whatsapp', '', 15)} Enviar Boleta y Acceso por WhatsApp</a>` : ''}
+        <a class="btn primary" target="_blank" href="/admin/cards.html?ids=${mem.id}">${RD.icon('printer', '', 15)} Imprimir tarjeta QR</a>
         <button class="btn" id="prof">Ver ficha del socio</button>
       </div>`);
     if (r.receipt) {
@@ -401,7 +401,7 @@
       <div class="chips mb" id="plans">${act.map(p => `<span class="chip ${p === plan ? 'on' : ''}" data-id="${p.id}">${esc(p.name)} · ${money(p.price)}</span>`).join('')}</div>
       <form id="rf">
         <div class="card mb" style="background:var(--bg2);border:1px solid var(--line);padding:12px">
-          <div class="small bold muted mb">📅 Fecha de inicio de la renovación:</div>
+          <div class="small bold muted mb" style="display:flex;align-items:center;gap:6px">${RD.icon('calendar', '', 15)} Fecha de inicio de la renovación:</div>
           <div class="chips mb" id="r_start_chips">
             <span class="chip on" data-s="auto">${curEnd && curEnd >= today ? 'Al vencer actual (' + RD.fmtDate(curEnd) + ')' : 'Hoy (' + RD.fmtDate(today) + ')'}</span>
             <span class="chip" data-s="today">Hoy</span>
@@ -411,12 +411,12 @@
           </div>
           <input type="date" id="r_custom_start_in" class="hidden mb" style="max-width:200px" value="${selStart}">
 
-          <div class="small bold muted mb mt">🎁 Días extra de promoción:</div>
+          <div class="small bold muted mb mt" style="display:flex;align-items:center;gap:6px">${RD.icon('gift', '', 15)} Días extra de promoción:</div>
           <div class="chips mb" id="r_promo_chips">
             <span class="chip on" data-d="0">Sin promo (+0d)</span>
-            <span class="chip" data-d="7">🎁 +7 días (1 sem)</span>
-            <span class="chip" data-d="15">🎁 +15 días</span>
-            <span class="chip" data-d="30">🎁 +30 días (+1 mes)</span>
+            <span class="chip" data-d="7">+7 días (1 sem)</span>
+            <span class="chip" data-d="15">+15 días</span>
+            <span class="chip" data-d="30">+30 días (+1 mes)</span>
             <span class="chip" data-d="custom">Otro</span>
           </div>
           <div class="grid g2 keep mb hidden" id="r_custom_promo_box">
@@ -426,11 +426,11 @@
         </div>
 
         <div class="grid g2 keep"><label class="field"><span>Monto (S/)</span><input name="price" type="number" step="0.5" min="0" required></label>
-        <label class="field"><span>Método de pago</span><select name="method" id="rfmeth"><option value="efectivo">💵 Efectivo</option><option value="yape">🟣 Yape</option><option value="plin">🔵 Plin</option><option value="tarjeta">💳 Tarjeta</option><option value="transferencia">🏦 Transferencia</option></select></label></div>
+        <label class="field"><span>Método de pago</span><select name="method" id="rfmeth"><option value="efectivo">Efectivo</option><option value="yape">Yape</option><option value="plin">Plin</option><option value="tarjeta">Tarjeta POS</option><option value="transferencia">Transferencia Bancaria</option></select></label></div>
         
         <div class="row gap wrap mb">
-          <button type="button" class="btn small ok" id="r_btnyapeqr">📱 QR Yape/Plin</button>
-          <button type="button" class="btn small info" id="r_btncardpos" style="background:#0284c7;color:#fff">💳 Tarjeta POS</button>
+          <button type="button" class="btn small ok" id="r_btnyapeqr">${RD.icon('qr', '', 14)} QR Yape/Plin</button>
+          <button type="button" class="btn small info" id="r_btncardpos" style="background:#0284c7;color:#fff">${RD.icon('card', '', 14)} Tarjeta POS</button>
         </div>
 
         <div class="yape-box hidden mb mt" id="rf_yape">
@@ -530,7 +530,7 @@
             f.op_code.value = op;
             f.method.value = 'yape';
             updateRenewMethodFields('yape');
-            RD.toast('N° de operación cargado ✔');
+            RD.toast('N° de operación cargado');
           }
         }
       });
@@ -547,7 +547,7 @@
             f.op_code.value = ref;
             f.method.value = 'tarjeta';
             updateRenewMethodFields('tarjeta');
-            RD.toast('Ref. de tarjeta cargada ✔');
+            RD.toast('Ref. de tarjeta cargada');
           }
         }
       });
@@ -576,7 +576,7 @@
             extra_days: extraDays,
             promo_note: promoNote || null
           });
-          m.close(); RD.beep('done'); RD.toast(`Renovado hasta ${RD.fmtDate(r.end)} ✔`);
+          m.close(); RD.beep('done'); RD.toast(`Renovado hasta ${RD.fmtDate(r.end)}`);
           await RD.syncMembers().catch(() => { });
           if (r.receipt) RD.receiptModal(r.receipt);
           onDone && onDone(r);
@@ -614,19 +614,19 @@
         ${can('admin') ? `<button class="btn sm ghost" data-a="${m.status === 'inactive' ? 'reactivate' : 'inactive'}">${m.status === 'inactive' ? 'Reactivar' : 'Dar de baja'}</button>` : ''}
       </div>
       <h3 class="mt">Datos</h3>
-      <div class="small">
-        <div>📱 ${esc(m.phone || '—')} · ✉️ ${esc(m.email || '—')}</div>
-        <div>🪪 DNI ${esc(m.dni || '—')} · 🎂 ${RD.fmtDate(m.birth)} · ${esc(m.gender || '')}</div>
-        <div>🎯 ${esc(m.goal || '—')} · Nivel: ${esc(m.level || '—')}</div>
-        <div>🚑 ${esc(m.emergency || '—')}</div>
-        <div>🩺 ${esc(m.health || 'Sin observaciones')}</div>
+      <div class="small" style="line-height:1.7">
+        <div style="display:flex;align-items:center;gap:6px">${RD.icon('phone', '', 14)} <span>${esc(m.phone || '—')}</span> <span class="muted">·</span> ${RD.icon('mail', '', 14)} <span>${esc(m.email || '—')}</span></div>
+        <div style="display:flex;align-items:center;gap:6px">${RD.icon('idcard', '', 14)} <span>DNI ${esc(m.dni || '—')}</span> <span class="muted">·</span> ${RD.icon('cake', '', 14)} <span>${RD.fmtDate(m.birth)}</span> <span class="muted">·</span> <span>${esc(m.gender || '')}</span></div>
+        <div style="display:flex;align-items:center;gap:6px">${RD.icon('target', '', 14)} <span>${esc(m.goal || '—')}</span> <span class="muted">· Nivel:</span> <span>${esc(m.level || '—')}</span></div>
+        <div style="display:flex;align-items:center;gap:6px">${RD.icon('first-aid', '', 14)} <span>${esc(m.emergency || '—')}</span></div>
+        <div style="display:flex;align-items:center;gap:6px">${RD.icon('medical', '', 14)} <span>${esc(m.health || 'Sin observaciones')}</span></div>
         ${m.block_reason ? `<div class="bad">Motivo de bloqueo/baja: ${esc(m.block_reason)}</div>` : ''}
         <div class="muted">Socio desde ${RD.fmtDate(m.created_at)}</div>
       </div>
       <h3 class="mt">Rutinas asignadas</h3>
       <div class="list">${d.routines.map(r => `<div class="item"><div class="grow"><b>${esc(r.name)}</b><div class="muted tiny">desde ${RD.fmtDate(r.assigned_at)}</div></div>${can('admin', 'entrenador') ? `<button class="btn sm ghost" data-unassign="${r.assignment_id}">Quitar</button>` : ''}</div>`).join('') || '<div class="muted small">Sin rutina asignada</div>'}</div>
       ${can('admin', 'recepcion') ? `<h3 class="mt">Pagos</h3>
-      <div class="tbl-wrap"><table><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Método</th><th>Boleta</th></tr>${d.payments.map(p => `<tr style="${p.voided ? 'opacity:.4;text-decoration:line-through' : ''}"><td>${RD.fmtDate(p.day)}</td><td>${esc(p.concept)}</td><td>${money(p.amount)}</td><td>${esc(p.method)}${p.op_code ? ` <span class="tiny" style="color:#c084fc">#${esc(p.op_code)}</span>` : ''}</td><td><button class="icon-btn" data-rcpt="${p.id}" title="Ver e imprimir boleta">🧾</button></td></tr>`).join('') || '<tr><td colspan="5" class="muted">Sin pagos</td></tr>'}</table></div>` : ''}
+      <div class="tbl-wrap"><table><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Método</th><th>Boleta</th></tr>${d.payments.map(p => `<tr style="${p.voided ? 'opacity:.4;text-decoration:line-through' : ''}"><td>${RD.fmtDate(p.day)}</td><td>${esc(p.concept)}</td><td>${money(p.amount)}</td><td>${esc(p.method)}${p.op_code ? ` <span class="tiny" style="color:#c084fc">#${esc(p.op_code)}</span>` : ''}</td><td><button class="icon-btn" data-rcpt="${p.id}" title="Ver e imprimir boleta">${RD.icon('receipt', '', 16)}</button></td></tr>`).join('') || '<tr><td colspan="5" class="muted">Sin pagos</td></tr>'}</table></div>` : ''}
       <h3 class="mt">Membresías</h3>
       <div class="tbl-wrap"><table><tr><th>Plan</th><th>Desde</th><th>Hasta</th><th>Precio</th></tr>${d.memberships.map(s => `<tr style="${s.status !== 'active' ? 'opacity:.4' : ''}"><td>${esc(s.plan_name)}</td><td>${RD.fmtDate(s.start_date)}</td><td>${RD.fmtDate(s.end_date)}</td><td>${money(s.price)}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">—</td></tr>'}</table></div>
       <h3 class="mt">Medidas y progreso</h3>
@@ -662,7 +662,7 @@
           else if (a === 'routine') assignRoutineDialog(id, redraw);
           else if (a === 'checkin') {
             if (await RD.confirm('Ingreso manual', `¿Registrar ingreso de ${m.name} sin QR?`, 'Registrar')) {
-              const r = await RD.api.post(`/members/${id}/checkin`); RD.toast(r.access === 'denied' ? '❌ ' + r.reason : '✔ Ingreso registrado: ' + r.reason, r.access === 'denied' ? 'err' : 'ok'); redraw();
+              const r = await RD.api.post(`/members/${id}/checkin`); RD.toast(r.access === 'denied' ? 'Rechazado: ' + r.reason : 'Ingreso registrado: ' + r.reason, r.access === 'denied' ? 'err' : 'ok'); redraw();
             }
           } else if (a === 'freeze') {
             if (await RD.confirm(m.frozen ? 'Reanudar' : 'Congelar', m.frozen ? 'Se reanudará la membresía y se sumarán a su vencimiento los días que estuvo congelada.' : 'Mientras esté congelada no podrá ingresar. Al reanudar se extiende su vencimiento por los días congelados.', 'Aceptar')) {
@@ -681,7 +681,7 @@
               'Restablecer'
             )) {
               const res = await RD.api.post(`/members/${id}/reset-credentials`);
-              RD.toast(res.msg || 'Acceso restablecido ✔');
+              RD.toast(res.msg || 'Acceso restablecido');
             }
           } else if (a === 'block' || a === 'inactive') {
             const reason = await RD.prompt(a === 'block' ? 'Bloquear socio' : 'Dar de baja', 'Motivo', 'Ej. conducta, deuda, retiro voluntario');
@@ -704,7 +704,7 @@
   function editDialog(m, done) {
     const full = m;
     const d = RD.openModal('Editar socio', `<form id="ef">
-      <div class="row gap2 mb"><label class="avatar lg" id="pbox" style="cursor:pointer">${full.photo ? `<img src="${esc(full.photo)}" alt="">` : '📷'}</label><div class="grow muted small">Cambiar foto<input id="photo" type="file" accept="image/*" capture="user" class="hidden"></div></div>
+      <div class="row gap2 mb"><label class="avatar lg" id="pbox" style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center">${full.photo ? `<img src="${esc(full.photo)}" alt="">` : RD.icon('camera', '', 26)}</label><div class="grow muted small">Cambiar foto<input id="photo" type="file" accept="image/*" capture="user" class="hidden"></div></div>
       <label class="field"><span>Nombre</span><input name="name" value="${esc(full.name)}" required ${can('entrenador') ? 'disabled' : ''}></label>
       <div class="grid g2 keep"><label class="field"><span>DNI</span><input name="dni" value="${esc(full.dni || '')}" ${can('entrenador') ? 'disabled' : ''}></label>
       <label class="field"><span>Celular</span><input name="phone" value="${esc(full.phone || '')}" ${can('entrenador') ? 'disabled' : ''}></label></div>
@@ -736,7 +736,7 @@
       <div class="list">${routines.map(r => `<div class="item click" data-id="${r.id}"><div class="grow"><b>${esc(r.name)}</b><div class="muted small">${esc(r.goal || '')} · ${r.days} día(s) · ${esc(r.level || '')}</div></div><button class="btn sm primary">Asignar</button></div>`).join('')}</div>`);
     d.el.onclick = async e => {
       const it = e.target.closest('[data-id]'); if (!it) return;
-      try { await RD.api.post(`/routines/${it.dataset.id}/assign`, { member_ids: [memberId], replace: true }); RD.toast('Rutina asignada ✔'); d.close(); done(); } catch (err) { RD.toast(err.message, 'err'); }
+      try { await RD.api.post(`/routines/${it.dataset.id}/assign`, { member_ids: [memberId], replace: true }); RD.toast('Rutina asignada'); d.close(); done(); } catch (err) { RD.toast(err.message, 'err'); }
     };
   }
 })();

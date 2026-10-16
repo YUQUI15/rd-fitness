@@ -126,7 +126,7 @@
     const win = window.open('/display.html', 'RD_CustomerDisplay', `width=${w},height=${h},top=${top},left=${left},resizable=yes,scrollbars=no,status=no`);
     if (win) {
       win.focus();
-      RD.toast('Pantalla Tablet / Mostrador acoplada ✔');
+      RD.toast('Pantalla Tablet / Mostrador acoplada');
     } else {
       window.open('/display.html', '_blank');
     }
@@ -138,9 +138,9 @@
     const url = String(settings.google_sheet_url || '').trim();
     if (url && /^https?:\/\//i.test(url)) {
       window.open(url, '_blank', 'noopener,noreferrer');
-      RD.toast('Abriendo Google Sheets oficial… 📊');
+      RD.toast('Abriendo Google Sheets oficial…');
     } else {
-      const m = RD.openModal('📊 Google Sheets Oficial', `
+      const m = RD.openModal('Google Sheets Oficial', `
         <div class="mb">
           <p class="muted small mb">Conecta tu hoja de Google Sheets para acceder directamente con un solo clic desde cualquier lugar del sistema.</p>
           <label class="field"><span>Enlace de tu Hoja en Google Sheets (URL completa)</span>
@@ -152,7 +152,7 @@
           <button class="btn" id="gs_new_btn">Crear Hoja Nueva</button>
         </div>
         <div class="center mt">
-          <button class="btn ghost sm" id="gs_sync_guide_btn">⚙️ Ver Guía y Código Apps Script</button>
+          <button class="btn ghost sm" id="gs_sync_guide_btn">${RD.icon('settings', '', 14)} Ver Guía y Código Apps Script</button>
         </div>
       `);
       m.el.querySelector('#gs_save_btn').onclick = async () => {
@@ -163,7 +163,7 @@
         }
         try {
           await RD.api.put('/settings', { google_sheet_url: newUrl });
-          RD.toast('Enlace de Google Sheets guardado ✔');
+          RD.toast('Enlace de Google Sheets guardado');
           m.close();
           window.open(newUrl, '_blank', 'noopener,noreferrer');
         } catch (err) { RD.toast(err.message, 'err'); }
@@ -253,10 +253,10 @@
       const r = await v.render(view, arg);
       if (typeof r === 'function') unmount = r; else if (v.unmount) unmount = v.unmount;
     } catch (e) {
-      view.innerHTML = `<div class="empty">${e.offline ? '📡 Sin conexión. Esta sección necesita internet.<br>El escáner sigue funcionando.' : esc(e.message)}</div>`;
+      view.innerHTML = `<div class="empty">${e.offline ? 'Sin conexión. Esta sección necesita internet.<br>El escáner sigue funcionando.' : esc(e.message)}</div>`;
     }
     if (RD.user.must_change && name !== 'scan') {
-      view.insertAdjacentHTML('afterbegin', `<div class="banner">⚠️ Estás usando la contraseña inicial. <a href="#" id="chp">Cámbiala ahora</a>.</div>`);
+      view.insertAdjacentHTML('afterbegin', `<div class="banner">${RD.icon('alert-triangle', '', 14)} Estás usando la contraseña inicial. <a href="#" id="chp">Cámbiala ahora</a>.</div>`);
       $('#chp').onclick = e => { e.preventDefault(); changePassword(); };
     }
   }
@@ -292,16 +292,16 @@
       <div class="grid g2">
         <div class="card"><h3>${RD.icon('clock', '', 16)} Vencen pronto (7 días) <span class="badge warn">${d.expiring_soon.length}</span></h3>
           <div class="list">${d.expiring_soon.map(m => person(m, `${m.plan_name || ''} · vence ${RD.fmtDate(m.end_date)} (${m.days_left === 0 ? 'HOY' : m.days_left + ' d'})`,
-            wa(m, `Hola ${first(m.name)} 👋, te escribimos de ${gym}. Tu membresía vence el ${RD.fmtDate(m.end_date)}. Renueva y no pierdas tu constancia 💪. Planes: ${priceList}. ¡Te esperamos!`))).join('') || '<div class="empty">Nadie por vencer</div>'}</div></div>
+            wa(m, `Hola ${first(m.name)}, te escribimos de ${gym}. Tu membresía vence el ${RD.fmtDate(m.end_date)}. Renueva y mantén tu constancia. Planes: ${priceList}. ¡Te esperamos!`))).join('') || '<div class="empty">Nadie por vencer</div>'}</div></div>
         <div class="card"><h3>${RD.icon('calendar', '', 16)} Vencidos (últimos 30 días) <span class="badge bad">${d.recently_expired.length}</span></h3>
           <div class="list">${d.recently_expired.slice(0, 15).map(m => person(m, `Venció ${RD.fmtDate(m.end_date)} (hace ${-m.days_left} d)`,
-            wa(m, `Hola ${first(m.name)}, te extrañamos en ${gym} 💪. Tu membresía venció el ${RD.fmtDate(m.end_date)}. Vuelve a entrenar: ${priceList}. ¡Te esperamos!`))).join('') || '<div class="empty">Sin vencidos recientes</div>'}</div></div>
+            wa(m, `Hola ${first(m.name)}, te extrañamos en ${gym}. Tu membresía venció el ${RD.fmtDate(m.end_date)}. Vuelve a entrenar: ${priceList}. ¡Te esperamos!`))).join('') || '<div class="empty">Sin vencidos recientes</div>'}</div></div>
         <div class="card"><h3>${RD.icon('users', '', 16)} Socios en riesgo (10+ días sin venir) <span class="badge info">${d.at_risk.length}</span></h3>
           <div class="list">${d.at_risk.slice(0, 15).map(m => person(m, `Última visita: ${m.last_in ? RD.ago(m.last_in) : 'nunca'}`,
-            wa(m, `Hola ${first(m.name)} 👋, ¡te extrañamos en ${gym}! Tu constancia es tu mejor inversión. ¿Te esperamos hoy? 💪`))).join('') || '<div class="empty">Todos vienen con regularidad</div>'}</div></div>
+            wa(m, `Hola ${first(m.name)}, te extrañamos en ${gym}. Tu constancia es tu mejor inversión. ¿Te esperamos hoy?`))).join('') || '<div class="empty">Todos vienen con regularidad</div>'}</div></div>
         <div class="card"><h3>${RD.icon('dumbbell', '', 16)} En el gimnasio ahora</h3>
           <div class="list">${d.in_gym.map(m => `<div class="item click" data-id="${m.id}"><div class="avatar">${m.photo ? `<img src="${esc(m.photo)}" alt="">` : esc(m.name[0])}</div><div class="grow"><b>${esc(m.name)}</b></div><span class="muted small">${RD.fmtTime(m.ts)}</span></div>`).join('') || '<div class="empty">Nadie registrado en las últimas horas</div>'}</div></div>
-        ${d.birthdays.length ? `<div class="card"><h3>🎂 Cumpleaños de hoy</h3><div class="list">${d.birthdays.map(m => person(m, '', wa(m, `¡Feliz cumpleaños ${first(m.name)}! 🎉 De parte de todo el equipo de ${gym}. ¡Hoy entrenas con nosotros con un regalito! 💪`))).join('')}</div></div>` : ''}
+        ${d.birthdays.length ? `<div class="card"><h3>${RD.icon('cake', '', 16)} Cumpleaños de hoy</h3><div class="list">${d.birthdays.map(m => person(m, '', wa(m, `¡Feliz cumpleaños ${first(m.name)}! De parte de todo el equipo de ${gym}. ¡Hoy entrenas con nosotros con un regalo especial!`))).join('')}</div></div>` : ''}
         <div class="card"><h3>Últimos escaneos</h3>
           <div class="list">${d.last_scans.map(s => `<div class="item"><span class="badge ${s.result === 'ok' ? 'ok' : s.result === 'warn' ? 'warn' : 'denied'}">${s.result === 'ok' ? 'Entró' : s.result === 'warn' ? 'Aviso' : 'Rechazado'}</span><div class="grow"><b>${esc(s.name || s.code || 'Desconocido')}</b><div class="muted tiny">${esc(s.reason || '')}</div></div><span class="muted small">${RD.fmtTime(s.ts)}</span></div>`).join('') || '<div class="empty">Sin movimientos todavía</div>'}</div></div>
       </div>`;

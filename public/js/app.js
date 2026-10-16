@@ -26,7 +26,7 @@
   // ---------------- LOGIN DEL SOCIO ----------------
   function showLogin(err) {
     RD.hub.stop();
-    const themeLbl = () => RD.getTheme && RD.getTheme() === 'light' ? '🌙 Modo Oscuro' : '☀️ Modo Claro (Pastel)';
+    const themeLbl = () => RD.getTheme && RD.getTheme() === 'light' ? `${RD.icon('moon', '', 14)} Modo Oscuro` : `${RD.icon('sun', '', 14)} Modo Claro`;
     root.innerHTML = `
     <div class="auth">
       <form class="box" id="mlf" autocomplete="on">
@@ -42,19 +42,19 @@
         </label>
         <label class="field">
           <span>Contraseña</span>
-          <div class="pw"><input name="password" type="password" placeholder="Tu contraseña o DNI" required autocomplete="current-password"><button type="button" class="pw-eye" data-eye aria-label="Mostrar contraseña">👁</button></div>
+          <div class="pw"><input name="password" type="password" placeholder="Tu contraseña o DNI" required autocomplete="current-password"><button type="button" class="pw-eye" data-eye aria-label="Mostrar contraseña">${RD.icon('eye', '', 16)}</button></div>
           <small class="tiny muted">¿Primera vez o regresas después de meses? Tu contraseña inicial es tu <b>DNI</b>. Si olvidaste tu clave, tu DNI siempre te permite ingresar.</small>
         </label>
         <button class="btn primary block" type="submit">Ingresar a mi App</button>
         <p class="center small mt2"><a href="#" id="forgot">¿Olvidaste tu contraseña?</a></p>
-        <button type="button" class="btn ghost sm mt2 block" id="btn_login_install">📲 ¿Cómo instalar la App en tu Celular o PC?</button>
+        <button type="button" class="btn ghost sm mt2 block" id="btn_login_install" style="display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('smartphone', '', 16)} ¿Cómo instalar la App en tu Celular o PC?</button>
         <p class="center muted tiny mt2">Este dispositivo recordará tu sesión de forma segura.</p>
         <div class="card flat mt center small muted">
           ¿Aún no estás registrado? Acércate a recepción en Calle Sucre Lt. 10 para obtener tu código y credencial.
         </div>
         <p class="center muted tiny mt">Personal del gimnasio: <a href="/admin/">Acceso al panel</a></p>
         <div class="center mt2">
-          <button type="button" class="btn ghost sm" id="loginthemebtn" data-theme-toggle>${themeLbl()}</button>
+          <button type="button" class="btn ghost sm" id="loginthemebtn" data-theme-toggle style="display:inline-flex;align-items:center;gap:6px">${themeLbl()}</button>
         </div>
       </form>
     </div>`;
@@ -127,19 +127,19 @@
       <header class="topbar">
         <img src="/logo.svg" alt="RD" class="topbar-logo" style="height:32px;width:32px;max-height:32px;max-width:32px;object-fit:contain;flex-shrink:0" width="32" height="32">
         <div class="t" id="apptitle">RD FITNESS CLUB</div>
-        <button class="icon-btn" id="appinstallbtn" title="Cómo instalar la App en tu móvil o PC" aria-label="Instalar App">📲</button>
-        <button class="icon-btn bell" id="bellbtn" title="Avisos" aria-label="Avisos">🔔<span class="bell-dot" id="belldot" hidden></span></button>
-        <button class="icon-btn theme-toggle" id="appthemetoggle" data-theme-toggle title="${isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro (Pastel)'}">${isLight ? '🌙' : '☀️'}</button>
-        <button class="icon-btn" id="logoutbtn" title="Cerrar sesión">✕</button>
+        <button class="icon-btn" id="appinstallbtn" title="Cómo instalar la App en tu móvil o PC" aria-label="Instalar App">${RD.icon('smartphone', '', 18)}</button>
+        <button class="icon-btn bell" id="bellbtn" title="Avisos" aria-label="Avisos">${RD.icon('bell', '', 18)}<span class="bell-dot" id="belldot" hidden></span></button>
+        <button class="icon-btn theme-toggle" id="appthemetoggle" data-theme-toggle title="${isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'}">${isLight ? RD.icon('moon', '', 18) : RD.icon('sun', '', 18)}</button>
+        <button class="icon-btn" id="logoutbtn" title="Cerrar sesión" aria-label="Cerrar sesión">${RD.icon('power', '', 18)}</button>
       </header>
       <div id="noticebar"></div>
       <main class="page" id="mainview"></main>
       <nav class="nav">
-        <button data-tab="pass" class="on"><span class="i">🪪</span>Acceso</button>
-        <button data-tab="train"><span class="i">🏋️</span>Entrenar</button>
-        <button data-tab="progress"><span class="i">📈</span>Progreso</button>
-        <button data-tab="tools"><span class="i">🧮</span>Herramientas</button>
-        <button data-tab="profile"><span class="i">👤</span>Perfil</button>
+        <button data-tab="pass" class="on"><span class="i">${RD.icon('pass', '', 20)}</span>Acceso</button>
+        <button data-tab="train"><span class="i">${RD.icon('dumbbell', '', 20)}</span>Entrenar</button>
+        <button data-tab="progress"><span class="i">${RD.icon('progress', '', 20)}</span>Progreso</button>
+        <button data-tab="tools"><span class="i">${RD.icon('tools', '', 20)}</span>Herramientas</button>
+        <button data-tab="profile"><span class="i">${RD.icon('profile', '', 20)}</span>Perfil</button>
       </nav>
     </div>`;
 
@@ -200,7 +200,7 @@
     ${showSetup ? `
     <div class="card flat mb setup-card" id="setupcard">
       <div class="row gap">
-        <div style="font-size:1.6rem">✨</div>
+        <div class="setup-icon-wrap" style="color:var(--gold);display:flex;align-items:center;justify-content:center">${RD.icon('sparkles', 'gold', 24)}</div>
         <div class="grow">
           <b>Crea tu usuario y contraseña</b>
           <div class="small muted">Ingresa con tu propio alias y protege tu cuenta. Tu código ${esc(member.code)} y tu DNI no cambian.</div>
@@ -208,14 +208,17 @@
       </div>
       <div class="row end gap mt2">
         <button class="btn sm ghost" id="setuplater">Ahora no</button>
-        <button class="btn sm primary" id="setupnow">Configurar</button>
+        <button class="btn sm primary" id="setupnow">${RD.icon('key', '', 14)} Configurar</button>
       </div>
     </div>` : ''}
 
     <div class="idcard">
       <div class="row between">
-        <img src="/logo.svg" style="height:32px;width:32px;object-fit:contain" alt="RD" width="32" height="32">
-        <span class="tag-loc" style="font-size:10px;font-weight:700;color:var(--gold)">CHIVAY</span>
+        <div class="row gap" style="align-items:center">
+          <img src="/logo.svg" style="height:32px;width:32px;object-fit:contain" alt="RD" width="32" height="32">
+          <span class="vip-pill"><span class="vip-dot"></span>VIP MEMBER</span>
+        </div>
+        <span class="tag-loc" style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1px">CHIVAY · 3,635m</span>
       </div>
 
       <div class="center mt2">
@@ -230,46 +233,51 @@
       <div class="countdown" title="Código de seguridad dinámico">
         <i id="cdbar" style="width:100%"></i>
       </div>
-      <div class="muted tiny mt2 center">El código se renueva automáticamente cada 60 s para seguridad</div>
+      <div class="muted tiny mt2 center" style="display:flex;align-items:center;justify-content:center;gap:5px">${RD.icon('shield', 'muted', 12)} Código dinámico de alta seguridad (renovación cada 60s)</div>
 
       <div class="statusbar ${st} mt">
-        <div style="font-size:1.1rem;font-weight:900">${isOk ? '✔ MEMBRESÍA VIGENTE' : isWarn ? '⚠ POR VENCER' : '✖ NO VIGENTE'}</div>
+        <div style="font-size:1.05rem;font-weight:900;display:flex;align-items:center;justify-content:center;gap:6px">
+          ${isOk ? `${RD.icon('check-circle', '', 18)} MEMBRESÍA VIGENTE` : isWarn ? `${RD.icon('alert-triangle', '', 18)} POR VENCER` : `${RD.icon('x-circle', '', 18)} NO VIGENTE`}
+        </div>
         <div class="small">${esc(member.access_reason)}</div>
         ${member.end_date ? `<div class="tiny mt2">Vence: <b>${RD.fmtDate(member.end_date)}</b> (${esc(member.plan_name || 'Plan')})</div>` : ''}
       </div>
 
       ${(!isOk) ? `
       <div class="mt">
-        <a class="btn primary block" target="_blank" rel="noopener" href="${renewWa}">💳 Renovar Membresía por WhatsApp</a>
+        <a class="btn primary block" target="_blank" rel="noopener" href="${renewWa}" style="display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('whatsapp', '', 18)} Renovar Membresía por WhatsApp</a>
       </div>` : ''}
     </div>
 
     <!-- Acceso Rápido a Entrenar Hoy -->
-    <div class="card mt mb" style="background:linear-gradient(135deg,rgba(183,110,121,0.15),rgba(2,132,199,0.1));border-color:var(--gold)">
+    <div class="card mt mb train-hero-card" style="background:linear-gradient(135deg,rgba(183,110,121,0.15),rgba(2,132,199,0.1));border-color:var(--gold)">
       <div class="row between mb">
         <div>
-          <b style="font-size:1.05rem">🏋️ ¿Listo para entrenar hoy?</b>
+          <b style="font-size:1.05rem;display:flex;align-items:center;gap:7px">${RD.icon('train', 'gold', 20)} ¿Listo para entrenar hoy?</b>
           <div class="small muted">Registra tus series, pesos y descansos con cronómetro automático.</div>
         </div>
       </div>
       <div class="grid g2 keep gap">
-        <button class="btn primary" id="btn_quick_train">▶ Seguir Mi Rutina</button>
-        <button class="btn" id="btn_quick_free">⚡ Sesión Libre</button>
+        <button class="btn primary" id="btn_quick_train" style="display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('play', '', 16)} Seguir Mi Rutina</button>
+        <button class="btn" id="btn_quick_free" style="display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('zap', 'gold', 16)} Sesión Libre</button>
       </div>
     </div>
 
     <!-- Estadísticas de Constancia -->
-    <div class="grid g3 keep mb">
+    <div class="grid g3 keep mb stat-grid">
       <div class="stat gold">
-        <div class="v">🔥 ${fresh.stats?.streak_weeks || 0}</div>
+        <div class="stat-badge-icon">${RD.icon('flame', '', 18)}</div>
+        <div class="v">${fresh.stats?.streak_weeks || 0}</div>
         <div class="l">Semanas racha</div>
       </div>
       <div class="stat">
-        <div class="v">🏃 ${fresh.stats?.visits_30 || 0}</div>
+        <div class="stat-badge-icon">${RD.icon('runner', '', 18)}</div>
+        <div class="v">${fresh.stats?.visits_30 || 0}</div>
         <div class="l">Visitas este mes</div>
       </div>
       <div class="stat">
-        <div class="v">🏋️ ${Math.round((fresh.stats?.volume_30 || 0) / 1000)}k</div>
+        <div class="stat-badge-icon">${RD.icon('barbell', '', 18)}</div>
+        <div class="v">${Math.round((fresh.stats?.volume_30 || 0) / 1000)}k</div>
         <div class="l">Kg levantados</div>
       </div>
     </div>
@@ -278,12 +286,12 @@
     <div class="card mb" id="push_prompt_card" style="background:linear-gradient(135deg,rgba(245,180,0,0.14),rgba(245,180,0,0.04));border:1px solid var(--gold);padding:14px;border-radius:10px">
       <div class="row between wrap gap" style="align-items:center">
         <div class="grow" style="min-width:200px">
-          <b style="color:var(--gold);display:flex;align-items:center;gap:6px">📲 ¿Activar Notificaciones al Celular?</b>
+          <b style="color:var(--gold);display:flex;align-items:center;gap:6px">${RD.icon('bell-ring', '', 18)} ¿Activar Notificaciones al Celular?</b>
           <p class="tiny muted" style="margin:4px 0 0">Entérate al instante de promociones 2x1, cambios de horario y avisos de RD Fitness.</p>
         </div>
         <div class="row gap">
           <button class="btn sm ghost" id="btn_dismiss_push">Más tarde</button>
-          <button class="btn sm primary" id="btn_enable_push">🔔 Activar</button>
+          <button class="btn sm primary" id="btn_enable_push" style="display:flex;align-items:center;gap:5px">${RD.icon('bell', '', 14)} Activar</button>
         </div>
       </div>
     </div>
@@ -294,17 +302,17 @@
 
     <!-- Enlaces directos a Boleta y Gimnasio -->
     <div class="card mb">
-      <div class="row between">
+      <div class="row between wrap gap" style="align-items:center">
         <div>
-          <b>🧾 Tu comprobante y boletas de pago</b>
+          <b style="display:flex;align-items:center;gap:6px">${RD.icon('receipt', 'gold', 18)} Tu comprobante y boletas de pago</b>
           <div class="tiny muted">Revisa tus boletas digitales de pago en formato de ticket térmico.</div>
         </div>
-        <button class="btn sm ok" id="btn_quick_receipt">Ver Boletas</button>
+        <button class="btn sm ok" id="btn_quick_receipt" style="display:flex;align-items:center;gap:5px">${RD.icon('receipt', '', 14)} Ver Boletas</button>
       </div>
     </div>
 
     <div class="card">
-      <h3>📍 RD Fitness Club - Chivay</h3>
+      <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('map-pin', 'gold', 20)} RD Fitness Club · Chivay</h3>
       <p class="muted small">
         Calle Antonio José de Sucre Lt. 10 (al costado de discoteca Muya).<br>
         Horario: ${esc(fresh.settings?.opening || 'Lun a Sáb 6:00 a 21:00')}.<br>
@@ -318,7 +326,7 @@
     if (ePush) ePush.onclick = async () => {
       try {
         await RD.hub.enablePush();
-        RD.toast('¡Notificaciones al celular activadas con éxito! ✔', 'ok');
+        RD.toast('Notificaciones al celular activadas con éxito', 'ok');
         el.querySelector('#push_prompt_card')?.remove();
       } catch (err) {
         RD.toast(err.message, 'warn');
@@ -336,11 +344,11 @@
         if (!gymItems.length) { liveSec.innerHTML = ''; return; }
         const latest = gymItems[0];
         const kindLabel = { aviso: 'Aviso', evento: 'Evento', tematica: 'Temática', promo: 'Promoción', mantenimiento: 'Mantenimiento', cierre: 'Atención' }[latest.kind] || 'Novedades';
-        const kindIcon = { aviso: '📢', evento: '🎉', tematica: '🎨', promo: '🏷️', mantenimiento: '🛠️', cierre: '⛔' }[latest.kind] || '📢';
+        const kindIcon = { aviso: RD.icon('megaphone', '', 14), evento: RD.icon('party', '', 14), tematica: RD.icon('palette', '', 14), promo: RD.icon('tag', '', 14), mantenimiento: RD.icon('wrench', '', 14), cierre: RD.icon('shield-alert', '', 14) }[latest.kind] || RD.icon('megaphone', '', 14);
         liveSec.innerHTML = `
           <div class="card mb" style="border-left: 4px solid var(--gold);background:var(--bg2)">
             <div class="row between wrap gap mb2">
-              <span class="badge ${esc(latest.kind || 'aviso')}" style="font-weight:700">${kindIcon} ${esc(kindLabel)}</span>
+              <span class="badge ${esc(latest.kind || 'aviso')}" style="font-weight:700;display:inline-flex;align-items:center;gap:5px">${kindIcon} <span>${esc(kindLabel)}</span></span>
               <span class="tiny muted">${RD.ago(latest.created_at)}</span>
             </div>
             <b style="font-size:1.05rem;display:block;margin-bottom:6px">${esc(latest.title)}</b>
@@ -352,7 +360,7 @@
             ${latest.body ? `<div class="small muted mb" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4">${esc(latest.body)}</div>` : ''}
             <div class="row between wrap gap mt2 pt2" style="border-top:1px solid var(--line);align-items:center">
               <button class="btn sm ghost" id="btn_open_all_inb">Ver todos (${gymItems.length})</button>
-              <button class="btn sm primary" id="btn_open_hero_ann">👁️ Leer Comunicado</button>
+              <button class="btn sm primary" id="btn_open_hero_ann" style="display:flex;align-items:center;gap:5px">${RD.icon('eye', '', 14)} Leer Comunicado</button>
             </div>
           </div>
         `;
@@ -416,12 +424,12 @@
 
     el.innerHTML = `
     <div class="chips mb" id="ttabs">
-      <span class="chip on" data-tt="my">Mi Rutina</span>
-      <span class="chip" data-tt="free">⚡ Sesión Libre</span>
-      <span class="chip" data-tt="wizard">🤖 Asistente de Plan</span>
-      <span class="chip" data-tt="templates">Explorar Plantillas (${routinesData.templates.length})</span>
-      <span class="chip" data-tt="exercises">Biblioteca (${exList.length})</span>
-      <span class="chip" data-tt="timers">Cronómetros</span>
+      <span class="chip on" data-tt="my" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('train', '', 14)}<span>Mi Rutina</span></span>
+      <span class="chip" data-tt="free" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('zap', '', 14)}<span>Sesión Libre</span></span>
+      <span class="chip" data-tt="wizard" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('bot', '', 14)}<span>Asistente de Plan</span></span>
+      <span class="chip" data-tt="templates" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('layers', '', 14)}<span>Plantillas (${routinesData.templates.length})</span></span>
+      <span class="chip" data-tt="exercises" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('dumbbell', '', 14)}<span>Biblioteca (${exList.length})</span></span>
+      <span class="chip" data-tt="timers" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('timer', '', 14)}<span>Cronómetros</span></span>
     </div>
     <div id="trainsubview"></div>`;
 
@@ -442,7 +450,7 @@
         subview.innerHTML = `<div class="card"><div id="exbox"></div></div>`;
         RD.exerciseLibrary(subview.querySelector('#exbox'), exList);
       } else if (tab === 'timers') {
-        subview.innerHTML = `<div class="card" style="max-width:480px;margin:0 auto"><h3>⏱ Cronómetros y Tabata</h3><div id="tbox" class="mt"></div></div>`;
+        subview.innerHTML = `<div class="card" style="max-width:480px;margin:0 auto"><h3 style="display:flex;align-items:center;gap:6px">${RD.icon('timer', 'gold', 20)} Cronómetros y Tabata</h3><div id="tbox" class="mt"></div></div>`;
         RD.timersTool(subview.querySelector('#tbox'));
       }
     }
@@ -459,11 +467,12 @@
     if (!mine.length) {
       el.innerHTML = `
       <div class="card center mb" style="padding:2.5rem 1rem">
+        <div style="margin:0 auto 1rem;color:var(--gold);display:flex;justify-content:center">${RD.icon('dumbbell', 'gold', 42)}</div>
         <h3>Aún no tienes una rutina asignada</h3>
         <p class="muted small mb">Puedes elegir una de las 10 rutinas profesionales creadas por entrenadores o usar nuestro Asistente Inteligente.</p>
         <div class="row gap mt" style="justify-content:center">
-          <button class="btn primary" id="pickplan">Explorar Plantillas Oficiales</button>
-          <button class="btn" id="open_wiz_btn">🤖 Asistente de Plan</button>
+          <button class="btn primary" id="pickplan" style="display:flex;align-items:center;gap:6px">${RD.icon('layers', '', 16)} Explorar Plantillas Oficiales</button>
+          <button class="btn" id="open_wiz_btn" style="display:flex;align-items:center;gap:6px">${RD.icon('bot', '', 16)} Asistente de Plan</button>
         </div>
       </div>`;
       el.querySelector('#pickplan').onclick = () => document.querySelector('[data-tt="templates"]').click();
@@ -478,7 +487,7 @@
     el.innerHTML = `
     <div class="card mb">
       <div class="row between">
-        <span class="badge ok">Rutina Asignada</span>
+        <span class="badge ok" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('check-circle', '', 14)}<span>Rutina Asignada</span></span>
         <span class="badge info">${esc(full.level)} · ${full.days_per_week || full.days.length} días/sem</span>
       </div>
       <h2 class="mt2" style="margin-bottom:.2rem">${esc(full.name)}</h2>
@@ -498,7 +507,7 @@
           ${d.items.slice(0, 5).map(it => `<div class="item"><span>${esc(it.nombre)}</span> <span class="muted tiny">${it.sets}×${esc(it.reps)}</span></div>`).join('')}
           ${d.items.length > 5 ? `<div class="item muted tiny">＋ ${d.items.length - 5} ejercicios más…</div>` : ''}
         </div>
-        <button class="btn primary block" data-startday="${di}">▶ Iniciar Entrenamiento Guiado</button>
+        <button class="btn primary block" data-startday="${di}" style="display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('play', '', 16)} Iniciar Entrenamiento Guiado</button>
       </div>`).join('')}
     </div>`;
 
@@ -523,13 +532,13 @@
   function renderFreeWorkoutLauncher(el, exMap) {
     el.innerHTML = `
     <div class="card center mb" style="padding:2.5rem 1rem">
-      <div style="font-size:3rem">⚡</div>
+      <div style="margin:0 auto 1rem;color:var(--gold);display:flex;justify-content:center">${RD.icon('zap', 'gold', 46)}</div>
       <h2>Entrenamiento Libre / Registro Rápido</h2>
       <p class="muted small mb" style="max-width:440px;margin:0 auto .8rem">
         ¿Quieres hacer un entrenamiento espontáneo hoy sin ceñirte a una rutina fija?
         Selecciona ejercicios al vuelo de nuestra biblioteca de más de 85 ejercicios, registra tus series y pesos con cronómetro automático, y se guardará en tu historial y récords personales.
       </p>
-      <button class="btn ok lg" id="btn_start_free_act" style="font-size:1.1rem;padding:0.9rem 1.8rem">▶ Iniciar Sesión Libre Ahora</button>
+      <button class="btn ok lg" id="btn_start_free_act" style="font-size:1.1rem;padding:0.9rem 1.8rem;display:inline-flex;align-items:center;gap:8px">${RD.icon('play', '', 18)} Iniciar Sesión Libre Ahora</button>
     </div>`;
 
     el.querySelector('#btn_start_free_act').onclick = async () => {
@@ -542,26 +551,26 @@
   function renderSmartRoutineWizard(el, templates) {
     el.innerHTML = `
     <div class="card mb">
-      <h3>🤖 Asistente Inteligente de Rutinas</h3>
+      <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('bot', 'gold', 20)} Asistente Inteligente de Rutinas</h3>
       <p class="muted small mb">Responde 3 preguntas y te recomendaremos el plan científicamente óptimo para ti.</p>
 
       <div class="mb">
         <b>1. ¿Cuál es tu objetivo principal?</b>
         <div class="grid mt2">
           <div class="wizard-option selected" data-wz-goal="hipertrofia">
-            <span style="font-size:1.5rem">💪</span>
+            <span style="color:var(--gold);display:flex;align-items:center">${RD.icon('dumbbell', 'gold', 24)}</span>
             <div><b>Ganar Masa Muscular & Hipertrofia</b><div class="tiny muted">Volumen muscular, desarrollo estético y proporción</div></div>
           </div>
           <div class="wizard-option" data-wz-goal="grasa">
-            <span style="font-size:1.5rem">🔥</span>
+            <span style="color:var(--gold);display:flex;align-items:center">${RD.icon('flame', 'gold', 24)}</span>
             <div><b>Perder Grasa & Tonificación</b><div class="tiny muted">Déficit calórico, circuitos metabólicos y quema de grasa</div></div>
           </div>
           <div class="wizard-option" data-wz-goal="fuerza">
-            <span style="font-size:1.5rem">🏋️</span>
+            <span style="color:var(--gold);display:flex;align-items:center">${RD.icon('barbell', 'gold', 24)}</span>
             <div><b>Fuerza Máxima (Powerbuilding)</b><div class="tiny muted">Levantamiento pesado de sentadilla, banca y peso muerto</div></div>
           </div>
           <div class="wizard-option" data-wz-goal="gluteo">
-            <span style="font-size:1.5rem">🍑</span>
+            <span style="color:var(--gold);display:flex;align-items:center">${RD.icon('target', 'gold', 24)}</span>
             <div><b>Glúteos & Tren Inferior Pro</b><div class="tiny muted">Especialización en glúteos redondos, femorales y cintura fina</div></div>
           </div>
         </div>
@@ -585,7 +594,7 @@
         </div>
       </div>
 
-      <button class="btn primary block lg mt" id="wz_recommend_btn">Recomendar Mi Rutina Ideal</button>
+      <button class="btn primary block lg mt" id="wz_recommend_btn" style="display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('sparkles', '', 18)} Recomendar Mi Rutina Ideal</button>
     </div>
 
     <div id="wz_result_box"></div>`;
@@ -625,19 +634,19 @@
       const resBox = el.querySelector('#wz_result_box');
       resBox.innerHTML = `
         <div class="card mb" style="border:2px solid var(--gold);background:rgba(183,110,121,0.08)">
-          <div class="badge ok mb">Plan Recomendado para Ti</div>
+          <div class="badge ok mb" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('check', '', 14)}<span>Plan Recomendado para Ti</span></div>
           <h2>${esc(match.name)}</h2>
           <p class="muted small">${esc(match.description || match.goal)}</p>
           <div class="chips mb">
             <span class="badge info">${esc(match.level)}</span>
-            <span class="badge">📅 ${match.days} días / semana</span>
+            <span class="badge" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('calendar', '', 14)}<span>${match.days} días / semana</span></span>
           </div>
-          <button class="btn ok block lg" id="wz_apply_btn">✔ Activar y Comenzar Este Plan</button>
+          <button class="btn ok block lg" id="wz_apply_btn" style="display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('check', '', 18)} Activar y Comenzar Este Plan</button>
         </div>`;
 
       resBox.querySelector('#wz_apply_btn').onclick = async () => {
         await api.post(`/member/routines/${match.id}/follow`);
-        RD.toast('¡Rutina recomendada activada con éxito! ✔');
+        RD.toast('Rutina recomendada activada con éxito');
         document.querySelector('[data-tt="my"]').click();
       };
       resBox.scrollIntoView({ behavior: 'smooth' });
@@ -652,7 +661,7 @@
         <span class="badge info">${esc(r.level || 'Todos')}</span>
         <h3 class="mt2" style="margin-bottom:.2rem">${esc(r.name)}</h3>
         <p class="muted small" style="min-height:2.6em">${esc(r.goal || r.description || '')}</p>
-        <div class="small muted mb">📅 ${r.days} días por semana</div>
+        <div class="small muted mb" style="display:flex;align-items:center;gap:5px">${RD.icon('calendar', '', 14)}<span>${r.days} días por semana</span></div>
         <div class="row gap">
           <button class="btn sm" data-act="viewtpl">Ver detalle</button>
           <button class="btn sm primary" data-act="applytpl">Seguir esta rutina</button>
@@ -682,7 +691,7 @@
       } else if (act === 'applytpl') {
         if (await RD.confirm('Cambiar rutina', '¿Deseas activar esta rutina para tus entrenamientos diarios?', 'Activar')) {
           await api.post(`/member/routines/${rid}/follow`);
-          RD.toast('Rutina activada con éxito ✔');
+          RD.toast('Rutina activada con éxito');
           document.querySelector('[data-tt="my"]').click();
         }
       }
@@ -702,11 +711,11 @@
 
     el.innerHTML = `
     <div class="chips mb" id="ptabs">
-      <span class="chip on" data-pt="charts">📊 Gráficos de Evolución</span>
-      <span class="chip" data-pt="prs">🏆 Récords (PRs)</span>
-      <span class="chip" data-pt="body">📏 Medidas Corporales (${measurements.length})</span>
-      <span class="chip" data-pt="history">📋 Historial (${workouts.length})</span>
-      <span class="chip" data-pt="payments">💳 Pagos (${payments.length})</span>
+      <span class="chip on" data-pt="charts" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('chart', '', 14)}<span>Evolución</span></span>
+      <span class="chip" data-pt="prs" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('trophy', '', 14)}<span>Récords (PRs)</span></span>
+      <span class="chip" data-pt="body" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('ruler', '', 14)}<span>Medidas (${measurements.length})</span></span>
+      <span class="chip" data-pt="history" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('activity', '', 14)}<span>Historial (${workouts.length})</span></span>
+      <span class="chip" data-pt="payments" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('receipt', '', 14)}<span>Pagos (${payments.length})</span></span>
     </div>
     <div id="progresssubview"></div>`;
 
@@ -719,23 +728,23 @@
         subview.innerHTML = `
           <!-- Gráfico de Peso Corporal -->
           <div class="card mb">
-            <div class="row between">
-              <h3>Curva de Peso Corporal</h3>
-              <button class="btn sm ghost" id="btn_add_meas_quick">＋ Registrar Peso</button>
+            <div class="row between wrap gap">
+              <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('scale', 'gold', 18)} Curva de Peso Corporal</h3>
+              <button class="btn sm ghost" id="btn_add_meas_quick" style="display:flex;align-items:center;gap:5px">${RD.icon('plus', '', 14)} Registrar Peso</button>
             </div>
             ${RD.renderWeightSvgChart(measurements)}
           </div>
 
           <!-- Gráfico de Volumen de Carga Semanal -->
           <div class="card mb">
-            <h3>Volumen Semanal de Cargas (Kg Levantados)</h3>
+            <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('activity', 'gold', 18)} Volumen Semanal de Cargas (Kg Levantados)</h3>
             <p class="muted tiny">Muestra el trabajo acumulado por semana para verificar la sobrecarga progresiva.</p>
             ${RD.renderVolumeSvgChart(analytics.weeklyVolume)}
           </div>
 
           <!-- Gráfico de Distribución Muscular -->
           <div class="card mb">
-            <h3>Distribución de Series por Grupo Muscular</h3>
+            <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('target', 'gold', 18)} Distribución de Series por Grupo Muscular</h3>
             <p class="muted tiny">Asegura que tu entrenamiento esté balanceado y sin descompensaciones posturales.</p>
             ${RD.renderMuscleDistribution(analytics.muscleDistribution)}
           </div>`;
@@ -744,12 +753,12 @@
       } else if (tab === 'prs') {
         subview.innerHTML = `
           <div class="card mb">
-            <div class="row between mb">
+            <div class="row between wrap gap mb">
               <div>
-                <h3 style="margin:0">🏆 Récords Personales (PRs)</h3>
+                <h3 style="margin:0;display:flex;align-items:center;gap:6px">${RD.icon('trophy', 'gold', 20)} Récords Personales (PRs)</h3>
                 <div class="muted tiny">Tus cargas máximas históricas en cada ejercicio</div>
               </div>
-              <button class="btn sm primary" id="btn_open_1rm_tool">💪 Calcular 1RM</button>
+              <button class="btn sm primary" id="btn_open_1rm_tool" style="display:flex;align-items:center;gap:5px">${RD.icon('dumbbell', '', 14)} Calcular 1RM</button>
             </div>
             <div class="list">
               ${prs.map(p => `
@@ -767,9 +776,9 @@
       } else if (tab === 'body') {
         subview.innerHTML = `
           <div class="card mb">
-            <div class="row between mb">
-              <h3>Historial de Medidas Corporales</h3>
-              <button class="btn sm primary" id="btn_add_meas">＋ Registrar Medidas</button>
+            <div class="row between wrap gap mb">
+              <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('ruler', 'gold', 18)} Historial de Medidas Corporales</h3>
+              <button class="btn sm primary" id="btn_add_meas" style="display:flex;align-items:center;gap:5px">${RD.icon('plus', '', 14)} Registrar Medidas</button>
             </div>
             <div class="tbl-wrap">
               <table>
@@ -794,7 +803,7 @@
       } else if (tab === 'history') {
         subview.innerHTML = `
           <div class="card mb">
-            <h3>Sesiones de Entrenamiento Completadas (${workouts.length})</h3>
+            <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('activity', 'gold', 18)} Sesiones de Entrenamiento Completadas (${workouts.length})</h3>
             <div class="list">
               ${workouts.map(w => `
               <div class="item">
@@ -809,11 +818,11 @@
             </div>
           </div>
           <div class="card mb">
-            <h3>Historial de Asistencias en Gimnasio (${attendance.length})</h3>
+            <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('calendar', 'gold', 18)} Historial de Asistencias en Gimnasio (${attendance.length})</h3>
             <div class="list small">
               ${attendance.slice(0, 20).map(a => `
               <div class="item">
-                <span class="badge ok">Presente</span>
+                <span class="badge ok" style="display:inline-flex;align-items:center;gap:4px">${RD.icon('check', '', 12)}<span>Presente</span></span>
                 <span class="grow">${RD.fmtDateTime(a.ts)}</span>
               </div>`).join('') || '<div class="empty">Sin asistencias registradas</div>'}
             </div>
@@ -821,7 +830,7 @@
       } else if (tab === 'payments') {
         subview.innerHTML = `
           <div class="card">
-            <h3>Tus Pagos y Membresías</h3>
+            <h3 style="display:flex;align-items:center;gap:6px">${RD.icon('receipt', 'gold', 18)} Tus Pagos y Membresías</h3>
             <div class="tbl-wrap">
               <table>
                 <thead><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Método</th></tr></thead>
@@ -885,7 +894,7 @@
           hip: f.hip.value || null,
           body_fat: f.body_fat.value || null
         });
-        RD.toast('Medidas guardadas con éxito ✔');
+        RD.toast('Medidas guardadas con éxito');
         d.close();
         if (onDone) onDone();
       } catch (err) {
@@ -898,51 +907,51 @@
   async function renderToolsTab(el) {
     el.innerHTML = `
     <div class="card mb flat">
-      <h2>🧮 Herramientas Deportivas Pro</h2>
+      <h2 style="display:flex;align-items:center;gap:8px">${RD.icon('tools', 'gold', 24)} Herramientas Deportivas Pro</h2>
       <p class="muted small">Calculadoras científicas diseñadas para sacarle el máximo provecho a cada entrenamiento y alimentación.</p>
     </div>
 
     <div class="grid g2 gap mb">
-      <div class="card" id="tool_1rm" style="cursor:pointer">
-        <div style="font-size:2rem">💪</div>
+      <div class="card tool-card" id="tool_1rm" style="cursor:pointer">
+        <div class="tool-icon-wrap" style="color:var(--gold);margin-bottom:.5rem">${RD.icon('barbell', 'gold', 32)}</div>
         <h3 class="mt2">Calculadora 1RM</h3>
         <p class="muted small">Predice tu fuerza máxima a 1 repetición y tabla exacta de cargas del 100% al 65%.</p>
-        <button class="btn sm primary mt">Abrir Calculadora</button>
+        <button class="btn sm primary mt" style="display:flex;align-items:center;gap:5px">${RD.icon('dumbbell', '', 14)} Abrir Calculadora</button>
       </div>
 
-      <div class="card" id="tool_plates" style="cursor:pointer">
-        <div style="font-size:2rem">🧮</div>
+      <div class="card tool-card" id="tool_plates" style="cursor:pointer">
+        <div class="tool-icon-wrap" style="color:var(--gold);margin-bottom:.5rem">${RD.icon('layers', 'gold', 32)}</div>
         <h3 class="mt2">Discos de Barra</h3>
         <p class="muted small">Visualiza qué discos colocar a cada lado de la barra con los colores oficiales de halterofilia.</p>
-        <button class="btn sm primary mt">Calcular Discos</button>
+        <button class="btn sm primary mt" style="display:flex;align-items:center;gap:5px">${RD.icon('layers', '', 14)} Calcular Discos</button>
       </div>
 
-      <div class="card" id="tool_nutrition" style="cursor:pointer">
-        <div style="font-size:2rem">🥗</div>
+      <div class="card tool-card" id="tool_nutrition" style="cursor:pointer">
+        <div class="tool-icon-wrap" style="color:var(--gold);margin-bottom:.5rem">${RD.icon('apple', 'gold', 32)}</div>
         <h3 class="mt2">Macros & Calorías TDEE</h3>
         <p class="muted small">Gasto calórico real y gramos exactos de proteínas, carbos y grasas según tu objetivo.</p>
-        <button class="btn sm primary mt">Calcular Dieta</button>
+        <button class="btn sm primary mt" style="display:flex;align-items:center;gap:5px">${RD.icon('apple', '', 14)} Calcular Dieta</button>
       </div>
 
-      <div class="card" id="tool_fat" style="cursor:pointer">
-        <div style="font-size:2rem">📏</div>
+      <div class="card tool-card" id="tool_fat" style="cursor:pointer">
+        <div class="tool-icon-wrap" style="color:var(--gold);margin-bottom:.5rem">${RD.icon('ruler', 'gold', 32)}</div>
         <h3 class="mt2">Grasa Corporal (US Navy)</h3>
         <p class="muted small">Estimación científica de porcentaje graso usando tus contornos corporales.</p>
-        <button class="btn sm primary mt">Calcular Grasa</button>
+        <button class="btn sm primary mt" style="display:flex;align-items:center;gap:5px">${RD.icon('ruler', '', 14)} Calcular Grasa</button>
       </div>
 
-      <div class="card" id="tool_water" style="cursor:pointer">
-        <div style="font-size:2rem">💧</div>
+      <div class="card tool-card" id="tool_water" style="cursor:pointer">
+        <div class="tool-icon-wrap" style="color:#0284c7;margin-bottom:.5rem">${RD.icon('water', '', 32)}</div>
         <h3 class="mt2">Hidratación en Altura</h3>
         <p class="muted small">Calcula cuántos litros de agua necesitas al día en el clima y altitud de Chivay.</p>
-        <button class="btn sm primary mt">Calcular Agua</button>
+        <button class="btn sm primary mt" style="display:flex;align-items:center;gap:5px">${RD.icon('water', '', 14)} Calcular Agua</button>
       </div>
 
-      <div class="card" id="tool_timers" style="cursor:pointer">
-        <div style="font-size:2rem">⏱</div>
+      <div class="card tool-card" id="tool_timers" style="cursor:pointer">
+        <div class="tool-icon-wrap" style="color:var(--gold);margin-bottom:.5rem">${RD.icon('timer', 'gold', 32)}</div>
         <h3 class="mt2">Tabata, HIIT y EMOM</h3>
         <p class="muted small">Cronómetros de intervalos con avisos sonoros y vibración offline.</p>
-        <button class="btn sm primary mt">Abrir Cronómetros</button>
+        <button class="btn sm primary mt" style="display:flex;align-items:center;gap:5px">${RD.icon('timer', '', 14)} Abrir Cronómetros</button>
       </div>
     </div>`;
 
@@ -950,7 +959,7 @@
     el.querySelector('#tool_plates').onclick = () => RD.openPlateCalculator(60, 20);
     el.querySelector('#tool_nutrition').onclick = () => RD.openNutritionCalculator(member || {});
     el.querySelector('#tool_fat').onclick = () => {
-      const m = RD.openModal('📏 Calculadora de Grasa (US Navy)', `
+      const m = RD.openModal('Calculadora de Grasa (US Navy)', `
         <div class="mb">
           <p class="muted small mb">Fórmula de la Marina de EE.UU. para estimar el porcentaje de grasa corporal.</p>
           <label class="field"><span>Género</span>
@@ -988,7 +997,7 @@
     el.querySelector('#tool_water').onclick = () => {
       const w = member?.weight || 70;
       const res = RD.calcWater(w, 60);
-      RD.openModal('💧 Hidratación Deportiva', `
+      RD.openModal('Hidratación Deportiva', `
         <div class="card center mb" style="background:rgba(2,132,199,0.1);border-color:#0284c7">
           <div class="muted small">Requerimiento Diario Estimado</div>
           <div style="font-size:2.6rem;font-weight:900;color:#0284c7">${res} Litros</div>
@@ -1000,7 +1009,7 @@
       `);
     };
     el.querySelector('#tool_timers').onclick = () => {
-      const m = RD.openModal('⏱ Cronómetros y Tabata', '<div id="tim_box"></div>');
+      const m = RD.openModal('Cronómetros Deportivos y Tabata', '<div id="tim_box"></div>');
       RD.timersTool(m.el.querySelector('#tim_box'));
     };
   }
@@ -1035,11 +1044,11 @@
       <div class="list small">
         <div class="item"><span class="muted">Código de socio:</span> <b class="grow right">${esc(member.code)}</b></div>
         <div class="item"><span class="muted">Mi usuario:</span> <b class="grow right">${member.alias ? esc(member.alias) : '<span class="muted">Sin crear</span>'}</b></div>
-        <div class="item"><span class="muted">Contraseña:</span> <b class="grow right">${member.has_password ? 'Propia ✔' : 'Inicial (tu DNI)'}</b></div>
+        <div class="item"><span class="muted">Contraseña:</span> <b class="grow right" style="display:inline-flex;align-items:center;justify-content:flex-end;gap:5px">${member.has_password ? `${RD.icon('check', 'ok', 14)} Configurada` : 'Inicial (tu DNI)'}</b></div>
       </div>
       <div class="grid g2 keep mt2">
-        <button class="btn sm ${member.has_password ? '' : 'primary'}" id="pfaccount">${member.has_password ? '🔐 Cambiar acceso' : '✨ Crear usuario y contraseña'}</button>
-        <button class="btn sm" id="pfdevices">📱 Mis dispositivos</button>
+        <button class="btn sm ${member.has_password ? '' : 'primary'}" id="pfaccount" style="display:flex;align-items:center;justify-content:center;gap:6px">${member.has_password ? `${RD.icon('lock', '', 14)} Cambiar acceso` : `${RD.icon('sparkles', '', 14)} Crear usuario y contraseña`}</button>
+        <button class="btn sm" id="pfdevices" style="display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('smartphone', '', 14)} Mis dispositivos</button>
       </div>
     </div>
 
@@ -1047,9 +1056,9 @@
       <h3>Boletas de pago, avisos y ajustes</h3>
       <p class="small muted">Consulta tus boletas electrónicas térmicas, revisa los avisos del club y ajusta alertas de sonido.</p>
       <div class="grid g3 keep gap">
-        <button class="btn sm ok" id="pfreceipts">🧾 Mis Boletas</button>
-        <button class="btn sm" id="pfinbox">🔔 Avisos</button>
-        <button class="btn sm ghost" id="pfprefs">⚙️ Ajustes</button>
+        <button class="btn sm ok" id="pfreceipts" style="display:flex;align-items:center;justify-content:center;gap:5px">${RD.icon('receipt', '', 14)} Mis Boletas</button>
+        <button class="btn sm" id="pfinbox" style="display:flex;align-items:center;justify-content:center;gap:5px">${RD.icon('bell', '', 14)} Avisos</button>
+        <button class="btn sm ghost" id="pfprefs" style="display:flex;align-items:center;justify-content:center;gap:5px">${RD.icon('settings', '', 14)} Ajustes</button>
       </div>
     </div>
 
@@ -1057,21 +1066,21 @@
       <h3>Aplicación</h3>
       <div class="row between wrap gap">
         <span class="small">Tema visual</span>
-        <button class="btn sm" id="profilethemebtn">${RD.getTheme && RD.getTheme() === 'light' ? '🌙 Modo Oscuro' : '☀️ Modo Claro (Pastel)'}</button>
+        <button class="btn sm" id="profilethemebtn" style="display:inline-flex;align-items:center;gap:6px">${RD.getTheme && RD.getTheme() === 'light' ? `${RD.icon('moon', '', 14)} Modo Oscuro` : `${RD.icon('sun', '', 14)} Modo Claro`}</button>
       </div>
       <div class="row between wrap gap mt2" id="installrow">
-        <div class="small">
-          ${RD.hub.isStandalone() ? '✅ App instalada en este dispositivo' : '💡 Puedes usarla como App en Android, iOS o PC'}
+        <div class="small" style="display:flex;align-items:center;gap:6px">
+          ${RD.hub.isStandalone() ? `${RD.icon('check-circle', 'ok', 16)} App instalada en este dispositivo` : `${RD.icon('info', 'gold', 16)} Puedes usarla como App en Android, iOS o PC`}
         </div>
         <div class="row gap">
-          ${RD.hub.canInstall() ? '<button class="btn sm primary" id="pfinstall">⚡ Instalar app</button>' : ''}
-          <button class="btn sm info" id="pfinstallguide">📲 Guía de Instalación</button>
+          ${RD.hub.canInstall() ? `<button class="btn sm primary" id="pfinstall" style="display:flex;align-items:center;gap:5px">${RD.icon('zap', '', 14)} Instalar app</button>` : ''}
+          <button class="btn sm info" id="pfinstallguide" style="display:flex;align-items:center;gap:5px">${RD.icon('smartphone', '', 14)} Guía de Instalación</button>
         </div>
       </div>
     </div>
 
     <div class="grid gap">
-      <button class="btn danger block" id="outbtn">Cerrar Sesión</button>
+      <button class="btn danger block" id="outbtn" style="display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('power', '', 16)} Cerrar Sesión</button>
     </div>`;
 
     const redrawProfile = m => {
@@ -1085,7 +1094,7 @@
     el.querySelector('#pfreceipts').onclick = () => RD.hub.openReceipts();
     el.querySelector('#pfprefs').onclick = () => RD.hub.openPrefs();
     const pfi = el.querySelector('#pfinstall');
-    if (pfi) pfi.onclick = async () => { if (await RD.hub.install()) { RD.toast('App instalada ✔'); renderProfileTab(el); } };
+    if (pfi) pfi.onclick = async () => { if (await RD.hub.install()) { RD.toast('App instalada con éxito'); renderProfileTab(el); } };
     const pfig = el.querySelector('#pfinstallguide');
     if (pfig) pfig.onclick = () => RD.hub.openInstallGuide();
 
@@ -1093,7 +1102,8 @@
     if (ptb) {
       ptb.onclick = () => {
         RD.toggleTheme();
-        ptb.textContent = RD.getTheme() === 'light' ? '🌙 Modo Oscuro' : '☀️ Modo Claro (Pastel)';
+        const isLight = RD.getTheme() === 'light';
+        ptb.innerHTML = isLight ? `${RD.icon('moon', '', 14)} Modo Oscuro` : `${RD.icon('sun', '', 14)} Modo Claro`;
       };
     }
 

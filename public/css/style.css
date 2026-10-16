@@ -203,14 +203,71 @@ th{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.
 @media(max-width:720px){.top-btn span{display:none}.top-btn{padding:.35rem .45rem}}
 .net{font-size:.72rem;font-weight:700;padding:.2rem .55rem;border-radius:99px;background:rgba(22,163,74,.2);color:#4ade80}
 .net.off{background:rgba(220,38,38,.2);color:#f87171}
-.nav{position:fixed;left:0;right:0;bottom:0;height:var(--nav-h);background:#101013;border-top:1px solid var(--line);display:flex;z-index:60;padding-bottom:env(safe-area-inset-bottom)}
-.nav button{flex:1;background:none;border:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.68rem;font-weight:600;cursor:pointer;min-width:0;padding:0 2px}
-.nav button .i{font-size:1.3rem;line-height:1}
-.nav button.on{color:var(--gold)}
-.page{padding:.9rem;padding-bottom:calc(var(--nav-h) + 24px);max-width:1100px;margin:0 auto}
+.nav {
+  position: fixed;
+  left: 14px;
+  right: 14px;
+  bottom: 12px;
+  height: 64px;
+  background: rgba(18, 18, 22, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  z-index: 60;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  padding: 0 6px;
+}
+.nav button {
+  flex: 1;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  cursor: pointer;
+  min-width: 0;
+  padding: 6px 2px;
+  border-radius: 16px;
+  transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+.nav button .i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .2s ease;
+}
+.nav button.on {
+  color: var(--gold);
+}
+.nav button.on .i {
+  transform: translateY(-2px);
+  filter: drop-shadow(0 2px 8px rgba(245, 180, 0, 0.45));
+}
+.nav button.on::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 6px var(--gold);
+}
+.page{padding:.9rem;padding-bottom:calc(var(--nav-h) + 32px);max-width:1100px;margin:0 auto}
 @media(min-width:900px){
-  .admin .nav{top:0;bottom:auto;right:auto;width:92px;height:100vh;flex-direction:column;justify-content:flex-start;padding-top:70px;border-top:0;border-right:1px solid var(--line)}
+  .admin .nav{left:0;right:auto;bottom:auto;top:0;width:92px;height:100vh;flex-direction:column;justify-content:flex-start;padding-top:70px;border-radius:0;border:0;border-right:1px solid var(--line);background:#101013;box-shadow:none}
   .admin .nav button{flex:none;padding:.8rem 0}
+  .admin .nav button.on::after{display:none}
   .admin .topbar,.admin .page{margin-left:92px}
   .admin .page{max-width:1200px}
   #toasts{bottom:20px}
@@ -234,16 +291,135 @@ th{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.
 .result.denied{animation:shake .4s}
 @keyframes shake{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
 
-/* ---- Credencial del socio ---- */
-.idcard{background:linear-gradient(145deg,#1a1a1d,#050505);border:2px solid var(--gold);border-radius:20px;padding:1rem;max-width:380px;margin:0 auto;text-align:center;position:relative;overflow:hidden}
-.idcard .qr{background:#fff;border-radius:14px;padding:10px;width:min(78vw,280px);margin:.6rem auto}
-.idcard .qr svg{display:block;width:100%;height:auto}
-.statusbar{border-radius:12px;padding:.6rem .8rem;font-weight:700;text-align:center}
-.statusbar.ok{background:rgba(22,163,74,.2);color:#4ade80;border:1px solid rgba(22,163,74,.5)}
-.statusbar.warn{background:rgba(245,158,11,.2);color:#fbbf24;border:1px solid rgba(245,158,11,.5)}
-.statusbar.denied{background:rgba(220,38,38,.2);color:#f87171;border:1px solid rgba(220,38,38,.5)}
-.countdown{height:4px;background:var(--bg3);border-radius:4px;overflow:hidden;margin-top:.5rem}
-.countdown>i{display:block;height:100%;background:var(--gold);transition:width 1s linear}
+/* ---- Credencial VIP del socio ---- */
+.idcard {
+  background: radial-gradient(circle at 50% -20%, #2a241b 0%, #16161a 55%, #08080a 100%);
+  border: 1.5px solid rgba(245, 180, 0, 0.45);
+  border-radius: 22px;
+  padding: 1.2rem;
+  max-width: 390px;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.12);
+}
+.idcard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.vip-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  background: rgba(245, 180, 0, 0.14);
+  color: var(--gold);
+  border: 1px solid rgba(245, 180, 0, 0.35);
+}
+.vip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.85); }
+}
+.idcard .qr {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 12px;
+  width: min(76vw, 270px);
+  margin: 0.8rem auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  border: 2px solid rgba(245, 180, 0, 0.25);
+}
+.idcard .qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.statusbar {
+  border-radius: 12px;
+  padding: .65rem .85rem;
+  font-weight: 700;
+  text-align: center;
+}
+.statusbar.ok {
+  background: rgba(22, 163, 74, 0.18);
+  color: #4ade80;
+  border: 1px solid rgba(22, 163, 74, 0.45);
+}
+.statusbar.warn {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+}
+.statusbar.denied {
+  background: rgba(220, 38, 38, 0.18);
+  color: #f87171;
+  border: 1px solid rgba(220, 38, 38, 0.45);
+}
+.countdown {
+  height: 4px;
+  background: var(--bg3);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: .6rem;
+}
+.countdown>i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--gold2));
+  transition: width 1s linear;
+}
+
+/* Badges de estadística & herramientas deportivas */
+.stat-badge-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+.stat.gold .stat-badge-icon {
+  background: rgba(245, 180, 0, 0.15);
+  color: var(--gold);
+}
+.tool-card {
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.tool-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--gold);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+.tool-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(245, 180, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 /* ---- Ejercicios ---- */
 .ex-card{display:flex;gap:.8rem;background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius);padding:.6rem;cursor:pointer}

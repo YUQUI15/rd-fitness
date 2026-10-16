@@ -15,9 +15,9 @@
       view.innerHTML = `
       <div class="row between wrap gap mb">
         <div class="chips" id="tabs">
-          <span class="chip on" data-t="routines">🏋️ Rutinas (${can('admin', 'entrenador') ? 'Gestión' : 'Ver'})</span>
-          <span class="chip" data-t="exercises">📖 Ejercicios (${exList.length})</span>
-          <span class="chip" data-t="timers">⏱ Cronómetros Gym</span>
+          <span class="chip on" data-t="routines">${RD.icon('dumbbell')} Rutinas (${can('admin', 'entrenador') ? 'Gestión' : 'Ver'})</span>
+          <span class="chip" data-t="exercises">${RD.icon('layers')} Ejercicios (${exList.length})</span>
+          <span class="chip" data-t="timers">${RD.icon('timer')} Cronómetros Gym</span>
         </div>
         ${can('admin', 'entrenador') ? '<button class="btn primary sm" id="newr">＋ Crear Rutina</button>' : ''}
       </div>
@@ -37,7 +37,7 @@
           const addBtn = subview.querySelector('#addex');
           if (addBtn) addBtn.onclick = () => addCustomExerciseDialog(() => showTab('exercises'));
         } else if (tab === 'timers') {
-          subview.innerHTML = `<div class="card" style="max-width:480px;margin:0 auto"><h3>⏱ Cronómetros y Temporizadores</h3><div id="tbox" class="mt"></div></div>`;
+          subview.innerHTML = `<div class="card" style="max-width:480px;margin:0 auto"><h3>${RD.icon('timer')} Cronómetros y Temporizadores</h3><div id="tbox" class="mt"></div></div>`;
           RD.timersTool(subview.querySelector('#tbox'));
         }
       }
@@ -67,16 +67,16 @@
         <h3 class="mt2" style="margin-bottom:.2rem">${esc(r.name)}</h3>
         <p class="muted small" style="min-height:2.6em">${esc(r.goal || r.description || 'Sin descripción')}</p>
         <div class="row between wrap gap small muted mb">
-          <span>📅 ${r.days} día(s) / semana</span>
-          <span>🏋️ ${r.exercises} ejercicio(s)</span>
-          <span>👥 ${r.assigned} socio(s)</span>
+          <span>${RD.icon('calendar')} ${r.days} día(s) / semana</span>
+          <span>${RD.icon('dumbbell')} ${r.exercises} ejercicio(s)</span>
+          <span>${RD.icon('users')} ${r.assigned} socio(s)</span>
         </div>
         <div class="row gap wrap">
           <button class="btn sm primary" data-act="view">Ver detalle</button>
           ${can('admin', 'entrenador') ? `
-            <button class="btn sm" data-act="assign">👥 Asignar</button>
-            <button class="btn sm" data-act="edit">✏️ Editar</button>
-            <button class="btn sm danger" data-act="del">🗑</button>` : ''}
+            <button class="btn sm" data-act="assign">${RD.icon('users')} Asignar</button>
+            <button class="btn sm" data-act="edit">${RD.icon('edit')} Editar</button>
+            <button class="btn sm danger" data-act="del" title="Eliminar">${RD.icon('trash')}</button>` : ''}
         </div>
       </div>`).join('') || '<div class="empty">No hay rutinas registradas aún</div>'}
     </div>`;
@@ -177,7 +177,7 @@
           <div class="row between gap mb">
             <input class="grow" style="font-weight:700" value="${esc(day.title || `Día ${di + 1}`)}" data-daytitle="${di}">
             <button type="button" class="btn sm" data-addex="${di}">＋ Ejercicio</button>
-            ${days.length > 1 ? `<button type="button" class="btn sm danger" data-delday="${di}">✕</button>` : ''}
+            ${days.length > 1 ? `<button type="button" class="btn sm danger" data-delday="${di}" title="Quitar día">${RD.icon('x')}</button>` : ''}
           </div>
           <div class="list">
             ${day.items.map((it, ii) => `
@@ -190,7 +190,7 @@
                   <label class="small muted">Descanso (s): <input type="number" min="0" step="5" value="${it.rest || 60}" data-prop="rest" style="width:65px;min-height:30px;padding:2px 6px"></label>
                 </div>
               </div>
-              <button type="button" class="icon-btn" data-delex="${di}" data-delii="${ii}" title="Quitar">🗑</button>
+              <button type="button" class="icon-btn" data-delex="${di}" data-delii="${ii}" title="Quitar">${RD.icon('trash')}</button>
             </div>`).join('') || '<div class="muted small center">Sin ejercicios en este día</div>'}
           </div>
         </div>
@@ -275,7 +275,7 @@
           if (existing) await RD.api.put('/routines/' + existing.id, body);
           else await RD.api.post('/routines', body);
           d.close();
-          RD.toast('Rutina guardada exitosamente ✔');
+          RD.toast('Rutina guardada exitosamente');
           onDone && onDone();
         } catch (err) {
           RD.toast(err.message, 'err');
@@ -346,7 +346,7 @@
           member_ids: Array.from(selected),
           replace: d.el.querySelector('#replace').checked
         });
-        RD.toast(`Rutina asignada a ${selected.size} socio(s) ✔`);
+        RD.toast(`Rutina asignada a ${selected.size} socio(s)`);
         d.close();
       } catch (err) {
         RD.toast(err.message, 'err');
@@ -402,7 +402,7 @@
           video: f.video.value.trim() || null
         });
         d.close();
-        RD.toast('Ejercicio agregado ✔');
+        RD.toast('Ejercicio agregado');
         done && done();
       } catch (err) {
         RD.toast(err.message, 'err');
@@ -480,26 +480,26 @@
           </div>
           <div class="stat">
             <div class="v" style="color:#f5b400">${money(cash.gym_income || 0)}</div>
-            <div class="l">🏋️ Ingresos Gimnasio (Membresías + Pases)</div>
+            <div class="l">${RD.icon('dumbbell')} Ingresos Gimnasio (Membresías + Pases)</div>
           </div>
           <div class="stat">
             <div class="v" style="color:#60a5fa">${money(cash.store_income || 0)}</div>
-            <div class="l">🛒 Ventas Tiendita (Aguas / Bebidas)</div>
+            <div class="l">${RD.icon('cart')} Ventas Tiendita (Aguas / Bebidas)</div>
           </div>
           <div class="stat">
             <div class="v" style="color:#4ade80">${money(cash.cash_in_drawer)}</div>
-            <div class="l">💵 Efectivo físico en gaveta</div>
+            <div class="l">${RD.icon('cash')} Efectivo físico en gaveta</div>
           </div>
         </div>
 
         <div class="grid g3 mb">
           <div class="stat">
             <div class="v" style="color:#a78bfa">${money((cash.byMethod.yape || 0) + (cash.byMethod.plin || 0))}</div>
-            <div class="l">📱 Yape / Plin (${cash.yape_summary?.count || 0} op · ${cash.yape_summary?.verified_count || 0} verificadas)</div>
+            <div class="l">${RD.icon('qr')} Yape / Plin (${cash.yape_summary?.count || 0} op · ${cash.yape_summary?.verified_count || 0} verificadas)</div>
           </div>
           <div class="stat">
             <div class="v" style="color:#f87171">-${money(cash.expense)}</div>
-            <div class="l">💸 Gastos Totales del Día</div>
+            <div class="l">${RD.icon('expense')} Gastos Totales del Día</div>
           </div>
           <div class="stat">
             <div class="v" style="color:${cash.net >= 0 ? '#4ade80' : '#f87171'}">${money(cash.net)}</div>
@@ -510,11 +510,11 @@
         <div class="card mb">
           <h3>Resumen de Arqueo de Caja del Día</h3>
           <div class="grid g5 mt2" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:10px">
-            <div class="small">💵 Efectivo cobrado: <b>${money(cash.byMethod.efectivo || 0)}</b></div>
-            <div class="small">💸 Gastos en efectivo: <b class="bad">-${money(cash.expenses.filter(e => e.method === 'efectivo').reduce((a, e) => a + e.amount, 0))}</b></div>
-            <div class="small">🟣 Yape: <b>${money(cash.byMethod.yape || 0)}</b></div>
-            <div class="small">🔵 Plin: <b>${money(cash.byMethod.plin || 0)}</b></div>
-            <div class="small">💳 Tarjeta POS: <b>${money(cash.byMethod.tarjeta || 0)}</b></div>
+            <div class="small">${RD.icon('cash')} Efectivo cobrado: <b>${money(cash.byMethod.efectivo || 0)}</b></div>
+            <div class="small">${RD.icon('expense')} Gastos en efectivo: <b class="bad">-${money(cash.expenses.filter(e => e.method === 'efectivo').reduce((a, e) => a + e.amount, 0))}</b></div>
+            <div class="small">${RD.icon('qr')} Yape: <b>${money(cash.byMethod.yape || 0)}</b></div>
+            <div class="small">${RD.icon('qr')} Plin: <b>${money(cash.byMethod.plin || 0)}</b></div>
+            <div class="small">${RD.icon('card')} Tarjeta POS: <b>${money(cash.byMethod.tarjeta || 0)}</b></div>
           </div>
           <div class="tip small mt">
             <b>Regla de Arqueo para el Dueño:</b> Al cerrar caja, debe haber exactamente <b>${money(cash.cash_in_drawer)}</b> en monedas y billetes dentro del cajón físico. En tu aplicación de celular debes tener <b>${money((cash.byMethod.yape || 0) + (cash.byMethod.plin || 0))}</b> entre Yape y Plin, y en el reporte de lote de tu POS físico debes tener <b>${money(cash.byMethod.tarjeta || 0)}</b>.
@@ -525,11 +525,11 @@
         <div class="card mb yape-box">
           <div class="row between wrap gap">
             <div>
-              <h3 style="color:#c084fc">📱 Auditoría y Conciliación Yape & Plin (${yapeList.length} cobros)</h3>
+              <h3 style="color:#c084fc">${RD.icon('qr')} Auditoría y Conciliación Yape & Plin (${yapeList.length} cobros)</h3>
               <p class="muted small">Coteja con tu celular las notificaciones bancarias. Al verificar el N° de Operación, márcalo como cotejado.</p>
             </div>
             <span class="badge ${cash.yape_summary?.pending_count ? 'warn' : 'ok'}">
-              ${cash.yape_summary?.pending_count ? `⏳ ${cash.yape_summary.pending_count} por cotejar` : '✔ 100% Cotejado'}
+              ${cash.yape_summary?.pending_count ? `${RD.icon('hourglass')} ${cash.yape_summary.pending_count} por cotejar` : `${RD.icon('check')} 100% Cotejado`}
             </span>
           </div>
 
@@ -558,11 +558,11 @@
                   </td>
                   <td>
                     <button class="btn sm ${p.verified ? 'ok' : 'warn'}" data-verify="${p.id}">
-                      ${p.verified ? '✔ Cotejado' : '⏳ Marcar Cotejado'}
+                      ${p.verified ? `${RD.icon('check')} Cotejado` : `${RD.icon('hourglass')} Marcar Cotejado`}
                     </button>
                   </td>
                   <td>
-                    <button class="icon-btn" data-receipt="${p.id}" title="Ver e Imprimir Boleta">🧾</button>
+                    <button class="icon-btn" data-receipt="${p.id}" title="Ver e Imprimir Boleta">${RD.icon('receipt')}</button>
                   </td>
                 </tr>`).join('') || '<tr><td colspan="7" class="empty">No hay pagos por Yape o Plin en este día</td></tr>'}
               </tbody>
@@ -593,7 +593,7 @@
                     <td>
                       <b>${esc(p.concept)}</b>
                       ${p.member_name ? `<div class="muted tiny">${esc(p.member_name)} (${esc(p.member_code)})</div>` : ''}
-                      ${p.dp_name ? `<div class="gold tiny">🎟️ Pase Diario: ${esc(p.dp_name)} (${esc(p.dp_code || '')})</div>` : ''}
+                      ${p.dp_name ? `<div class="gold tiny">${RD.icon('ticket')} Pase Diario: ${esc(p.dp_name)} (${esc(p.dp_code || '')})</div>` : ''}
                       ${p.op_code ? `<div class="tiny" style="color:#c084fc">Op: #${esc(p.op_code)}</div>` : ''}
                       ${p.note ? `<div class="gold tiny">${esc(p.note)}</div>` : ''}
                     </td>
@@ -602,8 +602,8 @@
                       <span class="badge ${p.method === 'yape' ? 'warn' : p.method === 'plin' ? 'info' : 'ok'}">${esc(p.method)}</span>
                     </td>
                     <td class="row gap">
-                      <button class="icon-btn" data-receipt="${p.id}" title="Ver / Imprimir Boleta">🧾</button>
-                      ${can('admin') ? `<button class="icon-btn" data-voidpay="${p.id}" title="Anular cobro">✕</button>` : ''}
+                      <button class="icon-btn" data-receipt="${p.id}" title="Ver / Imprimir Boleta">${RD.icon('receipt')}</button>
+                      ${can('admin') ? `<button class="icon-btn" data-voidpay="${p.id}" title="Anular cobro">${RD.icon('x')}</button>` : ''}
                     </td>
                   </tr>`).join('') || '<tr><td colspan="6" class="empty">Sin cobros en este día</td></tr>'}
                 </tbody>
@@ -623,7 +623,7 @@
                     <td><b>${esc(e.concept)}</b><div class="muted tiny">Por: ${esc(e.user_name || 'Admin')}</div></td>
                     <td class="bad" style="font-weight:700">-${money(e.amount)}</td>
                     <td><span class="badge">${esc(e.method)}</span></td>
-                    ${can('admin') ? `<td><button class="icon-btn" data-voidexp="${e.id}" title="Anular gasto">✕</button></td>` : ''}
+                    ${can('admin') ? `<td><button class="icon-btn" data-voidexp="${e.id}" title="Anular gasto">${RD.icon('x')}</button></td>` : ''}
                   </tr>`).join('') || '<tr><td colspan="5" class="empty">Sin gastos registrados</td></tr>'}
                 </tbody>
               </table>
@@ -667,7 +667,7 @@
           if (vf) {
             try {
               await RD.api.post(`/payments/${vf.dataset.verify}/verify`);
-              RD.toast('Estado de cotejo actualizado ✔');
+              RD.toast('Estado de cotejo actualizado');
               load();
             } catch (err) { RD.toast(err.message, 'err'); }
             return;
@@ -935,7 +935,7 @@
                   <button type="button" class="icon-btn" data-cplus="${idx}">＋</button>
                 </div>
                 <div class="bold small right" style="min-width:60px">${money(lineTotal)}</div>
-                <button type="button" class="icon-btn" data-cdel="${idx}" title="Quitar">✕</button>
+                <button type="button" class="icon-btn" data-cdel="${idx}" title="Quitar">${RD.icon('x')}</button>
               </div>`;
             }).join('');
           }
@@ -1041,7 +1041,7 @@
                 opInp.value = op;
                 methSel.value = 'yape';
                 updateStoreMethod('yape');
-                RD.toast('N° de operación cargado ✔');
+                RD.toast('N° de operación cargado');
               }
             }
           });
@@ -1059,7 +1059,7 @@
                 opInp.value = ref;
                 methSel.value = 'tarjeta';
                 updateStoreMethod('tarjeta');
-                RD.toast('Ref. de tarjeta cargada ✔');
+                RD.toast('Ref. de tarjeta cargada');
               }
             }
           });
@@ -1087,7 +1087,7 @@
               }
 
               RD.beep('done');
-              RD.toast('Venta registrada con éxito ✔');
+              RD.toast('Venta registrada con éxito');
               cart = [];
               renderCart();
               searchInp.value = '';
@@ -1189,7 +1189,7 @@
                     </td>
                     <td class="row gap no-print">
                       <button class="btn sm ok" data-addstock="${p.id}" data-pname="${esc(p.name)}" title="Ingresar mercadería">＋ Stock</button>
-                      <button class="btn sm" data-editprd="${p.id}">✏️ Editar</button>
+                      <button class="btn sm" data-editprd="${p.id}">${RD.icon('edit')} Editar</button>
                     </td>
                   </tr>`;
                 }).join('') || '<tr><td colspan="10" class="empty">Sin productos registrados</td></tr>'}
@@ -1210,7 +1210,7 @@
             const qty = await RD.prompt(`Reabastecer: ${pname}`, 'Cantidad de unidades que ingresaron:', '24');
             if (qty && parseInt(qty, 10) > 0) {
               await RD.api.post(`/products/${pid}/stock`, { qty: parseInt(qty, 10), note: 'Ingreso desde gestión de tienda' });
-              RD.toast(`Stock de ${pname} actualizado ✔`);
+              RD.toast(`Stock de ${pname} actualizado`);
               renderInventoryTab(el);
             }
             return;
@@ -1268,7 +1268,7 @@
                   <td class="bold gold">${money(p.amount)}</td>
                   <td class="small muted">${esc(p.user_name || 'Recepción')}</td>
                   <td class="no-print">
-                    <button class="icon-btn" data-receipt="${p.id}" title="Ver e Imprimir Boleta">🧾</button>
+                    <button class="icon-btn" data-receipt="${p.id}" title="Ver e Imprimir Boleta">${RD.icon('receipt')}</button>
                   </td>
                 </tr>`).join('') || '<tr><td colspan="7" class="empty">Sin ventas de tienda registradas este mes</td></tr>'}
               </tbody>
@@ -1308,10 +1308,10 @@
           <label class="field"><span>Cantidad</span><input name="qty" type="number" min="1" value="1" id="posqty" required></label>
           <label class="field"><span>Método de pago *</span>
             <select name="method" id="posmeth">
-              <option value="efectivo">💵 Efectivo</option>
-              <option value="yape">🟣 Yape</option>
-              <option value="plin">🔵 Plin</option>
-              <option value="tarjeta">💳 Tarjeta</option>
+              <option value="efectivo">Efectivo</option>
+              <option value="yape">Yape</option>
+              <option value="plin">Plin</option>
+              <option value="tarjeta">Tarjeta (POS)</option>
             </select>
           </label>
         </div>
@@ -1380,7 +1380,7 @@
           op_code: f.op_code?.value.trim() || null
         });
         RD.beep('done');
-        RD.toast('Venta registrada con éxito ✔');
+        RD.toast('Venta registrada con éxito');
         d.close();
         if (res.receipt) RD.receiptModal(res.receipt);
         onDone && onDone();
@@ -1398,15 +1398,15 @@
           <label class="field"><span>Monto (S/) *</span><input name="amount" type="number" step="0.5" min="0.5" required placeholder="0.00"></label>
           <label class="field"><span>Canal Contable *</span>
             <select name="category">
-              <option value="gym">🏋️ Gimnasio (Operativo)</option>
-              <option value="store">🛒 Tiendita (Mercadería / Stock)</option>
+              <option value="gym">Gimnasio (Operativo)</option>
+              <option value="store">Tiendita (Mercadería / Stock)</option>
             </select>
           </label>
           <label class="field"><span>Método</span>
             <select name="method">
-              <option value="efectivo">💵 Efectivo de gaveta</option>
-              <option value="yape">🟣 Yape</option>
-              <option value="transferencia">🏦 Transferencia</option>
+              <option value="efectivo">Efectivo de gaveta</option>
+              <option value="yape">Yape</option>
+              <option value="transferencia">Transferencia bancaria</option>
             </select>
           </label>
         </div>
@@ -1423,7 +1423,7 @@
           category: f.category.value,
           method: f.method.value
         });
-        RD.toast('Gasto registrado ✔');
+        RD.toast('Gasto registrado');
         d.close();
         onDone && onDone();
       } catch (err) {
@@ -1433,7 +1433,7 @@
   }
 
   function openShiftModal(onDone) {
-    const d = RD.openModal('🔓 Apertura de Turno de Caja', `
+    const d = RD.openModal(`${RD.icon('unlock')} Apertura de Turno de Caja`, `
       <form id="shiftopenf">
         <label class="field">
           <span>Nombre del Turno *</span>
@@ -1455,7 +1455,7 @@
         <div class="tip small mt mb">
           <b>Control de Arqueo:</b> Este dinero inicial no cuenta como ganancia; es la base para asegurar que al cerrar el turno el efectivo físico coincida sin faltantes ni confusiones.
         </div>
-        <button class="btn ok block">✔ Iniciar y Abrir Turno</button>
+        <button class="btn ok block">${RD.icon('check')} Iniciar y Abrir Turno</button>
       </form>
     `);
     const f = d.el.querySelector('#shiftopenf');
@@ -1467,7 +1467,7 @@
           initial_cash: +f.initial_cash.value,
           notes: f.notes.value.trim()
         });
-        RD.toast('Turno de caja abierto correctamente ✔');
+        RD.toast('Turno de caja abierto correctamente');
         d.close();
         onDone && onDone();
       } catch (err) {
@@ -1480,7 +1480,7 @@
     const expCash = shiftTotals?.expectedCashInDrawer || 0;
     const expDig = shiftTotals?.expectedDigital || 0;
 
-    const d = RD.openModal('🔒 Cierre de Turno y Arqueo de Caja', `
+    const d = RD.openModal(`${RD.icon('lock')} Cierre de Turno y Arqueo de Caja`, `
       <form id="shiftclosef">
         <div class="card mb" style="background:#0f172a;border:1px solid #334155">
           <div class="row between">
@@ -1494,16 +1494,16 @@
         <div class="grid g2 keep mb">
           <div class="stat">
             <div class="v" style="font-size:1.3rem;color:#4ade80">${money(expCash)}</div>
-            <div class="l">💵 Efectivo esperado en gaveta</div>
+            <div class="l">${RD.icon('cash')} Efectivo esperado en gaveta</div>
           </div>
           <div class="stat">
             <div class="v" style="font-size:1.3rem;color:#a78bfa">${money(expDig)}</div>
-            <div class="l">📱 Digital esperado (Yape / POS / Bancos)</div>
+            <div class="l">${RD.icon('qr')} Digital esperado (Yape / POS / Bancos)</div>
           </div>
         </div>
 
         <div class="card mb small">
-          <div class="bold mb" style="color:#4ade80">💵 Arqueo de Efectivo Físico:</div>
+          <div class="bold mb" style="color:#4ade80">${RD.icon('cash')} Arqueo de Efectivo Físico:</div>
           <div class="row between"><span>Fondo inicial (vuelto):</span> <b>${money(activeShift.initial_cash)}</b></div>
           <div class="row between"><span>(+) Cobros Gym en efectivo:</span> <b>+${money(shiftTotals?.gymCash || 0)}</b></div>
           <div class="row between"><span>(+) Cobros Tienda en efectivo:</span> <b>+${money(shiftTotals?.storeCash || 0)}</b></div>
@@ -1511,13 +1511,13 @@
         </div>
 
         <div class="card mb small">
-          <div class="bold mb" style="color:#a78bfa">📱 Conciliación Digital (Apps y POS):</div>
-          <div class="row between"><span>🟣 Yape:</span> <b>${money(shiftTotals?.digitalBreakdown?.yape || 0)}</b></div>
-          <div class="row between"><span>🔵 Plin:</span> <b>${money(shiftTotals?.digitalBreakdown?.plin || 0)}</b></div>
-          <div class="row between"><span>💳 Tarjeta POS (Izipay / Niubiz):</span> <b>${money(shiftTotals?.digitalBreakdown?.card || 0)}</b></div>
-          <div class="row between"><span>🏦 Transferencias Bancarias:</span> <b>${money(shiftTotals?.digitalBreakdown?.transfer || 0)}</b></div>
+          <div class="bold mb" style="color:#a78bfa">${RD.icon('qr')} Conciliación Digital (Apps y POS):</div>
+          <div class="row between"><span>${RD.icon('qr')} Yape:</span> <b>${money(shiftTotals?.digitalBreakdown?.yape || 0)}</b></div>
+          <div class="row between"><span>${RD.icon('qr')} Plin:</span> <b>${money(shiftTotals?.digitalBreakdown?.plin || 0)}</b></div>
+          <div class="row between"><span>${RD.icon('card')} Tarjeta POS (Izipay / Niubiz):</span> <b>${money(shiftTotals?.digitalBreakdown?.card || 0)}</b></div>
+          <div class="row between"><span>${RD.icon('bank')} Transferencias Bancarias:</span> <b>${money(shiftTotals?.digitalBreakdown?.transfer || 0)}</b></div>
           <div class="tip small mt" style="padding:6px 10px;font-size:0.75rem;margin-top:6px">
-            💡 <b>Cierre de Lote del POS:</b> Imprime el reporte diario en tu máquina Izipay/Niubiz y coteja que sume <b>${money(shiftTotals?.digitalBreakdown?.card || 0)}</b>.
+            ${RD.icon('bulb')} <b>Cierre de Lote del POS:</b> Imprime el reporte diario en tu máquina Izipay/Niubiz y coteja que sume <b>${money(shiftTotals?.digitalBreakdown?.card || 0)}</b>.
           </div>
         </div>
 
@@ -1535,7 +1535,7 @@
           <textarea name="notes" rows="2" placeholder="Ej. Todo cuadrado / Faltó S/ 1 por falta de cambio de 10 céntimos..."></textarea>
         </label>
 
-        <button class="btn danger block mt">🔒 Guardar Cierre y Emitir Acta</button>
+        <button class="btn danger block mt">${RD.icon('lock')} Guardar Cierre y Emitir Acta</button>
       </form>
     `);
 
@@ -1549,15 +1549,15 @@
       if (Math.abs(diff) < 0.05) {
         prev.style.color = '#4ade80';
         prev.style.background = '#064e3b';
-        prev.innerHTML = '✔ ¡CAJA CUADRADA EXACTA! (Diferencia S/ 0.00)';
+        prev.innerHTML = `<span class="badge ok">${RD.icon('check')} CAJA CUADRADA EXACTA (Diferencia S/ 0.00)</span>`;
       } else if (diff > 0) {
         prev.style.color = '#60a5fa';
         prev.style.background = '#1e3a8a';
-        prev.innerHTML = `🟢 SOBRANTE EN CAJA: +${money(diff)}`;
+        prev.innerHTML = `<span class="badge ok">${RD.icon('plus')} SOBRANTE EN CAJA: +${money(diff)}</span>`;
       } else {
         prev.style.color = '#f87171';
         prev.style.background = '#7f1d1d';
-        prev.innerHTML = `🔴 FALTANTE EN CAJA: -${money(Math.abs(diff))}`;
+        prev.innerHTML = `<span class="badge denied">${RD.icon('x')} FALTANTE EN CAJA: -${money(Math.abs(diff))}</span>`;
       }
     };
 
@@ -1569,7 +1569,7 @@
           actual_cash: +inp.value,
           notes: f.notes.value.trim()
         });
-        RD.toast('Turno cerrado correctamente ✔');
+        RD.toast('Turno cerrado correctamente');
         d.close();
         onDone && onDone();
         try {
@@ -1625,7 +1625,7 @@
       const recs = data.records || [];
       const set = data.settings || {};
 
-      const d = RD.openModal(`📄 Ficha de Asistencia: ${m.name}`, `
+      const d = RD.openModal(`${RD.icon('reports')} Ficha de Asistencia: ${m.name}`, `
         <div class="member-sheet-card watermark-container">
           <div class="watermark-bg">RD FITNESS</div>
 
@@ -1640,7 +1640,7 @@
               <div class="tiny muted">RUC: ${esc(set.gym_ruc || '10702548911')} · ${esc(set.gym_address || 'Calle Antonio José de Sucre Lt. 10, Chivay')} · Tel: ${esc(set.gym_phone || '982404043')}</div>
             </div>
             <div class="text-right no-print">
-              <button class="btn primary sm" id="btnprintsheet">🖨️ Imprimir / Guardar PDF</button>
+              <button class="btn primary sm" id="btnprintsheet">${RD.icon('printer')} Imprimir / Guardar PDF</button>
             </div>
           </div>
 
@@ -1710,7 +1710,7 @@
               <tbody>
                 ${recs.map((r, i) => {
                   const enterTime = r.ts ? new Date(r.ts).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : '—';
-                  const exitTime = r.exit_ts ? new Date(r.exit_ts).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : (r.status === 'inside' ? '<span class="badge ok tiny">🟢 En Sala</span>' : '—');
+                  const exitTime = r.exit_ts ? new Date(r.exit_ts).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : (r.status === 'inside' ? `<span class="badge ok tiny">${RD.icon('login')} En Sala</span>` : '—');
                   const duration = r.duration_min ? `${Math.floor(r.duration_min / 60) > 0 ? Math.floor(r.duration_min / 60) + 'h ' : ''}${r.duration_min % 60}m` : (r.status === 'inside' ? '<span class="gold tiny">Entrenando</span>' : '—');
                   return `
                   <tr>
@@ -1798,13 +1798,13 @@ var CONFIG = {
 
 function onOpen() {
   SpreadsheetApp.getUi()
-    .createMenu('🏋️ RD Fitness')
-    .addItem('🔄 Actualizar Todo en Vivo', 'actualizarTodo')
+    .createMenu('RD Fitness')
+    .addItem('Actualizar Todo en Vivo', 'actualizarTodo')
     .addSeparator()
-    .addItem('⏱️ Activar Auto-Actualización (Cada 10 min)', 'activarAutoActualizacion')
-    .addItem('⏸️ Detener Auto-Actualización', 'detenerAutoActualizacion')
+    .addItem('Activar Auto-Actualización (Cada 10 min)', 'activarAutoActualizacion')
+    .addItem('Detener Auto-Actualización', 'detenerAutoActualizacion')
     .addSeparator()
-    .addItem('ℹ️ Ver Estado de Conexión', 'verEstado')
+    .addItem('Ver Estado de Conexión', 'verEstado')
     .addToUi();
 }
 
@@ -1936,7 +1936,7 @@ function poblarDashboard(ss, ds) {
   
   // Banner principal
   sheet.getRange('A1:L1').merge()
-    .setValue('🏋️ RD FITNESS CLUB - CHIVAY  |  DASHBOARD EJECUTIVO EN TIEMPO REAL')
+    .setValue('RD FITNESS CLUB - CHIVAY  |  DASHBOARD EJECUTIVO EN TIEMPO REAL')
     .setFontWeight('bold').setFontSize(14).setBackground('#111827').setFontColor('#f59e0b')
     .setHorizontalAlignment('center');
     
@@ -2055,7 +2055,7 @@ function activarAutoActualizacion() {
     .timeBased()
     .everyMinutes(10)
     .create();
-  SpreadsheetApp.getUi().alert('✅ Auto-actualización activada: Tus hojas y gráficos se actualizarán automáticamente cada 10 minutos en segundo plano.');
+  SpreadsheetApp.getUi().alert('Auto-actualización activada: Tus hojas y gráficos se actualizarán automáticamente cada 10 minutos en segundo plano.');
 }
 
 function detenerAutoActualizacion() {
@@ -2065,7 +2065,7 @@ function detenerAutoActualizacion() {
       ScriptApp.deleteTrigger(triggers[i]);
     }
   }
-  SpreadsheetApp.getUi().alert('⏸️ Auto-actualización detenida.');
+  SpreadsheetApp.getUi().alert('Auto-actualización detenida.');
 }
 
 function verEstado() {
@@ -2076,22 +2076,22 @@ function verEstado() {
   }
   var msg = 'Servidor: ' + CONFIG.ENDPOINT + '\\n'
     + 'Clave configurada: ' + CONFIG.KEY.slice(0, 6) + '...\\n'
-    + 'Auto-actualización cada 10 min: ' + (auto ? 'ACTIVADA ✅' : 'DESACTIVADA ⏸️');
+    + 'Auto-actualización cada 10 min: ' + (auto ? 'ACTIVADA' : 'DESACTIVADA');
   SpreadsheetApp.getUi().alert(msg);
 }`;
     }
 
-    const d = RD.openModal('📊 Sincronización en Vivo con Google Sheets', `
+    const d = RD.openModal(`${RD.icon('sheet')} Sincronización en Vivo con Google Sheets`, `
       ${isLocal ? `
       <div class="tip warn mb small">
-        <b>ℹ️ Modo Servidor en la Nube Activado:</b><br>
+        <b>Modo Servidor en la Nube Activado:</b><br>
         Actualmente estás conectado desde una red local o desarrollo. Dado que Google Sheets está en la nube, Google no puede acceder a direcciones "localhost".
         Las fórmulas y el script usan tu servidor oficial en la nube de Render: <b>${prodHost}</b>.
       </div>` : ''}
 
       <div class="chips mb" id="gstab">
-        <span class="chip on" data-gt="script">🚀 Opción A: Script Maestro Multi-Hojas (Recomendado 100% en vivo)</span>
-        <span class="chip" data-gt="formula">⚡ Opción B: Fórmulas Rápidas =IMPORTDATA</span>
+        <span class="chip on" data-gt="script">${RD.icon('zap')} Opción A: Script Maestro Multi-Hojas (Recomendado 100% en vivo)</span>
+        <span class="chip" data-gt="formula">${RD.icon('activity')} Opción B: Fórmulas Rápidas =IMPORTDATA</span>
       </div>
 
       <div id="gtcontent"></div>
@@ -2109,7 +2109,7 @@ function verEstado() {
             <div class="row between wrap gap mb">
               <span class="small muted"><b>Código Google Apps Script Maestro (Con Gráficos y Auto-Sync):</b></span>
               <div class="row gap">
-                <button class="btn primary sm" id="btncopyscript">📋 Copiar Código Script</button>
+                <button class="btn primary sm" id="btncopyscript">${RD.icon('copy')} Copiar Código Script</button>
               </div>
             </div>
             <textarea id="gsscriptcode" rows="13" readonly style="font-family:monospace;font-size:.78rem;background:#1e293b;color:#38bdf8;width:100%">${getAppsScriptCode()}</textarea>
@@ -2118,11 +2118,11 @@ function verEstado() {
           <div class="tip small mb">
             <b>¿Cómo instalarlo en tu Google Sheets en 30 segundos?</b><br>
             1. Abre tu hoja en blanco en <a href="https://sheets.new" target="_blank" rel="noopener">Google Sheets</a>.<br>
-            2. En el menú superior ve a: <b>Extensiones ➔ Apps Script</b>.<br>
+            2. En el menú superior ve a: <b>Extensiones &gt; Apps Script</b>.<br>
             3. Borra todo el código que aparece por defecto y pega este código con <b>Ctrl + V</b>.<br>
-            4. Haz clic en el icono <b>💾 Guardar</b>.<br>
-            5. Vuelve a tu hoja de cálculo y presiona <b>F5</b>: aparecerá un nuevo menú arriba llamado <b>🏋️ RD Fitness</b>.<br>
-            6. Haz clic en <b>"🏋️ RD Fitness" ➔ "🔄 Actualizar Todo en Vivo"</b> (la primera vez Google te pedirá autorizar la ejecución del script).<br>
+            4. Haz clic en el icono <b>Guardar</b>.<br>
+            5. Vuelve a tu hoja de cálculo y presiona <b>F5</b>: aparecerá un nuevo menú arriba llamado <b>RD Fitness</b>.<br>
+            6. Haz clic en <b>"RD Fitness" &gt; "Actualizar Todo en Vivo"</b> (la primera vez Google te pedirá autorizar la ejecución del script).<br>
             <i>¡Listo! Todas las 19 hojas se generarán solas con sus datos, formatos y gráficos.</i>
           </div>
         `;
@@ -2142,19 +2142,19 @@ function verEstado() {
           <div class="row between wrap gap mb">
             <label class="small muted"><b>Tipo de Reporte a Sincronizar:</b>
               <select id="gsfeedsel" style="min-height:36px">
-                <option value="daily" ${currentFeed === 'daily' ? 'selected' : ''}>📊 Ingresos Diarios (Gimnasio vs Tienda vs Utilidad)</option>
-                <option value="attendance" ${currentFeed === 'attendance' ? 'selected' : ''}>👥 Asistencias (Entradas, Salidas, Permanencia)</option>
-                <option value="payments" ${currentFeed === 'payments' ? 'selected' : ''}>🧾 Pagos y Boletas Detalladas</option>
-                <option value="sales" ${currentFeed === 'sales' ? 'selected' : ''}>🛒 Ventas de Tienda (Con Costo y Utilidad)</option>
-                <option value="inventory" ${currentFeed === 'inventory' ? 'selected' : ''}>📦 Inventario y Stock</option>
-                <option value="members" ${currentFeed === 'members' ? 'selected' : ''}>🏋️ Base de Socios y Membresías</option>
-                <option value="shifts" ${currentFeed === 'shifts' ? 'selected' : ''}>🕒 Historial y Arqueo de Turnos</option>
+                <option value="daily" ${currentFeed === 'daily' ? 'selected' : ''}>Ingresos Diarios (Gimnasio vs Tienda vs Utilidad)</option>
+                <option value="attendance" ${currentFeed === 'attendance' ? 'selected' : ''}>Asistencias (Entradas, Salidas, Permanencia)</option>
+                <option value="payments" ${currentFeed === 'payments' ? 'selected' : ''}>Pagos y Boletas Detalladas</option>
+                <option value="sales" ${currentFeed === 'sales' ? 'selected' : ''}>Ventas de Tienda (Con Costo y Utilidad)</option>
+                <option value="inventory" ${currentFeed === 'inventory' ? 'selected' : ''}>Inventario y Stock</option>
+                <option value="members" ${currentFeed === 'members' ? 'selected' : ''}>Base de Socios y Membresías</option>
+                <option value="shifts" ${currentFeed === 'shifts' ? 'selected' : ''}>Historial y Arqueo de Turnos</option>
               </select>
             </label>
             <label class="small muted"><b>Configuración Regional de tu Google Sheets:</b>
               <select id="gssepsel" style="min-height:36px">
                 <option value="semicolon" ${currentSep === 'semicolon' ? 'selected' : ''}>🇵🇪 Perú / Latinoamérica (Separador ; )</option>
-                <option value="comma" ${currentSep === 'comma' ? 'selected' : ''}>🌐 Internacional / USA (Separador , )</option>
+                <option value="comma" ${currentSep === 'comma' ? 'selected' : ''}>Internacional / USA (Separador , )</option>
               </select>
             </label>
           </div>
@@ -2166,7 +2166,7 @@ function verEstado() {
             </div>
             <div class="row gap mt2">
               <input type="text" id="gsformula" value='${getFormula(currentFeed, currentSep)}' readonly style="font-family:monospace;font-size:.85rem;background:#1e293b;color:#4ade80">
-              <button class="btn primary sm" id="btncopy">📋 Copiar Fórmula</button>
+              <button class="btn primary sm" id="btncopy">${RD.icon('copy')} Copiar Fórmula</button>
             </div>
           </div>
 
@@ -2215,19 +2215,19 @@ function verEstado() {
         <!-- NAVEGACIÓN DE CANALES SEPARADOS -->
         <div class="row between wrap gap mb">
           <div class="chips" id="reptabs">
-            <span class="chip ${channel === 'consolidated' ? 'on' : ''}" data-ch="consolidated">📊 Consolidado General</span>
-            <span class="chip ${channel === 'gym' ? 'on' : ''}" data-ch="gym">🏋️ Caja Gimnasio</span>
-            <span class="chip ${channel === 'store' ? 'on' : ''}" data-ch="store">🛒 Tiendita y POS</span>
-            <span class="chip ${channel === 'shifts' ? 'on' : ''}" data-ch="shifts">🕒 Historial de Turnos</span>
-            <span class="chip ${channel === 'attendance' ? 'on' : ''}" data-ch="attendance">👥 Asistencias y Aforo</span>
-            <span class="chip ${channel === 'security' ? 'on' : ''}" data-ch="security">🔍 Verificar Presencia / Coartada</span>
+            <span class="chip ${channel === 'consolidated' ? 'on' : ''}" data-ch="consolidated">${RD.icon('chart')} Consolidado General</span>
+            <span class="chip ${channel === 'gym' ? 'on' : ''}" data-ch="gym">${RD.icon('dumbbell')} Caja Gimnasio</span>
+            <span class="chip ${channel === 'store' ? 'on' : ''}" data-ch="store">${RD.icon('cart')} Tiendita y POS</span>
+            <span class="chip ${channel === 'shifts' ? 'on' : ''}" data-ch="shifts">${RD.icon('clock')} Historial de Turnos</span>
+            <span class="chip ${channel === 'attendance' ? 'on' : ''}" data-ch="attendance">${RD.icon('users')} Asistencias y Aforo</span>
+            <span class="chip ${channel === 'security' ? 'on' : ''}" data-ch="security">${RD.icon('shield')} Verificar Presencia / Coartada</span>
           </div>
 
           <div class="row gap wrap no-print">
-            <button class="btn sm ok" id="btnexcel">📥 Descargar Excel (.xlsx)</button>
-            <button class="btn sm primary" id="btnprint">🖨️ Imprimir / Guardar PDF</button>
-            <button class="btn sm" style="background:#107c41;color:#fff;border-color:#107c41" id="btngsheets" title="Abrir o conectar hoja de Google Sheets en vivo">📊 Google Sheets</button>
-            <button class="btn sm ghost" id="btngsheets_guide" title="Ver Guía y Código Apps Script de Sincronización Automática">⚙️ Apps Script</button>
+            <button class="btn sm ok" id="btnexcel">${RD.icon('cloud-download')} Descargar Excel (.xlsx)</button>
+            <button class="btn sm primary" id="btnprint">${RD.icon('printer')} Imprimir / Guardar PDF</button>
+            <button class="btn sm" style="background:#107c41;color:#fff;border-color:#107c41" id="btngsheets" title="Abrir o conectar hoja de Google Sheets en vivo">${RD.icon('sheet')} Google Sheets</button>
+            <button class="btn sm ghost" id="btngsheets_guide" title="Ver Guía y Código Apps Script de Sincronización Automática">${RD.icon('wrench')} Apps Script</button>
           </div>
         </div>
 
@@ -2304,7 +2304,7 @@ function verEstado() {
           const btn = view.querySelector('#btnexcel');
           const old = btn.innerHTML;
           btn.disabled = true;
-          btn.innerHTML = '⏳ Generando Excel...';
+          btn.innerHTML = `${RD.icon('hourglass')} Generando Excel...`;
           try {
             const fn = await RD.downloadAuth(`/reports/export/excel?from=${from}&to=${to}`, `Reporte_RD_Fitness_${from}_al_${to}.xlsx`);
             RD.toast('Excel descargado con éxito: ' + fn, 'ok');
@@ -2330,11 +2330,11 @@ function verEstado() {
           </div>
           <div class="stat">
             <div class="v" style="color:#f5b400">${money(c.totalGymIncome || 0)}</div>
-            <div class="l">🏋️ Ingresos Gimnasio (Membresías + Pases)</div>
+            <div class="l">${RD.icon('dumbbell')} Ingresos Gimnasio (Membresías + Pases)</div>
           </div>
           <div class="stat">
             <div class="v" style="color:#60a5fa">${money(c.totalStoreIncome || 0)}</div>
-            <div class="l">🛒 Ventas Tiendita (Aguas, Bebidas)</div>
+            <div class="l">${RD.icon('cart')} Ventas Tiendita (Aguas, Bebidas)</div>
           </div>
           <div class="stat">
             <div class="v" style="color:${(c.netProfit || 0) >= 0 ? '#4ade80' : '#f87171'}">${money(c.netProfit || 0)}</div>
@@ -2351,16 +2351,16 @@ function verEstado() {
             <span class="badge ok">Balance Auditado</span>
           </div>
           <div class="grid g4 mt2">
-            <div class="small">💵 Efectivo neto en gaveta: <b style="color:#4ade80">${money(c.cashInDrawer || 0)}</b></div>
-            <div class="small">📱 Dinero digital (Yape/Plin): <b style="color:#a78bfa">${money(c.digitalTotal || 0)}</b></div>
-            <div class="small">💸 Gastos operativos totales: <b class="bad">-${money(c.totalExpense || 0)}</b></div>
-            <div class="small">🕒 Turnos auditados: <b>${(c.shifts || []).length} turnos</b></div>
+            <div class="small">${RD.icon('cash')} Efectivo neto en gaveta: <b style="color:#4ade80">${money(c.cashInDrawer || 0)}</b></div>
+            <div class="small">${RD.icon('qr')} Dinero digital (Yape/Plin): <b style="color:#a78bfa">${money(c.digitalTotal || 0)}</b></div>
+            <div class="small">${RD.icon('expense')} Gastos operativos totales: <b class="bad">-${money(c.totalExpense || 0)}</b></div>
+            <div class="small">${RD.icon('clock')} Turnos auditados: <b>${(c.shifts || []).length} turnos</b></div>
           </div>
         </div>
 
         <!-- GRÁFICO COMPARATIVO DÍA POR DÍA -->
         <div class="card mb">
-          <h3>📈 Comparativa Diaria: Gimnasio vs Tiendita</h3>
+          <h3>${RD.icon('chart')} Comparativa Diaria: Gimnasio vs Tiendita</h3>
           <p class="muted small mb">Evolución de recaudación por día durante el período seleccionado.</p>
           <div class="tbl-wrap">
             <table>
@@ -2405,15 +2405,15 @@ function verEstado() {
           </div>
           <div class="stat">
             <div class="v" style="color:#f5b400">${(g.dailyPasses || []).length} pases</div>
-            <div class="l">🎟️ Pases Diarios (S/ 5.00)</div>
+            <div class="l">${RD.icon('ticket')} Pases Diarios (S/ 5.00)</div>
           </div>
           <div class="stat">
             <div class="v" style="color:#4ade80">${d.newMembers || 0} nuevos</div>
-            <div class="l">👥 Socios Nuevos Inscritos</div>
+            <div class="l">${RD.icon('users')} Socios Nuevos Inscritos</div>
           </div>
           <div class="stat">
             <div class="v" style="color:#60a5fa">${d.renewals || 0} renovados</div>
-            <div class="l">🔄 Renovaciones de Socios</div>
+            <div class="l">${RD.icon('refresh')} Renovaciones de Socios</div>
           </div>
         </div>
 
@@ -2432,7 +2432,7 @@ function verEstado() {
                     <td class="gold" style="font-weight:700">${money(p.total)}</td>
                   </tr>`).join('') || '<tr><td colspan="3" class="empty">Sin membresías vendidas</td></tr>'}
                   <tr style="background:rgba(245,180,0,.08)">
-                    <td><b>🎟️ Pase Diario (S/ 5.00)</b></td>
+                    <td><b>${RD.icon('ticket')} Pase Diario (S/ 5.00)</b></td>
                     <td>${(g.dailyPasses || []).length} pases</td>
                     <td class="gold" style="font-weight:700">${money((g.dailyPasses || []).reduce((a, b) => a + b.price, 0))}</td>
                   </tr>
@@ -2443,7 +2443,7 @@ function verEstado() {
 
           <!-- HORAS PICO DE ENTRENAMIENTO -->
           <div class="card">
-            <h3>⏰ Horas Pico de Entrenamiento (Asistencias)</h3>
+            <h3>${RD.icon('clock')} Horas Pico de Entrenamiento (Asistencias)</h3>
             <p class="muted small mb">Afluencia de personas en el salón de máquinas de Chivay.</p>
             <div class="bars" style="height:140px">
               ${hoursAll.map(h => {
@@ -2480,7 +2480,7 @@ function verEstado() {
                   <td class="small">${esc(p.concept)}</td>
                   <td><span class="badge ${p.method === 'yape' ? 'warn' : p.method === 'plin' ? 'info' : 'ok'}">${esc(p.method)}</span></td>
                   <td style="font-weight:700;color:#f5b400">${money(p.amount)}</td>
-                  <td class="no-print"><button class="icon-btn" data-receipt="${p.id}" title="Ver e Imprimir Boleta">🧾</button></td>
+                  <td class="no-print"><button class="icon-btn" data-receipt="${p.id}" title="Ver e Imprimir Boleta">${RD.icon('receipt')}</button></td>
                 </tr>`).join('') || '<tr><td colspan="7" class="empty">Sin cobros de membresías o pases</td></tr>'}
               </tbody>
             </table>
@@ -2505,17 +2505,17 @@ function verEstado() {
           </div>
           <div class="stat">
             <div class="v" style="color:#60a5fa">${totalUnits} unidades</div>
-            <div class="l">🛒 Productos Vendidos en el Período</div>
+            <div class="l">${RD.icon('cart')} Productos Vendidos en el Período</div>
           </div>
           <div class="stat">
             <div class="v" style="color:${lowStock.length ? '#f87171' : '#4ade80'}">${lowStock.length} productos</div>
-            <div class="l">⚠️ Alerta de Stock Bajo (Reabastecer)</div>
+            <div class="l">${RD.icon('info')} Alerta de Stock Bajo (Reabastecer)</div>
           </div>
         </div>
 
         <!-- CONTROL DE INVENTARIO Y STOCK -->
         <div class="card mb">
-          <h3>📦 Control de Inventario y Ventas por Producto</h3>
+          <h3>${RD.icon('box')} Control de Inventario y Ventas por Producto</h3>
           <p class="muted small mb">Seguimiento de existencias de aguas, bebidas hidratantes y suplementos.</p>
           <div class="tbl-wrap">
             <table>
@@ -2576,7 +2576,7 @@ function verEstado() {
                   <td><b>${esc(p.concept)}</b></td>
                   <td><span class="badge ${p.method === 'yape' ? 'warn' : p.method === 'plin' ? 'info' : 'ok'}">${esc(p.method)}</span></td>
                   <td style="font-weight:700;color:#60a5fa">${money(p.amount)}</td>
-                  <td class="no-print"><button class="icon-btn" data-receipt="${p.id}" title="Ver e Imprimir Ticket">🧾</button></td>
+                  <td class="no-print"><button class="icon-btn" data-receipt="${p.id}" title="Ver e Imprimir Ticket">${RD.icon('receipt')}</button></td>
                 </tr>`).join('') || '<tr><td colspan="6" class="empty">Sin ventas de tienda en este período</td></tr>'}
               </tbody>
             </table>
@@ -2593,7 +2593,7 @@ function verEstado() {
             const qty = await RD.prompt(`Sumar Stock: ${pname}`, 'Cantidad de unidades que ingresaron', '12');
             if (qty && parseInt(qty, 10) > 0) {
               await RD.api.post(`/products/${pid}/stock`, { qty: parseInt(qty, 10), note: 'Ingreso rápido desde reporte' });
-              RD.toast('Stock actualizado ✔');
+              RD.toast('Stock actualizado');
               load();
             }
           };
@@ -2608,7 +2608,7 @@ function verEstado() {
         <div class="card mb">
           <div class="row between wrap gap">
             <div>
-              <h3>🕒 Historial de Turnos y Auditoría de Arqueos (${shifts.length} turnos)</h3>
+              <h3>${RD.icon('clock')} Historial de Turnos y Auditoría de Arqueos (${shifts.length} turnos)</h3>
               <p class="muted small">Control riguroso por turno y cajero. Cada cierre registra la diferencia física (sobrante o faltante).</p>
             </div>
             <span class="badge ok">Arqueo Seguro</span>
@@ -2650,9 +2650,9 @@ function verEstado() {
                     <td style="font-weight:700;color:#2563eb">${money(s.actual_cash || 0)}</td>
                     <td>${diffBadge}</td>
                     <td style="color:#a78bfa">${money(s.expected_digital || 0)}</td>
-                    <td><span class="badge ${s.status === 'open' ? 'ok' : 'ghost'}">${s.status === 'open' ? '🟢 Abierto' : '🔒 Cerrado'}</span></td>
+                    <td><span class="badge ${s.status === 'open' ? 'ok' : 'ghost'}">${s.status === 'open' ? `${RD.icon('check')} Abierto` : `${RD.icon('lock')} Cerrado`}</span></td>
                     <td class="no-print">
-                      <button class="btn sm" data-viewshift="${s.id}">🧾 Acta</button>
+                      <button class="btn sm" data-viewshift="${s.id}">${RD.icon('receipt')} Acta</button>
                     </td>
                   </tr>`;
                 }).join('') || '<tr><td colspan="13" class="empty">No hay turnos registrados en este período</td></tr>'}
@@ -2701,19 +2701,19 @@ function verEstado() {
         <div class="grid g4 mb">
           <div class="stat" style="border-color:#4ade80">
             <div class="v" style="color:#4ade80">${insideNow.length} personas</div>
-            <div class="l">⏱️ Aforo Actual en Sala (Dentro Ahora)</div>
+            <div class="l">${RD.icon('timer')} Aforo Actual en Sala (Dentro Ahora)</div>
           </div>
           <div class="stat gold">
             <div class="v">${att.totalVisits || 0} visitas</div>
-            <div class="l">👥 Total Asistencias Registradas</div>
+            <div class="l">${RD.icon('users')} Total Asistencias Registradas</div>
           </div>
           <div class="stat">
             <div class="v" style="color:#f5b400">${att.memberVisits || 0} socios / ${att.dailyVisits || 0} pases</div>
-            <div class="l">🏋️ Socios vs 🎟️ Pases Diarios (S/ 5)</div>
+            <div class="l">${RD.icon('dumbbell')} Socios vs ${RD.icon('ticket')} Pases Diarios (S/ 5)</div>
           </div>
           <div class="stat">
             <div class="v" style="color:#60a5fa">${att.avgDurationMin || 75} min</div>
-            <div class="l">⏳ Permanencia Promedio por Sesión</div>
+            <div class="l">${RD.icon('clock')} Permanencia Promedio por Sesión</div>
           </div>
         </div>
 
@@ -2722,7 +2722,7 @@ function verEstado() {
           <div class="row between wrap gap">
             <div>
               <h3 style="color:#4ade80;display:flex;align-items:center;gap:.5rem">
-                <span>🟢</span> Personas Entrenando en el Gimnasio Ahora (${insideNow.length})
+                <span>${RD.icon('users')}</span> Personas Entrenando en el Gimnasio Ahora (${insideNow.length})
               </h3>
               <p class="muted small">Control en tiempo real de entradas y registro de salida al concluir su rutina en Chivay.</p>
             </div>
@@ -2753,7 +2753,7 @@ function verEstado() {
                         ${row.photo ? `<img src="${esc(row.photo)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover">` : `<div style="width:32px;height:32px;border-radius:50%;background:#334155;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:bold">${esc((row.name || 'V')[0])}</div>`}
                         <div>
                           <b>${esc(row.name)}</b>
-                          ${row.phone ? `<div class="tiny muted">📱 ${esc(row.phone)}</div>` : ''}
+                          ${row.phone ? `<div class="tiny muted">${RD.icon('phone')} ${esc(row.phone)}</div>` : ''}
                         </div>
                       </div>
                     </td>
@@ -2763,11 +2763,11 @@ function verEstado() {
                     </td>
                     <td style="font-family:monospace;font-weight:bold">${enterTime}</td>
                     <td style="color:#4ade80;font-weight:bold">${durText}</td>
-                    <td><span class="badge ${row.kind === 'D' ? 'warn' : 'ok'}">${row.kind === 'D' ? '🎟️ Pase Diario' : '🏋️ Socio'}</span></td>
+                    <td><span class="badge ${row.kind === 'D' ? 'warn' : 'ok'}">${row.kind === 'D' ? `${RD.icon('ticket')} Pase Diario` : `${RD.icon('dumbbell')} Socio`}</span></td>
                     <td class="no-print">
                       <div class="row gap">
-                        <button class="btn sm warn" data-checkout="${row.id}" data-name="${esc(row.name)}">🚪 Registrar Salida</button>
-                        ${row.member_id ? `<button class="btn sm ghost" data-membersheet="${row.member_id}">📄 Ficha</button>` : ''}
+                        <button class="btn sm warn" data-checkout="${row.id}" data-name="${esc(row.name)}">${RD.icon('door')} Registrar Salida</button>
+                        ${row.member_id ? `<button class="btn sm ghost" data-membersheet="${row.member_id}">${RD.icon('reports')} Ficha</button>` : ''}
                       </div>
                     </td>
                   </tr>`;
@@ -2782,7 +2782,7 @@ function verEstado() {
           <div class="card">
             <div class="row between wrap gap">
               <div>
-                <h3>🥇 Top Socios Más Disciplinados</h3>
+                <h3>${RD.icon('trophy')} Top Socios Más Disciplinados</h3>
                 <p class="muted small">Ranking de constancia y fidelidad del período.</p>
               </div>
               <span class="badge ok">Constancia</span>
@@ -2800,7 +2800,7 @@ function verEstado() {
                 </thead>
                 <tbody>
                   ${topMembers.map((m, idx) => {
-                    const badgeRank = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}°`;
+                    const badgeRank = idx === 0 ? '1°' : idx === 1 ? '2°' : idx === 2 ? '3°' : `${idx + 1}°`;
                     return `
                     <tr>
                       <td style="font-size:1.1rem;font-weight:bold">${badgeRank}</td>
@@ -2811,7 +2811,7 @@ function verEstado() {
                       <td style="font-weight:bold;color:var(--gold)">${m.days_attended} días <span class="tiny muted">(${m.total_sessions} ses.)</span></td>
                       <td class="small muted">${m.avg_min || 75} min</td>
                       <td class="no-print">
-                        <button class="btn sm ghost" data-membersheet="${m.id}" title="Ver Ficha Oficial">📄 Ver Ficha</button>
+                        <button class="btn sm ghost" data-membersheet="${m.id}" title="Ver Ficha Oficial">${RD.icon('reports')} Ver Ficha</button>
                       </td>
                     </tr>`;
                   }).join('') || '<tr><td colspan="5" class="empty">Sin asistencias registradas en este período</td></tr>'}
@@ -2822,7 +2822,7 @@ function verEstado() {
 
           <!-- HORAS PICO DE ENTRENAMIENTO -->
           <div class="card">
-            <h3>⏰ Horas Pico de Entrenamiento (Chivay)</h3>
+            <h3>${RD.icon('clock')} Horas Pico de Entrenamiento (Chivay)</h3>
             <p class="muted small mb">Distribución horaria de ingresos al salón de máquinas.</p>
             <div class="bars" style="height:140px">
               ${hoursAll.map(h => {
@@ -2834,10 +2834,10 @@ function verEstado() {
 
             <!-- BUSCADOR RAPIDO PARA FICHA INDIVIDUAL -->
             <div class="mt2 pt" style="border-top:1px dashed var(--border,#334155)">
-              <label class="small muted"><b>🔍 Generar Ficha Individual de un Socio:</b></label>
+              <label class="small muted"><b>${RD.icon('search')} Generar Ficha Individual de un Socio:</b></label>
               <div class="row gap mt2">
                 <input type="text" id="att_search_member" placeholder="Escribe nombre o DNI del socio..." style="min-height:36px">
-                <button class="btn sm primary" id="btn_open_sheet">📄 Abrir Ficha</button>
+                <button class="btn sm primary" id="btn_open_sheet">${RD.icon('reports')} Abrir Ficha</button>
               </div>
               <div id="att_member_results" class="list mt2 hidden"></div>
             </div>
@@ -2848,7 +2848,7 @@ function verEstado() {
         <div class="card mb">
           <div class="row between wrap gap">
             <div>
-              <h3>📋 Historial de Entradas, Salidas y Permanencia (${rows.length} registros)</h3>
+              <h3>${RD.icon('reports')} Historial de Entradas, Salidas y Permanencia (${rows.length} registros)</h3>
               <p class="muted small">Auditoría detallada con hora de ingreso, hora de salida y minutos de estancia.</p>
             </div>
             <div class="row gap wrap no-print">
@@ -2908,7 +2908,7 @@ function verEstado() {
             const displayDni = r.member_dni || r.dp_dni || '—';
             const displayCode = r.member_code || r.dp_code || r.code || '—';
             const enterTime = r.ts ? new Date(r.ts).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : '—';
-            const exitTime = r.exit_ts ? new Date(r.exit_ts).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : (r.status === 'inside' ? '<span class="badge ok tiny">🟢 En Sala</span>' : '—');
+            const exitTime = r.exit_ts ? new Date(r.exit_ts).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : (r.status === 'inside' ? `<span class="badge ok tiny">${RD.icon('login')} En Sala</span>` : '—');
             const duration = r.duration_min ? `${Math.floor(r.duration_min / 60) > 0 ? Math.floor(r.duration_min / 60) + 'h ' : ''}${r.duration_min % 60}m` : (r.status === 'inside' ? '<span class="gold tiny">Entrenando</span>' : '—');
             const isInside = r.status === 'inside' || (!r.exit_ts && r.day === RD.limaDay());
 
@@ -2918,7 +2918,7 @@ function verEstado() {
               <td style="font-family:monospace;font-weight:bold">${enterTime}</td>
               <td style="font-family:monospace">${exitTime}</td>
               <td style="font-weight:bold">${duration}</td>
-              <td><span class="badge ${r.kind === 'D' ? 'warn' : 'ok'}">${r.kind === 'D' ? '🎟️ Pase Diario' : '🏋️ Socio'}</span></td>
+              <td><span class="badge ${r.kind === 'D' ? 'warn' : 'ok'}">${r.kind === 'D' ? `${RD.icon('ticket')} Pase Diario` : `${RD.icon('dumbbell')} Socio`}</span></td>
               <td><b>${esc(displayName)}</b></td>
               <td>
                 <span class="badge" style="font-family:monospace">${esc(displayCode)}</span>
@@ -2928,8 +2928,8 @@ function verEstado() {
               <td class="small muted">${esc(r.staff_name || 'Recepción')}</td>
               <td class="no-print">
                 <div class="row gap">
-                  ${isInside ? `<button class="btn sm warn" data-checkout="${r.id}" data-name="${esc(displayName)}">🚪 Salida</button>` : ''}
-                  ${r.member_id ? `<button class="btn sm ghost" data-membersheet="${r.member_id}" title="Ficha de Asistencias">📄 Ficha</button>` : ''}
+                  ${isInside ? `<button class="btn sm warn" data-checkout="${r.id}" data-name="${esc(displayName)}">${RD.icon('door')} Salida</button>` : ''}
+                  ${r.member_id ? `<button class="btn sm ghost" data-membersheet="${r.member_id}" title="Ficha de Asistencias">${RD.icon('reports')} Ficha</button>` : ''}
                 </div>
               </td>
             </tr>`;
@@ -2947,7 +2947,7 @@ function verEstado() {
               if (confirm(`¿Registrar salida de ${name}?`)) {
                 try {
                   const res = await RD.api.post(`/attendance/${id}/checkout`);
-                  RD.toast(`Salida registrada (${res.session?.duration_min || 0} min) ✔`);
+                  RD.toast(`Salida registrada (${res.session?.duration_min || 0} min)`);
                   load();
                 } catch (err) { RD.toast(err.message, 'err'); }
               }
@@ -3037,7 +3037,7 @@ function verEstado() {
         <div class="card mb">
           <div class="row between wrap gap">
             <div>
-              <h3>🛡️ Verificación de Presencia y Ficha de Seguridad</h3>
+              <h3>${RD.icon('shield')} Verificación de Presencia y Ficha de Seguridad</h3>
               <p class="muted small">Busca a cualquier persona (Socio o Visitante con Pase Diario) y una fecha específica para verificar con certeza oficial si estuvo en el gimnasio, a qué hora ingresó y a qué hora se retiró.</p>
             </div>
             <span class="badge ok">Auditoría y Seguridad</span>
@@ -3054,7 +3054,7 @@ function verEstado() {
               <input type="date" id="sec_day" value="${today}" style="min-height:38px">
             </div>
             <div style="display:flex;align-items:flex-end">
-              <button class="btn primary" id="sec_btn_check" style="width:100%;min-height:38px">🔍 Verificar Presencia</button>
+              <button class="btn primary" id="sec_btn_check" style="width:100%;min-height:38px">${RD.icon('search')} Verificar Presencia</button>
             </div>
           </div>
         </div>
@@ -3089,7 +3089,7 @@ function verEstado() {
                 <div class="item click" data-pid="${p.id}" data-pkind="${p.kind}">
                   <div class="row between">
                     <b>${esc(p.name)}</b>
-                    <span class="badge ${p.kind === 'D' ? 'warn' : 'ok'}">${p.kind === 'D' ? '🎟️ Pase Diario' : '🏋️ Socio'}</span>
+                    <span class="badge ${p.kind === 'D' ? 'warn' : 'ok'}">${p.kind === 'D' ? `${RD.icon('ticket')} Pase Diario` : `${RD.icon('dumbbell')} Socio`}</span>
                   </div>
                   <div class="tiny muted">${esc(p.code)} · DNI: ${esc(p.dni || 'Sin DNI')} ${p.phone ? '· Cel: ' + esc(p.phone) : ''}</div>
                 </div>
@@ -3117,7 +3117,7 @@ function verEstado() {
           }
           const checkDay = dayInp.value || today;
           btnCheck.disabled = true;
-          btnCheck.innerHTML = '⏳ Verificando...';
+          btnCheck.innerHTML = `${RD.icon('hourglass')} Verificando...`;
           try {
             const rep = await RD.api.get(`/reports/person?kind=${selectedPerson.kind}&id=${selectedPerson.id}&day=${checkDay}&from=${RD.addDays(checkDay, -30)}&to=${checkDay}`);
             renderVerdict(rep, checkDay);
@@ -3125,7 +3125,7 @@ function verEstado() {
             RD.toast(err.message || 'Error al consultar presencia', 'err');
           } finally {
             btnCheck.disabled = false;
-            btnCheck.innerHTML = '🔍 Verificar Presencia';
+            btnCheck.innerHTML = `${RD.icon('search')} Verificar Presencia`;
           }
         };
 
@@ -3150,7 +3150,7 @@ function verEstado() {
                 </div>
               </div>
               <div class="no-print">
-                <button class="btn sm primary" id="btnprintcertificate">🖨️ Imprimir Constancia Oficial (PDF)</button>
+                <button class="btn sm primary" id="btnprintcertificate">${RD.icon('printer')} Imprimir Constancia Oficial (PDF)</button>
               </div>
             </div>
 
@@ -3159,7 +3159,7 @@ function verEstado() {
             <!-- DICTAMEN DE PRESENCIA -->
             <div class="p2 mb" style="border-radius:8px;background:${isPresent ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)'};border:1px solid ${isPresent ? '#22c55e' : '#ef4444'}">
               <div class="row gap" style="align-items:flex-start">
-                <span style="font-size:2.2rem">${isPresent ? '✅' : '❌'}</span>
+                <span style="font-size:2.2rem">${isPresent ? RD.icon('check', '', 36) : RD.icon('x', '', 36)}</span>
                 <div>
                   <h3 style="margin:0;color:${isPresent ? '#4ade80' : '#f87171'}">
                     ${isPresent ? 'DICTAMEN: ASISTENCIA Y PRESENCIA CONFIRMADA' : 'DICTAMEN: NO SE REGISTRA INGRESO EN LA FECHA CONSULTADA'}
@@ -3264,11 +3264,11 @@ function verEstado() {
 
       view.innerHTML = `
       <div class="chips mb" id="stabs">
-        <span class="chip on" data-st="gym">🏢 Datos del Gimnasio</span>
-        <span class="chip" data-st="plans">📋 Planes de Precios</span>
-        <span class="chip" data-st="prods">🛒 Productos / Stock</span>
-        <span class="chip" data-st="users">👥 Usuarios del Sistema</span>
-        <span class="chip" data-st="system">💾 Copia de Seguridad</span>
+        <span class="chip on" data-st="gym">${RD.icon('building')} Datos del Gimnasio</span>
+        <span class="chip" data-st="plans">${RD.icon('plans')} Planes de Precios</span>
+        <span class="chip" data-st="prods">${RD.icon('cart')} Productos / Stock</span>
+        <span class="chip" data-st="users">${RD.icon('users')} Usuarios del Sistema</span>
+        <span class="chip" data-st="system">${RD.icon('save')} Copia de Seguridad</span>
       </div>
       <div id="stabview"></div>`;
 
@@ -3336,7 +3336,7 @@ function verEstado() {
       const body = Object.fromEntries(new FormData(e.target).entries());
       try {
         await RD.api.put('/settings', body);
-        RD.toast('Ajustes guardados ✔');
+        RD.toast('Ajustes guardados');
         RD.pub = await (await fetch('/api/public')).json();
         localStorage.setItem('rd_public', JSON.stringify(RD.pub));
         document.documentElement.style.setProperty('--gold', RD.pub.color || '#f5b400');
@@ -3412,7 +3412,7 @@ function verEstado() {
         if (p) await RD.api.put('/plans/' + p.id, body);
         else await RD.api.post('/plans', body);
         d.close();
-        RD.toast('Plan guardado ✔');
+        RD.toast('Plan guardado');
         done && done();
       } catch (err) {
         RD.toast(err.message, 'err');
@@ -3466,7 +3466,7 @@ function verEstado() {
         if (qty && +qty > 0) {
           try {
             await RD.api.post(`/products/${p.id}/stock`, { qty: +qty });
-            RD.toast(`Stock actualizado (+${qty} unidades) ✔`);
+            RD.toast(`Stock actualizado (+${qty} unidades)`);
             RD.go('settings');
           } catch (err) { RD.toast(err.message, 'err'); }
         }
@@ -3527,7 +3527,7 @@ function verEstado() {
         if (p) await RD.api.put('/products/' + p.id, body);
         else await RD.api.post('/products', body);
         d.close();
-        RD.toast('Producto guardado con éxito ✔');
+        RD.toast('Producto guardado con éxito');
         done && done();
       } catch (err) {
         RD.toast(err.message, 'err');
@@ -3606,7 +3606,7 @@ function verEstado() {
           await RD.api.post('/users', body);
         }
         d.close();
-        RD.toast('Usuario guardado ✔');
+        RD.toast('Usuario guardado');
         done && done();
       } catch (err) {
         RD.toast(err.message, 'err');
@@ -3630,7 +3630,7 @@ function verEstado() {
           <strong>Base de Datos SQLite (.db)</strong>, <strong>Volcado Portátil JSON</strong> y <strong>Sincronización en la Nube con Google Sheets</strong>.
         </p>
         <div style="background:var(--bg-subtle, rgba(0,0,0,0.03)); border-radius:8px; padding:0.75rem 1rem; font-size:0.85rem; line-height:1.5;">
-          💡 <strong>¿Cómo funciona en Render?</strong> El plan gratuito de Render dispone de <strong>512 MB de memoria RAM</strong> (el sistema RD Fitness solo consume ~50 MB, apenas el 10%). Sin embargo, el almacenamiento en disco de Render Free es efímero cuando se duerme o se hace deploy. Con la sincronización a Google Sheets y los botones de respaldo abajo, tus datos jamás se perderán.
+          <strong>¿Cómo funciona en Render?</strong> El plan gratuito de Render dispone de <strong>512 MB de memoria RAM</strong> (el sistema RD Fitness solo consume ~50 MB, apenas el 10%). Sin embargo, el almacenamiento en disco de Render Free es efímero cuando se duerme o se hace deploy. Con la sincronización a Google Sheets y los botones de respaldo abajo, tus datos jamás se perderán.
         </div>
       </div>
 
@@ -3638,7 +3638,7 @@ function verEstado() {
       <div class="card" style="border: 2px solid #f59e0b; background: linear-gradient(180deg, rgba(245,158,11,0.06) 0%, transparent 100%);">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:0.75rem;">
           <h3 style="display:flex; align-items:center; gap:8px; margin:0;">
-            ☁️ Bóveda Persistente en la Nube (Cloud Vault)
+            ${RD.icon('cloud')} Bóveda Persistente en la Nube (Cloud Vault)
           </h3>
           <span id="cloud-vault-badge" class="badge" style="background:#4b5563; color:#fff; font-size:0.8rem; padding:4px 10px; border-radius:12px;">
             Consultando...
@@ -3649,10 +3649,10 @@ function verEstado() {
         </p>
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:0.75rem;">
           <button class="btn primary" id="btn-cloud-sync" style="display:inline-flex; align-items:center; gap:6px;">
-            ☁️ Sincronizar Ahora a la Nube
+            ${RD.icon('cloud-upload')} Sincronizar Ahora a la Nube
           </button>
           <button class="btn" id="btn-cloud-pull" style="display:inline-flex; align-items:center; gap:6px;">
-            📥 Recuperar desde la Nube
+            ${RD.icon('cloud-download')} Recuperar desde la Nube
           </button>
         </div>
         <div id="cloud-vault-info" class="small muted" style="display:none; padding:8px 12px; background:rgba(0,0,0,0.2); border-radius:6px; font-family:monospace;"></div>
@@ -3661,17 +3661,17 @@ function verEstado() {
       <!-- TARJETA: COPIAS DE SEGURIDAD (.DB SQLITE) -->
       <div class="card">
         <h3 style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem;">
-          💾 Base de Datos Nativa SQLite (.db)
+          ${RD.icon('database')} Base de Datos Nativa SQLite (.db)
         </h3>
         <p class="small muted" style="margin-bottom:1rem;">
           Descarga o restaura la base de datos completa exactamente como está en el servidor. Al restaurar, los socios, pagos y asistencias se fusionarán automáticamente sin bloquear el sistema.
         </p>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <button class="btn primary" id="btn-backup-db" style="display:inline-flex; align-items:center; gap:6px;">
-            💾 Descargar Base de Datos (.db)
+            ${RD.icon('cloud-download')} Descargar Base de Datos (.db)
           </button>
           <button class="btn" id="btn-restore-db" style="display:inline-flex; align-items:center; gap:6px;">
-            📥 Restaurar Base de Datos (.db)
+            ${RD.icon('cloud-upload')} Restaurar Base de Datos (.db)
           </button>
           <input type="file" id="file-restore-db" accept=".db,.sqlite,.sqlite3" style="display:none;" />
         </div>
@@ -3680,17 +3680,17 @@ function verEstado() {
       <!-- TARJETA: EXPORTACIÓN E IMPORTACIÓN PORTÁTIL (JSON) -->
       <div class="card">
         <h3 style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem;">
-          📄 Respaldo Portátil en JSON
+          ${RD.icon('reports')} Respaldo Portátil en JSON
         </h3>
         <p class="small muted" style="margin-bottom:1rem;">
           Exporta todos los datos en un formato de texto legible e independiente (.json) con todos los socios, membresías, productos, caja y asistencias. Útil para auditoría o migración universal.
         </p>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <button class="btn" id="btn-export-json" style="display:inline-flex; align-items:center; gap:6px;">
-            📤 Exportar Todo en JSON
+            ${RD.icon('cloud-upload')} Exportar Todo en JSON
           </button>
           <button class="btn" id="btn-import-json" style="display:inline-flex; align-items:center; gap:6px;">
-            📥 Importar desde JSON
+            ${RD.icon('cloud-download')} Importar desde JSON
           </button>
           <input type="file" id="file-import-json" accept=".json" style="display:none;" />
         </div>
@@ -3699,14 +3699,14 @@ function verEstado() {
       <!-- TARJETA: SINCRONIZACIÓN GOOGLE SHEETS -->
       <div class="card">
         <h3 style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem;">
-          📊 Sincronización y Recuperación con Google Sheets
+          ${RD.icon('sheet')} Sincronización y Recuperación con Google Sheets
         </h3>
         <p class="small muted" style="margin-bottom:1rem;">
           Si estás en un nuevo entorno o reiniciaste el servidor, puedes reimportar en 1 clic todos los socios y membresías que se sincronizaron en tu hoja de cálculo oficial de Google Sheets.
         </p>
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
           <button class="btn primary" id="btn-sync-sheets" style="display:inline-flex; align-items:center; gap:6px;">
-            🔄 Reimportar Socios desde Google Sheets
+            ${RD.icon('refresh')} Reimportar Socios desde Google Sheets
           </button>
           <a class="btn" id="lnk-open-sheets" href="#" target="_blank" style="display:none; text-decoration:none;">
             ↗ Abrir Hoja de Sheets
@@ -3716,10 +3716,10 @@ function verEstado() {
 
       <!-- TARJETA: HERRAMIENTAS ADICIONALES -->
       <div class="card">
-        <h3 style="margin-bottom:0.5rem;">🖨 Herramientas Adicionales</h3>
+        <h3 style="margin-bottom:0.5rem;">${RD.icon('printer')} Herramientas Adicionales</h3>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <a class="btn" href="/admin/cards.html" target="_blank" style="text-decoration:none;">
-            🖨 Diseñador / Impresor Masivo de Tarjetas PVC
+            ${RD.icon('idcard')} Diseñador / Impresor Masivo de Tarjetas PVC
           </a>
         </div>
       </div>
@@ -3732,18 +3732,18 @@ function verEstado() {
       try {
         const st = await RD.api.get('/cloud-vault/status');
         if (st && st.configured) {
-          badgeVault.textContent = `🟢 Conectado (${st.provider})`;
+          badgeVault.textContent = `Conectado (${st.provider})`;
           badgeVault.style.background = '#059669';
           infoVault.style.display = 'block';
           infoVault.textContent = `Proveedor: ${st.provider.toUpperCase()} | Última sincro: ${st.last_sync ? new Date(st.last_sync).toLocaleString() : 'Pendiente'}`;
         } else {
-          badgeVault.textContent = '🟡 Bóveda Local (.json)';
+          badgeVault.textContent = 'Bóveda Local (.json)';
           badgeVault.style.background = '#d97706';
           infoVault.style.display = 'block';
           infoVault.innerHTML = 'Sin nube externa configurada. Los datos se guardan en el archivo local <code>storage/backup-vault.json</code>. Configura <code>UPSTASH_REDIS_REST_URL</code> y <code>UPSTASH_REDIS_REST_TOKEN</code> en Render para activar la nube gratis permanente.';
         }
       } catch (e) {
-        if (badgeVault) badgeVault.textContent = '⚪ Local';
+        if (badgeVault) badgeVault.textContent = 'Local';
       }
     };
     refreshVaultStatus();

@@ -38,22 +38,22 @@
 
   H.openInstallGuide = () => {
     let activeTab = H.isIOS() ? 'ios' : (/Android/i.test(navigator.userAgent) ? 'android' : 'desktop');
-    const m = RD.openModal('📲 Cómo instalar la App de RD Fitness', `
+    const m = RD.openModal('Guía de Instalación de la App', `
       <div class="small muted mb">
         Esta aplicación es una <b>PWA Oficial</b>: no requiere descargar pesados archivos de tiendas, se actualiza sola y puedes usarla tanto en tu celular (Android / iPhone) como en tu PC o Laptop.
       </div>
 
       ${H.canInstall() ? `
         <div class="card mb" style="background:rgba(217,119,6,0.1);border:1px solid #d97706;border-radius:10px;text-align:center;padding:12px">
-          <p class="small bold" style="color:#d97706;margin:0 0 6px">✨ ¡Tu navegador permite la instalación directa con un clic!</p>
-          <button class="btn primary sm" id="btn_direct_install">⚡ Instalar App ahora en este dispositivo</button>
+          <p class="small bold" style="color:#d97706;margin:0 0 6px;display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('sparkles', '', 16)} ¡Tu navegador permite la instalación directa con un clic!</p>
+          <button class="btn primary sm" id="btn_direct_install" style="display:inline-flex;align-items:center;gap:6px">${RD.icon('zap', '', 14)} Instalar App ahora en este dispositivo</button>
         </div>
       ` : ''}
 
       <div class="chips mb" id="guide_tabs">
-        <span class="chip ${activeTab === 'android' ? 'on' : ''}" data-gt="android">📱 Android (Chrome)</span>
-        <span class="chip ${activeTab === 'ios' ? 'on' : ''}" data-gt="ios">🍏 iPhone / iPad (Safari)</span>
-        <span class="chip ${activeTab === 'desktop' ? 'on' : ''}" data-gt="desktop">💻 PC / Laptop (Windows/Mac)</span>
+        <span class="chip ${activeTab === 'android' ? 'on' : ''}" data-gt="android" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('smartphone', '', 14)} <span>Android (Chrome)</span></span>
+        <span class="chip ${activeTab === 'ios' ? 'on' : ''}" data-gt="ios" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('apple', '', 14)} <span>iPhone / iPad (Safari)</span></span>
+        <span class="chip ${activeTab === 'desktop' ? 'on' : ''}" data-gt="desktop" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('laptop', '', 14)} <span>PC / Laptop (Windows/Mac)</span></span>
       </div>
 
       <div id="guide_content" class="card flat" style="padding:14px;background:var(--bg2);border:1px solid var(--line);border-radius:10px"></div>
@@ -67,7 +67,7 @@
       tabs.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c.dataset.gt === tab));
       if (tab === 'android') {
         content.innerHTML = `
-          <h4 style="margin:0 0 8px;display:flex;align-items:center;gap:6px">📱 Instalación en Android (Google Chrome, Brave, Samsung)</h4>
+          <h4 style="margin:0 0 8px;display:flex;align-items:center;gap:6px">${RD.icon('smartphone', 'gold', 18)} Instalación en Android (Google Chrome, Brave, Samsung)</h4>
           <ol class="small" style="padding-left:1.2rem;line-height:1.75">
             <li>Abre esta página en tu navegador <b>Google Chrome</b>.</li>
             <li>Toca el botón de <b>opciones de 3 puntos (⋮)</b> arriba a la derecha.</li>
@@ -80,11 +80,11 @@
         `;
       } else if (tab === 'ios') {
         content.innerHTML = `
-          <h4 style="margin:0 0 8px;display:flex;align-items:center;gap:6px">🍏 Instalación en iPhone / iPad (Apple Safari)</h4>
+          <h4 style="margin:0 0 8px;display:flex;align-items:center;gap:6px">${RD.icon('apple', 'gold', 18)} Instalación en iPhone / iPad (Apple Safari)</h4>
           <ol class="small" style="padding-left:1.2rem;line-height:1.75">
             <li>Abre la página exclusivamente en el navegador oficial <b>Safari</b>.</li>
-            <li>En la barra inferior del iPhone (o superior del iPad), toca el botón <b>Compartir</b> (el cuadrado con la flecha hacia arriba ⎋).</li>
-            <li>Desliza las opciones hacia abajo y selecciona <b>"Agregar al inicio"</b> (➕).</li>
+            <li>En la barra inferior del iPhone (o superior del iPad), toca el botón <b>Compartir</b> (el cuadrado con la flecha hacia arriba).</li>
+            <li>Desliza las opciones hacia abajo y selecciona <b>"Agregar al inicio"</b>.</li>
             <li>Toca <b>"Agregar"</b> en la esquina superior derecha.</li>
           </ol>
           <div class="card flat mt small" style="background:rgba(34,197,94,0.1);border-left:4px solid #22c55e;padding:10px">
@@ -93,10 +93,10 @@
         `;
       } else if (tab === 'desktop') {
         content.innerHTML = `
-          <h4 style="margin:0 0 8px;display:flex;align-items:center;gap:6px">💻 Instalación en Computadora / Laptop (Windows 10/11, Mac, Linux)</h4>
+          <h4 style="margin:0 0 8px;display:flex;align-items:center;gap:6px">${RD.icon('laptop', 'gold', 18)} Instalación en Computadora / Laptop (Windows 10/11, Mac, Linux)</h4>
           <ol class="small" style="padding-left:1.2rem;line-height:1.75">
             <li>Abre la web en <b>Google Chrome</b> o <b>Microsoft Edge</b>.</li>
-            <li>En el extremo derecho de la barra de direcciones (donde escribes la URL, al lado de la estrella), verás un icono de <b>pantalla con flecha</b> o símbolo <b>⊕</b>.</li>
+            <li>En el extremo derecho de la barra de direcciones (donde escribes la URL, al lado de la estrella), verás un icono de <b>pantalla con flecha</b> o símbolo de instalar.</li>
             <li>Haz clic en <b>"Instalar RD Fitness"</b>.</li>
             <li>¡Listo! Se anclará a tu barra de tareas o escritorio y funcionará como una aplicación nativa ultra rápida.</li>
           </ol>
@@ -119,7 +119,7 @@
       bDirect.onclick = async () => {
         const ok = await H.install();
         if (ok) {
-          RD.toast('¡App instalada con éxito! ✔');
+          RD.toast('¡App instalada con éxito!');
           m.close();
         }
       };
@@ -136,7 +136,8 @@
   };
 
   // ---------- Bandeja ----------
-  const ICON = { aviso: '📢', evento: '🎉', tematica: '🎨', promo: '🏷️', mantenimiento: '🛠️', cierre: '⛔', pago: '🧾', recordatorio: '⏰' };
+  const ICON_NAME = { aviso: 'megaphone', evento: 'party', tematica: 'palette', promo: 'tag', mantenimiento: 'wrench', cierre: 'shield-alert', pago: 'receipt', recordatorio: 'clock' };
+  const getKindIcon = (k, sz = 16) => RD.icon(ICON_NAME[k] || 'megaphone', '', sz);
   const KIND_LABEL = { aviso: 'Aviso', evento: 'Evento', tematica: 'Temática', promo: 'Promoción', mantenimiento: 'Mantenimiento', cierre: 'Atención', pago: 'Pago', recordatorio: 'Recordatorio' };
   const nl = s => esc(s).replace(/\n/g, '<br>');
   const ctaHtml = c => {
@@ -160,14 +161,13 @@
   H.openAnnouncementModal = (a) => {
     if (!a) return;
     const kindLabel = KIND_LABEL[a.kind] || 'Aviso';
-    const kindIcon = ICON[a.kind] || '📢';
     const dateStr = a.created_at ? RD.fmtDateTime(a.created_at) : 'Reciente';
 
-    const m = RD.openModal(`${kindIcon} ${kindLabel}`, `
+    const m = RD.openModal(`${kindLabel}`, `
       <div class="announcement-detail" style="display:flex;flex-direction:column;gap:12px;">
         <div>
           <div class="row between wrap gap mb">
-            <span class="badge ${esc(a.kind || 'aviso')}" style="font-weight:700">${kindIcon} ${esc(kindLabel)}</span>
+            <span class="badge ${esc(a.kind || 'aviso')}" style="font-weight:700;display:inline-flex;align-items:center;gap:5px">${getKindIcon(a.kind, 14)} <span>${esc(kindLabel)}</span></span>
             <span class="tiny muted">${esc(dateStr)}</span>
           </div>
           <h2 style="margin:4px 0 8px;font-size:1.35rem;line-height:1.3">${esc(a.title)}</h2>
@@ -178,7 +178,7 @@
             <img id="ann_full_img" src="${esc(a.image_url)}" alt="${esc(a.title)}" style="max-width:100%;max-height:360px;width:100%;object-fit:contain;display:block;cursor:pointer;">
           </div>
           <div class="row end" style="margin-top:-4px">
-            <button type="button" class="btn sm ghost" id="btn_zoom_ann">🔍 Pantalla completa / Zoom</button>
+            <button type="button" class="btn sm ghost" id="btn_zoom_ann" style="display:flex;align-items:center;gap:5px">${RD.icon('search', '', 14)} Pantalla completa / Zoom</button>
           </div>
         ` : ''}
 
@@ -223,12 +223,12 @@
     if (!host) return;
     if (!banner) { host.innerHTML = ''; return; }
     host.innerHTML = `<div class="noticebar ${esc(banner.kind)}" role="status">
-      <span class="nb-ico">${ICON[banner.kind] || '📢'}</span>
+      <span class="nb-ico">${getKindIcon(banner.kind, 18)}</span>
       <button class="nb-main" id="nbopen">
         <b>${esc(banner.title)}</b>
         <span>${esc(banner.body ? (banner.body.length > 90 ? banner.body.slice(0, 88) + '…' : banner.body) : 'Toca para leer el comunicado completo')}</span>
       </button>
-      <button class="nb-x" id="nbx" aria-label="Descartar">✕</button>
+      <button class="nb-x" id="nbx" aria-label="Descartar">${RD.icon('x', '', 14)}</button>
     </div>`;
     host.querySelector('#nbopen').onclick = () => H.openAnnouncementModal(banner);
     host.querySelector('#nbx').onclick = async () => {
@@ -260,7 +260,7 @@
             RD.beep('bell');
           }
         } catch {}
-        const titleMsg = s.latest_title ? `📢 ${s.latest_title}` : '📢 Nuevo comunicado oficial de RD Fitness Club';
+        const titleMsg = s.latest_title ? s.latest_title : 'Nuevo comunicado oficial de RD Fitness Club';
         try { RD.toast(titleMsg, 'info', 7000); } catch {}
         if (typeof H.updateHeroAnnouncement === 'function') {
           try { H.updateHeroAnnouncement(); } catch {}
@@ -314,7 +314,7 @@
   };
 
   H.openInbox = async () => {
-    const m = RD.openModal('🔔 Avisos y Comunicados', '<div class="empty">Cargando…</div>', { wide: true });
+    const m = RD.openModal('Avisos y Comunicados', '<div class="empty">Cargando…</div>', { wide: true });
     try {
       const d = await api.get('/member/inbox');
       const unreadRefs = d.items.filter(i => !i.read).map(i => i.ref);
@@ -322,9 +322,9 @@
         m.el.innerHTML = `
           ${d.items.length ? `<div class="inbox">${d.items.map((i, idx) => `
             <div class="inbox-item ${i.kind} ${i.priority === 'importante' ? 'imp' : ''} ${unreadRefs.includes(i.ref) ? 'new' : ''}" data-idx="${idx}">
-              <div class="ii-ico">${ICON[i.kind] || '📢'}</div>
+              <div class="ii-ico">${getKindIcon(i.kind, 18)}</div>
               <div class="ii-main">
-                <div class="ii-title">${esc(i.title)}${unreadRefs.includes(i.ref) ? ' <span class="ii-new">Nuevo</span>' : ''}${i.pinned ? ' <span class="ii-pin">📌</span>' : ''}</div>
+                <div class="ii-title">${esc(i.title)}${unreadRefs.includes(i.ref) ? ' <span class="ii-new">Nuevo</span>' : ''}${i.pinned ? ` <span class="ii-pin" style="display:inline-flex;align-items:center">${RD.icon('pin', 'gold', 14)}</span>` : ''}</div>
                 ${i.image_url ? `
                   <div class="ii-img-wrap mb mt inb-img-wrap" style="margin:8px 0;max-height:220px;overflow:hidden;border-radius:8px;border:1px solid var(--line);cursor:pointer;background:var(--bg3)">
                     <img src="${esc(i.image_url)}" class="ii-img" alt="${esc(i.title)}" style="width:100%;max-height:220px;object-fit:cover;display:block">
@@ -334,15 +334,15 @@
                 <div class="ii-meta">${esc(KIND_LABEL[i.kind] || 'Aviso')} · ${i.source === 'system' ? 'Tu cuenta' : 'RD Fitness Club'} · ${RD.ago(i.created_at)}</div>
                 <div class="row wrap gap mt2" style="align-items:center">
                   ${ctaHtml(i.cta)}
-                  <button type="button" class="btn sm ghost inb-read-btn">👁️ Ver completo</button>
+                  <button type="button" class="btn sm ghost inb-read-btn" style="display:flex;align-items:center;gap:5px">${RD.icon('eye', '', 14)} Ver completo</button>
                 </div>
               </div>
             </div>`).join('')}</div>`
-            : '<div class="empty">🎉 Todo al día.<br><span class="small">No tienes avisos por ahora.</span></div>'}
+            : '<div class="empty">Todo al día.<br><span class="small">No tienes avisos por ahora.</span></div>'}
           <div class="row between wrap gap mt">
             <div class="row gap">
-              <button class="btn sm ghost" id="inbprefs">⚙️ Preferencias</button>
-              <button class="btn sm ok ghost" id="inbreceipts">🧾 Mis Boletas</button>
+              <button class="btn sm ghost" id="inbprefs" style="display:flex;align-items:center;gap:5px">${RD.icon('settings', '', 14)} Preferencias</button>
+              <button class="btn sm ok ghost" id="inbreceipts" style="display:flex;align-items:center;gap:5px">${RD.icon('receipt', '', 14)} Mis Boletas</button>
             </div>
             <span class="tiny muted">RD Fitness Club · Notificaciones oficiales</span>
           </div>`;
@@ -369,13 +369,13 @@
       draw();
       if (unreadRefs.length) { await api.post('/member/inbox/read', { refs: unreadRefs }).catch(() => { }); H.refresh(); }
     } catch (e) {
-      m.el.innerHTML = `<div class="empty">${e.offline ? '📡 Sin conexión. Los avisos se cargan con internet.' : esc(e.message)}</div>`;
+      m.el.innerHTML = `<div class="empty">${e.offline ? 'Sin conexión. Los avisos se cargan con internet.' : esc(e.message)}</div>`;
     }
   };
 
   // ---------- Historial de boletas digitales del socio ----------
   H.openReceipts = async () => {
-    const m = RD.openModal('🧾 Mis Boletas y Pagos', '<div class="empty">Cargando comprobantes…</div>', { wide: true });
+    const m = RD.openModal('Mis Boletas y Pagos', '<div class="empty">Cargando comprobantes…</div>', { wide: true });
     try {
       const data = await api.get('/member/receipts');
       const list = data.receipts || [];
@@ -403,7 +403,7 @@
                 </div>
                 ${r.validity ? `<div class="tiny info mt2">${esc(r.validity)}</div>` : ''}
               </div>
-              <button class="btn sm ok" data-view-receipt="${r.id}">🧾 Ver Boleta</button>
+              <button class="btn sm ok" data-view-receipt="${r.id}" style="display:flex;align-items:center;gap:5px">${RD.icon('receipt', '', 14)} Ver Boleta</button>
             </div>
           `).join('')}
         </div>
@@ -412,7 +412,7 @@
         b.onclick = () => RD.showReceipt(+b.dataset.viewReceipt);
       });
     } catch (e) {
-      m.el.innerHTML = `<div class="empty">${e.offline ? '📡 Sin conexión.' : esc(e.message)}</div>`;
+      m.el.innerHTML = `<div class="empty">${e.offline ? 'Sin conexión.' : esc(e.message)}</div>`;
     }
   };
 
@@ -457,33 +457,33 @@
   const sw = (key, label, hint, on) => `<label class="sw-row"><span><b>${label}</b>${hint ? `<small>${hint}</small>` : ''}</span><input type="checkbox" class="sw" data-k="${key}" ${on ? 'checked' : ''}></label>`;
 
   H.openPrefs = async () => {
-    const m = RD.openModal('⚙️ Preferencias de avisos', '<div class="empty">Cargando…</div>');
+    const m = RD.openModal('Preferencias de avisos', '<div class="empty">Cargando…</div>');
     try {
       const p = await api.get('/member/prefs');
       const sub = pushSupported() ? await currentSub() : null;
       const needInstall = H.isIOS() && !H.isStandalone();
       m.el.innerHTML = `
-        <h4>En mi bandeja 🔔</h4>
+        <h4 style="display:flex;align-items:center;gap:6px">${RD.icon('bell', 'gold', 18)} En mi bandeja</h4>
         ${sw('show_reminders', 'Recordatorios de mi cuenta', 'Vencimiento de membresía y pagos registrados', p.show_reminders)}
         ${sw('show_promos', 'Promociones y temáticas', 'Ofertas, eventos y días especiales', p.show_promos)}
-        <h4 class="mt">En mi celular 📲 <span class="tiny muted">(opcional)</span></h4>
+        <h4 class="mt" style="display:flex;align-items:center;gap:6px">${RD.icon('smartphone', 'gold', 18)} En mi celular <span class="tiny muted">(opcional)</span></h4>
         <div class="card flat" id="pushbox">
-          ${!pushSupported() ? `<div class="small muted">Este navegador no admite notificaciones al celular. Seguirás viendo todo en la campana 🔔.</div>`
-            : needInstall ? `<div class="small muted">En iPhone/iPad primero instala la app: toca <b>Compartir</b> ➜ <b>Añadir a pantalla de inicio</b> y ábrela desde ahí para poder activar los avisos.</div>`
-            : `<div class="row between wrap gap"><div class="small">${sub ? '✅ Activadas en este dispositivo' : 'Desactivadas en este dispositivo'}</div>
+          ${!pushSupported() ? `<div class="small muted">Este navegador no admite notificaciones al celular. Seguirás viendo todo en la campana.</div>`
+            : needInstall ? `<div class="small muted">En iPhone/iPad primero instala la app desde Safari para poder activar los avisos al celular.</div>`
+            : `<div class="row between wrap gap"><div class="small">${sub ? `<span style="display:inline-flex;align-items:center;gap:5px">${RD.icon('check-circle', 'ok', 14)} <span>Activadas en este dispositivo</span></span>` : 'Desactivadas en este dispositivo'}</div>
                 <div class="row gap"><button class="btn sm ${sub ? '' : 'primary'}" id="pushtoggle">${sub ? 'Desactivar' : 'Activar'}</button>${sub ? '<button class="btn sm ghost" id="pushtest">Probar Push</button>' : ''}</div></div>`}
         </div>
         <div id="pushopts" class="${sub ? '' : 'dim'}">
           <label class="field mt mb">
             <span>Modo de alerta de notificaciones:</span>
             <select id="pref_alert_mode">
-              <option value="sound" ${p.alert_mode === 'sound' ? 'selected' : ''}>🔊 Sonido y vibración (Recomendado)</option>
-              <option value="vibrate" ${p.alert_mode === 'vibrate' ? 'selected' : ''}>📳 Solo vibración (Silencioso con vibración)</option>
-              <option value="silent" ${p.alert_mode === 'silent' ? 'selected' : ''}>🔕 Totalmente silencioso (Solo en pantalla)</option>
+              <option value="sound" ${p.alert_mode === 'sound' ? 'selected' : ''}>Sonido y vibración (Recomendado)</option>
+              <option value="vibrate" ${p.alert_mode === 'vibrate' ? 'selected' : ''}>Solo vibración (Silencioso)</option>
+              <option value="silent" ${p.alert_mode === 'silent' ? 'selected' : ''}>Silencioso (Solo en pantalla)</option>
             </select>
           </label>
           <div class="row gap mb">
-            <button type="button" class="btn sm ghost" id="btn_test_chime">🔔 Probar timbre y vibración</button>
+            <button type="button" class="btn sm ghost" id="btn_test_chime" style="display:flex;align-items:center;gap:5px">${RD.icon('bell-ring', '', 14)} Probar timbre y vibración</button>
           </div>
           ${sw('push_critical', 'Avisos importantes', 'Cierres, mantenimiento o cambios de horario', p.push_critical)}
           ${sw('push_news', 'Novedades', 'Noticias del gimnasio', p.push_news)}
@@ -499,7 +499,7 @@
         amSel.onchange = async () => {
           try {
             await api.put('/member/prefs', { alert_mode: amSel.value });
-            RD.toast('Preferencia de alerta guardada ✔');
+            RD.toast('Preferencia de alerta guardada', 'ok');
           } catch (e) { RD.toast(e.message, 'err'); }
         };
       }
@@ -509,30 +509,30 @@
           const mode = amSel ? amSel.value : 'sound';
           RD.playNotificationAlert(mode);
           if (mode === 'sound') {
-            RD.toast('Reproduciendo timbre oficial y vibración 🔊');
+            RD.toast('Reproduciendo timbre oficial y vibración');
           } else if (mode === 'vibrate') {
-            RD.toast('Vibración emitida 📳');
+            RD.toast('Vibración emitida');
           } else {
-            RD.toast('Modo silencioso: sin sonido ni vibración 🔕');
+            RD.toast('Modo silencioso: sin sonido ni vibración');
           }
         };
       }
       const tg = m.el.querySelector('#pushtoggle');
       if (tg) tg.onclick = async () => {
         await RD.busy(tg, async () => {
-          try { if (sub) await H.disablePush(); else await H.enablePush(); m.close(); H.openPrefs(); RD.toast(sub ? 'Avisos al celular desactivados' : 'Avisos al celular activados ✔'); }
+          try { if (sub) await H.disablePush(); else await H.enablePush(); m.close(); H.openPrefs(); RD.toast(sub ? 'Avisos al celular desactivados' : 'Avisos al celular activados', 'ok'); }
           catch (e) { RD.toast(e.message, 'err', 5000); }
         });
       };
       const ts = m.el.querySelector('#pushtest');
       if (ts) ts.onclick = async () => { try { await api.post('/member/push/test'); RD.toast('Enviamos una notificación de prueba'); } catch (e) { RD.toast(e.message, 'err'); } };
-    } catch (e) { m.el.innerHTML = `<div class="empty">${e.offline ? '📡 Sin conexión.' : esc(e.message)}</div>`; }
+    } catch (e) { m.el.innerHTML = `<div class="empty">${e.offline ? 'Sin conexión.' : esc(e.message)}</div>`; }
   };
 
   // ---------- Mi acceso (usuario y contraseña propios) ----------
   H.openAccount = (member, onDone, opts = {}) => {
     const has = !!member.has_password;
-    const m = RD.openModal(opts.first ? '✨ Personaliza tu acceso' : '🔐 Mi usuario y contraseña', `
+    const m = RD.openModal(opts.first ? 'Personaliza tu acceso' : 'Mi usuario y contraseña', `
       <p class="small muted">${opts.first
         ? 'Elige un usuario fácil de recordar y tu propia contraseña. Tu código <b>' + esc(member.code) + '</b> no cambia: es tu identificador en el gimnasio.'
         : 'Tu código <b>' + esc(member.code) + '</b> no cambia. Aquí gestionas cómo ingresas a la app.'}</p>
@@ -541,12 +541,12 @@
           <input name="alias" value="${esc(member.alias || '')}" placeholder="ej. carlos.fit" maxlength="20" autocapitalize="none" autocorrect="off" spellcheck="false">
           <small id="aliashint" class="tiny muted">3 a 20 caracteres: letras, números, punto o guion bajo.</small></label>
         <label class="field"><span>${has ? 'Nueva contraseña (opcional)' : 'Mi nueva contraseña (mín. 6)'}</span>
-          <div class="pw"><input name="np" type="password" minlength="6" maxlength="72" autocomplete="new-password" ${has ? '' : 'required'}><button type="button" class="pw-eye" data-eye>👁</button></div></label>
+          <div class="pw"><input name="np" type="password" minlength="6" maxlength="72" autocomplete="new-password" ${has ? '' : 'required'}><button type="button" class="pw-eye" data-eye>${RD.icon('eye', '', 14)}</button></div></label>
         <label class="field"><span>Repetir contraseña</span>
-          <div class="pw"><input name="np2" type="password" autocomplete="new-password"><button type="button" class="pw-eye" data-eye>👁</button></div></label>
+          <div class="pw"><input name="np2" type="password" autocomplete="new-password"><button type="button" class="pw-eye" data-eye>${RD.icon('eye', '', 14)}</button></div></label>
         <hr class="sep">
         <label class="field"><span>${has ? 'Mi contraseña actual' : 'Mi contraseña actual (tu DNI)'} *</span>
-          <div class="pw"><input name="cur" type="password" required autocomplete="current-password" ${has ? '' : 'inputmode="numeric"'}><button type="button" class="pw-eye" data-eye>👁</button></div></label>
+          <div class="pw"><input name="cur" type="password" required autocomplete="current-password" ${has ? '' : 'inputmode="numeric"'}><button type="button" class="pw-eye" data-eye>${RD.icon('eye', '', 14)}</button></div></label>
         <button class="btn primary block mt">Guardar</button>
         ${has ? '<p class="tiny muted mt center">Al cambiar tu contraseña se cerrará tu sesión en los demás dispositivos.</p>' : ''}
       </form>`);
@@ -555,7 +555,7 @@
     const check = RD.debounce(async () => {
       const a = f.alias.value.trim();
       if (!a || a.toLowerCase() === String(member.alias || '').toLowerCase()) { hint.className = 'tiny muted'; hint.textContent = '3 a 20 caracteres: letras, números, punto o guion bajo.'; return; }
-      try { const r = await api.get('/member/alias-available?alias=' + encodeURIComponent(a)); hint.className = 'tiny ' + (r.available ? 'ok' : 'bad'); hint.textContent = r.available ? '✔ Disponible' : r.reason; } catch { }
+      try { const r = await api.get('/member/alias-available?alias=' + encodeURIComponent(a)); hint.className = 'tiny ' + (r.available ? 'ok' : 'bad'); hint.textContent = r.available ? 'Disponible' : r.reason; } catch { }
     }, 350);
     f.alias.oninput = check;
     f.onsubmit = async e => {
@@ -564,7 +564,7 @@
       await RD.busy(f.querySelector('button.primary'), async () => {
         try {
           const r = await api.post('/member/credentials', { alias: f.alias.value.trim(), new_password: f.np.value, current_secret: f.cur.value });
-          RD.toast('Acceso actualizado ✔'); m.close(); onDone && onDone(r.member);
+          RD.toast('Acceso actualizado con éxito', 'ok'); m.close(); onDone && onDone(r.member);
         } catch (err) { RD.toast(err.message, 'err', 5000); }
       });
     };
@@ -572,13 +572,13 @@
 
   // ---------- Mis dispositivos ----------
   H.openDevices = async () => {
-    const m = RD.openModal('📱 Mis dispositivos', '<div class="empty">Cargando…</div>');
+    const m = RD.openModal('Mis dispositivos', '<div class="empty">Cargando…</div>');
     const draw = async () => {
       try {
         const list = await api.get('/member/devices');
         m.el.innerHTML = `<p class="small muted">Estos dispositivos tienen tu sesión iniciada. Si no reconoces alguno, ciérralo.</p>
           <div class="list">${list.map(d => `<div class="item">
-            <div class="avatar">${/iPhone|Android/.test(d.label) ? '📱' : '💻'}</div>
+            <div class="avatar" style="display:flex;align-items:center;justify-content:center">${/iPhone|Android/.test(d.label) ? RD.icon('smartphone', 'gold', 20) : RD.icon('laptop', 'gold', 20)}</div>
             <div class="grow"><b>${esc(d.label)}</b> ${d.current ? '<span class="badge ok">Este dispositivo</span>' : ''}
               <div class="tiny muted">Último uso ${RD.ago(d.last_seen)}</div></div>
             ${d.current ? '' : `<button class="btn sm ghost" data-close-dev="${esc(d.id)}">Cerrar</button>`}</div>`).join('')}</div>
@@ -586,7 +586,7 @@
         m.el.querySelectorAll('[data-close-dev]').forEach(b => b.onclick = async () => { try { await api.del('/member/devices/' + b.dataset.closeDev); RD.toast('Dispositivo cerrado'); draw(); } catch (e) { RD.toast(e.message, 'err'); } });
         const co = m.el.querySelector('#closeothers');
         if (co) co.onclick = async () => { if (await RD.confirm('Cerrar otras sesiones', 'Tendrán que volver a ingresar con su usuario y contraseña.', 'Cerrar', true)) { await api.post('/member/devices/logout-others'); RD.toast('Listo'); draw(); } };
-      } catch (e) { m.el.innerHTML = `<div class="empty">${e.offline ? '📡 Sin conexión.' : esc(e.message)}</div>`; }
+      } catch (e) { m.el.innerHTML = `<div class="empty">${e.offline ? 'Sin conexión.' : esc(e.message)}</div>`; }
     };
     draw();
   };
@@ -599,7 +599,7 @@
     RD.openModal('¿Olvidaste tu contraseña?', `
       <p class="small">Por seguridad, la restablece el personal del gimnasio. Con tu DNI en mano:</p>
       <ol class="small" style="padding-left:1.1rem;line-height:1.6"><li>Acércate a recepción o escríbenos por WhatsApp.</li><li>Te restablecemos el acceso: tu contraseña vuelve a ser tu <b>DNI</b>.</li><li>Ingresa y crea una nueva contraseña propia.</li></ol>
-      ${wa ? `<a class="btn ok block mt" target="_blank" rel="noopener" href="${wa}">💬 Escribir por WhatsApp</a>` : ''}`);
+      ${wa ? `<a class="btn ok block mt" target="_blank" rel="noopener" href="${wa}" style="display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('whatsapp', '', 16)} Escribir por WhatsApp</a>` : ''}`);
   };
 
   // Abrir la bandeja al tocar una notificación push

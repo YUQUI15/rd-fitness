@@ -928,11 +928,11 @@
                 </div>
               </div>
               <div class="payment-trust-bar">
-                <span class="pay-pill yape">🟣 Yape QR</span>
-                <span class="pay-pill plin">🔵 Plin QR</span>
-                <span class="pay-pill card">💳 POS Contactless / Chip</span>
-                <span class="pay-pill card">📶 Apple Pay & Google Wallet</span>
-                <span class="pay-pill card">💵 Efectivo</span>
+                <span class="pay-pill yape"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h.01M17 7h.01M7 17h.01M17 17h.01"/></svg>Yape QR</span>
+                <span class="pay-pill plin"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>Plin QR</span>
+                <span class="pay-pill card"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>POS Contactless / Chip</span>
+                <span class="pay-pill card"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>Apple Pay & Google Wallet</span>
+                <span class="pay-pill card"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/></svg>Efectivo</span>
               </div>
             </div>`;
         } else if (mode === 'welcome') {
@@ -944,7 +944,7 @@
           const photo = state.photo;
           const avatarHtml = photo
             ? `<img class="member-avatar-img" src="${esc(photo)}" alt="">`
-            : `<div class="member-avatar-placeholder">${esc(name[0] || '✔')}</div>`;
+            : `<div class="member-avatar-placeholder">${esc(name[0] || 'S')}</div>`;
 
           stage.innerHTML = `
             <div class="access-card welcome">
@@ -956,8 +956,8 @@
               <div class="motivational-lead">¡BIENVENIDO A RD FITNESS CLUB!</div>
               <div class="member-name">${esc(name)}</div>
               <div class="member-details-grid">
-                <span class="detail-pill">🏆 Plan: <b>${esc(plan)}</b></span>
-                ${end ? `<span class="detail-pill">📅 Vence: <b>${esc(end)}</b>${daysLeft !== null ? ` (${daysLeft} días restantes)` : ''}</span>` : ''}
+                <span class="detail-pill"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>Plan: <b>${esc(plan)}</b></span>
+                ${end ? `<span class="detail-pill"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Vence: <b>${esc(end)}</b>${daysLeft !== null ? ` (${daysLeft} días restantes)` : ''}</span>` : ''}
               </div>
               <div class="motivational-sub">${esc(state.reason || '¡Que tengas una excelente sesión de entrenamiento hoy!')}</div>
               <div class="success-meter" style="max-width:320px"><div class="success-meter-bar"></div></div>
@@ -970,7 +970,7 @@
           const photo = state.photo;
           const avatarHtml = photo
             ? `<img class="member-avatar-img" src="${esc(photo)}" alt="">`
-            : `<div class="member-avatar-placeholder">🚪</div>`;
+            : `<div class="member-avatar-placeholder"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>`;
 
           stage.innerHTML = `
             <div class="access-card goodbye">
@@ -995,7 +995,7 @@
           const photo = state.photo;
           const avatarHtml = photo
             ? `<img class="member-avatar-img" src="${esc(photo)}" alt="">`
-            : `<div class="member-avatar-placeholder" style="color:#ef4444;border-color:#ef4444">⚠</div>`;
+            : `<div class="member-avatar-placeholder" style="color:#ef4444;border-color:#ef4444"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>`;
           const end = state.end || state.end_date || '';
           const reason = state.reason || 'Membresía vencida. Por favor acércate a recepción a renovar tu plan.';
 
@@ -1027,7 +1027,7 @@
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 PASE DIARIO VÁLIDO (S/ 5)
               </div>
-              <div class="member-avatar-wrap"><div class="member-avatar-placeholder">🎟️</div></div>
+              <div class="member-avatar-wrap"><div class="member-avatar-placeholder"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/></svg></div></div>
               <div class="motivational-lead">¡BIENVENIDO A RD FITNESS CLUB!</div>
               <div class="member-name">${esc(name)}</div>
               <div class="detail-pill" style="margin-bottom:14px">Válido para entrenamiento libre el día de hoy</div>
@@ -1048,7 +1048,7 @@
                 <div class="bill-price-label">Monto a pagar</div>
                 <div class="bill-price">${money(state.amount)}</div>
                 <div class="bill-instructions">
-                  <b>📶 Acerca tu tarjeta o dispositivo al terminal POS:</b><br>
+                  <b>Acerca tu tarjeta o dispositivo al terminal POS:</b><br>
                   Aceptamos <b>Contactless (sin contacto)</b>, chip, y pagos móviles con <b>Apple Pay</b> y <b>Google Wallet</b>.<br>
                   <small style="opacity:.8;display:block;margin-top:6px">Si tu banco solicita clave PIN de seguridad, ingrésala en el teclado del POS.</small>
                 </div>
@@ -1082,7 +1082,7 @@
                 <div class="bill-price-label">Monto exacto a transferir</div>
                 <div class="bill-price">${money(state.amount)}</div>
                 <div class="bill-instructions">
-                  <b>📱 Escanea desde tu celular con Yape o Plin:</b><br>
+                  <b>Escanea desde tu celular con Yape o Plin:</b><br>
                   El monto exacto de <b>${money(state.amount)}</b> ya está configurado en el código QR.<br>
                   No necesitas digitar número ni monto manualmente.
                 </div>

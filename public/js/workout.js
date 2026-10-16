@@ -6,7 +6,7 @@
   // ---------- 1. Visualización de Ejercicios ----------
   RD.exThumb = ex => ex.imagenes && ex.imagenes[0]
     ? `<img loading="lazy" src="${esc(ex.imagenes[0])}" alt="${esc(ex.nombre)}">`
-    : `<div class="avatar" style="width:84px;height:84px;border-radius:10px;font-size:1.8rem">${RD.GROUP_ICON[ex.grupo] || '⭐'}</div>`;
+    : `<div class="avatar" style="width:84px;height:84px;border-radius:10px;font-size:1.8rem">${RD.groupIconSvg(ex.grupo, '', 36)}</div>`;
 
   RD.exCard = ex => `
     <div class="ex-card" data-ex="${esc(ex.id)}">
@@ -40,10 +40,10 @@
       <ol class="steps">${(ex.pasos || []).map(s => `<li><div>${esc(s)}</div></li>`).join('')}</ol>
       ${(ex.errores || []).length ? `<div class="err"><b>Errores comunes a evitar</b><ul style="margin:.3rem 0 0 1rem;padding:0">${ex.errores.map(e => `<li>${esc(e)}</li>`).join('')}</ul></div>` : ''}
       ${ex.consejo ? `<div class="tip"><b>Consejo biomecánico:</b> ${esc(ex.consejo)}</div>` : ''}
-      ${ex.variante ? `<p class="small muted">🔁 <b>Variantes:</b> ${esc(ex.variante)}</p>` : ''}
+      ${ex.variante ? `<p class="small muted"><b>Variantes:</b> ${esc(ex.variante)}</p>` : ''}
       <div class="row gap mt">
-        <button class="btn sm ghost" onclick="RD.openPlateCalculator(60)">🧮 Calcular discos de barra</button>
-        <button class="btn sm primary" onclick="RD.open1RMCalculator(70, 8)">💪 Calcular mi 1RM</button>
+        <button class="btn sm ghost" onclick="RD.openPlateCalculator(60)" style="display:flex;align-items:center;gap:5px">${RD.icon('layers', '', 14)} Calcular discos de barra</button>
+        <button class="btn sm primary" onclick="RD.open1RMCalculator(70, 8)" style="display:flex;align-items:center;gap:5px">${RD.icon('dumbbell', '', 14)} Calcular mi 1RM</button>
       </div>`;
   };
 
@@ -145,11 +145,16 @@
 
   RD.timersTool = el => {
     const presets = [
-      ['⏱ Cuenta regresiva', 'countdown'], ['⏲ Cronómetro con vueltas', 'stopwatch'], ['🔥 Tabata (20/10 × 8)', 'tabata'],
-      ['💥 HIIT personalizado', 'hiit'], ['⌚ EMOM (cada minuto)', 'emom'], ['🏁 AMRAP (tiempo límite)', 'amrap'], ['😮‍💨 Descanso rápido', 'rest']
+      [`${RD.icon('timer', 'gold', 18)} <span>Cuenta regresiva</span>`, 'countdown'],
+      [`${RD.icon('stopwatch', 'gold', 18)} <span>Cronómetro con vueltas</span>`, 'stopwatch'],
+      [`${RD.icon('flame', 'gold', 18)} <span>Tabata (20/10 × 8)</span>`, 'tabata'],
+      [`${RD.icon('zap', 'gold', 18)} <span>HIIT personalizado</span>`, 'hiit'],
+      [`${RD.icon('clock', 'gold', 18)} <span>EMOM (cada minuto)</span>`, 'emom'],
+      [`${RD.icon('award', 'gold', 18)} <span>AMRAP (tiempo límite)</span>`, 'amrap'],
+      [`${RD.icon('activity', 'gold', 18)} <span>Descanso rápido</span>`, 'rest']
     ];
     const home = () => {
-      el.innerHTML = `<div class="grid">${presets.map(([l, k]) => `<button class="btn block" data-k="${k}" style="justify-content:flex-start;padding:1rem">${l}</button>`).join('')}</div>
+      el.innerHTML = `<div class="grid">${presets.map(([l, k]) => `<button class="btn block" data-k="${k}" style="justify-content:flex-start;padding:0.9rem 1.2rem;display:flex;align-items:center;gap:10px">${l}</button>`).join('')}</div>
         <p class="muted small mt">Los cronómetros funcionan sin internet y emiten sonido y vibración al cambiar de intervalo.</p>`;
       el.querySelectorAll('[data-k]').forEach(b => b.onclick = () => config(b.dataset.k));
     };
@@ -163,12 +168,12 @@
       if (kind === 'emom') body = field('n', 'Minutos totales', 10) + field('p', 'Segundos por intervalo', 60, 10, 300);
       if (kind === 'amrap') body = field('m', 'Minutos', 12);
       if (kind === 'rest') {
-        el.innerHTML = `<button class="btn ghost sm" id="back">← Volver</button><div class="grid g3 keep mt">${[30, 45, 60, 90, 120, 180].map(s => `<button class="btn" data-s="${s}">${s < 60 ? s + ' s' : (s / 60) + ' min'}</button>`).join('')}</div>`;
+        el.innerHTML = `<button class="btn ghost sm" id="back" style="display:flex;align-items:center;gap:5px">${RD.icon('chevron-left', '', 14)} Volver</button><div class="grid g3 keep mt">${[30, 45, 60, 90, 120, 180].map(s => `<button class="btn" data-s="${s}">${s < 60 ? s + ' s' : (s / 60) + ' min'}</button>`).join('')}</div>`;
         el.querySelector('#back').onclick = home;
         el.querySelectorAll('[data-s]').forEach(b => b.onclick = () => runPhases([{ label: 'Descanso', secs: +b.dataset.s, kind: 'rest' }], 'Descanso'));
         return;
       }
-      el.innerHTML = `<button class="btn ghost sm" id="back">← Volver</button><div class="mt">${body}</div><button class="btn primary block" id="go">Iniciar</button>`;
+      el.innerHTML = `<button class="btn ghost sm" id="back" style="display:flex;align-items:center;gap:5px">${RD.icon('chevron-left', '', 14)} Volver</button><div class="mt">${body}</div><button class="btn primary block" id="go" style="display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('play', '', 16)} Iniciar</button>`;
       el.querySelector('#back').onclick = home;
       el.querySelector('#go').onclick = () => {
         const v = id => Math.max(0, parseInt(el.querySelector('#' + id)?.value, 10) || 0);
@@ -190,16 +195,16 @@
       const cd = Countdown(); let i = 0, total = phases.reduce((a, p) => a + p.secs, 0), doneSecs = 0, running = true;
       el.innerHTML = `<div class="center"><div class="muted">${esc(title)}</div><div class="timer-big" id="tb">0:00</div><h2 id="lb"></h2><div class="progress mt"><i id="pg" style="width:0"></i></div>
         <div class="muted small mt2" id="inf"></div>
-        <div class="row gap mt" style="justify-content:center"><button class="btn" id="pp">⏸ Pausar</button><button class="btn" id="sk">⏭ Saltar</button><button class="btn danger" id="st">■ Terminar</button></div></div>`;
+        <div class="row gap mt" style="justify-content:center"><button class="btn" id="pp" style="display:flex;align-items:center;gap:6px">${RD.icon('pause', '', 16)} Pausar</button><button class="btn" id="sk" style="display:flex;align-items:center;gap:6px">${RD.icon('chevron-right', '', 16)} Saltar</button><button class="btn danger" id="st" style="display:flex;align-items:center;gap:6px">${RD.icon('power', '', 16)} Terminar</button></div></div>`;
       const tb = el.querySelector('#tb');
       const next = () => {
-        if (i >= phases.length) { RD.beep('done'); tb.textContent = '¡Listo!'; tb.className = 'timer-big'; el.querySelector('#lb').textContent = '🎉 Completado'; el.querySelector('#pg').style.width = '100%'; el.querySelector('#pp').disabled = el.querySelector('#sk').disabled = true; return; }
+        if (i >= phases.length) { RD.beep('done'); tb.textContent = '¡Listo!'; tb.className = 'timer-big'; el.querySelector('#lb').innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px">${RD.icon('check-circle', 'ok', 22)} <span>Completado</span></span>`; el.querySelector('#pg').style.width = '100%'; el.querySelector('#pp').disabled = el.querySelector('#sk').disabled = true; return; }
         const p = phases[i]; tb.className = 'timer-big ' + (p.kind === 'work' ? 'work' : 'rest'); el.querySelector('#lb').textContent = p.label;
         if (i > 0) RD.beep(p.kind === 'work' ? 'ok' : 'warn');
         el.querySelector('#inf').textContent = `Fase ${i + 1} de ${phases.length}`;
         cd.start(p.secs, s => { tb.textContent = mmss(s); el.querySelector('#pg').style.width = Math.min(100, (doneSecs + (p.secs - s)) / total * 100) + '%'; }, () => { doneSecs += p.secs; i++; next(); });
       };
-      el.querySelector('#pp').onclick = e => { if (running) { cd.pause(); e.target.textContent = '▶ Continuar'; } else { cd.resume(); e.target.textContent = '⏸ Pausar'; } running = !running; };
+      el.querySelector('#pp').onclick = e => { if (running) { cd.pause(); e.currentTarget.innerHTML = `${RD.icon('play', '', 16)} Continuar`; } else { cd.resume(); e.currentTarget.innerHTML = `${RD.icon('pause', '', 16)} Pausar`; } running = !running; };
       el.querySelector('#sk').onclick = () => { cd.stop(); doneSecs += phases[i].secs; i++; next(); };
       el.querySelector('#st').onclick = () => { cd.stop(); home(); };
       next();
@@ -207,13 +212,13 @@
     function stopwatch() {
       let t0 = 0, acc = 0, timer = null, laps = [];
       el.innerHTML = `<button class="btn ghost sm" id="back">← Volver</button><div class="timer-big mt" id="tb">0:00.0</div>
-        <div class="row gap mt" style="justify-content:center"><button class="btn primary" id="ss">▶ Iniciar</button><button class="btn" id="lap">Vuelta</button><button class="btn" id="rs">Reiniciar</button></div><div class="list mt" id="laps"></div>`;
+        <div class="row gap mt" style="justify-content:center"><button class="btn primary" id="ss">${RD.icon('play')} Iniciar</button><button class="btn" id="lap">Vuelta</button><button class="btn" id="rs">Reiniciar</button></div><div class="list mt" id="laps"></div>`;
       const tb = el.querySelector('#tb'); const cur = () => acc + (timer ? Date.now() - t0 : 0);
       const fmt = ms => `${Math.floor(ms / 60000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, '0')}.${Math.floor(ms / 100) % 10}`;
       const tick = () => tb.textContent = fmt(cur());
-      el.querySelector('#ss').onclick = e => { if (timer) { acc += Date.now() - t0; clearInterval(timer); timer = null; e.target.textContent = '▶ Continuar'; } else { t0 = Date.now(); timer = setInterval(tick, 100); e.target.textContent = '⏸ Pausar'; } };
+      el.querySelector('#ss').onclick = e => { if (timer) { acc += Date.now() - t0; clearInterval(timer); timer = null; e.currentTarget.innerHTML = `${RD.icon('play')} Continuar`; } else { t0 = Date.now(); timer = setInterval(tick, 100); e.currentTarget.innerHTML = `${RD.icon('pause')} Pausar`; } };
       el.querySelector('#lap').onclick = () => { if (!timer) return; laps.unshift(cur()); el.querySelector('#laps').innerHTML = laps.map((l, i) => `<div class="item"><b>#${laps.length - i}</b><span class="grow right">${fmt(l)}</span></div>`).join(''); };
-      el.querySelector('#rs').onclick = () => { clearInterval(timer); timer = null; acc = 0; laps = []; tb.textContent = '0:00.0'; el.querySelector('#ss').textContent = '▶ Iniciar'; el.querySelector('#laps').innerHTML = ''; };
+      el.querySelector('#rs').onclick = () => { clearInterval(timer); timer = null; acc = 0; laps = []; tb.textContent = '0:00.0'; el.querySelector('#ss').innerHTML = `${RD.icon('play')} Iniciar`; el.querySelector('#laps').innerHTML = ''; };
       el.querySelector('#back').onclick = () => { clearInterval(timer); home(); };
     }
     home();
@@ -252,7 +257,7 @@
   };
 
   RD.open1RMCalculator = (defaultWeight = 70, defaultReps = 8) => {
-    const m = RD.openModal('💪 Calculadora de 1RM y Porcentajes', `
+    const m = RD.openModal('Calculadora de 1RM y Porcentajes', `
       <div class="mb">
         <p class="muted small mb">Calcula tu peso máximo a 1 repetición (1RM) con fórmulas científicas (Epley & Brzycki) para saber exactamente cuánto levantar según tu objetivo.</p>
         <div class="grid g2 keep mb">
@@ -315,7 +320,7 @@
   };
 
   RD.openPlateCalculator = (defaultWeight = 60, defaultBar = 20) => {
-    const m = RD.openModal('🧮 Calculadora de Discos de Barra', `
+    const m = RD.openModal('Calculadora Gráfica de Discos de Barra', `
       <div class="mb">
         <p class="muted small mb">Ingresa el peso total que deseas levantar y la app te mostrará exactamente qué discos colocar a cada lado de la barra con los colores oficiales.</p>
         <div class="grid g2 keep mb">
@@ -426,7 +431,7 @@
   };
 
   RD.openNutritionCalculator = (memberData = {}) => {
-    const m = RD.openModal('🥗 Calculadora Nutricional & Macros', `
+    const m = RD.openModal('Calculadora Nutricional & Macros', `
       <div class="mb">
         <p class="muted small mb">Calcula tu gasto calórico real y el plan exacto de macronutrientes (Proteínas, Carbohidratos y Grasas) según tu objetivo en el gimnasio.</p>
         <div class="grid g2 keep mb">
@@ -468,22 +473,22 @@
       <div class="macro-grid">
         <div class="macro-box">
           <div class="macro-val" id="nt_prot">-- g</div>
-          <div class="macro-lbl">🥩 Proteínas</div>
+          <div class="macro-lbl">Proteínas</div>
           <div class="tiny muted" id="nt_prot_kg">-- g/kg</div>
         </div>
         <div class="macro-box">
           <div class="macro-val" id="nt_carbs" style="color:#0284c7">-- g</div>
-          <div class="macro-lbl">🍚 Carbohidratos</div>
+          <div class="macro-lbl">Carbohidratos</div>
           <div class="tiny muted">Energía pura</div>
         </div>
         <div class="macro-box">
           <div class="macro-val" id="nt_fat" style="color:#eab308">-- g</div>
-          <div class="macro-lbl">🥑 Grasas Buenas</div>
+          <div class="macro-lbl">Grasas Buenas</div>
           <div class="tiny muted">Salud hormonal</div>
         </div>
       </div>
       <div class="tip small mt">
-        💡 <b>Consejo RD Fitness:</b> En Chivay (altitud 3,635 msnm) la tasa metabólica y deshidratación son mayores. Acompaña tus macros con al menos 2.5 L de agua al día y consume fuentes proteicas limpias (huevos, pollo, quinua, atún, carnes magras).
+        <b>Consejo RD Fitness (Chivay · 3,635 msnm):</b> La tasa metabólica basal y la deshidratación aumentan con la altitud. Consume al menos 2.5 L de agua pura al día y prioriza proteínas limpias (huevos, pollo, quinua de la zona, pescado, carnes magras).
       </div>
     `);
 
@@ -655,7 +660,7 @@
           return `
             <div class="muscle-track-row">
               <div class="muscle-track-head">
-                <span><b>${RD.GROUP_ICON[d.grupo] || '⭐'} ${esc(d.grupo)}</b></span>
+                <span><b>${RD.groupIconSvg(d.grupo)} ${esc(d.grupo)}</b></span>
                 <span class="muted small">${d.sets_count} series · ${Math.round(d.volume)} kg</span>
               </div>
               <div class="muscle-track-bg">
@@ -732,7 +737,7 @@
           <div class="row between">
             <div>
               <div class="muted small">${esc(routine.name)} · ${esc(day.title)}</div>
-              <b>⏱ <span id="el">${RD.fmtDur((Date.now() - t0) / 1000)}</span></b>
+              <b>${RD.icon('timer')} <span id="el">${RD.fmtDur((Date.now() - t0) / 1000)}</span></b>
               <span class="muted small">· ${doneSets()}/${totalSets} series</span>
             </div>
             <button class="btn sm danger" id="end">Terminar</button>
@@ -749,8 +754,8 @@
           <div class="row gap wrap mt2">
             <span class="badge info">${it.sets} series × ${esc(it.reps)}</span>
             ${it.rest ? `<span class="badge">Descanso ${it.rest}s</span>` : ''}
-            <button class="btn sm" id="how">📖 Técnica</button>
-            <button class="btn sm ghost" id="btn_calc_plates">🧮 Discos</button>
+            <button class="btn sm" id="how" style="display:flex;align-items:center;gap:5px">${RD.icon('info', '', 14)} Técnica</button>
+            <button class="btn sm ghost" id="btn_calc_plates" style="display:flex;align-items:center;gap:5px">${RD.icon('layers', '', 14)} Discos</button>
           </div>
           ${it.note ? `<div class="tip small">${esc(it.note)}</div>` : ''}
           <div class="mt" id="sets">
@@ -758,24 +763,24 @@
             ${s.sets.map((x, i) => it.seconds
               ? `<div class="setrow ${x.done ? 'done' : ''}" style="grid-template-columns:34px 1fr 44px">
                    <span class="n">${i + 1}</span>
-                   <button class="btn ${x.done ? 'ok' : 'primary'}" data-timed="${i}">
-                     ${x.done ? '✔ Hecho' : '▶ Iniciar ' + (it.seconds >= 60 ? mmss(it.seconds) : it.seconds + ' s')}
+                   <button class="btn ${x.done ? 'ok' : 'primary'}" data-timed="${i}" style="display:flex;align-items:center;justify-content:center;gap:6px">
+                     ${x.done ? `${RD.icon('check', '', 14)} Hecho` : `${RD.icon('play', '', 14)} Iniciar ${it.seconds >= 60 ? mmss(it.seconds) : it.seconds + ' s'}`}
                    </button>
-                   <button class="ck" data-ck="${i}">${x.done ? '✔' : ''}</button>
+                   <button class="ck" data-ck="${i}">${x.done ? RD.icon('check', '', 16) : ''}</button>
                  </div>`
               : `<div class="setrow ${x.done ? 'done' : ''}">
                    <span class="n">${i + 1}</span>
                    <input type="number" inputmode="numeric" min="0" value="${x.reps}" data-r="${i}">
                    <input type="number" inputmode="decimal" min="0" step="0.5" placeholder="kg" value="${x.weight}" data-w="${i}">
-                   <button class="ck" data-ck="${i}">${x.done ? '✔' : ''}</button>
+                   <button class="ck" data-ck="${i}">${x.done ? RD.icon('check', '', 16) : ''}</button>
                  </div>`).join('')}
           </div>
-          <button class="btn ghost sm" id="addset">＋ Agregar serie</button>
+          <button class="btn ghost sm" id="addset" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('plus', '', 14)} Agregar serie</button>
           <div class="row gap mt">
             <button class="btn block" id="prev" ${idx === 0 ? 'disabled' : ''}>← Anterior</button>
             ${idx < state.length - 1
               ? '<button class="btn primary block" id="next">Siguiente →</button>'
-              : '<button class="btn ok block" id="finish">🏁 Finalizar</button>'}
+              : `<button class="btn ok block" id="finish" style="display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('check', '', 18)} Finalizar Entrenamiento</button>`}
           </div>
           <div class="restbar hidden" id="restbar">
             <div class="muted small center">Descanso</div>
@@ -823,7 +828,7 @@
         setCd.start(it.seconds + 3, rem => {
           if (rem > it.seconds) { b.textContent = `Prepárate… ${rem - it.seconds}`; return; }
           if (!started) { started = true; RD.beep('ok'); }
-          b.textContent = '⏳ ' + mmss(rem);
+          b.innerHTML = `${RD.icon('timer')} ${mmss(rem)}`;
         }, () => { s.sets[i].done = true; s.sets[i].reps = 1; RD.beep('done'); draw(); startRest(it.rest); });
       });
       q('#p15').onclick = () => rest.add(15);
@@ -867,16 +872,16 @@
         saved = false;
       }
       RD.beep('done');
-      RD.openModal('🎉 ¡Entrenamiento completado!', `
+      RD.openModal('¡Entrenamiento Completado!', `
         <div class="grid g2 keep">
           <div class="stat gold"><div class="v">${RD.fmtDur(dur)}</div><div class="l">Duración</div></div>
           <div class="stat"><div class="v">${done}</div><div class="l">Series hechas</div></div>
           <div class="stat"><div class="v">${Math.round(volume)} kg</div><div class="l">Volumen total</div></div>
           <div class="stat"><div class="v">${prs.length}</div><div class="l">Nuevos Récords</div></div>
         </div>
-        ${prs.length ? `<div class="tip mt"><b>🏆 ¡Nuevos Récords Personales (PRs)!</b><ul style="margin:.3rem 0 0 1rem;padding:0">${prs.map(p => `<li><b>${esc(p.nombre)}</b>: ${p.weight} kg</li>`).join('')}</ul></div>` : ''}
+        ${prs.length ? `<div class="tip mt"><b style="display:flex;align-items:center;gap:6px">${RD.icon('trophy', 'gold', 18)} ¡Nuevos Récords Personales (PRs)!</b><ul style="margin:.3rem 0 0 1rem;padding:0">${prs.map(p => `<li><b>${esc(p.nombre)}</b>: ${p.weight} kg</li>`).join('')}</ul></div>` : ''}
         ${saved ? '' : '<div class="banner mt">Sin conexión: tu entrenamiento se guardó en el teléfono y se enviará solo cuando vuelva el internet.</div>'}
-        <p class="center mt"><b>¡Gran sesión! La sobrecarga progresiva y la constancia dan resultados verídicos 💪</b></p>
+        <p class="center mt"><b>¡Gran sesión! La sobrecarga progresiva y la constancia rinden frutos.</b></p>
       `);
     }
     draw();
@@ -932,24 +937,25 @@
         <div class="wrapw">
           <div class="row between mb">
             <div>
-              <div class="badge ok">⚡ Sesión Libre / Registro Rápido</div>
-              <div class="mt">⏱ <b><span id="el">${RD.fmtDur((Date.now() - t0) / 1000)}</span></b> <span class="muted small">· ${doneCount} series listas</span></div>
+              <div class="badge ok" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('zap', '', 14)}<span>Sesión Libre / Registro Rápido</span></div>
+              <div class="mt" style="display:flex;align-items:center;gap:6px">${RD.icon('timer', 'gold', 14)} <b><span id="el">${RD.fmtDur((Date.now() - t0) / 1000)}</span></b> <span class="muted small">· ${doneCount} series listas</span></div>
             </div>
             <button class="btn sm danger" id="end_free">Terminar</button>
           </div>
 
           <div class="card mb flat">
-            <div class="row between">
+            <div class="row between wrap gap">
               <b>Ejercicios de la sesión (${selectedExercises.length})</b>
-              <button class="btn sm primary" id="add_ex_btn">＋ Añadir Ejercicio</button>
+              <button class="btn sm primary" id="add_ex_btn" style="display:flex;align-items:center;gap:5px">${RD.icon('plus', '', 14)} Añadir Ejercicio</button>
             </div>
           </div>
 
           ${!selectedExercises.length ? `
             <div class="card center" style="padding:2.5rem 1rem">
+              <div style="margin:0 auto 1rem;color:var(--gold);display:flex;justify-content:center">${RD.icon('dumbbell', 'gold', 36)}</div>
               <h3>Tu sesión está vacía</h3>
               <p class="muted small mb">Toca el botón para elegir cualquier ejercicio de la biblioteca y comenzar a registrar tus series.</p>
-              <button class="btn primary" id="add_ex_empty">＋ Seleccionar Primer Ejercicio</button>
+              <button class="btn primary" id="add_ex_empty" style="display:inline-flex;align-items:center;gap:6px">${RD.icon('plus', '', 16)} Seleccionar Primer Ejercicio</button>
             </div>` : ''}
 
           <div id="ex_items_list">
@@ -963,7 +969,7 @@
                       <h3 style="margin:0">${esc(ex.nombre)}</h3>
                       <div class="muted tiny">${esc(ex.grupo)} · ${esc(ex.equipo || 'Sin equipo')} ${lw ? `· Anterior: ${lw.weight} kg × ${lw.reps}` : ''}</div>
                     </div>
-                    <button class="btn ghost sm danger" data-remex="${eIdx}">✕ Quitar</button>
+                    <button class="btn ghost sm danger" data-remex="${eIdx}" style="display:flex;align-items:center;gap:4px">${RD.icon('trash', '', 14)} Quitar</button>
                   </div>
                   <div class="setrow muted tiny">
                     <span></span><span>Repeticiones</span><span>Peso (kg)</span><span></span>
@@ -973,11 +979,11 @@
                       <span class="n">${sIdx + 1}</span>
                       <input type="number" inputmode="numeric" min="0" value="${s.reps}" data-er="${eIdx}" data-si="${sIdx}">
                       <input type="number" inputmode="decimal" min="0" step="0.5" placeholder="kg" value="${s.weight}" data-ew="${eIdx}" data-si="${sIdx}">
-                      <button class="ck" data-eck="${eIdx}" data-si="${sIdx}">${s.done ? '✔' : ''}</button>
+                      <button class="ck" data-eck="${eIdx}" data-si="${sIdx}">${s.done ? RD.icon('check', '', 16) : ''}</button>
                     </div>`).join('')}
                   <div class="row between mt">
-                    <button class="btn ghost sm" data-addset="${eIdx}">＋ Agregar Serie</button>
-                    <button class="btn ghost sm" data-plates="${eIdx}">🧮 Discos</button>
+                    <button class="btn ghost sm" data-addset="${eIdx}" style="display:inline-flex;align-items:center;gap:4px">${RD.icon('plus', '', 14)} Agregar Serie</button>
+                    <button class="btn ghost sm" data-plates="${eIdx}" style="display:inline-flex;align-items:center;gap:4px">${RD.icon('layers', '', 14)} Discos</button>
                   </div>
                 </div>`;
             }).join('')}
@@ -985,7 +991,7 @@
 
           ${selectedExercises.length ? `
             <div class="mt mb">
-              <button class="btn ok block lg" id="finish_free">🏁 Guardar y Finalizar Entrenamiento</button>
+              <button class="btn ok block lg" id="finish_free" style="display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('check', '', 18)} Guardar y Finalizar Entrenamiento</button>
             </div>` : ''}
 
           <div class="restbar hidden" id="restbar">
@@ -1105,14 +1111,14 @@
         saved = false;
       }
       RD.beep('done');
-      RD.openModal('🎉 ¡Sesión Libre Guardada!', `
+      RD.openModal('¡Sesión Libre Guardada!', `
         <div class="grid g2 keep">
           <div class="stat gold"><div class="v">${RD.fmtDur(dur)}</div><div class="l">Duración</div></div>
           <div class="stat"><div class="v">${doneCount}</div><div class="l">Series hechas</div></div>
           <div class="stat"><div class="v">${Math.round(volume)} kg</div><div class="l">Volumen total</div></div>
           <div class="stat"><div class="v">${prs.length}</div><div class="l">Nuevos Récords</div></div>
         </div>
-        ${prs.length ? `<div class="tip mt"><b>🏆 ¡Nuevos Récords Personales (PRs)!</b><ul style="margin:.3rem 0 0 1rem;padding:0">${prs.map(p => `<li><b>${esc(p.nombre)}</b>: ${p.weight} kg</li>`).join('')}</ul></div>` : ''}
+        ${prs.length ? `<div class="tip mt"><b style="display:flex;align-items:center;gap:6px">${RD.icon('trophy', 'gold', 18)} ¡Nuevos Récords Personales (PRs)!</b><ul style="margin:.3rem 0 0 1rem;padding:0">${prs.map(p => `<li><b>${esc(p.nombre)}</b>: ${p.weight} kg</li>`).join('')}</ul></div>` : ''}
         ${saved ? '' : '<div class="banner mt">Sin conexión: tu entrenamiento se guardó en el teléfono y se enviará cuando vuelva el internet.</div>'}
       `);
     }

@@ -123,7 +123,7 @@
     <div class="row gap wrap">
       <label class="check small"><input type="checkbox" id="showback"> <span>Mostrar reverso</span></label>
       <button class="btn sm" onclick="window.close()">Cerrar</button>
-      <button class="btn primary sm" onclick="window.print()">🖨 IMPRIMIR TARJETAS</button>
+      <button class="btn primary sm" onclick="window.print()"><svg class="rd-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>IMPRIMIR TARJETAS</button>
     </div>
   </div>
 
@@ -219,9 +219,9 @@
               En caso de pérdida o deterioro, comuníquese con recepción para su anulación inmediata.
             </div>
             <div class="back-contacts">
-              📍 ${RD.esc(gym.gym_address || 'Calle Antonio José de Sucre Lt. 10, Chivay')}<br>
-              📲 Atención: ${RD.esc(gym.gym_phone || '982 404 043')}<br>
-              ⏰ ${RD.esc(gym.opening || 'Lun a Sáb 6:00 a 21:00')}
+              ${RD.icon('pin')} ${RD.esc(gym.gym_address || 'Calle Antonio José de Sucre Lt. 10, Chivay')}<br>
+              ${RD.icon('phone')} Atención: ${RD.esc(gym.gym_phone || '982 404 043')}<br>
+              ${RD.icon('clock')} ${RD.esc(gym.opening || 'Lun a Sáb 6:00 a 21:00')}
             </div>
             <div class="card-footer" style="justify-content:center;margin-top:6px">
               <span>TU MEJOR VERSIÓN EMPIEZA AQUÍ</span>
