@@ -462,15 +462,14 @@ api.post('/members/:id/photo', staff('admin', 'recepcion'), wrap((req, res) => {
   const id = num(req.params.id);
   const m = q.get('SELECT * FROM members WHERE id=?', id);
   if (!m) return bad(res, 'Socio no encontrado', 404);
-  const match = /^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/.exec(req.body?.data || '');
+  const rawData = String(req.body?.data || '');
+  const match = /^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/.exec(rawData);
   if (!match) return bad(res, 'Imagen inválida');
   const buf = Buffer.from(match[2], 'base64');
   if (buf.length > 1.5 * 1024 * 1024) return bad(res, 'La foto es muy pesada');
-  const file = `${m.code}-${L.randomKey().slice(0, 8)}.${match[1] === 'png' ? 'png' : match[1] === 'webp' ? 'webp' : 'jpg'}`;
-  fs.writeFileSync(path.join(DATA_DIR, 'photos', file), buf);
-  if (m.photo) { try { fs.unlinkSync(path.join(DATA_DIR, 'photos', path.basename(m.photo))); } catch { } }
-  q.run('UPDATE members SET photo=? WHERE id=?', '/photos/' + file, id);
-  res.json({ photo: '/photos/' + file });
+  q.run('UPDATE members SET photo=? WHERE id=?', rawData, id);
+  try { saveVault(); } catch {}
+  res.json({ photo: rawData });
 }));
 
 api.post('/members/:id/renew', staff('admin', 'recepcion'), wrap((req, res) => {

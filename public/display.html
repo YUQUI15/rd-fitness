@@ -943,7 +943,7 @@
           const daysLeft = state.daysLeft !== undefined && state.daysLeft !== null ? state.daysLeft : null;
           const photo = state.photo;
           const avatarHtml = photo
-            ? `<img class="member-avatar-img" src="${esc(photo)}" alt="">`
+            ? `<img class="member-avatar-img" src="${esc(photo)}" alt="" onerror="this.outerHTML='<div class=\\'member-avatar-placeholder\\'>${esc(name[0] || 'S')}</div>'">`
             : `<div class="member-avatar-placeholder">${esc(name[0] || 'S')}</div>`;
 
           stage.innerHTML = `
@@ -969,7 +969,7 @@
           const dur = fmtDuration(state.duration_min || 0);
           const photo = state.photo;
           const avatarHtml = photo
-            ? `<img class="member-avatar-img" src="${esc(photo)}" alt="">`
+            ? `<img class="member-avatar-img" src="${esc(photo)}" alt="" onerror="this.outerHTML='<div class=\\'member-avatar-placeholder\\'>${esc(name[0] || 'S')}</div>'">`
             : `<div class="member-avatar-placeholder"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>`;
 
           stage.innerHTML = `
@@ -994,7 +994,7 @@
           const name = state.name || 'Socio / Visitante';
           const photo = state.photo;
           const avatarHtml = photo
-            ? `<img class="member-avatar-img" src="${esc(photo)}" alt="">`
+            ? `<img class="member-avatar-img" src="${esc(photo)}" alt="" onerror="this.outerHTML='<div class=\\'member-avatar-placeholder\\' style=\\'color:#ef4444;border-color:#ef4444\\'>${esc(name[0] || '!')}</div>'">`
             : `<div class="member-avatar-placeholder" style="color:#ef4444;border-color:#ef4444"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>`;
           const end = state.end || state.end_date || '';
           const reason = state.reason || 'Membresía vencida. Por favor acércate a recepción a renovar tu plan.';

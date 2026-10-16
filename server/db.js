@@ -455,18 +455,64 @@ function seedRoutines() {
         ['Pierna 1: Fuerza & Cuádriceps', [['Barbell_Squat',4,'6-8',150],['Hack_Squat',3,'10-12',90],['Romanian_Deadlift',3,'8-10',90],['Standing_Calf_Raises',4,'15',45],['Ab_Wheel_Rollout',3,'10-12',45]]],
         ['Torso 2: Densidad & Detalle', [['Incline_Dumbbell_Press',4,'8-10',90],['Seated_Cable_Rows',4,'10-12',75],['Incline_Chest_Cable_Fly',3,'12-15',60],['Face_Pull',3,'15',45],['Preacher_Curl',3,'10-12',60],['Triceps_Katana_Extension',3,'12-15',45]]],
         ['Pierna 2: Glúteo & Cadena Posterior', [['Barbell_Hip_Thrust',4,'8-10',90],['Bulgarian_Split_Squat',3,'10 por pierna',75],['Lying_Leg_Curls',4,'10-12',60],['Leg_Extensions',3,'12-15',60],['Seated_Calf_Raise',4,'15',45],['Hanging_Leg_Raise',3,'12-15',45]]]
+      ] },
+    { name: 'Especialización Brazos de Acero & Antebrazos (4 días)', goal: 'Maximizar tamaño de bíceps, tríceps y antebrazos sin descuidar torso y pierna', level: 'intermedio', dpw: 4,
+      description: 'Programa de especialización para brazos rezagados: incluye un día exclusivo de bombeo de brazos y antebrazos con ángulos de máximo estiramiento y contracción.',
+      days: [
+        ['Día 1: Brazos & Antebrazos (Fuerza)', [['EZ-Bar_Curl',4,'8-10',75],['Close_Grip_Bench_Press',4,'8-10',90],['Alternate_Incline_Dumbbell_Curl',3,'10-12',60],['Skull_Crushers',3,'10-12',60],['Cable_Hammer_Curls_-_Rope_Attachment',3,'12-15',45],['Barbell_Wrist_Curl',4,'15-20',45],['Reverse_Barbell_Curl',3,'12-15',45]]],
+        ['Día 2: Piernas & Core', [['Barbell_Squat',4,'8',120],['Romanian_Deadlift',3,'10',90],['Leg_Press',3,'12',75],['Seated_Leg_Curl',3,'12',60],['Calf_Press_On_The_Leg_Press_Machine',4,'15',45],['Ab_Wheel_Rollout',3,'12',45]]],
+        ['Día 3: Pecho, Espalda & Hombros', [['Barbell_Incline_Bench_Press_-_Medium_Grip',4,'8-10',90],['Chin-Up',4,'8-10',90],['Butterfly',3,'12-15',60],['T_Bar_Row',3,'10',75],['Arnold_Dumbbell_Press',3,'10-12',75],['Side_Lateral_Raise',4,'15',45]]],
+        ['Día 4: Brazos & Agarre (Hipertrofia)', [['Preacher_Curl',4,'10-12',60],['Cable_Incline_Triceps_Extension',4,'10-12',60],['Bayesian_Cable_Curl',3,'12-15',45],['Cable_One_Arm_Tricep_Extension',3,'12-15',45],['Drag_Curl',3,'12',45],['Palms-Down_Wrist_Curl_Over_A_Bench',3,'15-20',45],['Plate_Pinch',3,'35 s',45,35]]]
+      ] },
+    { name: 'Espalda en V & Hombros 3D (4 días)', goal: 'Ensanchar clavículas y dorsales para lograr una silueta estética en V', level: 'intermedio', dpw: 4,
+      description: 'Enfocado en amplitud dorsal, deltoides laterales/posteriores y trapecios con soporte completo de pierna y empuje.',
+      days: [
+        ['Día 1: Amplitud Dorsal & Hombro Lateral', [['Pullups',4,'8-10',90],['Wide-Grip_Lat_Pulldown',4,'10-12',75],['Kneeling_Single-Arm_High_Pulley_Row',3,'12 por lado',60],['Overhead_Press_Barbell',4,'8',90],['Side_Lateral_Raise',4,'15',45],['Bent_Over_Low-Pulley_Side_Lateral',3,'15',45]]],
+        ['Día 2: Pierna Completa & Glúteo', [['Hack_Squat',4,'8-10',90],['Barbell_Hip_Thrust',4,'10',90],['Barbell_Walking_Lunge',3,'10 por pierna',75],['Seated_Leg_Curl',3,'12',60],['Standing_Calf_Raises',4,'15',45]]],
+        ['Día 3: Pecho, Densidad de Espalda & Trapecio', [['Barbell_Bench_Press_-_Medium_Grip',4,'8',90],['Incline_Dumbbell_Row',4,'10-12',75],['Low_Cable_Crossover',3,'12-15',60],['Straight_Arm_Cable_Pulldown',3,'15',45],['Barbell_Shrug',4,'12',60],['Band_Pull_Apart',3,'20',30]]],
+        ['Día 4: Hombros 3D, Brazos & Core', [['Arnold_Dumbbell_Press',4,'10',75],['Upright_Cable_Row',3,'12',60],['Cable_Rear_Delt_Fly',4,'15',45],['EZ-Bar_Curl',3,'10-12',60],['Triceps_Pushdown_-_Rope_Attachment',3,'12',60],['Cable_Russian_Twists',3,'15 por lado',45]]]
+      ] },
+    { name: 'Calistenia & Peso Corporal Pro (4 días)', goal: 'Dominio del peso corporal, fuerza relativa y definición atlética', level: 'intermedio', dpw: 4,
+      description: 'Entrenamiento funcional basado en dominadas, fondos, flexiones avanzadas, core gimnástico y potencia de piernas.',
+      days: [
+        ['Día 1: Empuje Calisténico & Core', [['Dips_Chest',4,'8-12',90],['Pushups',4,'15-20',60],['Body_Tricep_Press',3,'12',60],['Bench_Dips',3,'15',45],['Hanging_Leg_Raise',4,'12',60],['Plank',3,'45 s',45,45]]],
+        ['Día 2: Tirón Calisténico & Agarre', [['Pullups',4,'8-10',90],['Chin-Up',4,'8-10',90],['Inverted_Row',4,'12-15',60],['Band_Pull_Apart',3,'20',30],['Farmers_Walk',3,'45 s',60,45]]],
+        ['Día 3: Pierna Atlética & Pliometría', [['Bulgarian_Split_Squat',4,'10 por pierna',75],['Glute_Ham_Raise',3,'8-10',90],['Front_Box_Jump',4,'8',60],['Single_Leg_Hip_Thrust',3,'12 por pierna',60],['Standing_Calf_Raises',4,'20',45]]],
+        ['Día 4: Full Body Metabólico', [['Burpees',4,'12',60],['Battling_Ropes',4,'30 s',45,30],['Mountain_Climbers',4,'40 s',30,40],['Dragon_Flag',3,'8',60],['Alternate_Heel_Touchers',3,'20',30]]]
+      ] },
+    { name: 'Glúteos & Abdomen Esculpido (5 días)', goal: 'Máxima hipertrofia de glúteo mayor/medio y cintura compacta', level: 'intermedio', dpw: 5,
+      description: 'Frecuencia 3 de tren inferior enfocada en diferentes vectores de carga (horizontal, vertical, abducción) más 2 sesiones de torso estilizado y core.',
+      days: [
+        ['Día 1: Vector Horizontal (Glúteo Mayor)', [['Monster_Walk',2,'15 pasos',30],['Barbell_Hip_Thrust',4,'8-10',90],['Kneeling_Squat',3,'12',75],['Cable_Glute_Kickback',3,'15 por pierna',45],['Abductor_Machine',4,'15-20',45],['Ab_Crunch_Machine',3,'15',45]]],
+        ['Día 2: Espalda, Hombros & Postura', [['Close_Grip_Lat_Pulldown',4,'10-12',60],['Seated_Cable_Rows',3,'12',60],['Alternating_Deltoid_Raise',3,'12',45],['Band_Pull_Apart',3,'20',30],['Cable_Rope_Crunch',3,'15',45]]],
+        ['Día 3: Vector Vertical (Cuádriceps & Glúteo)', [['Sumo_Deadlift',4,'8-10',90],['Bulgarian_Split_Squat',3,'10 por pierna',75],['Dumbbell_Step_Up',3,'12 por pierna',60],['Adductor_Machine',3,'15',45],['Seated_Calf_Raise',4,'15',45]]],
+        ['Día 4: Brazos Tonificados & Core', [['Butterfly',3,'12-15',60],['Cable_Bicep_Curl',3,'12-15',45],['Cable_One_Arm_Tricep_Extension',3,'12-15',45],['Cable_Russian_Twists',3,'15 por lado',45],['Alternate_Heel_Touchers',3,'20',30],['Bicycling',1,'15 min',0,900]]],
+        ['Día 5: Isquiotibiales & Bombeo Glúteo', [['Romanian_Deadlift',4,'10',90],['Seated_Leg_Curl',4,'12',60],['Physioball_Hip_Bridge',3,'15',45],['Abductor_Machine',3,'20',45],['IT_Band_and_Glute_Stretch',2,'30 s',15,30]]]
+      ] },
+    { name: 'Postura, Core & Movilidad Articular (3 días)', goal: 'Eliminar dolores de espalda, mejorar flexibilidad y fortalecer el centro', level: 'principiante', dpw: 3,
+      description: 'Ideal para quienes trabajan muchas horas sentados, buscan prevenir lesiones o desean complementar su rutina de pesas con movilidad consciente.',
+      days: [
+        ['Día 1: Columna, Escápulas & Core', [['Cat_Stretch',3,'10',30],['Band_Pull_Apart',3,'20',30],['Face_Pull',3,'15',45],['Dead_Bug',3,'10 por lado',45],['Plank',3,'30 s',45,30],['Childs_Pose',2,'45 s',15,45]]],
+        ['Día 2: Cadera, Isquios & Glúteo Medio', [['90_90_Hamstring',3,'10 por pierna',30],['Monster_Walk',3,'15 pasos',30],['Physioball_Hip_Bridge',3,'12',45],['Goblet_Squat',3,'10 (pausa abajo)',60],['IT_Band_and_Glute_Stretch',2,'35 s',15,35]]],
+        ['Día 3: Estabilidad Total & Cardio Suave', [['Inverted_Row',3,'10',60],['Cable_Russian_Twists',3,'12 por lado',45],['Farmers_Walk',3,'40 s',45,40],['Superman',3,'12',30],['Bicycling',1,'15 min',0,900]]]
       ] }
   ];
   q.tx(() => {
     for (const t of T) {
-      const existing = q.get('SELECT id FROM routines WHERE name=? AND template=1', t.name);
-      if (existing) continue;
-      const r = q.run('INSERT INTO routines(name,goal,level,days_per_week,description,template) VALUES(?,?,?,?,?,1)',
-        t.name, t.goal, t.level, t.dpw, t.description);
+      let existing = q.get('SELECT id FROM routines WHERE name=? AND template=1', t.name);
+      let rid = existing?.id;
+      if (!rid) {
+        const r = q.run('INSERT INTO routines(name,goal,level,days_per_week,description,template) VALUES(?,?,?,?,?,1)',
+          t.name, t.goal, t.level, t.dpw, t.description);
+        rid = r.lastInsertRowid;
+      } else {
+        const itemCount = q.get('SELECT COUNT(*) c FROM routine_items WHERE routine_id=?', rid)?.c || 0;
+        if (itemCount > 0) continue;
+      }
       t.days.forEach(([title, items], di) => items.forEach(([ex, sets, reps, rest, secs], pos) => {
         if (!exists(ex)) return;
         q.run('INSERT INTO routine_items(routine_id,day_index,day_title,pos,ex_id,sets,reps,seconds,rest) VALUES(?,?,?,?,?,?,?,?,?)',
-          r.lastInsertRowid, di, title, pos, ex, sets, reps, secs ?? null, rest);
+          rid, di, title, pos, ex, sets, reps, secs ?? null, rest);
       }));
     }
   });
@@ -575,6 +621,10 @@ function applyVaultData(d) {
     insertRows('measurements', d.measurements);
     insertRows('cash_shifts', d.cash_shifts);
   });
+  try {
+    seedExercises();
+    seedRoutines();
+  } catch (e) {}
   checkpoint();
   return restored;
 }

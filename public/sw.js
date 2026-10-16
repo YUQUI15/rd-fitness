@@ -1,5 +1,5 @@
 /* RD Fitness Club - Service Worker (funciona sin internet) */
-const VERSION = 'rd-v3.3';
+const VERSION = 'rd-v4.0';
 const SHELL = [
   '/', '/index.html', '/admin/', '/admin/index.html', '/admin/cards.html',
   '/css/style.css', '/js/common.js', '/js/member-hub.js', '/js/app.js', '/js/admin-core.js', '/js/admin-scan.js', '/js/admin-members.js', '/js/admin-other.js', '/js/admin-announce.js', '/js/workout.js',
@@ -27,16 +27,16 @@ self.addEventListener('fetch', e => {
       .catch(() => caches.match(req).then(r => r || caches.match(url.pathname.startsWith('/admin') ? '/admin/' : '/'))));
     return;
   }
-  // Imágenes de ejercicios y fotos: primero lo guardado
+  // Imágenes de ejercicios y fotos: primero lo guardado (pero solo si es válido 200)
   if (url.pathname.startsWith('/ex/') || url.pathname.startsWith('/photos/') || url.pathname.startsWith('/icons/')) {
-    e.respondWith(caches.match(req).then(r => r || fetch(req).then(n => { if (n.ok) { const c = n.clone(); caches.open(VERSION).then(ch => ch.put(req, c)); } return n; }).catch(() => new Response('', { status: 504 }))));
+    e.respondWith(caches.match(req).then(r => (r && r.ok) ? r : fetch(req).then(n => { if (n.ok) { const c = n.clone(); caches.open(VERSION).then(ch => ch.put(req, c)); } return n; }).catch(() => new Response('', { status: 504 }))));
     return;
   }
-  // Resto: devuelve lo guardado y actualiza en segundo plano
-  e.respondWith(caches.match(req).then(cached => {
-    const net = fetch(req).then(n => { if (n.ok) { const c = n.clone(); caches.open(VERSION).then(ch => ch.put(req, c)); } return n; }).catch(() => cached);
-    return cached || net;
-  }));
+  // JS y CSS: red primero para tener siempre la última versión, respaldo en caché si no hay internet
+  e.respondWith(fetch(req).then(n => {
+    if (n.ok) { const c = n.clone(); caches.open(VERSION).then(ch => ch.put(req, c)); }
+    return n;
+  }).catch(() => caches.match(req)));
 });
 
 // Mensaje para precargar imágenes de ejercicios (entrenar sin internet)

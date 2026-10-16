@@ -972,4 +972,29 @@
   };
 
   RD.initTheme();
+
+  // Protección global contra imágenes rotas (ejercicios, fotos de socios, avatares)
+  window.addEventListener('error', e => {
+    const el = e.target;
+    if (!el || el.tagName !== 'IMG') return;
+    const parent = el.parentElement;
+    if (parent && parent.classList.contains('avatar')) {
+      parent.innerHTML = RD.icon('user', '', 20);
+      return;
+    }
+    if (parent && parent.classList.contains('ex-card')) {
+      const div = document.createElement('div');
+      div.className = 'avatar';
+      div.style.cssText = 'width:84px;height:84px;border-radius:10px;font-size:1.8rem;flex-shrink:0';
+      div.innerHTML = RD.icon('dumbbell', '', 36);
+      el.replaceWith(div);
+      return;
+    }
+    const fig = el.closest('.gifflip, figure');
+    if (fig) {
+      fig.remove();
+      return;
+    }
+    el.style.display = 'none';
+  }, true);
 })();

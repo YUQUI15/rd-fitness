@@ -4,9 +4,18 @@
   const { esc, money } = RD;
 
   // ---------- 1. Visualización de Ejercicios ----------
+  RD.exThumbFallback = function (imgEl, grupo) {
+    if (!imgEl || !imgEl.parentNode) return;
+    const div = document.createElement('div');
+    div.className = 'avatar';
+    div.style.cssText = 'width:84px;height:84px;border-radius:10px;font-size:1.8rem;flex-shrink:0';
+    div.innerHTML = RD.groupIconSvg(grupo || '', '', 36);
+    imgEl.replaceWith(div);
+  };
+
   RD.exThumb = ex => ex.imagenes && ex.imagenes[0]
-    ? `<img loading="lazy" src="${esc(ex.imagenes[0])}" alt="${esc(ex.nombre)}">`
-    : `<div class="avatar" style="width:84px;height:84px;border-radius:10px;font-size:1.8rem">${RD.groupIconSvg(ex.grupo, '', 36)}</div>`;
+    ? `<img loading="lazy" src="${esc(ex.imagenes[0])}" alt="" onerror="RD.exThumbFallback(this, '${esc(ex.grupo || '')}')">`
+    : `<div class="avatar" style="width:84px;height:84px;border-radius:10px;font-size:1.8rem;flex-shrink:0">${RD.groupIconSvg(ex.grupo, '', 36)}</div>`;
 
   RD.exCard = ex => `
     <div class="ex-card" data-ex="${esc(ex.id)}">
@@ -24,9 +33,9 @@
   RD.exDetailHTML = ex => {
     const imgs = ex.imagenes || [];
     const pics = imgs.length >= 2
-      ? `<div class="gifflip" title="Toca para ver el movimiento"><img src="${esc(imgs[0])}" alt="Inicio"><img class="b" src="${esc(imgs[1])}" alt="Final"></div>
-         <div class="ex-imgs mt2"><figure><img src="${esc(imgs[0])}" alt="Posición inicial"><figcaption>1 · Inicio</figcaption></figure><figure><img src="${esc(imgs[1])}" alt="Posición final"><figcaption>2 · Final</figcaption></figure></div>`
-      : imgs.length ? `<img src="${esc(imgs[0])}" style="width:100%;border-radius:12px" alt="">` : '';
+      ? `<div class="gifflip" title="Toca para ver el movimiento"><img src="${esc(imgs[0])}" alt="" onerror="this.closest('.gifflip')?.remove()"><img class="b" src="${esc(imgs[1])}" alt="" onerror="this.remove()"></div>
+         <div class="ex-imgs mt2"><figure><img src="${esc(imgs[0])}" alt="" onerror="this.closest('figure')?.remove()"><figcaption>1 · Posición inicial</figcaption></figure><figure><img src="${esc(imgs[1])}" alt="" onerror="this.closest('figure')?.remove()"><figcaption>2 · Ejecución final</figcaption></figure></div>`
+      : imgs.length ? `<img src="${esc(imgs[0])}" style="width:100%;border-radius:12px" alt="" onerror="this.remove()">` : '';
     return `${pics}
       <div class="chips mt">
         <span class="badge info">${esc(ex.grupo || '')}</span>
@@ -49,21 +58,28 @@
 
   RD.openExercise = ex => RD.openModal(ex.nombre, RD.exDetailHTML(ex), { wide: true });
 
-  // Biblioteca con búsqueda avanzada y filtros por grupo y equipamiento
+  // Biblioteca con búsqueda avanzada y filtros por grupo, equipamiento y nivel
   RD.exerciseLibrary = (el, list, onPick) => {
     const groups = ['Todos', 'Piernas', 'Glúteos', 'Pecho', 'Espalda', 'Hombros', 'Bíceps', 'Tríceps', 'Antebrazos', 'Trapecio', 'Core', 'Cardio', 'Movilidad'];
-    let g = 'Todos', eq = 'Todos', t = '';
+    let g = 'Todos', eq = 'Todos', lv = 'Todos', t = '';
 
     el.innerHTML = `
-      <div class="row gap mb">
-        <input id="exq" placeholder="Buscar ejercicio, músculo o equipo…" autocomplete="off" style="flex:1">
-        <select id="exeq" style="max-width:140px">
+      <div class="row gap wrap mb">
+        <input id="exq" placeholder="Buscar ejercicio, músculo o equipo…" autocomplete="off" style="flex:1;min-width:180px">
+        <select id="exeq" style="max-width:155px">
           <option value="Todos">Cualquier equipo</option>
-          <option value="Barra">Barra</option>
+          <option value="Barra">Barra / EZ</option>
           <option value="Mancuerna">Mancuernas</option>
-          <option value="Polea">Poleas</option>
-          <option value="Máquina">Máquinas</option>
-          <option value="Sin equipo">Peso corporal</option>
+          <option value="Polea">Poleas / Cables</option>
+          <option value="Máquina">Máquinas / Prensa</option>
+          <option value="Corporal">Peso corporal / Barra fija</option>
+          <option value="Banda">Bandas / Kettlebell</option>
+        </select>
+        <select id="exlv" style="max-width:135px">
+          <option value="Todos">Todo nivel</option>
+          <option value="principiante">Principiante</option>
+          <option value="intermedio">Intermedio</option>
+          <option value="avanzado">Avanzado</option>
         </select>
       </div>
       <div class="chips mb" id="exg">
@@ -71,7 +87,7 @@
       </div>
       <div class="row between mb small muted">
         <span id="excount">Mostrando ${list.length} ejercicios</span>
-        <span>${onPick ? 'Toca uno para seleccionarlo' : 'Toca uno para ver técnica'}</span>
+        <span>${onPick ? 'Toca uno para seleccionarlo' : 'Toca uno para ver guía biomecánica'}</span>
       </div>
       <div class="grid g2" id="exl"></div>`;
 
@@ -80,9 +96,15 @@
       const q = t.toLowerCase();
       const items = list.filter(e => {
         const matchG = g === 'Todos' || e.grupo === g;
-        const matchEq = eq === 'Todos' || (e.equipo || '').toLowerCase().includes(eq.toLowerCase());
-        const matchQ = !q || [e.nombre, e.musculos, e.equipo, e.grupo, e.tipo].some(v => String(v || '').toLowerCase().includes(q));
-        return matchG && matchEq && matchQ;
+        const eqStr = (e.equipo || '').toLowerCase();
+        let matchEq = true;
+        if (eq === 'Corporal') matchEq = /sin equipo|peso corporal|colchoneta|paralelas|dominadas/.test(eqStr);
+        else if (eq === 'Banda') matchEq = /banda|kettlebell|pesa rusa|cuerda|balón/.test(eqStr);
+        else if (eq === 'Máquina') matchEq = /máquina|prensa|multipower|smith|bicicleta|caminadora/.test(eqStr);
+        else if (eq !== 'Todos') matchEq = eqStr.includes(eq.toLowerCase());
+        const matchLv = lv === 'Todos' || (e.nivel || '').toLowerCase() === lv;
+        const matchQ = !q || [e.nombre, e.musculos, e.equipo, e.grupo, e.tipo, e.ingles].some(v => String(v || '').toLowerCase().includes(q));
+        return matchG && matchEq && matchLv && matchQ;
       });
       if (countEl) countEl.textContent = `Mostrando ${items.length} de ${list.length} ejercicios`;
       el.querySelector('#exl').innerHTML = items.map(RD.exCard).join('') || '<div class="empty">No se encontraron ejercicios con este criterio</div>';
@@ -90,6 +112,7 @@
 
     el.querySelector('#exq').oninput = RD.debounce(e => { t = e.target.value.trim(); draw(); }, 150);
     el.querySelector('#exeq').onchange = e => { eq = e.target.value; draw(); };
+    el.querySelector('#exlv').onchange = e => { lv = e.target.value; draw(); };
     el.querySelector('#exg').onclick = e => {
       const c = e.target.closest('[data-g]');
       if (!c) return;
@@ -749,8 +772,8 @@
           </div>
           <h2>${esc(it.nombre)}</h2>
           ${imgs.length >= 2
-            ? `<div class="gifflip" id="gf"><img src="${esc(imgs[0])}" alt=""><img class="b" src="${esc(imgs[1])}" alt=""></div>`
-            : imgs[0] ? `<img src="${esc(imgs[0])}" style="width:100%;border-radius:12px" alt="">` : ''}
+            ? `<div class="gifflip" id="gf"><img src="${esc(imgs[0])}" alt="" onerror="this.closest('.gifflip')?.remove()"><img class="b" src="${esc(imgs[1])}" alt="" onerror="this.remove()"></div>`
+            : imgs[0] ? `<img src="${esc(imgs[0])}" style="width:100%;border-radius:12px" alt="" onerror="this.remove()">` : ''}
           <div class="row gap wrap mt2">
             <span class="badge info">${it.sets} series × ${esc(it.reps)}</span>
             ${it.rest ? `<span class="badge">Descanso ${it.rest}s</span>` : ''}
