@@ -4093,11 +4093,23 @@ function verEstado() {
         </div>
       </div>
 
-      <!-- TARJETA: HERRAMIENTAS ADICIONALES -->
+      <!-- TARJETA: HERRAMIENTAS ADICIONALES, SMART TV CCTV Y ANATOMÍA 3D -->
       <div class="card">
-        <h3 style="margin-bottom:0.5rem;">${RD.icon('printer')} Herramientas Adicionales</h3>
+        <h3 style="margin-bottom:0.5rem;">${RD.icon('printer')} Herramientas de Recepción, Smart TV CCTV y Arquitectura 3D</h3>
+        <p class="small muted" style="margin-bottom:0.85rem;">
+          Accede en 1 clic a la pantalla para la Smart TV del gimnasio (Cámaras CCTV 24/7 + Picture-in-Picture + Bienvenidas QR + Spot Publicitario), al diseñador de carnés PVC y a la Máquina Interactiva 3D (Anatomy3D v2.0) con el despiece de equipos y conexiones.
+        </p>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <a class="btn" href="/admin/cards.html" target="_blank" style="text-decoration:none;">
+          <a class="btn primary" href="/display.html" target="_blank" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+            ${RD.icon('qr')} Abrir Smart TV + Cámaras CCTV (/display.html)
+          </a>
+          <a class="btn" href="/anatomy/index.html" target="_blank" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; border-color:rgba(39,230,255,0.45); color:#27e6ff;">
+            ${RD.icon('activity')} Máquina Interactiva 3D (Anatomy3D v2.0)
+          </a>
+          <a class="btn" href="/anatomy/report.html" target="_blank" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+            ${RD.icon('file-text')} Plano Técnico 2D y BOM de Equipos
+          </a>
+          <a class="btn" href="/admin/cards.html" target="_blank" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
             ${RD.icon('idcard')} Diseñador / Impresor Masivo de Tarjetas PVC
           </a>
         </div>

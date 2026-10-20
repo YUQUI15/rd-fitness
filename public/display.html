@@ -3,44 +3,46 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>RD Fitness Club - Pantalla de Mostrador</title>
+  <title>RD Fitness Club - TV Cámaras CCTV, Alertas QR y Cartelera Inteligente</title>
   <link rel="icon" href="/logo.svg">
   <script src="/vendor/qrcode.js"></script>
   <style>
     :root {
       --bg: #07090e;
-      --bg-card: rgba(15, 23, 42, 0.88);
-      --bg-card-border: rgba(245, 180, 0, 0.35);
+      --bg-card: rgba(12, 18, 32, 0.94);
+      --bg-card-border: rgba(245, 180, 0, 0.42);
       --text: #f8fafc;
       --text-muted: #94a3b8;
       --gold: #f5b400;
       --gold-glow: rgba(245, 180, 0, 0.28);
       --accent: #38bdf8;
-      --topbar-bg: rgba(7, 9, 14, 0.85);
-      --topbar-border: rgba(245, 180, 0, 0.2);
+      --topbar-bg: rgba(7, 9, 14, 0.9);
+      --topbar-border: rgba(245, 180, 0, 0.25);
       --chip-bg: rgba(255, 255, 255, 0.06);
-      --chip-border: rgba(255, 255, 255, 0.12);
+      --chip-border: rgba(255, 255, 255, 0.14);
       --qr-bg: #ffffff;
       --qr-text: #0f172a;
       --success: #10b981;
+      --danger: #ef4444;
     }
 
     [data-theme="light"] {
-      --bg: #faf7fa;
-      --bg-card: #ffffff;
-      --bg-card-border: #e5dce8;
-      --text: #241e26;
-      --text-muted: #736878;
-      --gold: #b76e79;
-      --gold-glow: rgba(183, 110, 121, 0.22);
+      --bg: #f1f5f9;
+      --bg-card: rgba(255, 255, 255, 0.96);
+      --bg-card-border: #cbd5e1;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --gold: #b45309;
+      --gold-glow: rgba(180, 83, 9, 0.2);
       --accent: #0284c7;
-      --topbar-bg: rgba(255, 255, 255, 0.92);
-      --topbar-border: #e5dce8;
-      --chip-bg: #f3edf5;
-      --chip-border: #e5dce8;
+      --topbar-bg: rgba(255, 255, 255, 0.94);
+      --topbar-border: #cbd5e1;
+      --chip-bg: #f8fafc;
+      --chip-border: #cbd5e1;
       --qr-bg: #ffffff;
-      --qr-text: #241e26;
+      --qr-text: #0f172a;
       --success: #15803d;
+      --danger: #dc2626;
     }
 
     * { box-sizing: border-box; }
@@ -70,24 +72,25 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 14px 28px;
+      padding: 10px 22px;
       background: var(--topbar-bg);
       backdrop-filter: blur(14px);
       border-bottom: 1px solid var(--topbar-border);
-      z-index: 20;
+      z-index: 40;
+      gap: 12px;
     }
     .brand {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
     .brand img {
-      width: 44px;
-      height: 44px;
+      width: 40px;
+      height: 40px;
       filter: drop-shadow(0 2px 8px var(--gold-glow));
     }
     .brand-title {
-      font-size: 1.35rem;
+      font-size: 1.2rem;
       font-weight: 900;
       letter-spacing: 0.8px;
       color: var(--gold);
@@ -95,55 +98,89 @@
       line-height: 1.1;
     }
     .brand-sub {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: var(--text-muted);
-      letter-spacing: 0.5px;
-      font-weight: 500;
+      letter-spacing: 0.4px;
+      font-weight: 600;
       margin-top: 2px;
+    }
+
+    .mode-status-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--chip-border);
+      padding: 5px 12px;
+      border-radius: 99px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .rec-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #ef4444;
+      box-shadow: 0 0 8px #ef4444;
+      animation: blinkRec 1.2s infinite;
+    }
+    @keyframes blinkRec {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.25; }
     }
 
     .top-actions {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 10px;
     }
     .clock-block {
       text-align: right;
+      margin-right: 6px;
     }
     .clock-time {
-      font-size: 1.45rem;
-      font-weight: 800;
+      font-size: 1.35rem;
+      font-weight: 900;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       color: var(--text);
       line-height: 1;
     }
     .clock-date {
-      font-size: 0.78rem;
+      font-size: 0.72rem;
       color: var(--text-muted);
       text-transform: capitalize;
-      margin-top: 3px;
+      margin-top: 2px;
     }
 
     .ctrl-btn {
       background: var(--chip-bg);
       border: 1px solid var(--chip-border);
       color: var(--text);
-      width: 38px;
-      height: 38px;
+      height: 36px;
+      padding: 0 11px;
       border-radius: 10px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      gap: 6px;
       cursor: pointer;
+      font-size: 0.76rem;
+      font-weight: 700;
       transition: all .15s ease;
     }
     .ctrl-btn:hover {
       border-color: var(--gold);
+      color: var(--gold);
       transform: translateY(-1px);
     }
+    .ctrl-btn.active {
+      background: rgba(245, 180, 0, 0.16);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
     .ctrl-btn svg {
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       stroke: currentColor;
       fill: none;
       stroke-width: 2;
@@ -155,54 +192,289 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      padding: 16px;
       position: relative;
+      overflow: hidden;
     }
 
-    /* ESTADO 1: BIENVENIDA (IDLE) */
+    /* ============================================================ */
+    /* MATRIZ DE CÁMARAS DE SEGURIDAD CCTV (MODO TV DEL GIMNASIO)   */
+    /* ============================================================ */
+    .cctv-layer {
+      position: absolute;
+      inset: 0;
+      padding: 12px 16px 52px 16px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 10px;
+      background: #030508;
+      z-index: 1;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .cctv-layer.single-usb {
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr;
+    }
+    /* Cuando hay una alerta de QR / Yape o un Spot Publicitario, las cámaras pasan a PiP en la esquina */
+    .cctv-layer.pip-mode {
+      inset: auto 20px 58px auto;
+      width: 340px;
+      height: 205px;
+      padding: 6px;
+      gap: 4px;
+      border-radius: 14px;
+      border: 2px solid var(--gold);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.85), 0 0 20px var(--gold-glow);
+      z-index: 35;
+      background: rgba(5, 8, 14, 0.96);
+    }
+    .cctv-layer.hidden-mode {
+      display: none !important;
+    }
+
+    .cam-feed {
+      position: relative;
+      background: #090d16;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cam-feed video, .cam-feed iframe, .cam-feed img.cam-stream {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    /* Efecto sutil de monitor de seguridad DVR */
+    .cam-scanlines {
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.12) 0px,
+        rgba(0, 0, 0, 0.12) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+      pointer-events: none;
+      z-index: 3;
+    }
+    .cam-hud-top {
+      position: absolute;
+      top: 8px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 4;
+      pointer-events: none;
+    }
+    .cam-tag {
+      background: rgba(0, 0, 0, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #e2e8f0;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-family: ui-monospace, monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.5px;
+    }
+    .cam-osd-time {
+      background: rgba(0, 0, 0, 0.68);
+      color: #38bdf8;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-family: ui-monospace, monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    .cam-hud-bottom {
+      position: absolute;
+      bottom: 8px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 4;
+      pointer-events: none;
+      font-family: ui-monospace, monospace;
+      font-size: 0.68rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    .cctv-layer.pip-mode .cam-hud-bottom,
+    .cctv-layer.pip-mode .cam-osd-time {
+      display: none;
+    }
+    .cctv-layer.pip-mode .cam-tag {
+      font-size: 0.55rem;
+      padding: 1px 4px;
+    }
+
+    /* CINTA INFERIOR (TICKER DE ESTADO Y PRÓXIMO SPOT) */
+    .tv-bottom-ticker {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: rgba(7, 9, 14, 0.94);
+      border-top: 1px solid var(--topbar-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 38;
+      font-size: 0.8rem;
+    }
+    .ticker-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .ticker-pill {
+      background: rgba(245, 180, 0, 0.15);
+      border: 1px solid rgba(245, 180, 0, 0.4);
+      color: var(--gold);
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+    }
+    .ticker-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-family: ui-monospace, monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    /* CAPA DE EVENTOS Y PUBLICIDAD ROTATIVA */
+    .overlay-stage {
+      position: relative;
+      z-index: 25;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .overlay-stage.empty {
+      pointer-events: none;
+    }
+
+    /* CARRUSEL PUBLICITARIO PROGRAMADO (MODO PROMO) */
+    .promo-card {
+      max-width: 980px;
+      width: 100%;
+      background: var(--bg-card);
+      border: 2px solid var(--gold);
+      border-radius: 26px;
+      padding: 34px 42px;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.75), 0 0 50px var(--gold-glow);
+      animation: popIn .35s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .promo-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-top: 22px;
+    }
+    .promo-plan-box {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--chip-border);
+      border-radius: 16px;
+      padding: 18px 14px;
+      text-align: center;
+      position: relative;
+    }
+    .promo-plan-box.featured {
+      background: linear-gradient(145deg, rgba(245, 180, 0, 0.16), rgba(245, 180, 0, 0.04));
+      border-color: var(--gold);
+      box-shadow: 0 0 25px rgba(245, 180, 0, 0.15);
+    }
+    .promo-plan-name {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .promo-plan-price {
+      font-size: 2.3rem;
+      font-weight: 900;
+      color: var(--gold);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .promo-plan-sub {
+      font-size: 0.78rem;
+      color: var(--text);
+    }
+
+    /* ESTADO 1: BIENVENIDA (IDLE EN MODO SOLO CARTELERA) */
     .idle-box {
       text-align: center;
       max-width: 840px;
       animation: fadeIn .4s ease;
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      padding: 36px 44px;
+      border-radius: 26px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.45);
     }
     .idle-hero-logo {
-      width: 120px;
-      height: 120px;
-      margin-bottom: 20px;
-      filter: drop-shadow(0 0 35px var(--gold-glow));
+      width: 105px;
+      height: 105px;
+      margin-bottom: 16px;
+      filter: drop-shadow(0 0 30px var(--gold-glow));
       animation: pulseBreath 4s infinite ease-in-out;
     }
     .idle-headline {
-      font-size: 2.6rem;
+      font-size: 2.4rem;
       font-weight: 900;
       letter-spacing: -0.5px;
       line-height: 1.15;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
-    .idle-headline span {
-      color: var(--gold);
-    }
+    .idle-headline span { color: var(--gold); }
     .idle-quote {
-      font-size: 1.25rem;
+      font-size: 1.15rem;
       color: var(--text-muted);
       font-style: italic;
-      margin-bottom: 30px;
+      margin-bottom: 24px;
       line-height: 1.4;
-      min-height: 38px;
+      min-height: 34px;
     }
     .idle-badges {
       display: flex;
       justify-content: center;
       gap: 12px;
       flex-wrap: wrap;
-      margin-bottom: 34px;
+      margin-bottom: 26px;
     }
     .chip {
       background: var(--chip-bg);
       border: 1px solid var(--chip-border);
-      padding: 9px 16px;
+      padding: 8px 15px;
       border-radius: 24px;
-      font-size: 0.88rem;
+      font-size: 0.86rem;
       color: var(--text);
       display: inline-flex;
       align-items: center;
@@ -221,7 +493,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 14px;
+      gap: 12px;
       flex-wrap: wrap;
       padding-top: 14px;
       border-top: 1px solid var(--chip-border);
@@ -247,21 +519,18 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 40px;
-      max-width: 960px;
+      gap: 36px;
+      max-width: 940px;
       width: 100%;
       background: var(--bg-card);
       border: 2px solid var(--bg-card-border);
       border-radius: 24px;
-      padding: 38px 44px;
-      box-shadow: 0 16px 50px rgba(0, 0, 0, 0.25), 0 0 40px var(--gold-glow);
+      padding: 34px 40px;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.75), 0 0 40px var(--gold-glow);
       animation: popIn .3s ease;
       position: relative;
     }
-    .bill-meta {
-      flex: 1;
-      text-align: left;
-    }
+    .bill-meta { flex: 1; text-align: left; }
     .bill-tag {
       display: inline-flex;
       align-items: center;
@@ -275,10 +544,10 @@
       border-radius: 20px;
       text-transform: uppercase;
       letter-spacing: 0.8px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
     .bill-title {
-      font-size: 1.85rem;
+      font-size: 1.8rem;
       font-weight: 800;
       line-height: 1.2;
       margin-bottom: 6px;
@@ -287,10 +556,10 @@
     .bill-sub {
       font-size: 0.92rem;
       color: var(--text-muted);
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
     .bill-price-label {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       text-transform: uppercase;
       letter-spacing: 1px;
       color: var(--text-muted);
@@ -298,60 +567,58 @@
       margin-bottom: 2px;
     }
     .bill-price {
-      font-size: 3.8rem;
+      font-size: 3.6rem;
       font-weight: 900;
       color: var(--gold);
       letter-spacing: -1px;
       line-height: 1;
-      margin-bottom: 22px;
+      margin-bottom: 18px;
     }
     .bill-instructions {
       background: var(--chip-bg);
       border: 1px solid var(--chip-border);
       border-radius: 14px;
-      padding: 14px 18px;
-      font-size: 0.9rem;
+      padding: 13px 16px;
+      font-size: 0.88rem;
       line-height: 1.45;
       color: var(--text);
     }
-    .bill-instructions b {
-      color: var(--gold);
-    }
+    .bill-instructions b { color: var(--gold); }
 
     /* LADO DERECHO: QR CODE BOX */
     .qr-container {
       background: var(--qr-bg);
       border-radius: 20px;
-      padding: 22px;
+      padding: 20px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
       text-align: center;
-      width: 270px;
+      width: 260px;
       flex-shrink: 0;
       border: 1px solid rgba(0, 0, 0, 0.08);
     }
     .qr-svg-holder svg {
-      width: 226px;
-      height: 226px;
+      width: 220px;
+      height: 220px;
       display: block;
       margin: 0 auto;
     }
     .qr-caption {
       color: var(--qr-text);
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 800;
       letter-spacing: 0.5px;
       margin-top: 10px;
       text-transform: uppercase;
     }
 
-    /* LADO DERECHO: POS CONTACTLESS NFC ANIMATION */
+    /* POS CONTACTLESS NFC ANIMATION */
     .nfc-container {
       background: var(--chip-bg);
       border: 2px dashed var(--bg-card-border);
       border-radius: 20px;
-      padding: 28px 22px;
+      padding: 26px 20px;
       text-align: center;
-      width: 270px;
+      width: 260px;
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
@@ -360,12 +627,12 @@
     }
     .nfc-wave-ring {
       position: relative;
-      width: 90px;
-      height: 90px;
+      width: 86px;
+      height: 86px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
     .nfc-pulse {
       position: absolute;
@@ -376,70 +643,73 @@
       opacity: 0;
       animation: nfcPulse 2.2s infinite ease-out;
     }
-    .nfc-pulse:nth-child(2) {
-      animation-delay: 0.7s;
-    }
+    .nfc-pulse:nth-child(2) { animation-delay: 0.7s; }
     .nfc-center-icon {
       z-index: 2;
-      width: 48px;
-      height: 48px;
+      width: 44px;
+      height: 44px;
       color: var(--gold);
     }
     .nfc-label {
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       font-weight: 800;
       color: var(--gold);
       letter-spacing: 0.5px;
       margin-bottom: 4px;
     }
     .nfc-sub {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: var(--text-muted);
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     /* ESTADO 3: ÉXITO */
     .success-box {
       text-align: center;
       max-width: 620px;
+      background: var(--bg-card);
+      border: 2px solid var(--success);
+      border-radius: 26px;
+      padding: 36px 44px;
+      box-shadow: 0 24px 70px rgba(0,0,0,0.75), 0 0 40px rgba(16, 185, 129, 0.3);
       animation: popIn .35s ease;
     }
     .success-ring {
-      width: 96px;
-      height: 96px;
+      width: 90px;
+      height: 90px;
       border-radius: 50%;
       background: rgba(16, 185, 129, 0.15);
       border: 3px solid var(--success);
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 20px;
+      margin: 0 auto 18px;
       animation: bounceCheck .7s ease;
     }
     .success-ring svg {
-      width: 52px;
-      height: 52px;
+      width: 48px;
+      height: 48px;
       stroke: var(--success);
       fill: none;
       stroke-width: 3;
     }
     .success-title {
-      font-size: 2.8rem;
+      font-size: 2.5rem;
       font-weight: 900;
       color: var(--success);
       line-height: 1.1;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     .success-msg {
-      font-size: 1.3rem;
+      font-size: 1.2rem;
       color: var(--text);
       line-height: 1.4;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
     .success-meter {
-      height: 4px;
+      height: 5px;
       background: var(--chip-border);
-      border-radius: 2px;
+      border-radius: 3px;
       max-width: 280px;
       margin: 0 auto;
       overflow: hidden;
@@ -462,22 +732,22 @@
       background: var(--bg-card);
       border: 2px solid var(--bg-card-border);
       border-radius: 28px;
-      padding: 36px 42px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 0 40px var(--gold-glow);
+      padding: 32px 40px;
+      box-shadow: 0 25px 75px rgba(0, 0, 0, 0.8), 0 0 40px var(--gold-glow);
       animation: popIn .35s ease;
       position: relative;
     }
     .access-card.welcome {
-      border-color: rgba(16, 185, 129, 0.5);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 0 45px rgba(16, 185, 129, 0.25);
+      border-color: rgba(16, 185, 129, 0.65);
+      box-shadow: 0 25px 75px rgba(0, 0, 0, 0.8), 0 0 50px rgba(16, 185, 129, 0.35);
     }
     .access-card.goodbye {
-      border-color: rgba(56, 189, 248, 0.5);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 0 45px rgba(56, 189, 248, 0.25);
+      border-color: rgba(56, 189, 248, 0.65);
+      box-shadow: 0 25px 75px rgba(0, 0, 0, 0.8), 0 0 50px rgba(56, 189, 248, 0.35);
     }
     .access-card.denied {
-      border-color: rgba(239, 68, 68, 0.6);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 0 45px rgba(239, 68, 68, 0.3);
+      border-color: rgba(239, 68, 68, 0.75);
+      box-shadow: 0 25px 75px rgba(0, 0, 0, 0.8), 0 0 55px rgba(239, 68, 68, 0.4);
       animation: shakeCard .45s ease;
     }
     @keyframes shakeCard {
@@ -487,30 +757,30 @@
     }
     .member-avatar-wrap {
       position: relative;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
     .member-avatar-img {
-      width: 140px;
-      height: 140px;
+      width: 132px;
+      height: 132px;
       border-radius: 50%;
       object-fit: cover;
       border: 4px solid var(--gold);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
       display: block;
     }
     .member-avatar-placeholder {
-      width: 140px;
-      height: 140px;
+      width: 132px;
+      height: 132px;
       border-radius: 50%;
       background: var(--chip-bg);
       border: 4px solid var(--gold);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 3.5rem;
+      font-size: 3.2rem;
       font-weight: 900;
       color: var(--gold);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
     }
     .access-card.welcome .member-avatar-img,
     .access-card.welcome .member-avatar-placeholder {
@@ -531,13 +801,13 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 18px;
+      padding: 7px 16px;
       border-radius: 30px;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 900;
       letter-spacing: 0.8px;
       text-transform: uppercase;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     .status-badge.ok {
       background: rgba(16, 185, 129, 0.16);
@@ -555,7 +825,7 @@
       border: 1.5px solid #ef4444;
     }
     .member-name {
-      font-size: 2.3rem;
+      font-size: 2.2rem;
       font-weight: 900;
       line-height: 1.15;
       margin-bottom: 10px;
@@ -567,14 +837,14 @@
       justify-content: center;
       gap: 12px;
       flex-wrap: wrap;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
     .detail-pill {
       background: var(--chip-bg);
       border: 1px solid var(--chip-border);
       padding: 8px 16px;
       border-radius: 12px;
-      font-size: 0.92rem;
+      font-size: 0.9rem;
       color: var(--text);
       display: inline-flex;
       align-items: center;
@@ -582,52 +852,50 @@
     }
     .detail-pill b { color: var(--gold); }
     .motivational-lead {
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       font-weight: 700;
       color: var(--text);
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     .motivational-sub {
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       color: var(--text-muted);
-      margin-bottom: 22px;
+      margin-bottom: 18px;
     }
     .denied-alert-box {
       background: rgba(239, 68, 68, 0.12);
       border: 2px solid rgba(239, 68, 68, 0.45);
       border-radius: 16px;
-      padding: 16px 22px;
+      padding: 14px 20px;
       max-width: 640px;
-      margin: 12px auto 22px;
+      margin: 10px auto 18px;
       text-align: center;
     }
     .denied-alert-title {
       color: #ef4444;
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       font-weight: 900;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       letter-spacing: 0.5px;
     }
     .denied-alert-text {
       color: var(--text);
-      font-size: 1.05rem;
+      font-size: 1rem;
       line-height: 1.45;
     }
-    .denied-alert-text b {
-      color: var(--gold);
-    }
+    .denied-alert-text b { color: var(--gold); }
     .duration-stat-box {
       background: rgba(56, 189, 248, 0.12);
       border: 1.5px solid rgba(56, 189, 248, 0.35);
       border-radius: 16px;
-      padding: 14px 28px;
+      padding: 12px 24px;
       display: inline-flex;
       align-items: center;
       gap: 14px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
     .duration-stat-val {
-      font-size: 2.2rem;
+      font-size: 2rem;
       font-weight: 900;
       color: #38bdf8;
       font-family: ui-monospace, monospace;
@@ -635,13 +903,79 @@
     }
     .duration-stat-lbl {
       text-align: left;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       color: var(--text-muted);
       text-transform: uppercase;
       font-weight: 700;
     }
 
-    /* ANIMACIONES */
+    /* MODAL DE CONFIGURACIÓN DE CÁMARAS Y ROTACIÓN */
+    .cfg-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 90;
+      padding: 20px;
+    }
+    .cfg-modal-backdrop.open {
+      display: flex;
+    }
+    .cfg-modal {
+      background: #0f172a;
+      border: 1px solid var(--gold);
+      border-radius: 18px;
+      max-width: 620px;
+      width: 100%;
+      padding: 24px;
+      color: #f8fafc;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    }
+    .cfg-row {
+      margin-bottom: 14px;
+    }
+    .cfg-row label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #94a3b8;
+      margin-bottom: 5px;
+    }
+    .cfg-row select, .cfg-row input {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #07090e;
+      color: #fff;
+      font-size: 0.88rem;
+    }
+    .demo-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      padding-top: 12px;
+      border-top: 1px dashed #334155;
+    }
+    .demo-btn {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid #475569;
+      color: #f8fafc;
+      padding: 7px 11px;
+      border-radius: 8px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .demo-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes popIn { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
     @keyframes pulseBreath { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
@@ -660,12 +994,11 @@
     }
 
     @media (max-width: 768px) {
-      .bill-card { flex-direction: column-reverse; padding: 24px; gap: 20px; }
-      .bill-price { font-size: 3rem; }
+      .bill-card { flex-direction: column-reverse; padding: 22px; gap: 18px; }
+      .bill-price { font-size: 2.8rem; }
       .qr-container, .nfc-container { width: 100%; max-width: 240px; }
-      .idle-headline { font-size: 2rem; }
-      .member-name { font-size: 1.8rem; }
-      .access-card { padding: 24px 20px; }
+      .promo-grid { grid-template-columns: repeat(2, 1fr); }
+      .cctv-layer.pip-mode { width: 180px; height: 110px; }
     }
   </style>
 </head>
@@ -673,40 +1006,172 @@
   <div class="display-shell">
     <header class="topbar">
       <div class="brand">
-        <img src="/logo.svg" alt="RD Fitness Club" style="height:42px;width:42px;max-height:42px;max-width:42px;object-fit:contain;flex-shrink:0" width="42" height="42">
+        <img src="/logo.svg" alt="RD Fitness Club" style="height:40px;width:40px;object-fit:contain;flex-shrink:0">
         <div>
           <div class="brand-title" id="gym_name">RD FITNESS CLUB</div>
-          <div class="brand-sub" id="gym_slogan">DISCIPLINA · CONSTANCIA · RESULTADOS</div>
+          <div class="brand-sub" id="gym_slogan">TV MONITOREO CCTV · ACCESOS QR · CHIVAY</div>
         </div>
       </div>
+
+      <div class="mode-status-bar">
+        <span class="rec-dot"></span>
+        <span id="tv_status_label">CCTV 4 CANALES EN VIVO + ALERTAS ACTIVAS</span>
+      </div>
+
       <div class="top-actions">
         <div class="clock-block">
           <div class="clock-time" id="clock_time">--:--:--</div>
           <div class="clock-date" id="clock_date">--</div>
         </div>
-        <button class="ctrl-btn" id="soundtoggle" title="Probar o Activar Sonido de Bienvenida" aria-label="Sonido">
+        <button class="ctrl-btn active" id="btn_mode_cctv" title="Alternar entre Modo TV Cámaras CCTV y Modo Solo Cartelera">
+          <svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          <span id="mode_btn_txt">Modo TV + CCTV</span>
+        </button>
+        <button class="ctrl-btn" id="btn_trigger_promo" title="Mostrar Spot Publicitario de Planes Ahora (Tecla P)">
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span>Spot Promo</span>
+        </button>
+        <a class="ctrl-btn" href="/anatomy/index.html" target="_blank" rel="noopener" title="Abrir Máquina Interactiva 3D (Anatomy3D v2.0) de Hardware, TV CCTV y Procesos" style="text-decoration:none">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <span>Arquitectura 3D</span>
+        </a>
+        <button class="ctrl-btn" id="btn_cfg_tv" title="Configurar Entrada de Cámaras (HDMI-USB / IP) y Tiempos de Rotación">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+        <button class="ctrl-btn" id="soundtoggle" title="Probar Sonido de Bienvenida" aria-label="Sonido">
           <svg viewBox="0 0 24 24" id="sound_icon"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
         </button>
         <button class="ctrl-btn" id="themetoggle" title="Alternar Modo Claro / Oscuro" aria-label="Tema">
           <svg viewBox="0 0 24 24" id="theme_icon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
         </button>
-        <button class="ctrl-btn" id="fsbtn" title="Pantalla completa" aria-label="Pantalla completa">
+        <button class="ctrl-btn" id="fsbtn" title="Pantalla completa (F11)" aria-label="Pantalla completa">
           <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
         </button>
       </div>
     </header>
 
-    <main class="stage" id="stage">
-      <!-- Contenido reactivo controlado por SSE / REST -->
+    <main class="stage">
+      <!-- CAPA 1: CUADRÍCULA DE CÁMARAS DE SEGURIDAD CCTV (Pasa a PiP automáticamente durante alertas o spots) -->
+      <div class="cctv-layer" id="cctv_layer">
+        <!-- Se construye dinámicamente según la fuente de cámaras seleccionada -->
+      </div>
+
+      <!-- CAPA 2: SUPERPOSICIÓN DE ALERTAS DE ACCESO QR, COBROS YAPE Y CARRUSEL PUBLICITARIO -->
+      <div class="overlay-stage empty" id="stage"></div>
+
+      <!-- CINTA INFERIOR DE MONITOREO Y CUENTA REGRESIVA DE ROTACIÓN -->
+      <footer class="tv-bottom-ticker">
+        <div class="ticker-left">
+          <span class="ticker-pill">EN VIVO · CHIVAY</span>
+          <span id="ticker_msg">Escáner Óptico 2D Activo · Pase su código QR o DNI en recepción · Pagos rápidos con Yape, Plin y Efectivo</span>
+        </div>
+        <div class="ticker-right">
+          <span id="next_promo_countdown">Próximo Spot Promo: 02:30</span>
+          <span>|</span>
+          <span>Calle Antonio José de Sucre Lt. 10</span>
+        </div>
+      </footer>
     </main>
+  </div>
+
+  <!-- MODAL DE CONFIGURACIÓN DE CÁMARAS Y SIMULADOR DEMO -->
+  <div class="cfg-modal-backdrop" id="cfg_backdrop">
+    <div class="cfg-modal">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h3 style="margin:0;color:var(--gold)">Configuración de TV de Cámaras CCTV y Rotación</h3>
+        <button class="ctrl-btn" id="cfg_close">✕ Cerrar</button>
+      </div>
+
+      <div class="cfg-row">
+        <label>1. Fuente de Video de las Cámaras de Seguridad:</label>
+        <select id="cfg_cam_source">
+          <option value="sim_grid">Cuadrícula DVR 4 Cámaras Activa (Ideal para Mostrador / Demo)</option>
+          <option value="usb_capture">Capturadora HDMI-a-USB desde el DVR / Cámara Web Conectada (1080p En Vivo)</option>
+          <option value="custom_urls">Streams IP / HTTP / MJPEG de Cámaras del Gimnasio (4 URLs)</option>
+        </select>
+      </div>
+
+      <div class="cfg-row" id="cfg_usb_device_wrap" style="display:none">
+        <label>Dispositivo Capturador de Video USB / HDMI detectado:</label>
+        <select id="cfg_usb_device"></select>
+      </div>
+
+      <div id="cfg_urls_wrap" style="display:none">
+        <div class="cfg-row"><label>URL Cámara 1 (Zona Peso Libre):</label><input type="text" id="cfg_url_1" placeholder="http://192.168.1.64/stream1.mjpg"></div>
+        <div class="cfg-row"><label>URL Cámara 2 (Zona Cardio y Máquinas):</label><input type="text" id="cfg_url_2" placeholder="http://192.168.1.65/stream1.mjpg"></div>
+        <div class="cfg-row"><label>URL Cámara 3 (Recepción e Ingreso):</label><input type="text" id="cfg_url_3" placeholder="http://192.168.1.66/stream1.mjpg"></div>
+        <div class="cfg-row"><label>URL Cámara 4 (Exterior Sucre Lt. 10):</label><input type="text" id="cfg_url_4" placeholder="http://192.168.1.67/stream1.mjpg"></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="cfg-row">
+          <label>2. Frecuencia del Spot Publicitario:</label>
+          <select id="cfg_promo_interval">
+            <option value="45">Cada 45 segundos (Modo Demo Rápido)</option>
+            <option value="120">Cada 2 minutos</option>
+            <option value="180" selected>Cada 3 minutos (Recomendado)</option>
+            <option value="300">Cada 5 minutos</option>
+            <option value="0">Desactivado (Solo al presionar botón)</option>
+          </select>
+        </div>
+        <div class="cfg-row">
+          <label>3. Duración del Spot en Pantalla:</label>
+          <select id="cfg_promo_duration">
+            <option value="12">12 segundos</option>
+            <option value="16" selected>16 segundos (Recomendado)</option>
+            <option value="25">25 segundos</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:6px">
+        <button class="ctrl-btn active" id="cfg_save">Guardar y Aplicar en TV</button>
+      </div>
+
+      <div class="demo-bar">
+        <div style="width:100%;font-size:0.75rem;color:#94a3b8;font-weight:700">SIMULADOR EN VIVO PARA DEMOSTRACIÓN AL DUEÑO:</div>
+        <button class="demo-btn" data-demo="welcome">🟢 Simular Entrada QR</button>
+        <button class="demo-btn" data-demo="goodbye">🔵 Simular Salida (1h 15m)</button>
+        <button class="demo-btn" data-demo="denied">🔴 Simular Membresía Vencida</button>
+        <button class="demo-btn" data-demo="yape">🟣 Simular Cobro Yape S/ 60</button>
+        <button class="demo-btn" data-demo="promo">⭐ Lanzar Spot Publicitario</button>
+        <button class="demo-btn" data-demo="cctv">🎥 Volver a Cámaras CCTV</button>
+      </div>
+    </div>
   </div>
 
   <script>
     (function () {
       const stage = document.getElementById('stage');
+      const cctvLayer = document.getElementById('cctv_layer');
+      const tvStatusLabel = document.getElementById('tv_status_label');
+      const nextPromoEl = document.getElementById('next_promo_countdown');
       const themeToggle = document.getElementById('themetoggle');
       const themeIcon = document.getElementById('theme_icon');
       const fsBtn = document.getElementById('fsbtn');
+      const btnModeCctv = document.getElementById('btn_mode_cctv');
+      const modeBtnTxt = document.getElementById('mode_btn_txt');
+      const btnTriggerPromo = document.getElementById('btn_trigger_promo');
+      const btnCfgTv = document.getElementById('btn_cfg_tv');
+      const cfgBackdrop = document.getElementById('cfg_backdrop');
+
+      // ---------------- Estado de Configuración de TV + CCTV ----------------
+      let tvConfig = {
+        tvMode: localStorage.getItem('rd_tv_mode') || 'cctv_rotative', // 'cctv_rotative' | 'signage_only'
+        camSource: localStorage.getItem('rd_cam_source') || 'sim_grid', // 'sim_grid' | 'usb_capture' | 'custom_urls'
+        usbDeviceId: localStorage.getItem('rd_usb_device_id') || '',
+        urls: JSON.parse(localStorage.getItem('rd_cam_urls') || '["","","",""]'),
+        promoIntervalSec: Number(localStorage.getItem('rd_promo_interval') ?? 180),
+        promoDurationSec: Number(localStorage.getItem('rd_promo_duration') ?? 16)
+      };
+
+      let currentEventState = { mode: 'idle' };
+      let promoActive = false;
+      let promoSlideIdx = 0;
+      let secondsToNextPromo = tvConfig.promoIntervalSec || 180;
+      let promoTimeout = null;
+      let successTimer = null;
+      let activeMediaStream = null;
 
       // ---------------- Gestión del Modo Claro / Oscuro ----------------
       function applyTheme(t) {
@@ -718,14 +1183,13 @@
           themeIcon.innerHTML = '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>';
         }
       }
-      const initialTheme = localStorage.getItem('rd_display_theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-      applyTheme(initialTheme);
+      applyTheme(localStorage.getItem('rd_display_theme') || 'dark');
       themeToggle.onclick = () => {
         const cur = document.documentElement.getAttribute('data-theme');
         applyTheme(cur === 'light' ? 'dark' : 'light');
       };
 
-      // ---------------- Modo Pantalla Completa para Tablet ----------------
+      // ---------------- Pantalla Completa ----------------
       fsBtn.onclick = () => {
         if (!document.fullscreenElement) {
           document.documentElement.requestFullscreen().catch(() => {});
@@ -734,22 +1198,248 @@
         }
       };
 
-      // ---------------- Reloj en Tiempo Real (Hora Lima) ----------------
+      // ---------------- Reloj en Tiempo Real + Temporizador de Rotación ----------------
       function updateClock() {
         const now = new Date();
-        document.getElementById('clock_time').textContent = now.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'America/Lima' });
-        document.getElementById('clock_date').textContent = now.toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Lima' });
+        const timeStr = now.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'America/Lima' });
+        const dateStr = now.toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Lima' });
+        document.getElementById('clock_time').textContent = timeStr;
+        document.getElementById('clock_date').textContent = dateStr;
+        document.querySelectorAll('.cam-osd-clock').forEach(el => {
+          el.textContent = `${now.toISOString().slice(0, 10)} ${timeStr}`;
+        });
+
+        // Control del temporizador de rotación publicitaria cuando está en reposo (mostrando las cámaras)
+        if (tvConfig.tvMode === 'cctv_rotative' && tvConfig.promoIntervalSec > 0 && currentEventState.mode === 'idle' && !promoActive) {
+          secondsToNextPromo--;
+          if (secondsToNextPromo <= 0) {
+            triggerPromoSpot();
+          } else {
+            const mm = String(Math.floor(secondsToNextPromo / 60)).padStart(2, '0');
+            const ss = String(secondsToNextPromo % 60).padStart(2, '0');
+            nextPromoEl.textContent = `Próximo Spot Promo: ${mm}:${ss}`;
+          }
+        } else if (promoActive) {
+          nextPromoEl.textContent = 'Spot Publicitario en Pantalla';
+        } else if (currentEventState.mode !== 'idle') {
+          nextPromoEl.textContent = 'Alerta Prioritaria en Vivo';
+        } else {
+          nextPromoEl.textContent = 'Modo Cartelera Continua';
+        }
       }
       setInterval(updateClock, 1000);
-      updateClock();
+
+      // ---------------- Construcción de la Matriz de Cámaras CCTV ----------------
+      const CAM_CHANNELS = [
+        { id: 'CAM 01', zone: 'ZONA PESO LIBRE & RACKS', fps: '30 FPS · 1080P', bg: '/ex/barbell-squat-1.jpg', fallbackBg: 'radial-gradient(circle at 30% 40%, #1e293b 0%, #090d16 80%)' },
+        { id: 'CAM 02', zone: 'ZONA MÁQUINAS & POLEAS', fps: '30 FPS · 1080P', bg: '/ex/lat-pulldown-1.jpg', fallbackBg: 'radial-gradient(circle at 70% 35%, #172554 0%, #090d16 80%)' },
+        { id: 'CAM 03', zone: 'ZONA CARDIO & FUNCIONAL', fps: '30 FPS · 1080P', bg: '/ex/plank-1.jpg', fallbackBg: 'radial-gradient(circle at 40% 65%, #14532d 0%, #090d16 80%)' },
+        { id: 'CAM 04', zone: 'RECEPCIÓN & ACCESO QR', fps: '60 FPS · HDR', bg: '/ex/dumbbell-bench-press-1.jpg', fallbackBg: 'radial-gradient(circle at 60% 50%, #3b0764 0%, #090d16 80%)' }
+      ];
+
+      async function buildCctvGrid() {
+        if (activeMediaStream) {
+          activeMediaStream.getTracks().forEach(t => t.stop());
+          activeMediaStream = null;
+        }
+        cctvLayer.classList.remove('single-usb');
+
+        if (tvConfig.camSource === 'usb_capture' && navigator.mediaDevices?.getUserMedia) {
+          try {
+            const constraints = {
+              video: tvConfig.usbDeviceId ? { deviceId: { exact: tvConfig.usbDeviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } } : { width: { ideal: 1920 }, height: { ideal: 1080 } },
+              audio: false
+            };
+            activeMediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+            cctvLayer.classList.add('single-usb');
+            cctvLayer.innerHTML = `
+              <div class="cam-feed">
+                <video id="usb_live_video" autoplay playsinline muted></video>
+                <div class="cam-scanlines"></div>
+                <div class="cam-hud-top">
+                  <span class="cam-tag"><span class="rec-dot"></span> DVR/NVR HDMI DIRECTO · RD FITNESS</span>
+                  <span class="cam-osd-time cam-osd-clock">--</span>
+                </div>
+              </div>`;
+            const v = document.getElementById('usb_live_video');
+            if (v) v.srcObject = activeMediaStream;
+            return;
+          } catch (e) {
+            console.warn('No se detectó capturadora USB/cámara, usando cuadrícula CCTV de respaldo:', e);
+          }
+        }
+
+        // Cuadrícula de 4 canales (URLs personalizadas o vista de cámaras del gimnasio)
+        cctvLayer.innerHTML = CAM_CHANNELS.map((c, idx) => {
+          const customUrl = (tvConfig.camSource === 'custom_urls' && tvConfig.urls[idx]) ? tvConfig.urls[idx].trim() : '';
+          const visualContent = customUrl
+            ? `<img class="cam-stream" src="${esc(customUrl)}" alt="${c.id}" onerror="this.style.display='none'">`
+            : `<div style="position:absolute;inset:0;background:${c.fallbackBg};display:flex;align-items:center;justify-content:center">
+                 <img src="${c.bg}" alt="" style="width:100%;height:100%;object-fit:cover;opacity:0.32;filter:grayscale(35%) contrast(115%)" onerror="this.style.display='none'">
+                 <div style="position:absolute;inset:0;border:1px solid rgba(56,189,248,0.12);display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(255,255,255,0.45);font-family:ui-monospace,monospace;font-size:0.75rem;pointer-events:none">
+                   <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:6px;opacity:0.6"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                   <span>SEÑAL EN VIVO · ${c.id}</span>
+                 </div>
+               </div>`;
+          return `
+            <div class="cam-feed">
+              ${visualContent}
+              <div class="cam-scanlines"></div>
+              <div class="cam-hud-top">
+                <span class="cam-tag"><span class="rec-dot"></span> ${c.id} · ${c.zone}</span>
+                <span class="cam-osd-time cam-osd-clock">--</span>
+              </div>
+              <div class="cam-hud-bottom">
+                <span>RD-DVR-CHIVAY-0${idx + 1}</span>
+                <span>${c.fps} · REC</span>
+              </div>
+            </div>`;
+        }).join('');
+      }
+
+      // ---------------- Sincronización de Capas (CCTV Completa vs PiP vs Cartelera) ----------------
+      function updateLayerVisibility() {
+        const isIdle = currentEventState.mode === 'idle';
+        if (tvConfig.tvMode === 'signage_only') {
+          cctvLayer.className = 'cctv-layer hidden-mode';
+          stage.classList.remove('empty');
+          btnModeCctv.classList.remove('active');
+          modeBtnTxt.textContent = 'Modo Solo Cartelera';
+          tvStatusLabel.textContent = 'CARTELERA DIGITAL COMPLETA';
+          return;
+        }
+
+        btnModeCctv.classList.add('active');
+        modeBtnTxt.textContent = 'Modo TV + CCTV';
+
+        // Si no hay evento ni spot publicitario activo: las cámaras ocupan el 100% de la TV
+        if (isIdle && !promoActive) {
+          cctvLayer.className = 'cctv-layer' + (tvConfig.camSource === 'usb_capture' && activeMediaStream ? ' single-usb' : '');
+          stage.innerHTML = '';
+          stage.classList.add('empty');
+          tvStatusLabel.textContent = 'CCTV 4 CANALES EN VIVO · ESCÁNER QR LISTO';
+        } else {
+          // Hay un evento prioritario (Entrada QR, Salida, Vencido, Cobro Yape) o un Spot Publicitario:
+          // Las cámaras nunca se pierden, se reducen a una ventana Picture-in-Picture (PiP) en la esquina inferior derecha
+          cctvLayer.className = 'cctv-layer pip-mode' + (tvConfig.camSource === 'usb_capture' && activeMediaStream ? ' single-usb' : '');
+          stage.classList.remove('empty');
+          tvStatusLabel.textContent = promoActive
+            ? 'SPOT PUBLICITARIO RD FITNESS (CÁMARAS EN PiP)'
+            : 'ALERTA PRIORITARIA EN VIVO (CÁMARAS EN PiP)';
+        }
+      }
+
+      // ---------------- Spots Publicitarios Rotativos Programados ----------------
+      function renderPromoSpotHtml(idx) {
+        if (idx % 2 === 0) {
+          return `
+            <div class="promo-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+                <div style="display:flex;align-items:center;gap:14px">
+                  <img src="/logo.svg" alt="" style="width:58px;height:58px">
+                  <div>
+                    <div class="bill-tag" style="margin-bottom:4px">MEMBRESÍAS Y TARIFAS OFICIALES</div>
+                    <h2 style="margin:0;font-size:2rem;font-weight:900">ENTRENA EN <span style="color:var(--gold)">RD FITNESS CLUB</span></h2>
+                  </div>
+                </div>
+                <span class="chip" style="border-color:var(--gold);color:var(--gold)">Pase Diario Libre: S/ 5.00</span>
+              </div>
+              <div class="promo-grid">
+                <div class="promo-plan-box">
+                  <div class="promo-plan-name">Plan Mensual</div>
+                  <div class="promo-plan-price">S/ 60</div>
+                  <div class="promo-plan-sub">30 días · Acceso total + App</div>
+                </div>
+                <div class="promo-plan-box featured">
+                  <div class="promo-plan-name" style="color:var(--gold)">Plan Trimestral ⭐</div>
+                  <div class="promo-plan-price">S/ 170</div>
+                  <div class="promo-plan-sub">3 meses · Ahorras S/ 10</div>
+                </div>
+                <div class="promo-plan-box">
+                  <div class="promo-plan-name">Plan Semestral</div>
+                  <div class="promo-plan-price">S/ 300</div>
+                  <div class="promo-plan-sub">6 meses · Ahorras S/ 60</div>
+                </div>
+                <div class="promo-plan-box">
+                  <div class="promo-plan-name">Plan Anual VIP</div>
+                  <div class="promo-plan-price">S/ 500</div>
+                  <div class="promo-plan-sub">12 meses · Ahorras S/ 220</div>
+                </div>
+              </div>
+              <div style="margin-top:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+                <span style="font-size:0.9rem;color:var(--text-muted)">Aceptamos <b>Yape, Plin, Efectivo y Tarjetas</b> · Incluye Carnet Digital QR y Rutinas</span>
+                <div class="success-meter" style="width:220px;margin:0"><div class="success-meter-bar" style="background:var(--gold);animation-duration:${tvConfig.promoDurationSec}s"></div></div>
+              </div>
+            </div>`;
+        }
+        return `
+          <div class="promo-card">
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+              <img src="/logo.svg" alt="" style="width:58px;height:58px">
+              <div>
+                <div class="bill-tag" style="margin-bottom:4px">TECNOLOGÍA Y RENDIMIENTO DEPORTIVO</div>
+                <h2 style="margin:0;font-size:1.95rem;font-weight:900">TU ENTRENADOR DIGITAL EN EL CELULAR + TIENDITA FITNESS</h2>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px">
+              <div class="promo-plan-box" style="text-align:left">
+                <div style="color:var(--gold);font-weight:900;font-size:1.05rem;margin-bottom:6px">1. Carnet QR Digital</div>
+                <div class="promo-plan-sub">Ingresa en 0.1 segundos acercando tu celular o tarjeta al escáner óptico de recepción.</div>
+              </div>
+              <div class="promo-plan-box" style="text-align:left">
+                <div style="color:#38bdf8;font-weight:900;font-size:1.05rem;margin-bottom:6px">2. Rutinas y Récords (PRs)</div>
+                <div class="promo-plan-sub">Consulta tus ejercicios paso a paso, registra tus pesos, mide tu progreso corporal y descarga tu ficha PDF.</div>
+              </div>
+              <div class="promo-plan-box" style="text-align:left">
+                <div style="color:#10b981;font-weight:900;font-size:1.05rem;margin-bottom:6px">3. Hidratación y Energía</div>
+                <div class="promo-plan-sub">Aguas minerales, bebidas rehidratantes, proteínas y suplementos disponibles al instante en recepción.</div>
+              </div>
+            </div>
+            <div style="margin-top:20px;display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:0.88rem;color:var(--text-muted)">Monitoreo de seguridad activo en esquina inferior derecha (PiP)</span>
+              <div class="success-meter" style="width:220px;margin:0"><div class="success-meter-bar" style="background:var(--gold);animation-duration:${tvConfig.promoDurationSec}s"></div></div>
+            </div>
+          </div>`;
+      }
+
+      function triggerPromoSpot() {
+        if (currentEventState.mode !== 'idle') return; // Nunca interrumpir un cobro o ingreso real
+        if (promoTimeout) clearTimeout(promoTimeout);
+        promoActive = true;
+        stage.innerHTML = renderPromoSpotHtml(promoSlideIdx++);
+        updateLayerVisibility();
+        promoTimeout = setTimeout(() => {
+          promoActive = false;
+          secondsToNextPromo = tvConfig.promoIntervalSec || 180;
+          updateLayerVisibility();
+        }, (tvConfig.promoDurationSec || 16) * 1000);
+      }
+
+      btnTriggerPromo.onclick = () => {
+        if (promoActive) {
+          if (promoTimeout) clearTimeout(promoTimeout);
+          promoActive = false;
+          secondsToNextPromo = tvConfig.promoIntervalSec || 180;
+          if (tvConfig.tvMode === 'signage_only') render({ mode: 'idle' });
+          else updateLayerVisibility();
+        } else {
+          currentEventState = { mode: 'idle' };
+          triggerPromoSpot();
+        }
+      };
+
+      btnModeCctv.onclick = () => {
+        tvConfig.tvMode = tvConfig.tvMode === 'cctv_rotative' ? 'signage_only' : 'cctv_rotative';
+        localStorage.setItem('rd_tv_mode', tvConfig.tvMode);
+        promoActive = false;
+        render(currentEventState);
+      };
 
       // ---------------- Configuración Pública del Gimnasio ----------------
       fetch('/api/public').then(r => r.json()).then(p => {
         if (p.gym_name) document.getElementById('gym_name').textContent = p.gym_name.toUpperCase();
-        if (p.gym_slogan) document.getElementById('gym_slogan').textContent = p.gym_slogan.toUpperCase();
       }).catch(() => {});
 
-      // ---------------- Utilidades ----------------
       const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
       const money = n => 'S/ ' + (Number(n) || 0).toFixed(2).replace(/\.00$/, '');
 
@@ -793,13 +1483,12 @@
       document.addEventListener('click', unlockAudio);
       document.addEventListener('touchstart', unlockAudio);
 
-      // Chime de Bienvenida (Entrada Autorizada) - Acorde ascendente luminoso
       function beepAdmission() {
         try {
           const ctx = getAudioCtx();
           if (!ctx) return;
           const now = ctx.currentTime;
-          const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+          const notes = [523.25, 659.25, 783.99];
           notes.forEach((freq, idx) => {
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
@@ -816,13 +1505,12 @@
         } catch {}
       }
 
-      // Chime de Despedida (Salida Registrada) - Campana suave relajante
       function beepCheckout() {
         try {
           const ctx = getAudioCtx();
           if (!ctx) return;
           const now = ctx.currentTime;
-          const notes = [{ f: 783.99, t: 0 }, { f: 523.25, t: 0.16 }]; // G5 -> C5
+          const notes = [{ f: 783.99, t: 0 }, { f: 523.25, t: 0.16 }];
           notes.forEach(n => {
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
@@ -839,13 +1527,12 @@
         } catch {}
       }
 
-      // Alerta de Membresía Vencida / Acceso Denegado - Tono claro de advertencia
       function beepDenied() {
         try {
           const ctx = getAudioCtx();
           if (!ctx) return;
           const now = ctx.currentTime;
-          const notes = [{ f: 329.63, t: 0 }, { f: 277.18, t: 0.15 }]; // E4 -> C#4
+          const notes = [{ f: 329.63, t: 0 }, { f: 277.18, t: 0.15 }];
           notes.forEach(n => {
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
@@ -862,19 +1549,11 @@
         } catch {}
       }
 
-      const soundToggleBtn = document.getElementById('soundtoggle');
-      if (soundToggleBtn) {
-        soundToggleBtn.onclick = () => {
-          unlockAudio();
-          beepAdmission();
-        };
-      }
-
-      function playChime() {
+      document.getElementById('soundtoggle').onclick = () => {
+        unlockAudio();
         beepAdmission();
-      }
+      };
 
-      // ---------------- Carrusel de Citas ----------------
       const QUOTES = [
         "«La disciplina tarde o temprano vencerá al talento.»",
         "«Tu único límite eres tú mismo. ¡A entrenar con todo!»",
@@ -892,8 +1571,6 @@
         }
       }, 7000);
 
-      let successTimer = null;
-
       function fmtDuration(mins) {
         const m = Math.max(1, Number(mins) || 1);
         if (m < 60) return `${m} min`;
@@ -902,12 +1579,23 @@
         return rem > 0 ? `${h}h ${rem}m` : `${h}h`;
       }
 
-      // ---------------- Renderizador de Estados ----------------
+      // ---------------- Renderizador de Estados e Interrupción Automática ----------------
       function render(state) {
         if (successTimer) { clearTimeout(successTimer); successTimer = null; }
         const mode = state?.mode || 'idle';
+        currentEventState = { ...state, mode };
+
+        // Si entra un evento real de acceso o pago, cancelar cualquier spot publicitario inmediatamente
+        if (mode !== 'idle' && promoActive) {
+          if (promoTimeout) clearTimeout(promoTimeout);
+          promoActive = false;
+        }
 
         if (mode === 'idle') {
+          if (tvConfig.tvMode === 'cctv_rotative') {
+            updateLayerVisibility();
+            return;
+          }
           stage.innerHTML = `
             <div class="idle-box">
               <img src="/logo.svg" alt="" class="idle-hero-logo">
@@ -920,7 +1608,7 @@
                 </div>
                 <div class="chip">
                   <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                  Chivay · Colca
+                  Calle Antonio José de Sucre Lt. 10, Chivay
                 </div>
                 <div class="chip">
                   <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -928,13 +1616,13 @@
                 </div>
               </div>
               <div class="payment-trust-bar">
-                <span class="pay-pill yape"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h.01M17 7h.01M7 17h.01M17 17h.01"/></svg>Yape QR</span>
-                <span class="pay-pill plin"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>Plin QR</span>
-                <span class="pay-pill card"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>POS Contactless / Chip</span>
-                <span class="pay-pill card"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>Apple Pay & Google Wallet</span>
-                <span class="pay-pill card"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/></svg>Efectivo</span>
+                <span class="pay-pill yape">Yape QR</span>
+                <span class="pay-pill plin">Plin QR</span>
+                <span class="pay-pill card">Efectivo</span>
+                <span class="pay-pill card">POS Contactless</span>
               </div>
             </div>`;
+          updateLayerVisibility();
         } else if (mode === 'welcome') {
           beepAdmission();
           const name = state.name || 'Socio';
@@ -950,18 +1638,19 @@
             <div class="access-card welcome">
               <div class="status-badge ok">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                ACCESO AUTORIZADO
+                ACCESO AUTORIZADO · ESCÁNER QR
               </div>
               <div class="member-avatar-wrap">${avatarHtml}</div>
               <div class="motivational-lead">¡BIENVENIDO A RD FITNESS CLUB!</div>
               <div class="member-name">${esc(name)}</div>
               <div class="member-details-grid">
-                <span class="detail-pill"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>Plan: <b>${esc(plan)}</b></span>
-                ${end ? `<span class="detail-pill"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Vence: <b>${esc(end)}</b>${daysLeft !== null ? ` (${daysLeft} días restantes)` : ''}</span>` : ''}
+                <span class="detail-pill">Plan: <b>${esc(plan)}</b></span>
+                ${end ? `<span class="detail-pill">Vence: <b>${esc(end)}</b>${daysLeft !== null ? ` (${daysLeft} días restantes)` : ''}</span>` : ''}
               </div>
               <div class="motivational-sub">${esc(state.reason || '¡Que tengas una excelente sesión de entrenamiento hoy!')}</div>
               <div class="success-meter" style="max-width:320px"><div class="success-meter-bar"></div></div>
             </div>`;
+          updateLayerVisibility();
           successTimer = setTimeout(() => { render({ mode: 'idle' }); }, 5500);
         } else if (mode === 'goodbye') {
           beepCheckout();
@@ -976,7 +1665,7 @@
             <div class="access-card goodbye">
               <div class="status-badge goodbye">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                SALIDA REGISTRADA
+                SALIDA REGISTRADA · CONTROL DE PERMANENCIA
               </div>
               <div class="member-avatar-wrap">${avatarHtml}</div>
               <div class="motivational-lead">¡HASTA PRONTO!</div>
@@ -988,6 +1677,7 @@
               <div class="motivational-sub">¡Gran entrenamiento! Hidrátate bien y descansa. Te esperamos pronto.</div>
               <div class="success-meter" style="max-width:320px"><div class="success-meter-bar" style="background:#38bdf8"></div></div>
             </div>`;
+          updateLayerVisibility();
           successTimer = setTimeout(() => { render({ mode: 'idle' }); }, 5500);
         } else if (mode === 'denied') {
           beepDenied();
@@ -1017,6 +1707,7 @@
               <div class="motivational-sub">${esc(reason)}</div>
               <div class="success-meter" style="max-width:320px"><div class="success-meter-bar" style="background:#ef4444;animation-duration:6.5s"></div></div>
             </div>`;
+          updateLayerVisibility();
           successTimer = setTimeout(() => { render({ mode: 'idle' }); }, 6500);
         } else if (mode === 'daily_welcome') {
           beepAdmission();
@@ -1027,30 +1718,27 @@
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 PASE DIARIO VÁLIDO (S/ 5)
               </div>
-              <div class="member-avatar-wrap"><div class="member-avatar-placeholder"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/></svg></div></div>
+              <div class="member-avatar-wrap"><div class="member-avatar-placeholder">P</div></div>
               <div class="motivational-lead">¡BIENVENIDO A RD FITNESS CLUB!</div>
               <div class="member-name">${esc(name)}</div>
               <div class="detail-pill" style="margin-bottom:14px">Válido para entrenamiento libre el día de hoy</div>
               <div class="motivational-sub">${esc(state.reason || '¡Disfruta de tu entrenamiento en Chivay!')}</div>
               <div class="success-meter" style="max-width:320px"><div class="success-meter-bar"></div></div>
             </div>`;
+          updateLayerVisibility();
           successTimer = setTimeout(() => { render({ mode: 'idle' }); }, 5500);
         } else if (mode === 'card' || (mode === 'payment' && state.method === 'tarjeta')) {
           stage.innerHTML = `
             <div class="bill-card">
               <div class="bill-meta">
-                <div class="bill-tag">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                  TERMINAL POS ACTIVO
-                </div>
+                <div class="bill-tag">TERMINAL POS ACTIVO</div>
                 <div class="bill-title">${esc(state.title || 'Cobro con Tarjeta')}</div>
                 <div class="bill-sub">Recepción RD Fitness Club</div>
                 <div class="bill-price-label">Monto a pagar</div>
                 <div class="bill-price">${money(state.amount)}</div>
                 <div class="bill-instructions">
                   <b>Acerca tu tarjeta o dispositivo al terminal POS:</b><br>
-                  Aceptamos <b>Contactless (sin contacto)</b>, chip, y pagos móviles con <b>Apple Pay</b> y <b>Google Wallet</b>.<br>
-                  <small style="opacity:.8;display:block;margin-top:6px">Si tu banco solicita clave PIN de seguridad, ingrésala en el teclado del POS.</small>
+                  Aceptamos <b>Contactless (sin contacto)</b>, chip, Apple Pay y Google Wallet.
                 </div>
               </div>
               <div class="nfc-container">
@@ -1061,30 +1749,23 @@
                 </div>
                 <div class="nfc-label">PAGO SIN CONTACTO</div>
                 <div class="nfc-sub">Acerca tu tarjeta o celular</div>
-                <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:8px">
-                  <span class="pay-pill card" style="font-size:0.7rem;padding:3px 7px">VISA</span>
-                  <span class="pay-pill card" style="font-size:0.7rem;padding:3px 7px">MASTERCARD</span>
-                  <span class="pay-pill card" style="font-size:0.7rem;padding:3px 7px">AMEX</span>
-                </div>
               </div>
             </div>`;
+          updateLayerVisibility();
         } else if (mode === 'payment') {
           const qrCodeSvg = state.qr_payload ? qrSvg(state.qr_payload) : '';
           stage.innerHTML = `
             <div class="bill-card">
               <div class="bill-meta">
-                <div class="bill-tag" style="color:#c084fc;border-color:rgba(192,132,252,0.4)">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="7" width="10" height="10" rx="1.5"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
-                  YAPE · PLIN · INTEROPERABLE
-                </div>
-                <div class="bill-title">${esc(state.title || 'Cobro con QR')}</div>
+                <div class="bill-tag" style="color:#c084fc;border-color:rgba(192,132,252,0.4)">YAPE · PLIN · QR DINÁMICO</div>
+                <div class="bill-title">${esc(state.title || 'Cobro con Yape / Plin')}</div>
                 <div class="bill-sub">Titular: <b>${esc(state.merchant || 'RD FITNESS CLUB')}</b> · Cel: <b>${esc(state.phone || '982404043')}</b></div>
                 <div class="bill-price-label">Monto exacto a transferir</div>
                 <div class="bill-price">${money(state.amount)}</div>
                 <div class="bill-instructions">
                   <b>Escanea desde tu celular con Yape o Plin:</b><br>
-                  El monto exacto de <b>${money(state.amount)}</b> ya está configurado en el código QR.<br>
-                  No necesitas digitar número ni monto manualmente.
+                  El monto exacto de <b>${money(state.amount)}</b> ya está pre-cargado en el código QR.<br>
+                  Al confirmar el pago, esta pantalla volverá automáticamente a las cámaras.
                 </div>
               </div>
               <div class="qr-container">
@@ -1092,11 +1773,12 @@
                 <div class="qr-caption">MONTO EXACTO: ${money(state.amount)}</div>
               </div>
             </div>`;
+          updateLayerVisibility();
         } else if (mode === 'cart') {
           stage.innerHTML = `
             <div class="bill-card" style="max-width:720px">
               <div class="bill-meta" style="text-align:center">
-                <div class="bill-tag">VENTA EN CURSO</div>
+                <div class="bill-tag">VENTA EN CURSO · TIENDITA POS</div>
                 <div class="bill-title">${esc(state.title || 'Venta en Recepción')}</div>
                 <div class="bill-price-label">Total acumulado</div>
                 <div class="bill-price">${money(state.amount)}</div>
@@ -1105,6 +1787,7 @@
                 </div>
               </div>
             </div>`;
+          updateLayerVisibility();
         } else if (mode === 'success') {
           beepAdmission();
           stage.innerHTML = `
@@ -1113,15 +1796,107 @@
                 <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
               <div class="success-title">¡PAGO REGISTRADO!</div>
-              <div class="success-msg">Gracias por tu preferencia.<br><b>¡Que tengas un excelente entrenamiento!</b></div>
+              <div class="success-msg">Gracias por tu preferencia.<br><b>¡Retornando a cámaras de seguridad en 5 segundos!</b></div>
               <div class="chip" style="margin-bottom:20px;border-color:var(--success);color:var(--success);font-size:1.1rem;padding:10px 22px">
                 Total abonado: ${money(state.amount)}
               </div>
               <div class="success-meter"><div class="success-meter-bar"></div></div>
             </div>`;
+          updateLayerVisibility();
           successTimer = setTimeout(() => { render({ mode: 'idle' }); }, 5000);
         }
       }
+
+      // ---------------- Modal de Configuración y Demo ----------------
+      const selSource = document.getElementById('cfg_cam_source');
+      const usbWrap = document.getElementById('cfg_usb_device_wrap');
+      const selUsb = document.getElementById('cfg_usb_device');
+      const urlsWrap = document.getElementById('cfg_urls_wrap');
+
+      async function populateVideoDevices() {
+        if (!navigator.mediaDevices?.enumerateDevices) return;
+        try {
+          const devs = await navigator.mediaDevices.enumerateDevices();
+          const videoDevs = devs.filter(d => d.kind === 'videoinput');
+          selUsb.innerHTML = videoDevs.map((d, i) => `<option value="${esc(d.deviceId)}" ${d.deviceId === tvConfig.usbDeviceId ? 'selected' : ''}>${esc(d.label || ('Capturadora / Cámara USB #' + (i + 1)))}</option>`).join('') || '<option value="">Por defecto del sistema</option>';
+        } catch {}
+      }
+
+      function syncCfgModalFields() {
+        selSource.value = tvConfig.camSource;
+        usbWrap.style.display = tvConfig.camSource === 'usb_capture' ? 'block' : 'none';
+        urlsWrap.style.display = tvConfig.camSource === 'custom_urls' ? 'block' : 'none';
+        if (tvConfig.camSource === 'usb_capture') populateVideoDevices();
+        [1, 2, 3, 4].forEach(i => {
+          document.getElementById('cfg_url_' + i).value = tvConfig.urls[i - 1] || '';
+        });
+        document.getElementById('cfg_promo_interval').value = String(tvConfig.promoIntervalSec);
+        document.getElementById('cfg_promo_duration').value = String(tvConfig.promoDurationSec);
+      }
+
+      selSource.onchange = () => {
+        usbWrap.style.display = selSource.value === 'usb_capture' ? 'block' : 'none';
+        urlsWrap.style.display = selSource.value === 'custom_urls' ? 'block' : 'none';
+        if (selSource.value === 'usb_capture') populateVideoDevices();
+      };
+
+      btnCfgTv.onclick = () => {
+        syncCfgModalFields();
+        cfgBackdrop.classList.add('open');
+      };
+      document.getElementById('cfg_close').onclick = () => cfgBackdrop.classList.remove('open');
+
+      document.getElementById('cfg_save').onclick = () => {
+        tvConfig.camSource = selSource.value;
+        tvConfig.usbDeviceId = selUsb.value || '';
+        tvConfig.urls = [1, 2, 3, 4].map(i => document.getElementById('cfg_url_' + i).value.trim());
+        tvConfig.promoIntervalSec = Number(document.getElementById('cfg_promo_interval').value);
+        tvConfig.promoDurationSec = Number(document.getElementById('cfg_promo_duration').value);
+        secondsToNextPromo = tvConfig.promoIntervalSec || 180;
+
+        localStorage.setItem('rd_cam_source', tvConfig.camSource);
+        localStorage.setItem('rd_usb_device_id', tvConfig.usbDeviceId);
+        localStorage.setItem('rd_cam_urls', JSON.stringify(tvConfig.urls));
+        localStorage.setItem('rd_promo_interval', String(tvConfig.promoIntervalSec));
+        localStorage.setItem('rd_promo_duration', String(tvConfig.promoDurationSec));
+
+        cfgBackdrop.classList.remove('open');
+        buildCctvGrid();
+        render(currentEventState);
+      };
+
+      // Botones del Simulador Demo para presentar al dueño
+      document.querySelectorAll('[data-demo]').forEach(btn => {
+        btn.onclick = () => {
+          const action = btn.dataset.demo;
+          cfgBackdrop.classList.remove('open');
+          if (action === 'welcome') {
+            render({ mode: 'welcome', name: 'CARLOS QUISPE MAMANI', plan: 'Plan Trimestral VIP', end: '2026-12-20', daysLeft: 61, reason: 'Ingreso verificado por Escáner Óptico 2D (0.1s)' });
+          } else if (action === 'goodbye') {
+            render({ mode: 'goodbye', name: 'CARLOS QUISPE MAMANI', duration_min: 75 });
+          } else if (action === 'denied') {
+            render({ mode: 'denied', name: 'LUIS CONDORI', end: '2026-10-10', reason: 'Membresía vencida hace 10 días. Renueva en recepción.' });
+          } else if (action === 'yape') {
+            render({ mode: 'payment', title: 'Membresía 1 Mes - RD Fitness Club', amount: 60, merchant: 'RD FITNESS CLUB', phone: '982404043', qr_payload: '00020101021226390012pe.bcrp.yape011151982404043520459995303604540560.005802PE5915RD FITNESS CLUB6006CHIVAY6304ABCD' });
+          } else if (action === 'promo') {
+            currentEventState = { mode: 'idle' };
+            triggerPromoSpot();
+          } else if (action === 'cctv') {
+            promoActive = false;
+            render({ mode: 'idle' });
+          }
+        };
+      });
+
+      // Atajo de teclado: Tecla 'P' para lanzar Spot Promo, 'C' para volver a Cámaras
+      window.addEventListener('keydown', e => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+        if (e.key === 'p' || e.key === 'P') btnTriggerPromo.click();
+        if (e.key === 'c' || e.key === 'C') {
+          promoActive = false;
+          render({ mode: 'idle' });
+        }
+      });
 
       // ---------------- Sincronización en Tiempo Real (SSE Stream) ----------------
       function connectSSE() {
@@ -1138,7 +1913,9 @@
         };
       }
 
-      // Estado inicial
+      // Inicialización
+      buildCctvGrid();
+      updateClock();
       fetch('/api/screen/state').then(r => r.json()).then(render).catch(() => render({ mode: 'idle' }));
       connectSSE();
     })();

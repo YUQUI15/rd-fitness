@@ -1,7 +1,7 @@
 /* RD Fitness Club - Service Worker (funciona sin internet) */
-const VERSION = 'rd-v4.2';
+const VERSION = 'rd-v4.3';
 const SHELL = [
-  '/', '/index.html', '/admin/', '/admin/index.html', '/admin/cards.html',
+  '/', '/index.html', '/display.html', '/admin/', '/admin/index.html', '/admin/cards.html',
   '/css/style.css', '/js/common.js', '/js/member-hub.js', '/js/app.js', '/js/admin-core.js', '/js/admin-scan.js', '/js/admin-members.js', '/js/admin-other.js', '/js/admin-announce.js', '/js/workout.js',
   '/vendor/qrcode.js', '/vendor/jsQR.js', '/logo.svg', '/manifest.json', '/admin/manifest.json',
   '/icons/icon-192.png', '/icons/icon-512.png'
