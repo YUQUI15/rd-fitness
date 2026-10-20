@@ -1,26 +1,24 @@
 {
-  "title": "RD Fitness Club: Escáner QR 2D ➔ Mini PC ➔ Impresora Térmica 80mm + Smart TV CCTV PiP ➔ Cloud Vault",
-  "subtitle": "Anatomía 3D interactiva del ecosistema físico y digital: acceso QR en 0.1s, boletas negro puro y TV de cámaras con alertas y publicidad rotativa",
-  "fig": "FIG 01 • ARQUITECTURA INTEGRAL RD FITNESS CLUB (RECEPCIÓN + SMART TV CCTV DUAL + NUBE)",
-  "generated": "2026-10-20T16:04:54.543Z",
+  "title": "RD Fitness Club: Escáner QR 2D ➔ Mini PC ➔ Impresora Térmica 80mm + Smart TV 55\" CCTV PiP ➔ Cloud Vault",
+  "subtitle": "Despiece Anatómico 3D en Tiempo Real • Rayos-X de Componentes Internos, Boletas Negro Puro (#000) y Smart TV Dual (Cámaras 24/7 + PiP + Publicidad)",
+  "fig": "FIG 01 • ANATOMÍA 3D REALISTA DE HARDWARE Y FLUJO DE DATOS • RD FITNESS CLUB",
+  "generated": "2026-10-20T16:40:59.556Z",
   "stats": {
-    "items": 107,
-    "devices": 6,
+    "items": 162,
+    "devices": 8,
     "cables": 6,
-    "internals": 42,
-    "pairsChecked": 15502,
+    "internals": 43,
+    "pairsChecked": 40124,
     "variants": 2,
     "traces": 3,
-    "traceSteps": 17,
-    "pipelineStages": 19
+    "traceSteps": 20,
+    "pipelineStages": 27
   },
   "audit": {
     "ok": true,
     "errors": [],
     "warnings": [],
-    "notes": [
-      "port scanner.qr_in is unconnected (decorative)"
-    ]
+    "notes": []
   },
   "score": {
     "score": 100,
@@ -70,549 +68,639 @@
   "devices": [
     {
       "n": 1,
-      "id": "scanner",
-      "label": "Lector Óptico 2D Imager Omnidireccional (Honeywell Orbit HF680 / Netum NT-2050M)",
-      "short": "1. Escáner QR 2D (Honeywell HF680)",
-      "desc": "Escáner de presentación manos libres con sensor CMOS megapíxel e iluminación antirreflejo. Lee códigos QR desde pantallas de celulares con brillo mínimo, micas rajadas o carnés plastificados en 0.1 segundos sin frustrar al socio.",
+      "id": "member_phone",
+      "label": "Smartphone del Socio con Carné Digital QR (o Tarjeta PVC RD Fitness)",
+      "short": "1. Celular / Carné QR Socio",
+      "desc": "Representa el teléfono móvil del socio mostrando su Carné Digital de Lujo con marca de agua oficial de RD Fitness Club (o su tarjeta física PVC plastificada). Incluso si la pantalla tiene el brillo al mínimo (15%) o protector de vidrio templado rajado, el código QR de alto contraste es leído al instante al acercarlo al mostrador.",
       "specs": {
-        "Modelos": "Honeywell Orbit HF680 / Zebra DS9308 / Netum NT-2050M",
-        "Sensor": "CMOS 1280×800 Megapíxel (60 fps)",
-        "Tolerancia": "Pantallas con 15% brillo, vidrio templado y QR densos",
-        "Interfaz": "USB-HID Plug & Play (emulación de teclado instantánea)"
+        "Formato Credencial": "Carné Digital PWA (`/`) o Tarjeta PVC Física",
+        "Payload QR": "Token Único `RDFIT:SOCIO` con verificación instantánea",
+        "Modo Offline": "Service Worker `rd-v4.3` (abre el carné sin internet)",
+        "Distancia Lectura": "5 cm a 25 cm frente al lector 2D manos libres"
       },
       "internals": [
         {
-          "id": "pcb",
-          "label": "Placa base (PCB multicapa)",
-          "desc": "Circuito impreso multicapa con planos de tierra y buses de alta velocidad entre los componentes."
+          "id": "ph_pcb",
+          "label": "Placa Lógica Smartphone ARM64",
+          "desc": "Ejecuta la aplicación web progresiva (PWA) de RD Fitness Club con gráficos de asistencia, récords PR y carné QR."
         },
         {
-          "id": "cpu",
-          "label": "ASIC Decodificador 2D QR",
-          "desc": "Reconstruye el código QR con corrección Reed-Solomon incluso si la pantalla del celular está manchada o agrietada."
+          "id": "ph_oled",
+          "label": "Controlador Display AMOLED & Brillo Auto",
+          "desc": "Renderiza el vector SVG del código QR con bordes nítidos (`crispEdges`) para lectura inmediata."
         },
         {
-          "id": "ram",
-          "label": "Buffer de Tramas y Debounce",
-          "desc": "Almacena la cadena `RDFIT:SOCIO` y aplica bloqueo de rebote para evitar lecturas duplicadas accidentales."
+          "id": "ph_qr_tok",
+          "label": "Motor de Credencial QR (`RDFIT:Mxxxx`)",
+          "desc": "Almacena el identificador criptográfico único del socio vinculado a su DNI y plan vigente."
         },
         {
-          "id": "psu",
-          "label": "Regulador 5V USB + Iluminación LED",
-          "desc": "Alimenta la matriz de LEDs blancos cálidos sin parpadeo y el timbre piezoeléctrico de confirmación."
+          "id": "ph_pwa",
+          "label": "Caché Offline Service Worker (`rd-v4.3`)",
+          "desc": "Permite que el socio abra su carné QR en la puerta del gimnasio incluso si no tiene megas ni señal móvil."
         },
         {
-          "id": "nic",
-          "label": "Sensor Óptico CMOS 60fps",
-          "desc": "Captura 60 cuadros por segundo a través del lente gran angular con filtro antirreflejo para pantallas OLED/LCD."
-        },
-        {
-          "id": "storage",
-          "label": "Firmware HID + Sufijo Enter",
-          "desc": "Memoria flash con el mapa de teclado español y envío automático de tecla ENTER al terminar el escaneo."
-        },
-        {
-          "id": "fan",
-          "label": "Ventilador PWM de enfriamiento",
-          "desc": "Ventilador axial controlado por telemetría térmica que extrae el calor del chasis."
+          "id": "ph_batt",
+          "label": "Batería Li-Po 5000 mAh",
+          "desc": "Alimentación del dispositivo móvil del socio."
         }
       ],
       "pipeline": [
         {
           "n": 1,
-          "id": "scanner_s1",
-          "name": "1. Captura Óptica Antirreflejo",
-          "desc": "El sensor CMOS captura el QR desde la pantalla del celular o carné sin deslumbramiento.",
-          "component": "nic"
+          "id": "ph_s1",
+          "name": "1. Apertura Instantánea del Carné PWA",
+          "desc": "El socio abre la app de RD Fitness Club (con o sin internet gracias al Service Worker local).",
+          "component": "ph_pwa"
         },
         {
           "n": 2,
-          "id": "scanner_s2",
-          "name": "2. Decodificación Reed-Solomon",
-          "desc": "El chip ASIC extrae el token `RDFIT:Mxxxx` en menos de 100 milisegundos.",
-          "component": "cpu"
+          "id": "ph_s2",
+          "name": "2. Generación del Vector QR de Alto Contraste",
+          "desc": "Se despliega el código QR oficial con sello de agua de RD Fitness Club.",
+          "component": "ph_qr_tok"
         },
         {
           "n": 3,
-          "id": "scanner_s3",
-          "name": "3. Emisión USB-HID + Beep Verde",
-          "desc": "Envía la ráfaga USB-HID con sufijo ENTER hacia la Mini PC y emite el pitido de lectura exitosa.",
-          "component": "ram"
+          "id": "ph_s3",
+          "name": "3. Presentación frente al Escáner 2D",
+          "desc": "El socio acerca la pantalla a 10–15 cm del lector de mostrador sin entregar su celular.",
+          "component": "ph_oled"
         }
       ],
-      "ports": [
-        {
-          "id": "qr_in",
-          "label": "Ventana Óptica 2D",
-          "kind": "rj45",
-          "cable": null,
-          "peer": null
-        },
-        {
-          "id": "usb_out",
-          "label": "Salida USB-HID a Mini PC",
-          "kind": "rj45",
-          "cable": "c_scan_pc",
-          "peer": "minipc.usb_scan"
-        }
-      ]
+      "ports": []
     },
     {
       "n": 2,
-      "id": "minipc",
-      "label": "Estación Central de Recepción (Beelink Mini S12 Pro N100 / Core i5 16GB SSD Dual-HDMI)",
-      "short": "2. Mini PC Recepción (Core i5 / N100)",
-      "desc": "Cerebro operativo del gimnasio. Ejecuta el servidor Express/Node.js, valida membresías en tiempo real, envía alertas SSE a la Smart TV de cámaras, dispara la impresión térmica en negro puro y sincroniza la bóveda local con Upstash Redis.",
+      "id": "scanner_2d",
+      "label": "Lector Óptico 2D Imager Manos Libres (Honeywell Orbit HF680 / Netum NT-2050M)",
+      "short": "2. Escáner QR 2D (Honeywell HF680)",
+      "desc": "Escáner de presentación omnidireccional con base pesada, columna articulada y cabezal óptico CMOS Megapíxel. A diferencia de los lectores láser antiguos de línea roja que rebotan en el vidrio del celular, este sensor fotográfico 2D captura 60 cuadros por segundo con iluminación antirreflejo y decodifica cualquier QR en 0.1 segundos sin fallas.",
       "specs": {
-        "Hardware": "Beelink Mini S12 Pro (Intel N100) o Mini PC Core i5, 16GB RAM, 512GB NVMe",
-        "Video": "Doble salida HDMI 4K@60Hz (Monitor Recepción + Smart TV Gimnasio)",
-        "Resiliencia": "Arquitectura Híbrida Offline-First (JSON Local + Upstash Redis)",
-        "Seguridad": "Cifrado AES-256-GCM + Sesiones HMAC-SHA256 + Rate Limit"
+        "Modelos Recomendados": "Netum NT-2050M (Calidad/Precio) o Honeywell Orbit HF680 (Industrial)",
+        "Tecnología Óptica": "Sensor CMOS 2D Imager 1280×800 px (60 fps) + Luz Blanca Cálida",
+        "Lectura en Celulares": "Lee pantallas con 15% de brillo, vidrio templado rajado y ángulos de 60°",
+        "Conexión": "USB-HID Plug & Play (emula teclado y presiona ENTER en 0.1s)"
       },
       "internals": [
         {
-          "id": "pcb",
-          "label": "Placa base (PCB multicapa)",
-          "desc": "Circuito impreso multicapa con planos de tierra y buses de alta velocidad entre los componentes."
+          "id": "sc_pcb",
+          "label": "Placa Base de Procesamiento Óptico",
+          "desc": "Circuito impreso de alta velocidad con bus MIPI CSI directo entre el sensor de imagen y el procesador."
         },
         {
-          "id": "cpu",
-          "label": "Procesador Intel Core i5 / N100 (Node.js)",
-          "desc": "Ejecuta `server.js`: verifica vigencia de membresía, calcula arqueo de caja y coordina el bus SSE (`/api/screen/stream`)."
+          "id": "sc_cmos",
+          "label": "Sensor CMOS Megapíxel 1280×800 (60 fps)",
+          "desc": "Obturador global (Global Shutter) que congela la imagen del QR aunque la mano del socio esté en movimiento."
         },
         {
-          "id": "ram",
-          "label": "RAM 16GB (Estado de Socios + SSE)",
-          "desc": "Mantiene en memoria el padrón de socios, tokens de sesión y colas de eventos en tiempo real."
+          "id": "sc_lens",
+          "label": "Conjunto Óptico Asférico Antirreflejo",
+          "desc": "Elimina el destello del vidrio de los teléfonos inteligentes para leer pantallas con bajo brillo."
         },
         {
-          "id": "psu",
-          "label": " Etapa VRM de Bajo Consumo (25W)",
-          "desc": "Regulación térmica silenciosa para operación continua de 6:00 AM a 10:00 PM."
+          "id": "sc_leds",
+          "label": "Matriz de Iluminación LED Blanca Cálida",
+          "desc": "Ilumina uniformemente carnés físicos PVC sin deslumbrar la vista del recepcionista ni del socio."
         },
         {
-          "id": "nic",
-          "label": "Controladora USB 3.2 + Dual HDMI + GbE",
-          "desc": "Recibe la ráfaga del lector QR, el stream UVC de la capturadora del DVR y transmite video 1080p a la TV."
+          "id": "sc_asic",
+          "label": "ASIC Decodificador 2D Reed-Solomon",
+          "desc": "Reconstruye códigos QR dañados, manchados o con micas quebradas en menos de 100 milisegundos."
         },
         {
-          "id": "storage",
-          "label": "SSD NVMe 512GB (`gym.json` + Backups)",
-          "desc": "Guarda la base de datos local transaccional y las copias de seguridad cifradas AES-256."
-        },
-        {
-          "id": "fan",
-          "label": "Ventilador PWM de enfriamiento",
-          "desc": "Ventilador axial controlado por telemetría térmica que extrae el calor del chasis."
+          "id": "sc_buzzer",
+          "label": "Buzzer Piezoeléctrico 85 dB + Interfaz HID",
+          "desc": "Emite el pitido nítido de confirmación e inyecta la cadena `RDFIT:SOCIO` + `ENTER` por USB."
         }
       ],
       "pipeline": [
         {
           "n": 1,
-          "id": "minipc_s1",
-          "name": "1. Recepción USB-HID / Captura DVR",
-          "desc": "Recibe el código QR del socio o la orden de cobro Yape/Plin desde recepción.",
-          "component": "nic"
+          "id": "sc_s1",
+          "name": "1. Captura Global-Shutter a 60 FPS",
+          "desc": "El sensor CMOS y el lente antirreflejo capturan el QR del celular sin importar el brillo de pantalla.",
+          "component": "sc_cmos"
         },
         {
           "n": 2,
-          "id": "minipc_s2",
-          "name": "2. Validación de Membresía y Caja",
-          "desc": "Verifica fecha de vencimiento (`endDate`), registra asistencia y emite evento SSE hacia la TV.",
-          "component": "cpu"
+          "id": "sc_s2",
+          "name": "2. Corrección de Errores Reed-Solomon (0.1s)",
+          "desc": "El procesador ASIC decodifica la matriz 2D al instante con cero lecturas fallidas.",
+          "component": "sc_asic"
         },
         {
           "n": 3,
-          "id": "minipc_s3",
-          "name": "3. Renderizado de Ticket #000000",
-          "desc": "Genera el comprobante térmico monocromático 100% negro puro sin escalas de grises.",
-          "component": "ram"
-        },
-        {
-          "n": 4,
-          "id": "minipc_s4",
-          "name": "4. Persistencia Dual (NVMe + Cloud)",
-          "desc": "Guarda en disco local instantáneamente y replica hacia Upstash Redis en segundo plano.",
-          "component": "storage"
+          "id": "sc_s3",
+          "name": "3. Pitido de Confirmación + Ráfaga USB-HID",
+          "desc": "Activa el LED verde, emite el beep audible y transmite el código con sufijo ENTER a la Mini PC.",
+          "component": "sc_buzzer"
         }
       ],
       "ports": [
         {
-          "id": "usb_scan",
-          "label": "Entrada USB Escáner 2D",
+          "id": "usb_out",
+          "label": "Cable USB-HID Blindado",
           "kind": "rj45",
           "cable": "c_scan_pc",
-          "peer": "scanner.usb_out"
-        },
-        {
-          "id": "usb_print",
-          "label": "Salida USB Impresora Térmica",
-          "kind": "rj45",
-          "cable": "c_pc_print",
-          "peer": "printer.usb_in"
-        },
-        {
-          "id": "usb_cap",
-          "label": "Entrada USB 3.0 Capturadora DVR",
-          "kind": "rj45",
-          "cable": "c_dvr_pc",
-          "peer": "dvr.cap_out"
-        },
-        {
-          "id": "hdmi_tv",
-          "label": "Salida HDMI 2 hacia Smart TV",
-          "kind": "rj45",
-          "cable": "c_pc_tv",
-          "peer": "tv.from_pc"
-        },
-        {
-          "id": "wan_cloud",
-          "label": "Uplink HTTPS hacia Upstash Cloud",
-          "kind": "rj45",
-          "cable": "c_pc_cloud",
-          "peer": "cloud.from_pc"
+          "peer": "minipc_pos.usb_scan"
         }
       ]
     },
     {
       "n": 3,
-      "id": "printer",
-      "label": "Impresora Térmica de Boletas 80mm con Autocorte (Xprinter XP-N160II / Epson TM-T20III)",
-      "short": "3. Impresora Térmica 80mm (Alta Densidad)",
-      "desc": "Impresora térmica directa configurada en modo monocromático de máxima densidadoscura (#000000 puro, sin tramado gris). Con papel térmico Hansol de 65g entrega boletas nítidas, intensas y legibles al instante.",
+      "id": "minipc_pos",
+      "label": "Mini PC de Recepción (Beelink Mini S12 Pro N100 / Core i5 • 16GB RAM • 512GB NVMe • Dual-HDMI)",
+      "short": "3. Mini PC Recepción (Beelink / Core i5)",
+      "desc": "Estación central compacta de recepción. Su chasis tipo NUC alberga un procesador de 4/6 núcleos, 16 GB de RAM y unidad M.2 NVMe ultrarrápida. Cuenta con doble salida HDMI nativa (una para el monitor del cajero y otra hacia la Smart TV 55\" del gimnasio), ejecuta el servidor Node.js local Offline-First y coordina la impresora térmica y la bóveda en la nube.",
       "specs": {
-        "Modelos": "Xprinter XP-N160II (Calidad/Precio) o Epson TM-T20III (Industrial)",
-        "Cabezal": "Rohm Japonés 203 DPI • Velocidad 200 mm/s • Vida útil 150 km",
-        "Papel": "Rollo Térmico 80mm × 80m Gramaje 65g Capa Negra Intensa (Bisfenol-Free)",
-        "EstilosCSS": "Forzado `#000000 !important`, `font-weight: 800/900`, `contrast(200%)`"
+        "Modelo Recomendado": "Beelink Mini S12 Pro (Intel N100 12va Gen) o HP/Dell Mini Core i5",
+        "Memoria y Disco": "16 GB RAM DDR4 + 512 GB SSD M.2 NVMe PCIe (Arranque en 6 segundos)",
+        "Salidas de Video": "2× HDMI 2.0 4K@60Hz (Monitor Recepción + Smart TV Gimnasio)",
+        "Base de Datos": "Híbrida Transaccional (`gym.json` Local + Upstash Redis Cloud)"
       },
       "internals": [
         {
-          "id": "pcb",
-          "label": "Placa base (PCB multicapa)",
-          "desc": "Circuito impreso multicapa con planos de tierra y buses de alta velocidad entre los componentes."
+          "id": "pc_pcb",
+          "label": "Placa Base Mini-ITX Multicapa Blindada",
+          "desc": "Circuito impreso de 6 capas con reguladores digitales VRM y protección contra sobretensiones en todos los puertos USB y HDMI."
         },
         {
-          "id": "cpu",
-          "label": "Cabezal Térmico Rohm 203 DPI",
-          "desc": "Aplica pulso térmico al 100% de densidad para quemar el papel térmico con negro sólido e intenso."
+          "id": "pc_cpu",
+          "label": "Procesador Intel Core i5 / N100 + Bloque Cobre",
+          "desc": "Ejecuta el servidor Node.js/Express (`server.js`), valida socios en <2 ms y calcula el arqueo ciego de caja."
         },
         {
-          "id": "ram",
-          "label": "Motor Paso a Paso + Rodillo Siliconado",
-          "desc": "Tracciona el rollo de 80mm a 200 mm/s con presión uniforme para evitar letras borrosas o pálidas."
+          "id": "pc_fan",
+          "label": "Turbina Radial Blower PWM Silenciosa",
+          "desc": "Ventilador centrífugo de rodamiento hidráulico que mantiene el procesador fresco durante 16 horas continuas de operación."
         },
         {
-          "id": "psu",
-          "label": "Fuente 24V 2.5A Estabilizada",
-          "desc": "Garantiza corriente pico constante para que el cabezal nunca imprima tenue cuando hay textos densos."
+          "id": "pc_ram",
+          "label": "16 GB RAM DDR4-3200 SO-DIMM",
+          "desc": "Almacena en memoria todo el padrón de socios, sesiones HMAC-SHA256 y el bus de eventos SSE de la Smart TV."
         },
         {
-          "id": "nic",
-          "label": "Interfaz USB ESC/POS + Buffer 64KB",
-          "desc": "Recibe el mapa de bits monocromático desde la Mini PC sin pérdida de paquetes."
+          "id": "pc_nvme",
+          "label": "SSD M.2 NVMe PCIe 512 GB (`gym.json` + Vault)",
+          "desc": "Guarda instantáneamente cada cobro, asistencia y copia de seguridad cifrada AES-256 sin depender de internet."
         },
         {
-          "id": "storage",
-          "label": "Guillotina Automática de Acero",
-          "desc": "Realiza el corte parcial limpio del comprobante al finalizar la impresión del código QR del socio."
-        },
-        {
-          "id": "fan",
-          "label": "Ventilador PWM de enfriamiento",
-          "desc": "Ventilador axial controlado por telemetría térmica que extrae el calor del chasis."
+          "id": "pc_io",
+          "label": "Controladora Dual-HDMI 4K + Captura USB 3.2",
+          "desc": "Recibe el video 1080p60 del DVR por USB 3.2 y proyecta `/display.html` hacia la Smart TV del gimnasio por HDMI."
         }
       ],
       "pipeline": [
         {
           "n": 1,
-          "id": "printer_s1",
-          "name": "1. Recepción Raster Monocromático",
-          "desc": "Recibe la boleta renderizada con CSS `#000000 !important` y QR de bordes nítidos (`crispEdges`).",
-          "component": "nic"
+          "id": "pc_s1",
+          "name": "1. Ingesta USB-HID (QR) + Video DVR (USB 3.0)",
+          "desc": "Recibe la lectura instantánea del escáner 2D y el flujo de las 4 cámaras de seguridad.",
+          "component": "pc_io"
         },
         {
           "n": 2,
-          "id": "printer_s2",
-          "name": "2. Termo-Impresión a Densidad Máxima",
-          "desc": "El cabezal térmico quema el papel de 65g a máxima temperatura para lograr letras negras intensas.",
-          "component": "cpu"
+          "id": "pc_s2",
+          "name": "2. Validación de Vigencia, Asistencia y Caja",
+          "desc": "Verifica los días restantes del socio, registra el ingreso y emite el evento SSE `welcome` / `denied`.",
+          "component": "pc_cpu"
         },
         {
           "n": 3,
-          "id": "printer_s3",
-          "name": "3. Autocorte y Entrega de Boleta",
-          "desc": "La guillotina corta el ticket listo para entregar al socio con su código QR nítido.",
-          "component": "storage"
+          "id": "pc_s3",
+          "name": "3. Generación de Boleta Monocromática (#000000)",
+          "desc": "Prepara el comprobante térmico en negro puro 100% sin grises y ordena el corte automático.",
+          "component": "pc_ram"
+        },
+        {
+          "n": 4,
+          "id": "pc_s4",
+          "name": "4. Guardado Local NVMe + Replicación Cloud",
+          "desc": "Asegura el dato en el SSD local en <1 ms y sincroniza la bóveda en la nube Upstash Redis.",
+          "component": "pc_nvme"
         }
       ],
       "ports": [
         {
-          "id": "usb_in",
-          "label": "Entrada USB Impresión ESC/POS",
+          "id": "usb_scan",
+          "label": "USB-HID Escáner 2D In",
           "kind": "rj45",
-          "cable": "c_pc_print",
-          "peer": "minipc.usb_print"
+          "cable": "c_scan_pc",
+          "peer": "scanner_2d.usb_out"
+        },
+        {
+          "id": "usb_print",
+          "label": "USB 2.0 Impresora Térmica Out",
+          "kind": "rj45",
+          "cable": "c_pc_printer",
+          "peer": "thermal_printer.usb_in"
+        },
+        {
+          "id": "usb_cap",
+          "label": "USB 3.0 Capturadora DVR In",
+          "kind": "rj45",
+          "cable": "c_dvr_pc",
+          "peer": "dvr_capture.usb_cap_out"
+        },
+        {
+          "id": "hdmi_tv",
+          "label": "HDMI 2 Out (Hacia Smart TV 55\")",
+          "kind": "rj45",
+          "cable": "c_pc_tv",
+          "peer": "smart_tv_55.hdmi_from_pc"
+        },
+        {
+          "id": "wan_cloud",
+          "label": "Gigabit LAN / Cloud Sync Out",
+          "kind": "rj45",
+          "cable": "c_pc_cloud",
+          "peer": "cloud_vault.wan_in"
         }
       ]
     },
     {
       "n": 4,
-      "id": "dvr",
-      "label": "Grabador DVR/NVR de Cámaras de Seguridad + Capturadora HDMI-USB 1080p",
-      "short": "4. DVR CCTV 4CH + Capturadora USB",
-      "desc": "Centraliza las 4 cámaras de seguridad del gimnasio (Ingreso, Zona Pesas, Zona Cardio y Recepción). Mediante un Splitter HDMI o Capturadora HDMI-a-USB 3.0 inyecta el video en vivo dentro de `/display.html` para que la TV nunca pierda las cámaras.",
+      "id": "thermal_printer",
+      "label": "Impresora Térmica de Boletas 80mm con Autocorte (Xprinter XP-N160II / Epson TM-T20III)",
+      "short": "4. Impresora Térmica 80mm (#000 Puro)",
+      "desc": "Ticketera térmica de mostrador de 80 mm con forma cúbica real, rollo cilíndrico interno de papel térmico Hansol de 65g, cabezal japonés Rohm de 203 DPI, cuchilla de autocorte automático y boleta impresa emergiendo por la ranura superior. Configurada en modo Monocromático de Alta Densidad (`#000000 !important`) para que cada letra, monto y código QR salga negro intenso y jamás borroso.",
       "specs": {
-        "Canales": "4 Cámaras Full HD 1080p (Ingreso, Musculación, Cardio, Caja)",
-        "Integración": "Capturadora Video HDMI a USB 3.0 UVC 1080p60 (S/ 45) o Stream RTSP/MJPEG",
-        "Grabación": "Disco Duro WD Purple Surveillance 24/7 H.265+",
-        "Conmutación": "Cero pérdida de grabación durante alertas QR o spots publicitarios"
+        "Modelos Recomendados": "Xprinter XP-N160II (80mm USB/LAN) o Epson TM-T20III",
+        "Cabezal y Corte": "Rohm Japonés 203 DPI (200 mm/s) + Guillotina Automática (1.5M cortes)",
+        "Papel Requerido": "Rollo Térmico 80mm × 80m de 65 gramos (Marca Hansol Capa Negra Intensa)",
+        "Nitidez Garantizada": "CSS `#000000 !important`, `font-weight: 900`, `crispEdges` + Densidad Driver 120%"
       },
       "internals": [
         {
-          "id": "pcb",
-          "label": "Placa base (PCB multicapa)",
-          "desc": "Circuito impreso multicapa con planos de tierra y buses de alta velocidad entre los componentes."
+          "id": "pr_roll",
+          "label": "Rollo Cilíndrico Papel Térmico 80mm (Hansol 65g)",
+          "desc": "Rollo de papel termosensible de 65 g/m² libre de BPA con recubrimiento químico de alto contraste que reacciona en negro profundo."
         },
         {
-          "id": "cpu",
-          "label": "SoC Codificador H.265+ Multi-Vista",
-          "desc": "Combina las 4 cámaras en la cuadrícula 2×2 con marca de tiempo REC en tiempo real."
+          "id": "pr_head",
+          "label": "Cabezal Térmico Japonés Rohm 203 DPI",
+          "desc": "Línea de 576 micro-resistencias térmicas (8 puntos/mm) que queman el papel al 100% de densidad sólida sin tramado gris."
         },
         {
-          "id": "ram",
-          "label": "Capturadora HDMI-a-USB 3.0 (UVC)",
-          "desc": "Convierte la salida HDMI del DVR en una fuente de cámara USB estándar (`getUserMedia`) para la Mini PC."
+          "id": "pr_cutter",
+          "label": "Guillotina Automática de Acero Templado",
+          "desc": "Cuchilla motorizada de doble hoja que realiza el corte parcial limpio de la boleta al terminar de imprimir el QR."
         },
         {
-          "id": "psu",
-          "label": "Fuente 12V Dedicada CCTV",
-          "desc": "Alimentación continua para el grabador y las cámaras infrarrojas."
+          "id": "pr_stepper",
+          "label": "Motor Paso a Paso + Rodillo Siliconado",
+          "desc": "Arrastra el papel a 200 mm/s con presión constante contra el cabezal térmico para evitar líneas pálidas."
         },
         {
-          "id": "nic",
-          "label": "Entradas Coaxiales / PoE 4 Cámaras",
-          "desc": "Recibe la señal en vivo de las 4 cámaras estratégicas del gimnasio."
-        },
-        {
-          "id": "storage",
-          "label": "Disco WD Purple Vigilancia 24/7",
-          "desc": "Graba de forma ininterrumpida las 24 horas aunque la TV esté mostrando una bienvenida o un spot."
-        },
-        {
-          "id": "fan",
-          "label": "Ventilador PWM de enfriamiento",
-          "desc": "Ventilador axial controlado por telemetría térmica que extrae el calor del chasis."
+          "id": "pr_board",
+          "label": "Placa ESC/POS + Fuente Estabilizada 24V 2.5A",
+          "desc": "Mantiene los 24V estables incluso al imprimir logotipos y códigos QR densos en negro sólido."
         }
       ],
       "pipeline": [
         {
           "n": 1,
-          "id": "dvr_s1",
-          "name": "1. Ingesta de 4 Cámaras CCTV",
-          "desc": "Recibe el video continuo de Puerta Principal, Zona de Pesas, Cardio y Recepción.",
-          "component": "nic"
+          "id": "pr_s1",
+          "name": "1. Recepción del Mapa Monocromático #000000",
+          "desc": "La placa ESC/POS recibe el ticket con CSS `#000000 !important` y `contrast(200%)` sin escalas de grises.",
+          "component": "pr_board"
         },
         {
           "n": 2,
-          "id": "dvr_s2",
-          "name": "2. Composición Cuadrícula 2×2 + Grabación",
-          "desc": "Guarda el flujo H.265+ en disco y genera la vista cuádruple 1080p.",
-          "component": "cpu"
+          "id": "pr_s2",
+          "name": "2. Alimentación de Papel Hansol 80mm (65g)",
+          "desc": "El rodillo tracciona el papel de alto gramaje hacia la línea de contacto térmico.",
+          "component": "pr_roll"
         },
         {
           "n": 3,
-          "id": "dvr_s3",
-          "name": "3. Inyección HDMI-USB a `/display.html`",
-          "desc": "Entrega el video en vivo al navegador de la Mini PC para mostrarlo a pantalla completa o en PiP.",
-          "component": "ram"
+          "id": "pr_s3",
+          "name": "3. Quemado Térmico a 203 DPI de Alta Densidad",
+          "desc": "El cabezal Rohm aplica calor pleno produciendo letras, montos y QR en negro intenso y duradero.",
+          "component": "pr_head"
+        },
+        {
+          "n": 4,
+          "id": "pr_s4",
+          "name": "4. Autocorte por Guillotina y Entrega",
+          "desc": "La cuchilla de acero corta el ticket automáticamente listo para entregar al socio.",
+          "component": "pr_cutter"
         }
       ],
       "ports": [
         {
-          "id": "cap_out",
-          "label": "Salida Capturadora HDMI-USB a Mini PC",
+          "id": "usb_in",
+          "label": "Puerto USB Tipo-B Impresión ESC/POS",
           "kind": "rj45",
-          "cable": "c_dvr_pc",
-          "peer": "minipc.usb_cap"
-        },
-        {
-          "id": "hdmi_direct",
-          "label": "Bus de Video CCTV hacia Smart TV",
-          "kind": "rj45",
-          "cable": "c_dvr_tv",
-          "peer": "tv.from_dvr"
+          "cable": "c_pc_printer",
+          "peer": "minipc_pos.usb_print"
         }
       ]
     },
     {
       "n": 5,
-      "id": "tv",
-      "label": "Smart TV del Gimnasio: Monitor CCTV 24/7 + PiP Automático + Alertas QR/Yape + Publicidad Rotativa",
-      "short": "5. Smart TV 55\" (CCTV + PiP + Alertas)",
-      "desc": "Reemplaza por completo la necesidad de comprar una Tablet adicional. Muestra las cámaras de seguridad a pantalla completa el 90% del tiempo y, cuando un socio pasa su QR o realiza un Yape, encoge las cámaras a una esquina Picture-in-Picture (PiP) por 5.5s para mostrar la bienvenida o el QR de pago. Además, cada X minutos lanza un Spot Publicitario del gimnasio por 16s.",
+      "id": "cctv_dome",
+      "label": "Cámaras Domo Infrarrojas Full HD 1080p del Gimnasio (Ingreso, Pesas, Cardio, Recepción)",
+      "short": "5. Cámaras CCTV 1080p (4 Zonas)",
+      "desc": "Conjunto de las 4 cámaras de videovigilancia ya instaladas en RD Fitness Club (Puerta Principal, Zona de Musculación, Zona Cardio y Caja). Capturan video continuo a 1080p día y noche y lo envían hacia el DVR para su visualización permanente y en Picture-in-Picture (PiP) en la Smart TV.",
       "specs": {
-        "ModoBase": "Cámaras de Seguridad CCTV 4 Canales a Pantalla Completa (90% del tiempo)",
-        "InterrupcionQR": "Prioridad Alta (5.5s): Bienvenida Socio, Salida o Alerta Roja de Vencimiento + Audio",
-        "ModoYape": "Prioridad Alta: Muestra QR Yape/Plin gigante con monto exacto y confirma el pago",
-        "ModoSpot": "Rotación Programada (cada 3 min por 16s): Planes, Tarifas y App Entrenador con CCTV en PiP"
+        "Cobertura": "4 Canales Activos (CAM 01 Ingreso, CAM 02 Pesas, CAM 03 Cardio, CAM 04 Caja)",
+        "Resolución": "Full HD 1080p (1920×1080) @ 30 fps con WDR real",
+        "Visión Nocturna": "Anillo Infrarrojo Smart-IR de 30 metros + Filtro IR-Cut",
+        "Integración TV": "Visible 100% del tiempo (Pantalla Completa 90% / Esquina PiP 10%)"
       },
       "internals": [
         {
-          "id": "pcb",
-          "label": "Placa base (PCB multicapa)",
-          "desc": "Circuito impreso multicapa con planos de tierra y buses de alta velocidad entre los componentes."
+          "id": "cam_pcb",
+          "label": "Placa de Captura y Transmisión HD",
+          "desc": "Procesa la señal del sensor óptico con aislamiento contra ruidos eléctricos."
         },
         {
-          "id": "cpu",
-          "label": "Conmutador Inteligente de Escena (TV Mode)",
-          "desc": "Alterna sin parpadeos entre Vista Completa CCTV, Alerta Prioritaria QR/Yape y Spot Publicitario."
+          "id": "cam_cmos",
+          "label": "Sensor CMOS Starlight 2MP 1080p",
+          "desc": "Alta sensibilidad lumínica para capturar rostros y movimientos nítidos en todo el gimnasio."
         },
         {
-          "id": "ram",
-          "label": "Motor Picture-in-Picture (PiP Flotante)",
-          "desc": "Mantiene las 4 cámaras visibles en la esquina inferior derecha mientras se proyecta una alerta o publicidad."
+          "id": "cam_lens",
+          "label": "Lente Gran Angular 2.8mm (106°) + IR-Cut",
+          "desc": "Cubre un ángulo panorámico completo de las máquinas de pesas y la puerta de acceso."
         },
         {
-          "id": "psu",
-          "label": "Sintetizador de Voz y Campanilla WebAudio",
-          "desc": "Emite el sonido de acceso concedido, alerta de membresía vencida o confirmación de Yape."
+          "id": "cam_ir",
+          "label": "Anillo Infrarrojo Smart-IR Automático",
+          "desc": "Regula la intensidad infrarroja para evitar sobreexposición en objetos cercanos."
         },
         {
-          "id": "nic",
-          "label": "Receptor HDMI 2.0 + Cliente SSE",
-          "desc": "Recibe la señal de `/display.html` con reconexión automática ante cualquier microcorte."
+          "id": "cam_dsp",
+          "label": "Procesador ISP WDR + 3D-DNR",
+          "desc": "Compensa el contraluz de la puerta de calle de Chivay para que el ingreso siempre se vea claro."
+        }
+      ],
+      "pipeline": [
+        {
+          "n": 1,
+          "id": "cm_s1",
+          "name": "1. Captura Óptica Gran Angular (4 Zonas)",
+          "desc": "Los lentes de 2.8mm vigilan simultáneamente Ingreso, Pesas, Cardio y Recepción.",
+          "component": "cam_lens"
         },
         {
-          "id": "storage",
-          "label": "Programador de Spots Publicitarios",
-          "desc": "Temporizador configurable (cada 2, 3, 5 o 10 min) que exhibe planes y promociones de RD Fitness Club."
+          "n": 2,
+          "id": "cm_s2",
+          "name": "2. Digitalización Full HD 1080p",
+          "desc": "El sensor Starlight entrega cuadros nítidos a 30 fps.",
+          "component": "cam_cmos"
         },
         {
-          "id": "fan",
-          "label": "Ventilador PWM de enfriamiento",
-          "desc": "Ventilador axial controlado por telemetría térmica que extrae el calor del chasis."
+          "n": 3,
+          "id": "cm_s3",
+          "name": "3. Compensación de Contraluz WDR y Envío al DVR",
+          "desc": "Envía el flujo de video continuo hacia el grabador DVR del gimnasio.",
+          "component": "cam_dsp"
+        }
+      ],
+      "ports": []
+    },
+    {
+      "n": 6,
+      "id": "dvr_capture",
+      "label": "Grabador DVR/NVR 4 Canales + Capturadora de Video HDMI-a-USB 3.0 Full HD",
+      "short": "6. DVR CCTV + Capturadora USB 3.0",
+      "desc": "Grabador de seguridad del gimnasio con disco duro interno WD Purple (de plato magnético cilíndrico) que graba las 24 horas. Su salida HDMI pasa por un Splitter y una Capturadora HDMI-a-USB 3.0 (S/ 45) hacia la Mini PC, logrando que el video en vivo de las cámaras se integre dentro de `/display.html` sin perder jamás la grabación ni la vigilancia.",
+      "specs": {
+        "Grabador": "DVR/XVR 4 Canales 1080p H.265+ con Disco WD Purple 24/7",
+        "Enlace a Mini PC": "Capturadora de Video HDMI-a-USB 3.0 UVC 1080p60 (Plug & Play)",
+        "Modo en `/display.html`": "Detección directa por navegador (`getUserMedia`) o Stream IP/MJPEG",
+        "Seguridad": "Grabación continua 24/7 independiente de lo que muestre la pantalla"
+      },
+      "internals": [
+        {
+          "id": "dvr_pcb",
+          "label": "Placa Madre DVR 4 Canales + AFE",
+          "desc": "Digitaliza las 4 entradas de cámaras con protección contra picos en los cables coaxiales."
+        },
+        {
+          "id": "dvr_hdd",
+          "label": "Disco Duro WD Purple 24/7 (Plato Magnético)",
+          "desc": "Almacenamiento de videovigilancia continua con plato giratorio de aluminio para grabación 24/7 sin pérdida de cuadros."
+        },
+        {
+          "id": "dvr_soc",
+          "label": "SoC Codificador H.265+ Multi-Vista 2×2",
+          "desc": "Comprime el video para el disco duro y compone en tiempo real el mosaico cuádruple de las 4 cámaras."
+        },
+        {
+          "id": "dvr_split",
+          "label": "Splitter HDMI Activo 1×2 (1080p60)",
+          "desc": "Divide la salida de video de alta definición sin caída de señal."
+        },
+        {
+          "id": "dvr_uvc",
+          "label": "Capturadora HDMI-a-USB 3.0 (Chip UVC)",
+          "desc": "Convierte la salida HDMI del DVR en un flujo USB 3.0 de 60 fps que `/display.html` muestra a pantalla completa y en modo PiP."
+        }
+      ],
+      "pipeline": [
+        {
+          "n": 1,
+          "id": "dv_s1",
+          "name": "1. Grabación Ininterrumpida 24/7 en WD Purple",
+          "desc": "Las 4 cámaras se graban en disco continuamente sin importar qué alerta o spot esté en la TV.",
+          "component": "dvr_hdd"
+        },
+        {
+          "n": 2,
+          "id": "dv_s2",
+          "name": "2. Generación de Cuadrícula 2×2 con Sello REC",
+          "desc": "El procesador H.265+ arma la vista de las 4 zonas del gimnasio en tiempo real.",
+          "component": "dvr_soc"
+        },
+        {
+          "n": 3,
+          "id": "dv_s3",
+          "name": "3. Inyección HDMI-a-USB 3.0 hacia `/display.html`",
+          "desc": "La capturadora entrega el video en vivo a la Mini PC para proyectarlo en la Smart TV 55\".",
+          "component": "dvr_uvc"
+        }
+      ],
+      "ports": [
+        {
+          "id": "usb_cap_out",
+          "label": "Salida Capturadora HDMI-USB 3.0 a Mini PC",
+          "kind": "rj45",
+          "cable": "c_dvr_pc",
+          "peer": "minipc_pos.usb_cap"
+        },
+        {
+          "id": "hdmi_tv_out",
+          "label": "Bus Video HDMI hacia Smart TV 55\"",
+          "kind": "rj45",
+          "cable": "c_dvr_tv",
+          "peer": "smart_tv_55.hdmi_from_dvr"
+        }
+      ]
+    },
+    {
+      "n": 7,
+      "id": "smart_tv_55",
+      "label": "Smart TV 55\" 4K del Gimnasio: Cámaras CCTV 24/7 + Ventana PiP + Alertas QR/Yape + Spot Publicitario",
+      "short": "7. Smart TV 55\" (CCTV + PiP + Spot)",
+      "desc": "Televisor panorámico vertical de 55 pulgadas del gimnasio que reemplaza por completo a la Tablet. El 90% del tiempo muestra las 4 cámaras de seguridad a pantalla completa. Cuando un socio escanea su QR o hace un Yape, las cámaras se encogen automáticamente a un recuadro Picture-in-Picture (PiP) en la esquina inferior derecha por 5.5s mientras aparece la bienvenida o el QR de pago. Además, cada 3 minutos proyecta un Spot Publicitario de 16s con los planes del gimnasio.",
+      "specs": {
+        "Formato Físico": "Pantalla Panorámica Vertical 50\"–55\" 4K UHD conectada por HDMI",
+        "Modo Base (90% tiempo)": "4 Cámaras CCTV del Gimnasio a Pantalla Completa en Vivo",
+        "Alertas Prioritarias (5.5s)": "Ingreso QR (Verde), Salida (Azul), Vencido (Rojo) y Cobro Yape/Plin con CCTV en PiP",
+        "Publicidad Rotativa (16s)": "Spot Automático cada 3 min (Planes S/5 y S/90 + App Socio) con CCTV en PiP"
+      },
+      "internals": [
+        {
+          "id": "tv_panel",
+          "label": "Matriz Vertical Direct-LED 55\" 4K UHD",
+          "desc": "Panel vertical de alto brillo (450 nits) visible desde las máquinas de pesas, cardio y recepción."
+        },
+        {
+          "id": "tv_tcon",
+          "label": "Placa T-CON 60Hz & Mainboard Smart TV",
+          "desc": "Controla el refresco de los 8.3 millones de píxeles sin parpadeos durante las transiciones."
+        },
+        {
+          "id": "tv_switcher",
+          "label": "Conmutador Inteligente de Escena (`display.html`)",
+          "desc": "Escucha el stream SSE `/api/screen/stream` y da prioridad absoluta a las entradas QR (5.5s) y cobros Yape."
+        },
+        {
+          "id": "tv_pip",
+          "label": "Motor Picture-in-Picture (PiP CCTV en Esquina)",
+          "desc": "Encoge suavemente las 4 cámaras a la esquina inferior derecha durante una alerta o anuncio para no perder vigilancia."
+        },
+        {
+          "id": "tv_rotator",
+          "label": "Programador de Spots Publicitarios (Cada 3 min)",
+          "desc": "Lanza automáticamente durante 16 segundos las tarifas, promociones y beneficios de RD Fitness Club y luego devuelve las cámaras a pantalla completa."
+        },
+        {
+          "id": "tv_audio",
+          "label": "Altavoces Estéreo 20W + Sintetizador WebAudio",
+          "desc": "Reproduce la campanilla de bienvenida, la alarma grave de membresía vencida y la fanfarria de pago Yape."
         }
       ],
       "pipeline": [
         {
           "n": 1,
           "id": "tv_s1",
-          "name": "1. Recepción de Video CCTV + Eventos SSE",
-          "desc": "Mantiene en pantalla las 4 cámaras del gimnasio y escucha eventos en `/api/screen/stream`.",
-          "component": "nic"
+          "name": "1. Monitoreo Base: 4 Cámaras CCTV a Pantalla Completa",
+          "desc": "El 90% del día la TV exhibe las 4 cámaras de seguridad del gimnasio en alta definición.",
+          "component": "tv_panel"
         },
         {
           "n": 2,
           "id": "tv_s2",
-          "name": "2. Transición Suave a Picture-in-Picture (PiP)",
-          "desc": "Al detectar un escaneo QR, cobro Yape o turno publicitario, reduce las cámaras al recuadro PiP.",
-          "component": "ram"
+          "name": "2. Activación Automática de Picture-in-Picture (PiP)",
+          "desc": "Ante un escaneo QR, cobro Yape o turno publicitario, las cámaras pasan al recuadro flotante PiP.",
+          "component": "tv_pip"
         },
         {
           "n": 3,
           "id": "tv_s3",
-          "name": "3. Proyección de Bienvenida / Yape / Spot",
-          "desc": "Muestra el nombre del socio y días restantes (5.5s) o el Spot Publicitario (16s) y luego restaura las cámaras.",
-          "component": "cpu"
+          "name": "3. Alerta de Bienvenida QR / Yape (5.5s)",
+          "desc": "Muestra en grande la foto del socio, sus días restantes o el QR de Yape con aviso sonoro.",
+          "component": "tv_switcher"
+        },
+        {
+          "n": 4,
+          "id": "tv_s4",
+          "name": "4. Spot Publicitario Rotativo (16s) y Retorno a CCTV",
+          "desc": "Cada 3 minutos proyecta los planes del gimnasio por 16s y restaura automáticamente las cámaras a pantalla completa.",
+          "component": "tv_rotator"
         }
       ],
       "ports": [
         {
-          "id": "from_dvr",
-          "label": "Entrada Video Cámaras CCTV",
+          "id": "hdmi_from_dvr",
+          "label": "HDMI 1 (Bus Video DVR CCTV)",
           "kind": "rj45",
           "cable": "c_dvr_tv",
-          "peer": "dvr.hdmi_direct"
+          "peer": "dvr_capture.hdmi_tv_out"
         },
         {
-          "id": "from_pc",
-          "label": "Entrada HDMI desde Mini PC (/display.html)",
+          "id": "hdmi_from_pc",
+          "label": "HDMI 2 (Desde Mini PC `/display.html`)",
           "kind": "rj45",
           "cable": "c_pc_tv",
-          "peer": "minipc.hdmi_tv"
+          "peer": "minipc_pos.hdmi_tv"
         }
       ]
     },
     {
-      "n": 6,
-      "id": "cloud",
-      "label": "Bóveda en la Nube Upstash Redis + Sincronización Google Sheets y WhatsApp",
-      "short": "6. Bóveda Cloud (Upstash Redis)",
-      "desc": "Respaldo externo instantáneo en la nube (`wise-pipefish-172734.upstash.io`). Garantiza que aunque la PC sufra un desperfecto físico, el 100% de socios, membresías, asistencias y caja estén a salvo y accesibles desde el celular del dueño.",
+      "n": 8,
+      "id": "cloud_vault",
+      "label": "Gateway de Fibra + Bóveda en la Nube Upstash Redis (`wise-pipefish-172734.upstash.io`)",
+      "short": "8. Gateway + Bóveda Cloud Redis",
+      "desc": "Router Gateway con 4 antenas cilíndricas de alta ganancia conectado a la Bóveda Serverless Upstash Redis y Google Sheets. Cada vez que se registra un socio, un pago o una asistencia en la Mini PC, replica el cambio en la nube cifrada para que el dueño pueda auditar su gimnasio en vivo desde su celular en cualquier lugar.",
       "specs": {
-        "MotorCloud": "Upstash Redis Serverless TLS (`wise-pipefish-172734.upstash.io`)",
-        "Arquitectura": "Write-Through Asíncrono + Auto-hidratación al arranque",
-        "Exportacion": "Sincronización con Google Sheets, Excel CSV UTF-8 BOM y Boletas WhatsApp",
-        "Seguridad": "Token REST Bearer + Copias cifradas AES-256-GCM"
+        "Nube Principal": "Upstash Redis Serverless TLS (`wise-pipefish-172734.upstash.io`)",
+        "Sincronización": "Write-Through Automático + Respaldo Local `backup-vault.json`",
+        "Reportes y Avisos": "Sincronización con Google Sheets + Boletas Digitales por WhatsApp",
+        "Continuidad": "Si se corta el internet en Chivay, opera local y sincroniza al reconectar"
       },
       "internals": [
         {
-          "id": "pcb",
-          "label": "Placa base (PCB multicapa)",
-          "desc": "Circuito impreso multicapa con planos de tierra y buses de alta velocidad entre los componentes."
+          "id": "cl_pcb",
+          "label": "Placa Gateway Fibra & Cifrado TLS 1.3",
+          "desc": "Gestiona las conexiones HTTPS persistentes hacia Upstash Redis y Google APIs."
         },
         {
-          "id": "cpu",
-          "label": "Motor Redis (`rd_fitness:vault:v4`)",
-          "desc": "Actualiza atómicamente el estado maestro del gimnasio en milisegundos."
+          "id": "cl_redis",
+          "label": "Motor Upstash Redis (`rd_fitness:vault:v4`)",
+          "desc": "Base de datos en memoria en la nube que conserva socios, membresías, caja y asistencias."
         },
         {
-          "id": "ram",
-          "label": "Caché Distribuida Multi-AZ",
-          "desc": "Sirve la App del Miembro (`/app`) y el panel gerencial móvil desde cualquier lugar."
+          "id": "cl_sync",
+          "label": "Motor de Sincronización Híbrida Offline-First",
+          "desc": "Encola cambios cuando no hay internet y los replica atómicamente al restablecerse la red."
         },
         {
-          "id": "psu",
-          "label": "Conector Webhook Google Sheets / WhatsApp",
-          "desc": "Permite exportar reportes ejecutivos y enviar comprobantes digitales al WhatsApp del socio."
+          "id": "cl_sheets",
+          "label": "Conector Google Sheets & Reportes Contables",
+          "desc": "Mantiene actualizada la hoja de cálculo en la nube y permite reimportar socios en 1 clic."
         },
         {
-          "id": "nic",
-          "label": "Gateway HTTPS / TLS 1.3 Serverless",
-          "desc": "Recibe las réplicas JSON comprimidas desde la Mini PC de recepción."
-        },
-        {
-          "id": "storage",
-          "label": "Persistencia Duradera + Snapshots",
-          "desc": "Almacena el historial contable, cierres de caja y auditoría anti-fraude."
-        },
-        {
-          "id": "fan",
-          "label": "Ventilador PWM de enfriamiento",
-          "desc": "Ventilador axial controlado por telemetría térmica que extrae el calor del chasis."
+          "id": "cl_wsp",
+          "label": "Pasarela WhatsApp (Boletas y Alertas de Vencimiento)",
+          "desc": "Envía comprobantes digitales y recordatorios de renovación directo al WhatsApp del socio."
         }
       ],
       "pipeline": [
         {
           "n": 1,
-          "id": "cloud_s1",
-          "name": "1. Ingesta Segura REST TLS 1.3",
-          "desc": "Recibe la actualización del estado tras cada cobro, registro o asistencia.",
-          "component": "nic"
+          "id": "cl_s1",
+          "name": "1. Recepción de Réplica Cifrada TLS 1.3",
+          "desc": "Recibe el paquete de actualización desde la Mini PC tras cada cobro o asistencia.",
+          "component": "cl_sync"
         },
         {
           "n": 2,
-          "id": "cloud_s2",
-          "name": "2. Commit Atómico en Bóveda Redis",
-          "desc": "Guarda la clave `rd_fitness:vault:v4` con replicación redundante.",
-          "component": "cpu"
+          "id": "cl_s2",
+          "name": "2. Commit Atómico en Upstash Redis Cloud",
+          "desc": "Actualiza la bóveda `rd_fitness:vault:v4` con respaldo instantáneo fuera del local.",
+          "component": "cl_redis"
         },
         {
           "n": 3,
-          "id": "cloud_s3",
-          "name": "3. Disponibilidad Móvil 24/7 para el Dueño",
-          "desc": "El propietario consulta reportes, ingresos y asistencias en vivo desde su celular.",
-          "component": "ram"
+          "id": "cl_s3",
+          "name": "3. Sincronización Móvil para el Dueño + WhatsApp",
+          "desc": "El propietario visualiza la caja y asistencias desde su celular y envía avisos por WhatsApp.",
+          "component": "cl_wsp"
         }
       ],
       "ports": [
         {
-          "id": "from_pc",
-          "label": "Enlace TLS 1.3 desde Mini PC",
+          "id": "wan_in",
+          "label": "Enlace Gigabit TLS desde Mini PC",
           "kind": "rj45",
           "cable": "c_pc_cloud",
-          "peer": "minipc.wan_cloud"
+          "peer": "minipc_pos.wan_cloud"
         }
       ]
     }
@@ -621,145 +709,159 @@
     {
       "id": "c_scan_pc",
       "medium": "PoE / alimentación",
-      "from": "scanner.usb_out",
-      "to": "minipc.usb_scan",
-      "length": 33.4
+      "from": "scanner_2d.usb_out",
+      "to": "minipc_pos.usb_scan",
+      "length": 39.4
     },
     {
-      "id": "c_pc_print",
+      "id": "c_pc_printer",
       "medium": "Ethernet",
-      "from": "minipc.usb_print",
-      "to": "printer.usb_in",
-      "length": 33.4
+      "from": "minipc_pos.usb_print",
+      "to": "thermal_printer.usb_in",
+      "length": 16.4
     },
     {
       "id": "c_dvr_pc",
       "medium": "Coaxial RF",
-      "from": "dvr.cap_out",
-      "to": "minipc.usb_cap",
-      "length": 106.4
+      "from": "dvr_capture.usb_cap_out",
+      "to": "minipc_pos.usb_cap",
+      "length": 156.4
     },
     {
       "id": "c_pc_tv",
       "medium": "WAN / enlace externo",
-      "from": "minipc.hdmi_tv",
-      "to": "tv.from_pc",
-      "length": 36.4
+      "from": "minipc_pos.hdmi_tv",
+      "to": "smart_tv_55.hdmi_from_pc",
+      "length": 320.4
     },
     {
       "id": "c_dvr_tv",
       "medium": "Ethernet",
-      "from": "dvr.hdmi_direct",
-      "to": "tv.from_dvr",
-      "length": 33.4
+      "from": "dvr_capture.hdmi_tv_out",
+      "to": "smart_tv_55.hdmi_from_dvr",
+      "length": 72.4
     },
     {
       "id": "c_pc_cloud",
       "medium": "PoE / alimentación",
-      "from": "minipc.wan_cloud",
-      "to": "cloud.from_pc",
-      "length": 106.4
+      "from": "minipc_pos.wan_cloud",
+      "to": "cloud_vault.wan_in",
+      "length": 265.4
     }
   ],
   "links": [
     {
-      "id": "member_qr",
-      "from": null,
-      "to": "scanner",
-      "label": "Celular / Carné QR del Socio"
+      "id": "opt_qr_beam",
+      "from": "member_phone",
+      "to": "scanner_2d",
+      "label": "Haz Óptico 2D Antirreflejo (Lectura QR en 0.1s)"
+    },
+    {
+      "id": "cctv_video_link",
+      "from": "cctv_dome",
+      "to": "dvr_capture",
+      "label": "Señal de 4 Cámaras CCTV Full HD 1080p"
     }
   ],
   "traces": [
     {
-      "id": "qr_checkin_tv",
-      "label": "1. Ingreso QR Instantáneo (0.1s): Socio ➔ Escáner 2D ➔ Mini PC ➔ Smart TV (PiP + Bienvenida) ➔ Cloud",
-      "seconds": 11.9,
+      "id": "trace_qr_checkin_pip",
+      "label": "1. Acceso QR Instantáneo (0.1s): Celular Socio ➔ Escáner 2D ➔ Mini PC ➔ Smart TV 55\" (Cámaras a PiP + Bienvenida)",
+      "seconds": 15.6,
       "steps": [
         {
           "n": 1,
+          "type": "inside",
+          "where": "member_phone",
+          "layer": "Credencial QR Socio",
+          "text": "El socio muestra su Carné Digital QR en la pantalla de su celular (o su tarjeta física PVC) frente al mostrador.",
+          "seconds": 2.4
+        },
+        {
+          "n": 2,
           "type": "link",
-          "where": "member_qr",
-          "layer": "Óptico QR 2D",
-          "text": "El socio acerca su celular o carné QR al lector 2D de recepción.",
+          "where": "opt_qr_beam",
+          "layer": "Lectura Óptica 2D (60 fps)",
+          "text": "El haz óptico antirreflejo captura el código QR en 0.1 segundos incluso con brillo de pantalla bajo.",
           "seconds": 1.4
         },
         {
-          "n": 2,
-          "type": "inside",
-          "where": "scanner",
-          "layer": "Decodificación 0.1s",
-          "text": "El sensor CMOS antirreflejo captura el QR en 0.1s, decodifica `RDFIT:SOCIO` y lo envía por USB-HID.",
-          "seconds": 2.6
-        },
-        {
-          "n": 3,
-          "type": "cable",
-          "where": "c_scan_pc",
-          "layer": "USB-HID Instantáneo",
-          "text": "La trama viaja por el cable USB blindado hacia la Mini PC de recepción.",
-          "seconds": 1.1
-        },
-        {
-          "n": 4,
-          "type": "inside",
-          "where": "minipc",
-          "layer": "Validación + Evento SSE",
-          "text": "La Mini PC verifica que la membresía está ACTIVA, registra la asistencia y dispara el evento `welcome` hacia la TV.",
-          "seconds": 2.6
-        },
-        {
-          "n": 5,
-          "type": "cable",
-          "where": "c_pc_tv",
-          "layer": "HDMI 1080p + SSE",
-          "text": "La señal viaja por el cable HDMI hacia la Smart TV del gimnasio.",
-          "seconds": 1.2
-        },
-        {
-          "n": 6,
-          "type": "inside",
-          "where": "tv",
-          "layer": "PiP CCTV + Bienvenida 5.5s",
-          "text": "La TV pasa las cámaras de seguridad a la esquina PiP, muestra la bienvenida con los días restantes del socio por 5.5s y luego vuelve a las cámaras a pantalla completa.",
-          "seconds": 3
-        }
-      ]
-    },
-    {
-      "id": "sale_print_cloud",
-      "label": "2. Cobro de Membresía / Yape + Boleta Térmica Negro Puro (#000000) + Respaldo Cloud",
-      "seconds": 12.6,
-      "steps": [
-        {
-          "n": 1,
-          "type": "inside",
-          "where": "minipc",
-          "layer": "POS Caja + Render #000000",
-          "text": "Recepción registra el pago (Efectivo/Yape/Plin) y genera la boleta con CSS monocromático 100% negro puro.",
-          "seconds": 2.6
-        },
-        {
-          "n": 2,
-          "type": "cable",
-          "where": "c_pc_print",
-          "layer": "USB ESC/POS 203 DPI",
-          "text": "El comprobante de alto contraste se envía por USB a la impresora térmica de 80mm.",
-          "seconds": 1.2
-        },
-        {
           "n": 3,
           "type": "inside",
-          "where": "printer",
-          "layer": "Impresión Alta Densidad",
-          "text": "El cabezal Rohm quema el papel térmico Hansol de 65g con negro intenso y corta el ticket automáticamente.",
+          "where": "scanner_2d",
+          "layer": "Decodificación ASIC 0.1s",
+          "text": "El sensor CMOS y el chip ASIC decodifican `RDFIT:SOCIO`, encienden el aro LED verde, emiten el beep y envían la trama por USB-HID.",
           "seconds": 2.8
         },
         {
           "n": 4,
+          "type": "cable",
+          "where": "c_scan_pc",
+          "layer": "USB-HID Instantáneo",
+          "text": "El código viaja por el cable USB blindado hacia la Mini PC de recepción.",
+          "seconds": 1.2
+        },
+        {
+          "n": 5,
           "type": "inside",
-          "where": "minipc",
-          "layer": "Replicación Híbrida",
-          "text": "En paralelo, la Mini PC empaqueta el nuevo estado contable y lo envía hacia Upstash Redis.",
+          "where": "minipc_pos",
+          "layer": "Validación + Evento SSE",
+          "text": "La Mini PC verifica la membresía activa en <2 ms, registra la asistencia y envía el evento `welcome` hacia la Smart TV.",
+          "seconds": 2.8
+        },
+        {
+          "n": 6,
+          "type": "cable",
+          "where": "c_pc_tv",
+          "layer": "HDMI 2.0 1080p + SSE",
+          "text": "Transmisión instantánea por el cable HDMI hacia la Smart TV de 55\" del gimnasio.",
+          "seconds": 1.6
+        },
+        {
+          "n": 7,
+          "type": "inside",
+          "where": "smart_tv_55",
+          "layer": "Smart TV: PiP + Bienvenida 5.5s",
+          "text": "La Smart TV pasa las 4 cámaras a la esquina flotante PiP, muestra la bienvenida con foto y días restantes durante 5.5s con sonido, y luego restaura las cámaras a pantalla completa.",
+          "seconds": 3.4
+        }
+      ]
+    },
+    {
+      "id": "trace_sale_thermal_cloud",
+      "label": "2. Cobro en Caja / Yape + Boleta Térmica 80mm Negro Puro (#000000) + Respaldo en Bóveda Cloud",
+      "seconds": 13.7,
+      "steps": [
+        {
+          "n": 1,
+          "type": "inside",
+          "where": "minipc_pos",
+          "layer": "Caja POS + Render #000000",
+          "text": "Recepción registra la venta o membresía (Efectivo/Yape/Plin) y formatea la boleta con CSS monocromático 100% negro puro.",
+          "seconds": 2.6
+        },
+        {
+          "n": 2,
+          "type": "cable",
+          "where": "c_pc_printer",
+          "layer": "USB ESC/POS 203 DPI",
+          "text": "El mapa de bits de alto contraste se envía a la impresora térmica de 80mm.",
+          "seconds": 1.2
+        },
+        {
+          "n": 3,
+          "type": "inside",
+          "where": "thermal_printer",
+          "layer": "Termo-Impresión 65g + Autocorte",
+          "text": "El rollo cilíndrico Hansol de 65g avanza, el cabezal Rohm quema las letras y el QR con negro intenso y la guillotina corta el ticket.",
+          "seconds": 3.4
+        },
+        {
+          "n": 4,
+          "type": "inside",
+          "where": "minipc_pos",
+          "layer": "Persistencia Dual",
+          "text": "Simultáneamente, la Mini PC guarda en su SSD NVMe y despacha la copia cifrada hacia la nube.",
           "seconds": 2
         },
         {
@@ -767,63 +869,79 @@
           "type": "cable",
           "where": "c_pc_cloud",
           "layer": "HTTPS TLS 1.3",
-          "text": "Sincronización cifrada hacia la nube.",
-          "seconds": 1.2
+          "text": "Enlace seguro hacia el Gateway y la Bóveda Cloud.",
+          "seconds": 1.5
         },
         {
           "n": 6,
           "type": "inside",
-          "where": "cloud",
-          "layer": "Cloud Vault Sync",
-          "text": "Upstash Redis confirma el respaldo en la nube: el dueño ya ve el ingreso en tiempo real desde su celular.",
-          "seconds": 2.8
+          "where": "cloud_vault",
+          "layer": "Upstash Redis + WhatsApp",
+          "text": "Upstash Redis y Google Sheets quedan actualizados al instante y se habilita el envío del comprobante digital al WhatsApp del socio.",
+          "seconds": 3
         }
       ]
     },
     {
-      "id": "cctv_rotative_spot",
-      "label": "3. Ciclo Smart TV: Cámaras CCTV 24/7 (DVR) ➔ Spot Publicitario Programado (16s con PiP) ➔ Retorno a CCTV",
-      "seconds": 10,
+      "id": "trace_cctv_rotative_spot",
+      "label": "3. Ciclo Continuo CCTV + Publicidad: 4 Cámaras 1080p ➔ DVR + Capturadora USB ➔ Smart TV 55\" (Spot Rotativo 16s con PiP)",
+      "seconds": 14.7,
       "steps": [
         {
           "n": 1,
           "type": "inside",
-          "where": "dvr",
-          "layer": "CCTV 4 Canales 1080p",
-          "text": "El DVR graba las 4 cámaras 24/7 y entrega la señal de video por la capturadora HDMI-USB.",
+          "where": "cctv_dome",
+          "layer": "4 Cámaras 1080p Activas",
+          "text": "Las 4 cámaras domo infrarrojas capturan en vivo Puerta Principal, Zona Pesas, Cardio y Recepción.",
           "seconds": 2.6
         },
         {
           "n": 2,
-          "type": "cable",
-          "where": "c_dvr_pc",
-          "layer": "Video USB 3.0 UVC 60fps",
-          "text": "El flujo de las cámaras ingresa a la Mini PC para integrarse en `/display.html`.",
-          "seconds": 1.2
+          "type": "link",
+          "where": "cctv_video_link",
+          "layer": "Video Coaxial / IP 1080p",
+          "text": "Las señales de video llegan de forma continua al grabador DVR.",
+          "seconds": 1.3
         },
         {
           "n": 3,
           "type": "inside",
-          "where": "dvr",
-          "layer": "Matriz de Video CCTV",
-          "text": "El enlace directo de video mantiene sincronizada la cuadrícula 2×2 de vigilancia.",
-          "seconds": 1.8
+          "where": "dvr_capture",
+          "layer": "Grabación WD Purple + Captura USB 3.0",
+          "text": "El disco WD Purple graba 24/7 mientras la capturadora HDMI-USB 3.0 inyecta el mosaico 2×2 hacia la Mini PC.",
+          "seconds": 3
         },
         {
           "n": 4,
           "type": "cable",
-          "where": "c_dvr_tv",
-          "layer": "Bus Video CCTV",
-          "text": "Transmisión continua hacia la Smart TV.",
-          "seconds": 1.2
+          "where": "c_dvr_pc",
+          "layer": "Stream UVC 1080p60",
+          "text": "El flujo de las 4 cámaras ingresa por USB 3.0 a la Mini PC para integrarse en `/display.html`.",
+          "seconds": 1.4
         },
         {
           "n": 5,
           "type": "inside",
-          "where": "tv",
-          "layer": "Spot Rotativo 16s + CCTV PiP",
-          "text": "Cada 3 minutos la TV lanza automáticamente el Spot Publicitario de RD Fitness Club durante 16 segundos (manteniendo las cámaras en la esquina PiP) y al terminar regresa a las cámaras a pantalla completa.",
-          "seconds": 3.2
+          "where": "dvr_capture",
+          "layer": "Bus Directo HDMI CCTV",
+          "text": "Enlace de respaldo de video de alta definición hacia la Smart TV.",
+          "seconds": 1.8
+        },
+        {
+          "n": 6,
+          "type": "cable",
+          "where": "c_dvr_tv",
+          "layer": "Señal Video CCTV",
+          "text": "Llegada al panel panorámico de 55 pulgadas.",
+          "seconds": 1.2
+        },
+        {
+          "n": 7,
+          "type": "inside",
+          "where": "smart_tv_55",
+          "layer": "Spot Programado 16s + Retorno CCTV",
+          "text": "Cada 3 minutos la TV lanza automáticamente el Spot Publicitario de RD Fitness Club durante 16s (con las cámaras visibles en la esquina PiP) y al finalizar restaura las 4 cámaras a pantalla completa.",
+          "seconds": 3.4
         }
       ]
     }
