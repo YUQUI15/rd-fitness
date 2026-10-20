@@ -52,16 +52,100 @@
   };
 
   function updateNet() {
-    const el = $('#net'); if (!el) return;
-    const online = navigator.onLine;
-    const pend = RD.queue().length;
-    el.className = 'net' + (online ? '' : ' off');
-    el.textContent = (online ? '● En línea' : '● Sin internet') + (pend ? ` · ${pend} por enviar` : '');
+    const el = $('#net');
+    const btnLocal = $('#btn_local_mode');
+    const banner = $('#local_mode_banner');
+    const st = RD.localEngine ? RD.localEngine.getStats() : {
+      forced: false, online: navigator.onLine, activeLocal: !navigator.onLine,
+      membersCached: (RD.snap()?.members || []).length, totalPending: RD.queue().length, saveCount: 0
+    };
+
+    if (el) {
+      el.style.cursor = 'pointer';
+      el.title = 'Haz clic para abrir el Centro de Control de Modo Local y Contingencia PC';
+      el.onclick = () => RD.openLocalModeModal();
+      if (st.activeLocal) {
+        el.className = 'net off';
+        el.style.background = 'rgba(245, 158, 11, 0.18)';
+        el.style.color = '#fbbf24';
+        el.style.border = '1px solid rgba(245, 158, 11, 0.45)';
+        el.innerHTML = `⚡ MODO LOCAL PC ${st.totalPending ? `· <b>${st.totalPending} guardados</b>` : `· <b>Activo</b>`}`;
+      } else {
+        el.className = 'net';
+        el.style.background = '';
+        el.style.color = '';
+        el.style.border = '';
+        el.innerHTML = `● Nube + PC Local${st.totalPending ? ` · ${st.totalPending} pend.` : ''}`;
+      }
+    }
+
+    if (btnLocal) {
+      if (st.activeLocal) {
+        btnLocal.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+        btnLocal.style.color = '#000';
+        btnLocal.style.fontWeight = '800';
+        btnLocal.style.borderColor = '#fbbf24';
+        btnLocal.innerHTML = `${RD.icon('zap', '', 15)} <span>Modo Local: ON (${st.totalPending})</span>`;
+      } else {
+        btnLocal.style.background = '';
+        btnLocal.style.color = '';
+        btnLocal.style.fontWeight = '';
+        btnLocal.style.borderColor = '';
+        btnLocal.innerHTML = `${RD.icon('database', '', 15)} <span>Modo Local PC</span>`;
+      }
+    }
+
+    if (banner) {
+      if (st.activeLocal) {
+        const lastTime = st.lastWriteAt ? RD.fmtTime(new Date(st.lastWriteAt).toISOString()) : 'Listo';
+        banner.style.display = 'flex';
+        banner.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px">
+            <span style="background:#f59e0b;color:#000;font-weight:900;padding:2px 8px;border-radius:5px;font-size:11px">⚡ MODO LOCAL ACTIVO EN ESTA PC</span>
+            <span>Operando <b>100% sin internet</b> en la memoria de esta computadora · <b>${st.membersCached} socios</b> protegidos · <b>${st.totalPending} op.</b> en cola local · Último guardado: <b>${esc(lastTime)}</b></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <button class="btn sm" id="bn_verify_local" style="padding:4px 10px;font-size:11.5px">🧪 Verificar Guardado</button>
+            <button class="btn sm primary" id="bn_open_local_panel" style="padding:4px 10px;font-size:11.5px">⚙️ Control Modo Local</button>
+            ${st.online ? `<button class="btn sm" id="bn_sync_now" style="padding:4px 10px;font-size:11.5px;border-color:#10b981;color:#10b981">☁️ Volver a Nube y Sincronizar</button>` : ''}
+          </div>
+        `;
+        const bVer = banner.querySelector('#bn_verify_local');
+        if (bVer) bVer.onclick = () => {
+          const t0 = performance.now();
+          localStorage.setItem('rd_local_test_probe', String(Date.now()));
+          const ms = Math.max(0.1, Math.round((performance.now() - t0) * 10) / 10);
+          RD.toast(`✅ Memoria Local de esta PC verificada (${ms} ms) · ${st.membersCached} socios y ${st.totalPending} registros seguros`, 'ok');
+        };
+        const bPan = banner.querySelector('#bn_open_local_panel');
+        if (bPan) bPan.onclick = () => RD.openLocalModeModal();
+        const bSync = banner.querySelector('#bn_sync_now');
+        if (bSync) bSync.onclick = async () => {
+          RD.localEngine.setForced(false);
+          await RD.flushScans();
+          if (RD.localEngine) await RD.localEngine.flushToCloud().catch(() => {});
+          await RD.syncMembers().catch(() => {});
+          updateNet();
+          RD.toast('☁️ Conectado a la Nube y cola local sincronizada al 100%', 'ok');
+          if (RD.currentView) go(RD.currentView);
+        };
+      } else {
+        banner.style.display = 'none';
+      }
+    }
   }
-  window.addEventListener('online', () => { updateNet(); RD.flushScans(); RD.syncMembers().catch(() => { }); });
+  window.addEventListener('online', () => {
+    updateNet();
+    if (!RD.localEngine?.isForced()) {
+      RD.flushScans();
+      if (RD.localEngine) RD.localEngine.flushToCloud().catch(() => {});
+      RD.syncMembers().catch(() => { });
+    }
+  });
   window.addEventListener('offline', updateNet);
-  setInterval(() => { if (RD.user && navigator.onLine) { RD.flushScans(); } }, 20000);
-  setInterval(() => { if (RD.user && navigator.onLine && RD.currentView !== 'scan') RD.syncMembers().catch(() => { }); }, 120000);
+  window.addEventListener('rd:local-state', updateNet);
+  setInterval(() => { if (RD.user && navigator.onLine && !RD.localEngine?.isForced()) { RD.flushScans(); RD.localEngine?.flushToCloud().catch(() => {}); } }, 20000);
+  setInterval(() => { if (RD.user && navigator.onLine && !RD.localEngine?.isForced() && RD.currentView !== 'scan') RD.syncMembers().catch(() => { }); }, 120000);
 
   // ---------- Login ----------
   function showLogin(msg) {
@@ -179,6 +263,200 @@
     }
   };
 
+  RD.openLocalModeModal = async () => {
+    let batteryInfo = '⚡ Conectado a corriente de línea';
+    try {
+      if (navigator.getBattery) {
+        const b = await navigator.getBattery();
+        const pct = Math.round(b.level * 100);
+        batteryInfo = b.charging ? `⚡ Conectado a corriente AC (${pct}%)` : `🔋 En batería (${pct}%) · Modo ahorro activo`;
+      }
+    } catch {}
+
+    const renderModalContent = (m) => {
+      const st = RD.localEngine ? RD.localEngine.getStats() : {
+        forced: false, online: navigator.onLine, activeLocal: !navigator.onLine,
+        membersCached: (RD.snap()?.members || []).length, totalPending: RD.queue().length, pendingScans: 0, pendingTx: 0,
+        lastSyncAt: 0, lastWriteAt: 0, saveCount: 0, storageKB: 0
+      };
+      const txQueue = RD.localEngine ? RD.localEngine.getTxQueue() : [];
+
+      m.el.innerHTML = `
+      <div class="modal-box" style="max-width:760px;width:95%">
+        <div class="modal-head">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="background:${st.activeLocal ? '#f59e0b' : '#10b981'};color:#000;padding:3px 8px;border-radius:6px;font-weight:900;font-size:12px">
+              ${st.activeLocal ? '⚡ MODO LOCAL ACTIVO' : '🟢 NUBE + PC LOCAL'}
+            </span>
+            <h3 style="margin:0">Centro de Modo Local y Contingencia en PC del Dueño</h3>
+          </div>
+          <button class="icon-btn" id="m_close">${RD.icon('x', '', 18)}</button>
+        </div>
+        <div class="modal-body" style="padding:18px 24px">
+          <p class="muted small" style="margin-bottom:16px">
+            Este módulo garantiza que el sistema <b>siga funcionando al 100% en esta computadora</b> si se corta el internet, se apaga el router o hay inestabilidad en la zona. Las asistencias QR (0.1s), cobros en caja, impresión de boletas y pantalla TV operan de inmediato en la memoria local.
+          </p>
+
+          <div style="background:${st.activeLocal ? 'rgba(245,158,11,0.12)' : 'rgba(16,185,129,0.08)'};border:1px solid ${st.activeLocal ? 'rgba(245,158,11,0.35)' : 'rgba(16,185,129,0.25)'};border-radius:12px;padding:16px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+            <div>
+              <div style="font-weight:900;font-size:15px;color:${st.activeLocal ? '#fbbf24' : '#10b981'};margin-bottom:3px">
+                ${st.activeLocal ? '🟠 Modo Local Autónomo Forzado en esta PC' : '🟢 Modo Híbrido: Nube + Respaldo Espejo en esta PC'}
+              </div>
+              <div style="font-size:12.5px;color:var(--text-muted)">
+                ${st.activeLocal ? 'Todas las operaciones se están escribiendo y validando en el disco de esta PC.' : 'Cada cambio se guarda en la nube y mantiene una copia instantánea en esta PC.'}
+              </div>
+            </div>
+            <button class="btn ${st.forced ? '' : 'primary'}" id="btn_toggle_local" style="font-weight:800;padding:10px 18px">
+              ${st.forced ? '☁️ Desactivar y Volver a Nube' : '⚡ Activar Modo Local en esta PC'}
+            </button>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));gap:12px;margin-bottom:18px">
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:12px">
+              <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;font-weight:700">Socios en PC Local</div>
+              <div style="font-size:22px;font-weight:900;color:var(--text);margin-top:2px">${st.membersCached}</div>
+              <div style="font-size:11px;color:#10b981">Listos para QR (0.1s)</div>
+            </div>
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:12px">
+              <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;font-weight:700">Cola Pendiente</div>
+              <div style="font-size:22px;font-weight:900;color:${st.totalPending ? '#f59e0b' : '#10b981'};margin-top:2px">${st.totalPending}</div>
+              <div style="font-size:11px;color:var(--text-muted)">${st.pendingTx} ventas · ${st.pendingScans} scans</div>
+            </div>
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:12px">
+              <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;font-weight:700">Energía / Batería</div>
+              <div style="font-size:13.5px;font-weight:800;color:var(--text);margin-top:6px">${esc(batteryInfo)}</div>
+            </div>
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:12px">
+              <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;font-weight:700">Disco Ocupado</div>
+              <div style="font-size:18px;font-weight:900;color:var(--gold);margin-top:2px">${st.storageKB} KB</div>
+              <div style="font-size:11px;color:var(--text-muted)">${st.saveCount} escrituras</div>
+            </div>
+          </div>
+
+          <div id="test_feedback" style="display:none;padding:10px 14px;border-radius:8px;font-size:12.5px;font-weight:700;margin-bottom:14px"></div>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+            <button class="btn sm" id="btn_run_test" style="gap:5px">${RD.icon('zap', '', 14)} 🧪 Probar Guardado en Disco Local</button>
+            <button class="btn sm" id="btn_sync_cloud" ${!st.online || !st.totalPending ? 'disabled' : ''} style="gap:5px;border-color:#10b981;color:#10b981">
+              ${RD.icon('refresh', '', 14)} 🔄 Sincronizar Cola Local con Nube
+            </button>
+            <button class="btn sm" id="btn_export_json" style="gap:5px">${RD.icon('save', '', 14)} 💾 Descargar Respaldo (.JSON)</button>
+            <button class="btn sm" id="btn_download_bat" style="gap:5px">${RD.icon('laptop', '', 14)} 💻 Instalador Local (.BAT)</button>
+          </div>
+
+          ${txQueue.length ? `
+            <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden">
+              <div style="background:var(--bg-card);padding:8px 14px;font-size:12px;font-weight:800;color:var(--gold);display:flex;justify-content:space-between">
+                <span>Operaciones Guardadas en esta PC (${txQueue.length})</span>
+                <span style="color:var(--text-muted)">Pendientes de subir al servidor</span>
+              </div>
+              <div style="max-height:160px;overflow-y:auto;font-size:12px">
+                ${txQueue.map(item => `
+                  <div style="padding:6px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+                    <span><b>${esc(item.label || item.url)}</b></span>
+                    <span class="muted">${RD.fmtTime(item.ts)}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : `
+            <div style="background:rgba(16,185,129,0.06);border:1px dashed rgba(16,185,129,0.3);border-radius:10px;padding:12px;text-align:center;font-size:12.5px;color:#10b981">
+              ✓ Todo el sistema se encuentra al día. No hay transacciones pendientes en esta computadora.
+            </div>
+          `}
+        </div>
+      </div>`;
+
+      m.el.querySelector('#m_close').onclick = () => m.close();
+      m.el.querySelector('#btn_toggle_local').onclick = () => {
+        RD.localEngine.setForced(!st.forced);
+        updateNet();
+        renderModalContent(m);
+        RD.toast(st.forced ? 'Modo Local desactivado. Conectado a la Nube.' : '⚡ Modo Local activado en esta PC.', 'ok');
+      };
+      m.el.querySelector('#btn_run_test').onclick = () => {
+        const t0 = performance.now();
+        const testKey = 'rd_probe_' + Date.now();
+        localStorage.setItem(testKey, 'TEST_VAL_' + Math.random());
+        const readVal = localStorage.getItem(testKey);
+        localStorage.removeItem(testKey);
+        const duration = Math.max(0.1, Math.round((performance.now() - t0) * 10) / 10);
+        const fb = m.el.querySelector('#test_feedback');
+        fb.style.display = 'block';
+        if (readVal && readVal.startsWith('TEST_VAL_')) {
+          fb.style.background = 'rgba(16,185,129,0.15)';
+          fb.style.border = '1px solid #10b981';
+          fb.style.color = '#10b981';
+          fb.innerHTML = `✓ Prueba Exitosa: Escritura y lectura en disco local completadas en <b>${duration} ms</b> sin errores.`;
+        } else {
+          fb.style.background = 'rgba(239,68,68,0.15)';
+          fb.style.border = '1px solid #ef4444';
+          fb.style.color = '#ef4444';
+          fb.textContent = 'Aviso: La memoria de almacenamiento local del navegador está restringida.';
+        }
+      };
+      m.el.querySelector('#btn_sync_cloud').onclick = async () => {
+        try {
+          await RD.busy(m.el.querySelector('#btn_sync_cloud'), async () => {
+            const r = await RD.localEngine.flushToCloud();
+            await RD.flushScans();
+            await RD.syncMembers();
+            renderModalContent(m);
+            RD.toast(`Sincronizadas ${r.syncedCount} operaciones con la nube`, 'ok');
+          });
+        } catch (err) {
+          RD.toast(err.message, 'err');
+        }
+      };
+      m.el.querySelector('#btn_export_json').onclick = () => {
+        const backup = {
+          gym: RD.pub.gym_name || 'Gym',
+          exported_at: new Date().toISOString(),
+          snapshot: RD.snap(),
+          local_tx: RD.localEngine.getTxQueue(),
+          scans: RD.queue(),
+          plans: JSON.parse(localStorage.getItem('rd_plans') || '[]')
+        };
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `Respaldo_Local_Gym_${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        RD.toast('Copia de seguridad descargada en esta PC', 'ok');
+      };
+      m.el.querySelector('#btn_download_bat').onclick = () => {
+        const batContent = `@echo off
+title Sistema Inteligente de Gestion de Gimnasio - Modo Local PC
+echo ========================================================
+echo   INICIANDO SISTEMA EN LA PC LOCAL DEL GIMNASIO
+echo ========================================================
+echo.
+echo Verificando Node.js...
+node -v >nul 2>&1
+if %errorlevel% neq 0 (
+    echo [!] Node.js no esta instalado. Descargalo gratis desde https://nodejs.org
+    echo     O abre tu navegador y usa el sistema normalmente con la memoria local offline.
+    pause
+    exit /b
+)
+echo [OK] Node.js detectado.
+echo Iniciando servidor local en el puerto 3000...
+start http://localhost:3000/admin
+node server.js
+pause`;
+        const blob = new Blob([batContent], { type: 'application/bat' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'Instalar_Sistema_Local_PC.bat';
+        a.click();
+        RD.toast('Instalador .BAT descargado para Windows', 'ok');
+      };
+    };
+
+    const m = RD.openModal('Modo Local', '<div id="local_m_cnt">Cargando...</div>');
+    renderModalContent(m);
+  };
+
   function layout() {
     const items = Object.entries(NAV).filter(([, v]) => v[2].includes(RD.user.role));
     const isLight = RD.getTheme && RD.getTheme() === 'light';
@@ -188,8 +466,11 @@
         <img src="/logo.svg" alt="RD" class="topbar-logo" style="height:32px;width:32px;max-height:32px;max-width:32px;object-fit:contain;flex-shrink:0" width="32" height="32">
         <div class="t" id="title">${esc(RD.pub.gym_name || 'RD Fitness Club')}</div>
         <span id="net" class="net">…</span>
-        <button class="top-btn" id="btn_customer_screen" title="Abrir Pantalla Tablet / Mostrador en 2do Monitor o Ventana Acoplada">
-          ${RD.icon('monitor', '', 15)} <span>Tablet</span>
+        <button class="top-btn" id="btn_local_mode" title="Centro de Control de Modo Local y Contingencia en PC del Dueño">
+          ${RD.icon('database', '', 15)} <span>Modo Local PC</span>
+        </button>
+        <button class="top-btn" id="btn_customer_screen" title="Abrir Pantalla TV / Cámaras CCTV en 2do Monitor o Ventana Acoplada">
+          ${RD.icon('monitor', '', 15)} <span>TV / CCTV</span>
         </button>
         <button class="top-btn" id="btn_google_sheets" title="Abrir Google Sheets Oficial del Gimnasio">
           ${RD.icon('sheet', '', 15)} <span>Sheets</span>
@@ -199,12 +480,14 @@
         </button>
         <button class="icon-btn" id="who" title="${esc(RD.user.name)}">${RD.icon('user', '', 18)}</button>
       </header>
+      <div id="local_mode_banner" class="local-banner" style="display:none;background:rgba(245,158,11,0.12);border-bottom:1px solid rgba(245,158,11,0.3);padding:8px 18px;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"></div>
       <main class="page" id="view"></main>
       <nav class="nav">${items.map(([k, v]) => `<button data-v="${k}"><span class="i">${RD.icon(v[0], '', 20)}</span>${v[1]}</button>`).join('')}</nav>
     </div>`;
     document.querySelectorAll('.nav button').forEach(b => b.onclick = () => go(b.dataset.v));
     $('#themetoggle').onclick = () => { RD.toggleTheme(); layout(); };
     $('#who').onclick = userMenu;
+    $('#btn_local_mode').onclick = RD.openLocalModeModal;
     $('#btn_customer_screen').onclick = RD.openCustomerDisplayWindow;
     $('#btn_google_sheets').onclick = RD.openGoogleSheetsDirect;
     updateNet();

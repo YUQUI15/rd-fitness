@@ -1898,20 +1898,40 @@
         }
       });
 
-      // ---------------- Sincronización en Tiempo Real (SSE Stream) ----------------
+      // ---------------- Sincronización en Tiempo Real (SSE Stream + Bus Local PC Sin Internet) ----------------
       function connectSSE() {
-        const es = new EventSource('/api/screen/stream');
-        es.onmessage = e => {
-          try {
-            const data = JSON.parse(e.data);
-            render(data);
-          } catch {}
-        };
-        es.onerror = () => {
-          es.close();
-          setTimeout(connectSSE, 3000);
-        };
+        try {
+          const es = new EventSource('/api/screen/stream');
+          es.onmessage = e => {
+            try {
+              const data = JSON.parse(e.data);
+              render(data);
+            } catch {}
+          };
+          es.onerror = () => {
+            es.close();
+            setTimeout(connectSSE, 3000);
+          };
+        } catch {}
       }
+
+      // Bus Local Instantáneo en la PC del Dueño (Funciona 100% Sin Internet entre Caja y Smart TV)
+      try {
+        if (typeof BroadcastChannel !== 'undefined') {
+          const localBus = new BroadcastChannel('rd_local_screen_bus');
+          localBus.onmessage = ev => {
+            if (ev && ev.data && ev.data.mode) render(ev.data);
+          };
+        }
+      } catch {}
+      window.addEventListener('storage', ev => {
+        if (ev.key === 'rd_local_screen_event' && ev.newValue) {
+          try {
+            const payload = JSON.parse(ev.newValue);
+            if (payload && payload.mode) render(payload);
+          } catch {}
+        }
+      });
 
       // Inicialización
       buildCctvGrid();

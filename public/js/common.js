@@ -218,9 +218,230 @@
     return { level: 'denied', reason: `Vencida hace ${-left} día${-left === 1 ? '' : 's'}`, daysLeft: left };
   };
 
+  // ---------- Motor de Contingencia y Persistencia Local en la PC del Dueño (Modo Local / Offline-First) ----------
+  const LOCAL_TX_KEY = 'rd_local_tx_queue_v1';
+  const LOCAL_FORCE_KEY = 'rd_force_local_mode';
+  const LOCAL_SYNC_TS_KEY = 'rd_local_last_sync_at';
+  const LOCAL_WRITE_TS_KEY = 'rd_local_last_write_at';
+  const LOCAL_SAVE_COUNT_KEY = 'rd_local_save_count';
+
+  let localScreenBus = null;
+  try {
+    if (typeof BroadcastChannel !== 'undefined') {
+      localScreenBus = new BroadcastChannel('rd_local_screen_bus');
+    }
+  } catch {}
+
+  RD.localEngine = {
+    isForced: () => localStorage.getItem(LOCAL_FORCE_KEY) === '1',
+    setForced: (on) => {
+      if (on) localStorage.setItem(LOCAL_FORCE_KEY, '1');
+      else localStorage.removeItem(LOCAL_FORCE_KEY);
+      window.dispatchEvent(new CustomEvent('rd:local-state'));
+    },
+    isLocalActive: () => RD.localEngine.isForced() || !navigator.onLine,
+    getTxQueue: () => {
+      try { return JSON.parse(localStorage.getItem(LOCAL_TX_KEY) || '[]'); } catch { return []; }
+    },
+    getStats: () => {
+      const snap = (() => { try { return JSON.parse(localStorage.getItem('rd_snapshot') || 'null'); } catch { return null; } })();
+      const scanQ = (() => { try { return JSON.parse(localStorage.getItem('rd_scanq') || '[]'); } catch { return []; } })();
+      const txQ = RD.localEngine.getTxQueue();
+      let storageKB = 0;
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          storageKB += ((k ? k.length : 0) + (localStorage.getItem(k) || '').length) * 2 / 1024;
+        }
+      } catch {}
+      return {
+        forced: RD.localEngine.isForced(),
+        online: navigator.onLine,
+        activeLocal: RD.localEngine.isLocalActive(),
+        membersCached: snap?.members?.length || 0,
+        pendingScans: scanQ.length,
+        pendingTx: txQ.length,
+        totalPending: scanQ.length + txQ.length,
+        lastSyncAt: Number(localStorage.getItem(LOCAL_SYNC_TS_KEY) || snap?.at || 0),
+        lastWriteAt: Number(localStorage.getItem(LOCAL_WRITE_TS_KEY) || 0),
+        saveCount: Number(localStorage.getItem(LOCAL_SAVE_COUNT_KEY) || 0),
+        storageKB: Math.round(storageKB * 10) / 10
+      };
+    },
+    broadcastScreen: (payload) => {
+      try {
+        if (localScreenBus) localScreenBus.postMessage(payload);
+        localStorage.setItem('rd_local_screen_event', JSON.stringify({ ...payload, _ts: Date.now() }));
+      } catch {}
+    },
+    saveCache: (url, data) => {
+      try {
+        const cleanKey = 'rd_lcache_' + url.split('?')[0];
+        localStorage.setItem(cleanKey, JSON.stringify(data));
+        localStorage.setItem(LOCAL_SYNC_TS_KEY, String(Date.now()));
+        const cnt = Number(localStorage.getItem(LOCAL_SAVE_COUNT_KEY) || 0) + 1;
+        localStorage.setItem(LOCAL_SAVE_COUNT_KEY, String(cnt));
+      } catch {}
+    },
+    readCache: (url) => {
+      try {
+        const cleanKey = 'rd_lcache_' + url.split('?')[0];
+        const raw = localStorage.getItem(cleanKey);
+        if (raw) return JSON.parse(raw);
+      } catch {}
+      // Fallbacks inteligentes si no había caché previo de esa ruta específica
+      const base = url.split('?')[0];
+      if (base === '/plans') {
+        try { return JSON.parse(localStorage.getItem('rd_plans') || '[]'); } catch { return []; }
+      }
+      if (base === '/sync/members') {
+        try { return JSON.parse(localStorage.getItem('rd_snapshot') || '{"members":[],"now":' + Date.now() + '}'); } catch { return { members: [], now: Date.now() }; }
+      }
+      if (base === '/members') {
+        try {
+          const snap = JSON.parse(localStorage.getItem('rd_snapshot') || 'null');
+          return { members: snap?.members || [], total: (snap?.members || []).length };
+        } catch { return { members: [], total: 0 }; }
+      }
+      if (base === '/cash/current') {
+        try { return JSON.parse(localStorage.getItem('rd_lcache_/cash/current') || '{"open":null,"movements":[]}'); } catch { return { open: null, movements: [] }; }
+      }
+      return {};
+    },
+    recordLocalWrite: (method, url, body) => {
+      const q = RD.localEngine.getTxQueue();
+      const label = RD.localEngine.describeTx(method, url, body);
+      const item = {
+        id: RD.uid(),
+        ts: new Date().toISOString(),
+        method,
+        url,
+        body: body || {},
+        label
+      };
+      q.push(item);
+      try {
+        localStorage.setItem(LOCAL_TX_KEY, JSON.stringify(q));
+        localStorage.setItem(LOCAL_WRITE_TS_KEY, String(Date.now()));
+        const cnt = Number(localStorage.getItem(LOCAL_SAVE_COUNT_KEY) || 0) + 1;
+        localStorage.setItem(LOCAL_SAVE_COUNT_KEY, String(cnt));
+      } catch {}
+
+      // Actualizar espejos locales para que la interfaz responda al instante en la PC del dueño
+      try {
+        if (url.startsWith('/screen/')) {
+          RD.localEngine.broadcastScreen(body || {});
+        } else if (url === '/cash/open' && method === 'POST') {
+          const shift = {
+            id: 'local_shift_' + Date.now(),
+            opened_at: new Date().toISOString(),
+            opening_amount: Number(body?.opening_amount || 0),
+            notes: body?.notes || 'Abierto en Modo Local PC',
+            opened_by_name: (JSON.parse(localStorage.getItem('rd_staff_user') || '{}').name) || 'Recepción (Modo Local)'
+          };
+          localStorage.setItem('rd_lcache_/cash/current', JSON.stringify({ open: shift, movements: [] }));
+        } else if (url === '/cash/movement' && method === 'POST') {
+          const cur = RD.localEngine.readCache('/cash/current') || { open: null, movements: [] };
+          cur.movements = cur.movements || [];
+          cur.movements.unshift({
+            id: 'lmov_' + Date.now(),
+            created_at: new Date().toISOString(),
+            type: body?.type || 'in',
+            category: body?.category || 'Otro',
+            amount: Number(body?.amount || 0),
+            method: body?.method || 'Efectivo',
+            concept: body?.concept || 'Movimiento en Modo Local PC'
+          });
+          localStorage.setItem('rd_lcache_/cash/current', JSON.stringify(cur));
+        } else if (url === '/members' && method === 'POST') {
+          const newMem = {
+            id: 'lmem_' + Date.now(),
+            code: 'RD' + String(Math.floor(1000 + Math.random() * 9000)),
+            name: String(body?.name || 'SOCIO LOCAL').toUpperCase(),
+            dni: body?.dni || '',
+            phone: body?.phone || '',
+            status: 'active',
+            start: RD.limaDay(),
+            end: body?.end || RD.addDays(RD.limaDay(), 30),
+            plan_name: body?.plan_name || 'Plan Mensual (Local)'
+          };
+          const snap = JSON.parse(localStorage.getItem('rd_snapshot') || '{"members":[]}');
+          snap.members = snap.members || [];
+          snap.members.unshift(newMem);
+          localStorage.setItem('rd_snapshot', JSON.stringify(snap));
+          const mcache = RD.localEngine.readCache('/members');
+          if (mcache && Array.isArray(mcache.members)) {
+            mcache.members.unshift(newMem);
+            localStorage.setItem('rd_lcache_/members', JSON.stringify(mcache));
+          }
+          window.dispatchEvent(new CustomEvent('rd:local-state'));
+          return { ok: true, member: newMem, _localSaved: true };
+        }
+      } catch {}
+
+      window.dispatchEvent(new CustomEvent('rd:local-state'));
+      return { ok: true, _localSaved: true, txId: item.id, label };
+    },
+    describeTx: (method, url, body) => {
+      if (url === '/members' && method === 'POST') return `Nuevo Socio: ${body?.name || 'Registro'}`;
+      if (url.includes('/memberships') || url.includes('/renew')) return `Renovación / Membresía (${RD.money(body?.amount || body?.price || 0)})`;
+      if (url.includes('/store/sale')) return `Venta en Tienda POS (${RD.money(body?.total || body?.amount || 0)})`;
+      if (url === '/cash/open') return `Apertura de Caja (${RD.money(body?.opening_amount || 0)})`;
+      if (url === '/cash/close') return `Cierre de Turno de Caja`;
+      if (url === '/cash/movement') return `Movimiento de Caja: ${body?.concept || body?.category || ''} (${RD.money(body?.amount || 0)})`;
+      if (url.startsWith('/screen/')) return `Señal enviada a Smart TV (${body?.mode || 'evento'})`;
+      return `${method} ${url}`;
+    },
+    flushToCloud: async () => {
+      if (!navigator.onLine) throw new Error('Aún no hay conexión a internet en esta PC.');
+      const t = localStorage.getItem('rd_staff_token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (t) headers.Authorization = 'Bearer ' + t;
+
+      const q = RD.localEngine.getTxQueue();
+      const remaining = [];
+      let syncedCount = 0;
+      for (const item of q) {
+        if (item.url.startsWith('/screen/')) { syncedCount++; continue; }
+        try {
+          const res = await fetch('/api' + item.url, {
+            method: item.method,
+            headers,
+            body: JSON.stringify(item.body)
+          });
+          if (res.ok || res.status === 400 || res.status === 409) {
+            syncedCount++;
+          } else {
+            remaining.push(item);
+          }
+        } catch {
+          remaining.push(item);
+        }
+      }
+      localStorage.setItem(LOCAL_TX_KEY, JSON.stringify(remaining));
+      localStorage.setItem(LOCAL_SYNC_TS_KEY, String(Date.now()));
+      window.dispatchEvent(new CustomEvent('rd:local-state'));
+      return { syncedCount, remainingCount: remaining.length };
+    }
+  };
+
   // ---------- API ----------
   RD.makeApi = (tokenKey, onAuthFail) => {
     const call = async (method, url, body) => {
+      // Si es envío de pantalla a la TV, transmitir siempre por el Bus Local de la PC en 0.1ms
+      if (url.startsWith('/screen/') && body) {
+        RD.localEngine.broadcastScreen(body);
+      }
+
+      // Si el Modo Local en PC está activado manualmente por el usuario (excepto login)
+      if (RD.localEngine.isForced() && !url.startsWith('/auth/')) {
+        if (method === 'GET') {
+          return RD.localEngine.readCache(url);
+        } else {
+          return RD.localEngine.recordLocalWrite(method, url, body);
+        }
+      }
+
       const headers = { 'Content-Type': 'application/json' };
       const t = localStorage.getItem(tokenKey);
       if (t) headers.Authorization = 'Bearer ' + t;
@@ -228,12 +449,25 @@
       try {
         res = await fetch('/api' + url, { method, headers, body: body ? JSON.stringify(body) : undefined });
       } catch (e) {
+        // Fallback automático a Modo Local en la PC del dueño si se cae el internet o la luz del router
+        if (!url.startsWith('/auth/')) {
+          if (method === 'GET') {
+            return RD.localEngine.readCache(url);
+          } else {
+            const localRes = RD.localEngine.recordLocalWrite(method, url, body);
+            if (RD.toast) RD.toast('💾 Sin internet: Guardado en la Memoria Local de esta PC', 'ok');
+            return localRes;
+          }
+        }
         const err = new Error('Sin conexión con el servidor'); err.offline = true; throw err;
       }
       let data = null;
       try { data = await res.json(); } catch { }
       if (res.status === 401 && onAuthFail && !url.startsWith('/auth/')) { onAuthFail(); }
       if (!res.ok) { const err = new Error((data && data.error) || 'Error ' + res.status); err.status = res.status; err.data = data; throw err; }
+      if (method === 'GET' && data !== null) {
+        RD.localEngine.saveCache(url, data);
+      }
       return data;
     };
     return { get: u => call('GET', u), post: (u, b) => call('POST', u, b || {}), put: (u, b) => call('PUT', u, b || {}), del: u => call('DELETE', u) };
