@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dossier Ejecutivo & Propuesta Tecnológica 360° para Gimnasios</title>
+  <style>
+    :root {
+      --bg: #070b14;
+      --card: #0f1626;
+      --card-2: #151f35;
+      --border: rgba(255, 255, 255, 0.1);
+      --gold: #f5b400;
+      --gold-soft: rgba(245, 180, 0, 0.14);
+      --emerald: #10b981;
+      --emerald-soft: rgba(16, 185, 129, 0.14);
+      --cyan: #06b6d4;
+      --cyan-soft: rgba(6, 182, 212, 0.14);
+      --red: #ef4444;
+      --red-soft: rgba(239, 68, 68, 0.14);
+      --purple: #a855f7;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 15% 0%, #16223d 0%, var(--bg) 55%);
+      color: var(--text);
+      line-height: 1.55;
+      padding-bottom: 80px;
+    }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7, 11, 20, 0.92);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 15px;
+      letter-spacing: 0.4px;
+    }
+    .brand-badge {
+      background: linear-gradient(135deg, var(--gold), #d97706);
+      color: #000;
+      font-weight: 900;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    .customizer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .customizer label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .customizer input {
+      background: var(--card-2);
+      border: 1px solid var(--gold);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      width: 220px;
+    }
+    .btn {
+      background: var(--card-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+    }
+    .btn:hover { border-color: var(--gold); transform: translateY(-1px); }
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold), #e09f00);
+      color: #000;
+      border: none;
+    }
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 28px 20px;
+    }
+    .hero {
+      background: linear-gradient(135deg, rgba(21,31,53,0.95), rgba(15,22,38,0.95));
+      border: 1px solid rgba(245, 180, 0, 0.35);
+      border-radius: 20px;
+      padding: 36px;
+      margin-bottom: 32px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+    }
+    .hero-tag {
+      display: inline-block;
+      background: var(--gold-soft);
+      color: var(--gold);
+      border: 1px solid rgba(245,180,0,0.4);
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 14px;
+    }
+    .hero h1 {
+      font-size: clamp(26px, 3.6vw, 42px);
+      line-height: 1.15;
+      margin-bottom: 14px;
+      font-weight: 900;
+    }
+    .hero h1 span { color: var(--gold); }
+    .hero p {
+      font-size: 17px;
+      color: #cbd5e1;
+      max-width: 920px;
+      margin-bottom: 24px;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+    }
+    .kpi-card {
+      background: rgba(7, 11, 20, 0.65);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+    }
+    .kpi-val {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--emerald);
+      line-height: 1.1;
+    }
+    .kpi-val.gold { color: var(--gold); }
+    .kpi-val.cyan { color: var(--cyan); }
+    .kpi-lbl {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+    .section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 30px;
+      margin-bottom: 28px;
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 900;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-sub {
+      color: var(--muted);
+      font-size: 14.5px;
+      margin-bottom: 22px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 22px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+    }
+    .box {
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .box h3 {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      color: var(--gold);
+    }
+    .slider-row {
+      margin-bottom: 16px;
+    }
+    .slider-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13.5px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .slider-head span:last-child { color: var(--gold); font-weight: 900; }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--gold);
+      cursor: pointer;
+    }
+    .roi-result {
+      background: linear-gradient(135deg, rgba(16,185,129,0.16), rgba(6,182,212,0.12));
+      border: 1px solid rgba(16,185,129,0.45);
+      border-radius: 14px;
+      padding: 22px;
+    }
+    .roi-big {
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--emerald);
+      margin: 6px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 13.5px;
+    }
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: rgba(255,255,255,0.04);
+      color: var(--gold);
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 11.5px;
+      letter-spacing: 0.5px;
+    }
+    .badge-ok {
+      background: var(--emerald-soft);
+      color: var(--emerald);
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 11.5px;
+    }
+    .badge-bad {
+      background: var(--red-soft);
+      color: var(--red);
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 11.5px;
+    }
+    .shot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .shot-card {
+      background: #060911;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .shot-card img {
+      width: 100%;
+      height: 215px;
+      object-fit: cover;
+      display: block;
+      border-bottom: 1px solid var(--border);
+    }
+    .shot-card .cap {
+      padding: 12px 14px;
+      font-size: 12.5px;
+      color: #cbd5e1;
+    }
+    .shot-card .cap strong {
+      color: var(--gold);
+      display: block;
+      margin-bottom: 3px;
+      font-size: 13.5px;
+    }
+    @media print {
+      .topbar { display: none !important; }
+      body { background: #fff; color: #000; padding: 0; }
+      .hero, .section, .box, .kpi-card {
+        background: #fff !important;
+        color: #000 !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+      }
+      .hero p, .section-sub, .kpi-lbl { color: #334155 !important; }
+      th { background: #f1f5f9 !important; color: #0f172a !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-pill">
+      <span class="brand-badge">PROGYM 360°</span>
+      <span>Propuesta Ejecutiva para <strong id="topGymName" style="color:var(--gold)">TU GIMNASIO</strong></span>
+    </div>
+    <div class="customizer">
+      <label for="gymInput">Personalizar Nombre del Cliente:</label>
+      <input id="gymInput" type="text" value="TU GIMNASIO" placeholder="Ej: Titan Gym / Olympus Fitness..." oninput="syncGymName(this.value)" />
+      <a class="btn" href="/anatomy-pro/index.html" target="_blank">🧬 Abrir Máquina 3D</a>
+      <a class="btn" href="/display.html" target="_blank">📺 Simulador TV + CCTV PiP</a>
+      <button class="btn btn-gold" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="hero-tag">Ecosistema de Automatización, Control QR 0.1s, Caja Blindada y Smart TV + CCTV Dual</div>
+      <h1>Transforma <span class="gym-name">TU GIMNASIO</span> en un Centro Inteligente, Rentable y 100% Controlado desde tu Celular</h1>
+      <p>
+        Elimina para siempre las fugas de dinero por membresías vencidas, los descuadres de caja, las boletas borrosas y el abandono de socios.
+        Una plataforma integral personalizada con <strong>tu propio logo y marca</strong>, que aprovecha la <strong>TV de tus cámaras de seguridad</strong> sin gastar en tablets adicionales.
+      </p>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-val">0.1 seg</div>
+          <div class="kpi-lbl">Lectura QR Manos Libres (Cero Filas)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-val gold">S/ 0 en Tablet</div>
+          <div class="kpi-lbl">Usa tu TV de Cámaras con Modo PiP</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-val cyan">100% #000000</div>
+          <div class="kpi-lbl">Boletas Térmicas en Negro Intenso + WhatsApp</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-val">14 a 25 Días</div>
+          <div class="kpi-lbl">Retorno Total de la Inversión (ROI)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CALCULADORA INTERACTIVA DE FUGAS DE DINERO Y ROI -->
+    <section class="section">
+      <div class="section-title">💰 1. Calculadora en Vivo: ¿Cuánto Dinero Pierde un Gimnasio sin Control Automatizado?</div>
+      <div class="section-sub">Ajusta los deslizadores con los números reales de <strong class="gym-name">TU GIMNASIO</strong> para ver el dinero que hoy se escapa silenciosamente y cuánto recuperarás desde el primer mes:</div>
+      <div class="grid-2">
+        <div class="box">
+          <h3>Parámetros Reales del Gimnasio</h3>
+          <div class="slider-row">
+            <div class="slider-head">
+              <span>Precio promedio de Membresía Mensual:</span>
+              <span id="lblPrice">S/ 90</span>
+            </div>
+            <input type="range" id="rngPrice" min="50" max="250" step="5" value="90" oninput="calcROI()" />
+          </div>
+          <div class="slider-row">
+            <div class="slider-head">
+              <span>Socios vencidos que entran "por amistad o descuido" al mes:</span>
+              <span id="lblExpired">8 socios/mes</span>
+            </div>
+            <input type="range" id="rngExpired" min="2" max="30" step="1" value="8" oninput="calcROI()" />
+          </div>
+          <div class="slider-row">
+            <div class="slider-head">
+              <span>Pases diarios / aguas / cobros no anotados en cuaderno por día:</span>
+              <span id="lblDailyLeak">S/ 20 / día</span>
+            </div>
+            <input type="range" id="rngDailyLeak" min="5" max="80" step="5" value="20" oninput="calcROI()" />
+          </div>
+          <div class="slider-row">
+            <div class="slider-head">
+              <span>Socios que renuevan gracias a la App Móvil + Rutinas + Alertas:</span>
+              <span id="lblRetained">5 socios/mes</span>
+            </div>
+            <input type="range" id="rngRetained" min="1" max="25" step="1" value="5" oninput="calcROI()" />
+          </div>
+        </div>
+
+        <div class="roi-result">
+          <div style="font-size:12px;font-weight:800;text-transform:uppercase;color:var(--gold);">Dinero Recuperado + Incremento de Ingresos para <span class="gym-name">TU GIMNASIO</span></div>
+          <div class="roi-big" id="outMonthlyGain">+ S/ 1,770 / mes</div>
+          <div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:14px;">
+            Equivalente a <span id="outYearlyGain" style="color:var(--gold)">+ S/ 21,240 al año</span> que quedan directamente en tu bolsillo.
+          </div>
+          <table>
+            <tbody>
+              <tr>
+                <td>Bloqueo automático de membresías vencidas (TV + Sonido):</td>
+                <td style="text-align:right;font-weight:800;color:var(--emerald)" id="outExpVal">+ S/ 720 / mes</td>
+              </tr>
+              <tr>
+                <td>Eliminación de descuadres y pases diarios no registrados:</td>
+                <td style="text-align:right;font-weight:800;color:var(--emerald)" id="outLeakVal">+ S/ 600 / mes</td>
+              </tr>
+              <tr>
+                <td>Mayor retención de socios con App Móvil y seguimiento:</td>
+                <td style="text-align:right;font-weight:800;color:var(--emerald)" id="outRetVal">+ S/ 450 / mes</td>
+              </tr>
+              <tr>
+                <td><strong>Tiempo en que el sistema se paga solo:</strong></td>
+                <td style="text-align:right;font-weight:900;color:var(--gold)" id="outPayback">¡En solo 19 días!</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ARQUITECTURA 3D A ESCALA REAL -->
+    <section class="section">
+      <div class="section-title">🧬 2. Ingeniería Física y Espacial 3D a Escala Real (Anatomy3D v3.0 — Puntaje 100/100)</div>
+      <div class="section-sub">
+        Cada equipo del proyecto ha sido modelado a escala física real 1:1 en sus zonas exactas (Mostrador de Recepción, Techo de Vigilancia CCTV, Gabinete Rack 19" y Muro de Sala Principal con Smart TV de 55").
+      </div>
+      <div class="shot-grid">
+        <div class="shot-card">
+          <img src="/anatomy-pro/shots/overview.png" alt="Planta General 3D" />
+          <div class="cap">
+            <strong>1. Planta Arquitectónica Completa (4 Zonas Físicas)</strong>
+            Mostrador de Recepción (z=+10), Viga Superior CCTV (z=+28), Rack 19" (z=+12/+22) y Sala Principal con Smart TV 55".
+          </div>
+        </div>
+        <div class="shot-card">
+          <img src="/anatomy-pro/shots/dev_smart_tv_55.png" alt="Smart TV 55 PiP" />
+          <div class="cap">
+            <strong>2. Smart TV 55" con Cámaras 24/7 + Ventana PiP + Spot</strong>
+            Muestra tus 4 cámaras todo el día y las reduce a la esquina PiP durante bienvenidas QR (5.5s) o anuncios (16s).
+          </div>
+        </div>
+        <div class="shot-card">
+          <img src="/anatomy-pro/shots/dev_thermal_printer.png" alt="Impresora Termica 80mm" />
+          <div class="cap">
+            <strong>3. Impresora Térmica 80mm Negro Puro (#000000)</strong>
+            Cabezal japonés Rohm 203 DPI + papel Hansol 65g + guillotina automática. Cero letras pálidas o grises.
+          </div>
+        </div>
+        <div class="shot-card">
+          <img src="/anatomy-pro/shots/dev_scanner_2d.png" alt="Escaner QR 2D" />
+          <div class="cap">
+            <strong>4. Escáner Óptico 2D Manos Libres (0.1 segundos)</strong>
+            Lee códigos QR desde pantallas de celular con brillo mínimo o vidrio templado rajado sin apretar gatillos.
+          </div>
+        </div>
+        <div class="shot-card">
+          <img src="/anatomy-pro/shots/dev_minipc_pos.png" alt="Mini PC Dual HDMI" />
+          <div class="cap">
+            <strong>5. Mini PC / Laptop Principal (16GB RAM + NVMe Dual-HDMI)</strong>
+            Controla el monitor del cajero y la Smart TV del gimnasio simultáneamente con velocidad de &lt;2 ms.
+          </div>
+        </div>
+        <div class="shot-card">
+          <img src="/anatomy-pro/shots/dev_dvr_capture.png" alt="DVR + Capturadora" />
+          <div class="cap">
+            <strong>6. Integración con tu DVR de Cámaras Existente</strong>
+            Mantiene la grabación 24/7 en disco WD Purple e inyecta el video en vivo hacia la pantalla inteligente.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TABLA COMPARATIVA DE EQUIPOS Y PRESUPUESTOS -->
+    <section class="section">
+      <div class="section-title">🛠️ 3. Catálogo de Equipos Esenciales (Sin Gastos Innecesarios en Tablets ni UPS)</div>
+      <div class="section-sub">
+        Seleccionamos únicamente los equipos que garantizan <strong>cero fallas en recepción</strong>. Puedes adquirir el kit completo instalado por nosotros o comprar los equipos por tu cuenta con nuestra lista técnica exacta.
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Equipo Esencial</th>
+            <th>Opción A: Kit Inteligente Calidad-Precio ⭐</th>
+            <th>Opción B: Kit Corporativo / Bancario</th>
+            <th>Ventaja Operativa Directa</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1. Computadora Principal</strong></td>
+            <td><strong>Mini PC Beelink S12 Pro</strong> (Intel N100 12va Gen, 16GB RAM, 512GB NVMe, Dual-HDMI) — <em>S/ 1,290</em></td>
+            <td><strong>HP ProDesk / Dell OptiPlex Micro Core i5</strong> (16GB RAM, 512GB NVMe) — <em>S/ 1,650</em></td>
+            <td>Doble salida HDMI nativa (Monitor Caja + Smart TV) y operación silenciosa 16h/día.</td>
+          </tr>
+          <tr>
+            <td><strong>2. Lector QR 2D Cero Fallas</strong></td>
+            <td><strong>Netum NT-2050M Desktop 2D Imager</strong> (Manos Libres 60fps) — <em>S/ 350</em></td>
+            <td><strong>Honeywell Orbit HF680 / Zebra DS9308</strong> — <em>S/ 640</em></td>
+            <td>Lectura en <strong>0.1s</strong> sobre pantallas de celular o carnés sin frustrar al socio.</td>
+          </tr>
+          <tr>
+            <td><strong>3. Ticketera 80mm Negro Puro</strong></td>
+            <td><strong>Xprinter XP-N160II (80mm USB + Autocorte)</strong> + 6 Rollos Hansol 65g — <em>S/ 380</em></td>
+            <td><strong>Epson TM-T20III Bancaria (80mm)</strong> + 6 Rollos Hansol 65g — <em>S/ 720</em></td>
+            <td>Impresión 100% negra intensa (<code>#000000</code>) con corte automático y QR nítido.</td>
+          </tr>
+          <tr>
+            <td><strong>4. Enlace a TV de Cámaras</strong></td>
+            <td><strong>Capturadora HDMI-USB 3.0 1080p60 + Cable HDMI 5m/10m</strong> — <em>S/ 160</em></td>
+            <td><strong>Splitter HDMI Activo + Capturadora Pro + Cable</strong> — <em>S/ 210</em></td>
+            <td>Convierte la TV de tus cámaras en pantalla de bienvenida QR, cobro Yape y publicidad con PiP.</td>
+          </tr>
+          <tr>
+            <td><strong>INVERSIÓN EN EQUIPOS</strong></td>
+            <td><span class="badge-ok" style="font-size:14px">S/ 2,180 (Llave en Mano)</span></td>
+            <td><span class="badge-ok" style="font-size:14px">S/ 3,220 (Grado Bancario)</span></td>
+            <td><em>Si el dueño compra sus propios equipos, solo abona <strong>S/ 380</strong> por configuración e integración total.</em></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- PLANES DE CONTRATACIÓN DEL SOFTWARE -->
+    <section class="section">
+      <div class="section-title">🚀 4. Modalidades de Contratación del Software (Elige la que Mejor se Adapte a tu Gimnasio)</div>
+      <div class="section-sub">Sin costos ocultos. Incluye personalización al 100% con el nombre, logo y colores de <strong class="gym-name">TU GIMNASIO</strong>:</div>
+      <div class="grid-3">
+        <div class="box" style="border-color:var(--gold)">
+          <span class="badge-ok" style="margin-bottom:8px;display:inline-block">⭐ MÁS ELEGIDO • BAJA INVERSIÓN INICIAL</span>
+          <h3>Plan 1: Socio Tecnológico Mensual</h3>
+          <div style="font-size:28px;font-weight:900;color:#fff;margin:8px 0;">S/ 140 <span style="font-size:14px;color:var(--muted)">/ mes</span></div>
+          <div style="font-size:12.5px;color:var(--gold);margin-bottom:12px;">+ S/ 500 de activación e instalación única</div>
+          <ul style="font-size:13.5px;color:#cbd5e1;padding-left:18px;display:grid;gap:6px;">
+            <li>Sistema Completo (Admin + Caja + App Socio + Modo TV CCTV PiP).</li>
+            <li>Bóveda en la Nube 24/7 para ver tus ingresos desde tu celular.</li>
+            <li>Soporte técnico directo y actualizaciones gratuitas todo el año.</li>
+          </ul>
+        </div>
+
+        <div class="box" style="border-color:var(--emerald)">
+          <span class="badge-ok" style="margin-bottom:8px;display:inline-block">🔥 AHORRA 2 MESES GRATIS</span>
+          <h3>Plan 2: Socio Tecnológico Anual</h3>
+          <div style="font-size:28px;font-weight:900;color:var(--emerald);margin:8px 0;">S/ 1,350 <span style="font-size:14px;color:var(--muted)">/ año</span></div>
+          <div style="font-size:12.5px;color:var(--emerald);margin-bottom:12px;">+ S/ 400 de activación única (Equivale a S/ 112/mes)</div>
+          <ul style="font-size:13.5px;color:#cbd5e1;padding-left:18px;display:grid;gap:6px;">
+            <li>Todo lo del Plan Mensual con <strong>S/ 330 de descuento directo</strong>.</li>
+            <li>Respaldo Cloud en tiempo real + Google Sheets + WhatsApp.</li>
+            <li>Mantenimiento preventivo trimestral de base de datos e impresora.</li>
+          </ul>
+        </div>
+
+        <div class="box" style="border-color:var(--cyan)">
+          <span class="badge-ok" style="margin-bottom:8px;display:inline-block">🏆 PROPIEDAD DEFINITIVA</span>
+          <h3>Plan 3: Licencia Vitalicia (Pago Único)</h3>
+          <div style="font-size:28px;font-weight:900;color:var(--cyan);margin:8px 0;">S/ 2,900</div>
+          <div style="font-size:12.5px;color:var(--cyan);margin-bottom:12px;">Pago único por licencia perpetua en tu local</div>
+          <ul style="font-size:13.5px;color:#cbd5e1;padding-left:18px;display:grid;gap:6px;">
+            <li>El software queda instalado de por vida en tu gimnasio sin mensualidades obligatorias.</li>
+            <li>Incluye 6 meses de garantía total y capacitación a tu personal.</li>
+            <li>Nube remota y soporte continuo opcional por solo S/ 80/mes.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function syncGymName(val) {
+      const clean = (val || '').trim() || 'TU GIMNASIO';
+      document.getElementById('topGymName').textContent = clean;
+      document.querySelectorAll('.gym-name').forEach(el => { el.textContent = clean; });
+    }
+    function calcROI() {
+      const price = Number(document.getElementById('rngPrice').value);
+      const expired = Number(document.getElementById('rngExpired').value);
+      const dailyLeak = Number(document.getElementById('rngDailyLeak').value);
+      const retained = Number(document.getElementById('rngRetained').value);
+
+      document.getElementById('lblPrice').textContent = 'S/ ' + price;
+      document.getElementById('lblExpired').textContent = expired + ' socios/mes';
+      document.getElementById('lblDailyLeak').textContent = 'S/ ' + dailyLeak + ' / día';
+      document.getElementById('lblRetained').textContent = retained + ' socios/mes';
+
+      const expVal = price * expired;
+      const leakVal = dailyLeak * 30;
+      const retVal = price * retained;
+      const monthly = expVal + leakVal + retVal;
+      const yearly = monthly * 12;
+      const paybackDays = Math.max(5, Math.round((1140 / monthly) * 30));
+
+      document.getElementById('outExpVal').textContent = '+ S/ ' + expVal.toLocaleString('es-PE') + ' / mes';
+      document.getElementById('outLeakVal').textContent = '+ S/ ' + leakVal.toLocaleString('es-PE') + ' / mes';
+      document.getElementById('outRetVal').textContent = '+ S/ ' + retVal.toLocaleString('es-PE') + ' / mes';
+      document.getElementById('outMonthlyGain').textContent = '+ S/ ' + monthly.toLocaleString('es-PE') + ' / mes';
+      document.getElementById('outYearlyGain').textContent = '+ S/ ' + yearly.toLocaleString('es-PE') + ' al año';
+      document.getElementById('outPayback').textContent = '¡En solo ' + paybackDays + ' días!';
+    }
+    calcROI();
+  </script>
+</body>
+</html>
