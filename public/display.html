@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>RD Fitness Club - TV Cámaras CCTV, Alertas QR y Cartelera Inteligente</title>
-  <link rel="icon" href="/logo.svg">
-  <script src="/vendor/qrcode.js"></script>
+  <link rel="icon" href="logo.svg">
+  <script src="vendor/qrcode.js"></script>
   <style>
     :root {
       --bg: #07090e;
@@ -1031,10 +1031,14 @@
           <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           <span>Spot Promo</span>
         </button>
-        <a class="ctrl-btn" href="/anatomy/index.html" target="_blank" rel="noopener" title="Abrir Máquina Interactiva 3D (Anatomy3D v2.0) de Hardware, TV CCTV y Procesos" style="text-decoration:none">
+        <a class="ctrl-btn" href="anatomy-pro/index.html" target="_blank" rel="noopener" title="Abrir Máquina Interactiva 3D (Anatomy3D v3.0) de Hardware, TV CCTV y Procesos" style="text-decoration:none">
           <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
           <span>Arquitectura 3D</span>
         </a>
+        <button class="ctrl-btn" id="btn_refresh_display" title="Recargar pantalla y datos en vivo" aria-label="Actualizar">
+          <svg viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          <span>Actualizar</span>
+        </button>
         <button class="ctrl-btn" id="btn_cfg_tv" title="Configurar Entrada de Cámaras (HDMI-USB / IP) y Tiempos de Rotación">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </button>
@@ -1205,6 +1209,14 @@
           document.exitFullscreen().catch(() => {});
         }
       };
+
+      // ---------------- Botón de Actualizar Pantalla en Vivo ----------------
+      const btnRefreshDisp = document.getElementById('btn_refresh_display');
+      if (btnRefreshDisp) {
+        btnRefreshDisp.onclick = () => {
+          window.location.reload();
+        };
+      }
 
       // ---------------- Reloj en Tiempo Real + Temporizador de Rotación ----------------
       function updateClock() {

@@ -393,9 +393,10 @@ const htmlContent = `<!DOCTYPE html>
     <div class="customizer">
       <label for="gymInput">Nombre del Gimnasio:</label>
       <input id="gymInput" type="text" value="TU GIMNASIO" placeholder="Nombre de tu local..." oninput="syncGymName(this.value)" />
-      <a class="btn" href="/anatomy-pro/index.html" target="_blank">🧬 Máquina 3D</a>
-      <a class="btn" href="/display.html" target="_blank">📺 Display Cliente</a>
-      <button class="btn btn-gold" onclick="window.print()">🖨️ Descargar en PDF</button>
+      <a class="btn" href="anatomy-pro/index.html" target="_blank" title="Ver Arquitectura 3D Interactiva del Gimnasio">🧬 Máquina 3D</a>
+      <a class="btn" href="display.html" target="_blank" title="Ver Pantalla de Recepción y TV CCTV">📺 Display Cliente</a>
+      <a class="btn btn-gold" href="INFORME_PROPUESTA_COMERCIAL_GIMNASIOS.pdf" download="INFORME_PROPUESTA_COMERCIAL_GIMNASIOS.pdf" title="Descargar documento PDF completo">📥 Descargar PDF</a>
+      <button class="btn" onclick="window.print()" title="Imprimir documento en papel">🖨️ Imprimir</button>
     </div>
   </header>
 
@@ -896,7 +897,10 @@ const htmlContent = `<!DOCTYPE html>
             Solicita una demostración en vivo con tus propios equipos o solicita la instalación llave en mano.
           </div>
         </div>
-        <button class="btn btn-gold" onclick="window.print()" style="font-size:13px;padding:8px 16px">🖨️ Imprimir / Guardar en PDF</button>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <a class="btn btn-gold" href="INFORME_PROPUESTA_COMERCIAL_GIMNASIOS.pdf" download="INFORME_PROPUESTA_COMERCIAL_GIMNASIOS.pdf" style="font-size:13px;padding:8px 16px">📥 Descargar PDF Oficial</a>
+          <button class="btn" onclick="window.print()" style="font-size:13px;padding:8px 16px">🖨️ Imprimir</button>
+        </div>
       </div>
     </section>
   </main>

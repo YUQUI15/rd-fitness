@@ -1251,6 +1251,35 @@
     }
   };
 
+  // ---------- Sistema de Actualización Forzada y Sincronización en Caliente ----------
+  RD.forceAppUpdate = async () => {
+    RD.toast('🔄 Actualizando aplicación y descargando última versión...', 'info', 4000);
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const reg of regs) {
+          await reg.update().catch(() => {});
+          if (reg.waiting) {
+            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+          }
+        }
+      }
+      if (RD.flushScans) await RD.flushScans().catch(() => {});
+      if (RD.syncMembers) await RD.syncMembers().catch(() => {});
+    } catch (e) {
+      console.warn('Error durante el refresco de cache:', e);
+    }
+    setTimeout(() => {
+      const url = new URL(window.location.href);
+      url.searchParams.set('_upd', String(Date.now()));
+      window.location.href = url.toString();
+    }, 500);
+  };
+
   // Compresor universal de fotografías en navegador (JPEG 260x260 ligero para Bóveda Cloud)
   RD.compressPhoto = file => new Promise((resolve, reject) => {
     if (!file) return reject(new Error('Selecciona una imagen'));

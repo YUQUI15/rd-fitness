@@ -475,6 +475,9 @@ pause`;
         <button class="top-btn" id="btn_google_sheets" title="Abrir Google Sheets Oficial del Gimnasio">
           ${RD.icon('sheet', '', 15)} <span>Sheets</span>
         </button>
+        <button class="top-btn" id="btn_refresh_system" title="Actualizar aplicación a la última versión y recargar datos en vivo">
+          ${RD.icon('refresh', '', 15)} <span>Actualizar</span>
+        </button>
         <button class="icon-btn theme-toggle" id="themetoggle" data-theme-toggle title="${isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro (Pastel)'}">
           ${isLight ? RD.icon('moon', '', 18) : RD.icon('sun', '', 18)}
         </button>
@@ -490,6 +493,7 @@ pause`;
     $('#btn_local_mode').onclick = RD.openLocalModeModal;
     $('#btn_customer_screen').onclick = RD.openCustomerDisplayWindow;
     $('#btn_google_sheets').onclick = RD.openGoogleSheetsDirect;
+    $('#btn_refresh_system').onclick = RD.forceAppUpdate;
     updateNet();
   }
   function userMenu() {
@@ -498,12 +502,12 @@ pause`;
       <div class="grid">
         <button class="btn" id="tm">${isLight ? RD.icon('moon') + ' Modo Oscuro' : RD.icon('sun') + ' Modo Claro (Paleta Pastel)'}</button>
         <button class="btn" id="cp">${RD.icon('lock')} Cambiar contraseña</button>
-        <button class="btn" id="rf">${RD.icon('refresh')} Actualizar datos ahora</button>
+        <button class="btn" id="rf">${RD.icon('refresh')} Actualizar sistema y datos en vivo</button>
         <button class="btn danger" id="lo">Cerrar sesión</button>
       </div>`);
     m.el.querySelector('#tm').onclick = () => { m.close(); RD.toggleTheme(); };
     m.el.querySelector('#lo').onclick = () => { m.close(); logout(); };
-    m.el.querySelector('#rf').onclick = async () => { try { await RD.flushScans(); await RD.syncMembers(); RD.toast('Datos actualizados'); } catch (e) { RD.toast(e.message, 'err'); } };
+    m.el.querySelector('#rf').onclick = () => { m.close(); RD.forceAppUpdate(); };
     m.el.querySelector('#cp').onclick = () => { m.close(); changePassword(); };
   }
   function changePassword() {

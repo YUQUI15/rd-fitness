@@ -1,5 +1,5 @@
-/* RD Fitness Club - Service Worker (funciona sin internet) */
-const VERSION = 'rd-v4.3';
+/* RD Fitness Club - Service Worker (funciona sin internet y actualización instantánea) */
+const VERSION = 'rd-v5.0';
 const SHELL = [
   '/', '/index.html', '/display.html', '/admin/', '/admin/index.html', '/admin/cards.html',
   '/css/style.css', '/js/common.js', '/js/member-hub.js', '/js/app.js', '/js/admin-core.js', '/js/admin-scan.js', '/js/admin-members.js', '/js/admin-other.js', '/js/admin-announce.js', '/js/workout.js',
@@ -32,15 +32,21 @@ self.addEventListener('fetch', e => {
     e.respondWith(caches.match(req).then(r => (r && r.ok) ? r : fetch(req).then(n => { if (n.ok) { const c = n.clone(); caches.open(VERSION).then(ch => ch.put(req, c)); } return n; }).catch(() => new Response('', { status: 504 }))));
     return;
   }
-  // JS y CSS: red primero para tener siempre la última versión, respaldo en caché si no hay internet
-  e.respondWith(fetch(req).then(n => {
+  // JS y CSS: red primero forzando validación de versión fresca, respaldo en caché si no hay internet
+  e.respondWith(fetch(req, { cache: 'no-cache' }).then(n => {
     if (n.ok) { const c = n.clone(); caches.open(VERSION).then(ch => ch.put(req, c)); }
     return n;
   }).catch(() => caches.match(req)));
 });
 
-// Mensaje para precargar imágenes de ejercicios (entrenar sin internet)
+// Mensajes para actualizar versión o precargar datos
 self.addEventListener('message', e => {
+  if (e.data && e.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  if (e.data && e.data.type === 'CLEAR_ALL_CACHES') {
+    e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))));
+  }
   if (e.data && e.data.type === 'precache' && Array.isArray(e.data.urls)) {
     e.waitUntil(caches.open(VERSION).then(c => Promise.all(e.data.urls.map(u => c.match(u).then(h => h || c.add(u).catch(() => { }))))));
   }

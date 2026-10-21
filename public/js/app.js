@@ -131,6 +131,7 @@
         <img src="/logo.svg" alt="RD" class="topbar-logo" style="height:32px;width:32px;max-height:32px;max-width:32px;object-fit:contain;flex-shrink:0" width="32" height="32">
         <div class="t" id="apptitle">RD FITNESS CLUB</div>
         <button class="icon-btn" id="appinstallbtn" title="Cómo instalar la App en tu móvil o PC" aria-label="Instalar App">${RD.icon('smartphone', '', 18)}</button>
+        <button class="icon-btn" id="btn_member_refresh" title="Actualizar aplicación y sincronizar datos en vivo" aria-label="Actualizar">${RD.icon('refresh', '', 18)}</button>
         <button class="icon-btn bell" id="bellbtn" title="Avisos" aria-label="Avisos">${RD.icon('bell', '', 18)}<span class="bell-dot" id="belldot" hidden></span></button>
         <button class="icon-btn theme-toggle" id="appthemetoggle" data-theme-toggle title="${isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'}">${isLight ? RD.icon('moon', '', 18) : RD.icon('sun', '', 18)}</button>
         <button class="icon-btn" id="logoutbtn" title="Cerrar sesión" aria-label="Cerrar sesión">${RD.icon('power', '', 18)}</button>
@@ -151,6 +152,7 @@
     });
 
     document.getElementById('appinstallbtn').onclick = () => RD.hub.openInstallGuide();
+    document.getElementById('btn_member_refresh').onclick = () => RD.forceAppUpdate();
     document.getElementById('appthemetoggle').onclick = () => RD.toggleTheme();
     document.getElementById('bellbtn').onclick = () => RD.hub.openInbox();
     RD.hub.start(api);
