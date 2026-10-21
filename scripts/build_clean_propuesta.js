@@ -28,7 +28,7 @@ const htmlContent = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dossier Técnico & Propuesta del Sistema Integral para Gimnasios</title>
+  <title>Dossier Maestro: Sistema Tecnológico Integral para Gimnasios</title>
   <style>
     :root {
       --bg: #090e17;
@@ -50,7 +50,7 @@ const htmlContent = `<!DOCTYPE html>
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       background: radial-gradient(circle at 15% 0%, #15223e 0%, var(--bg) 60%);
       color: var(--text);
-      line-height: 1.55;
+      line-height: 1.5;
       padding-bottom: 70px;
     }
     .topbar {
@@ -126,17 +126,17 @@ const htmlContent = `<!DOCTYPE html>
       border: none;
     }
     .container {
-      max-width: 1180px;
+      max-width: 1200px;
       margin: 0 auto;
       padding: 24px 20px;
     }
     .hero {
       background: linear-gradient(135deg, rgba(22,34,59,0.95), rgba(17,26,46,0.95));
       border: 1px solid rgba(245, 180, 0, 0.35);
-      border-radius: 18px;
-      padding: 32px;
+      border-radius: 16px;
+      padding: 28px;
       margin-bottom: 24px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
     }
     .hero-tag {
       display: inline-block;
@@ -145,63 +145,36 @@ const htmlContent = `<!DOCTYPE html>
       border: 1px solid rgba(245,180,0,0.4);
       padding: 4px 12px;
       border-radius: 999px;
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.8px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     .hero h1 {
-      font-size: clamp(24px, 3.2vw, 36px);
+      font-size: clamp(22px, 3vw, 34px);
       line-height: 1.2;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       font-weight: 900;
     }
     .hero h1 span { color: var(--gold); }
     .hero p {
-      font-size: 16px;
+      font-size: 14.5px;
       color: #cbd5e1;
-      max-width: 920px;
-      margin-bottom: 22px;
-    }
-    .pillar-overview-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 14px;
-    }
-    .pillar-kpi {
-      background: rgba(9, 14, 23, 0.7);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-    }
-    .pillar-kpi .val {
-      font-size: 17px;
-      font-weight: 900;
-      color: var(--gold);
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .pillar-kpi .val.emerald { color: var(--emerald); }
-    .pillar-kpi .val.cyan { color: var(--cyan); }
-    .pillar-kpi .desc {
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.45;
+      max-width: 950px;
+      margin-bottom: 18px;
     }
     .section {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 26px;
-      margin-bottom: 24px;
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 22px;
     }
     .section-title {
-      font-size: 19px;
+      font-size: 18px;
       font-weight: 900;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -209,13 +182,13 @@ const htmlContent = `<!DOCTYPE html>
     }
     .section-sub {
       color: var(--muted);
-      font-size: 13.5px;
-      margin-bottom: 20px;
+      font-size: 13px;
+      margin-bottom: 18px;
     }
     .grid-2 {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-      gap: 20px;
+      gap: 16px;
     }
     .grid-3 {
       display: grid;
@@ -226,42 +199,45 @@ const htmlContent = `<!DOCTYPE html>
       background: var(--card-2);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 18px;
+      padding: 16px;
     }
     .box h3 {
-      font-size: 15px;
+      font-size: 14.5px;
       font-weight: 800;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     .feature-list {
       list-style: none;
       display: grid;
-      gap: 8px;
-      font-size: 13px;
+      gap: 6px;
+      font-size: 12.5px;
       color: #cbd5e1;
     }
     .feature-list li {
       display: flex;
       align-items: flex-start;
-      gap: 8px;
+      gap: 6px;
     }
     .feature-list li::before {
       content: "✔";
       color: var(--emerald);
       font-weight: 900;
-      font-size: 12px;
+      font-size: 11px;
       flex-shrink: 0;
-      margin-top: 1px;
+      margin-top: 2px;
     }
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
-      font-size: 13px;
+      font-size: 12.5px;
     }
     th, td {
-      padding: 11px 13px;
+      padding: 10px 12px;
       text-align: left;
       border-bottom: 1px solid var(--border);
     }
@@ -289,11 +265,19 @@ const htmlContent = `<!DOCTYPE html>
       font-weight: 800;
       font-size: 11px;
     }
+    .badge-gold {
+      background: var(--gold-soft);
+      color: var(--gold);
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-weight: 800;
+      font-size: 11px;
+    }
     .shot-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 16px;
-      margin-top: 16px;
+      margin-top: 14px;
     }
     .shot-card {
       background: #070b13;
@@ -303,7 +287,7 @@ const htmlContent = `<!DOCTYPE html>
     }
     .shot-card img {
       width: 100%;
-      height: 200px;
+      height: 180px;
       object-fit: contain;
       background: #050811;
       display: block;
@@ -324,8 +308,32 @@ const htmlContent = `<!DOCTYPE html>
       background: #070b13;
       border: 1px solid var(--border);
       border-radius: 12px;
+      padding: 16px;
+      margin-top: 12px;
+    }
+    .price-box {
+      border: 2px solid var(--border);
+      border-radius: 12px;
       padding: 18px;
-      margin-top: 14px;
+      background: var(--card-2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .price-box.featured {
+      border-color: var(--gold);
+      background: linear-gradient(180deg, rgba(245,180,0,0.06), rgba(22,34,59,0.95));
+    }
+    .price-tag {
+      font-size: 26px;
+      font-weight: 900;
+      color: #fff;
+      margin: 6px 0;
+    }
+    .price-tag span {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
     }
     .page-break {
       page-break-after: always;
@@ -333,29 +341,21 @@ const htmlContent = `<!DOCTYPE html>
     }
     @media print {
       .topbar { display: none !important; }
-      body { background: #fff !important; color: #0f172a !important; padding: 0 !important; font-size: 10.5px !important; line-height: 1.35 !important; }
+      body { background: #fff !important; color: #0f172a !important; padding: 0 !important; font-size: 10px !important; line-height: 1.35 !important; }
       .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
-      .hero {
-        background: #fff !important;
-        color: #0f172a !important;
-        border: 1px solid #cbd5e1 !important;
-        box-shadow: none !important;
-        break-inside: avoid !important;
-        margin-bottom: 8px !important;
-        padding: 10px 14px !important;
-        border-radius: 6px !important;
-      }
-      .section {
+      .grid-2, .grid-3 { display: block !important; }
+      .grid-2 > *, .grid-3 > * { margin-bottom: 8px !important; break-inside: avoid !important; }
+      .hero, .section {
         background: #fff !important;
         color: #0f172a !important;
         border: 1px solid #cbd5e1 !important;
         box-shadow: none !important;
         break-inside: auto !important;
         margin-bottom: 8px !important;
-        padding: 10px 14px !important;
+        padding: 8px 12px !important;
         border-radius: 6px !important;
       }
-      .box, .pillar-kpi, .diagram-card, .shot-card {
+      .box, .diagram-card, .shot-card, .price-box {
         background: #fff !important;
         color: #0f172a !important;
         border: 1px solid #cbd5e1 !important;
@@ -365,18 +365,19 @@ const htmlContent = `<!DOCTYPE html>
         padding: 8px 10px !important;
         border-radius: 6px !important;
       }
-      p, .section-sub, .muted, .shot-card .cap, li, td, span, .desc, .feature-list li { color: #1e293b !important; font-size: 10.5px !important; }
-      h1, h2, h3, .section-title, th, .pillar-kpi .val { color: #0f172a !important; }
-      .hero h1 { font-size: 18px !important; margin-bottom: 4px !important; }
-      .hero p { font-size: 11px !important; margin-bottom: 8px !important; }
-      .hero-tag { font-size: 9.5px !important; padding: 2px 8px !important; margin-bottom: 6px !important; }
-      .hero h1 span, .box h3, .shot-card .cap strong, .section-title { color: #b45309 !important; font-size: 12.5px !important; }
-      .price-tag { color: #0f172a !important; font-size: 20px !important; font-weight: 900 !important; }
-      .price-sub { color: #475569 !important; font-size: 11px !important; }
-      th { background: #f8fafc !important; color: #0f172a !important; font-weight: 800 !important; border-bottom: 2px solid #94a3b8 !important; padding: 6px 8px !important; font-size: 10px !important; }
-      td { border-bottom: 1px solid #e2e8f0 !important; color: #0f172a !important; padding: 6px 8px !important; font-size: 10.5px !important; }
+      p, .section-sub, .muted, .shot-card .cap, li, td, span, .desc, .feature-list li { color: #1e293b !important; font-size: 10px !important; }
+      h1, h2, h3, .section-title, th, .price-tag { color: #0f172a !important; }
+      .hero h1 { font-size: 16px !important; margin-bottom: 4px !important; }
+      .hero p { font-size: 10.5px !important; margin-bottom: 6px !important; }
+      .hero-tag { font-size: 9px !important; padding: 2px 6px !important; margin-bottom: 4px !important; }
+      .hero h1 span, .box h3, .shot-card .cap strong, .section-title { color: #b45309 !important; font-size: 12px !important; }
+      .price-tag { color: #0f172a !important; font-size: 18px !important; font-weight: 900 !important; }
+      .price-tag span { color: #475569 !important; font-size: 10px !important; }
+      th { background: #f8fafc !important; color: #0f172a !important; font-weight: 800 !important; border-bottom: 2px solid #94a3b8 !important; padding: 5px 6px !important; font-size: 9.5px !important; }
+      td { border-bottom: 1px solid #e2e8f0 !important; color: #0f172a !important; padding: 5px 6px !important; font-size: 10px !important; }
       .badge-ok { background: #dcfce7 !important; color: #166534 !important; border: 1px solid #86efac !important; }
       .badge-info { background: #e0f2fe !important; color: #0369a1 !important; border: 1px solid #7dd3fc !important; }
+      .badge-gold { background: #fef3c7 !important; color: #92400e !important; border: 1px solid #fde68a !important; }
       svg text { fill: #0f172a !important; }
       .shot-card img { height: 110px !important; object-fit: contain !important; background: #0b1120 !important; }
       .page-break { page-break-after: always !important; break-after: page !important; }
@@ -387,79 +388,133 @@ const htmlContent = `<!DOCTYPE html>
   <header class="topbar">
     <div class="brand-pill">
       <span class="brand-badge">PROGYM 360°</span>
-      <span>Propuesta del Proyecto para <strong id="topGymName" style="color:var(--gold)">TU GIMNASIO</strong></span>
+      <span>Dossier Técnico Comercial para <strong id="topGymName" style="color:var(--gold)">TU GIMNASIO</strong></span>
     </div>
     <div class="customizer">
-      <label for="gymInput">Personalizar Gimnasio:</label>
-      <input id="gymInput" type="text" value="TU GIMNASIO" placeholder="Nombre del gimnasio..." oninput="syncGymName(this.value)" />
+      <label for="gymInput">Nombre del Gimnasio:</label>
+      <input id="gymInput" type="text" value="TU GIMNASIO" placeholder="Nombre de tu local..." oninput="syncGymName(this.value)" />
       <a class="btn" href="/anatomy-pro/index.html" target="_blank">🧬 Máquina 3D</a>
-      <a class="btn" href="/display.html" target="_blank">📺 Módulo Pantalla</a>
+      <a class="btn" href="/display.html" target="_blank">📺 Display Cliente</a>
       <button class="btn btn-gold" onclick="window.print()">🖨️ Descargar en PDF</button>
     </div>
   </header>
 
   <main class="container">
-    <!-- PORTADA Y PRESENTACIÓN DEL PRODUCTO -->
+    <!-- SECCIÓN 1: PORTADA Y RESUMEN DEL SISTEMA -->
     <section class="hero">
-      <div class="hero-tag">Dossier de Presentación del Proyecto · Software & Hardware Integrado</div>
-      <h1>Ecosistema Tecnológico Integral de Gestión, Control QR y Pantalla Interactiva para <span class="gym-name">TU GIMNASIO</span></h1>
+      <div class="hero-tag">Documento Oficial de Presentación de Solución Tecnológica</div>
+      <h1>Ecosistema Digital Integral de Gestión, Control de Accesos QR, Caja Blindada y Pantalla de Recepción para <span class="gym-name">TU GIMNASIO</span></h1>
       <p>
-        Una solución integral desarrollada específicamente para la operación diaria de gimnasios: agiliza el acceso en recepción mediante escaneo QR instantáneo, brinda control estricto de caja por turnos, entrega una aplicación móvil para los socios y ofrece visualización interactiva adaptable a la pantalla o equipos que el local ya posea.
+        Plataforma tecnológica completa diseñada específicamente para la administración moderna de gimnasios y centros de entrenamiento. Elimina errores en recepción, garantiza el cuadre diario de caja, entrega a los socios una aplicación móvil propia para sus entrenamientos y se adapta con total flexibilidad a las computadoras y pantallas con las que el local ya cuente.
       </p>
-      <div class="pillar-overview-grid">
-        <div class="pillar-kpi">
-          <div class="val">1. Panel de Gestión</div>
-          <div class="desc">Administración total de socios, caja chica por turnos, POS tienda, boletas térmicas 80mm y modo local sin internet.</div>
-        </div>
-        <div class="pillar-kpi">
-          <div class="val emerald">2. App Móvil del Socio</div>
-          <div class="desc">Web App progresiva con carné QR offline, días restantes, historial de asistencia, rutinas guiadas y calculadora corporal.</div>
-        </div>
-        <div class="pillar-kpi">
-          <div class="val cyan">3. Pantalla Recepción</div>
-          <div class="desc">Display interactivo de bienvenida, alerta de vencimiento y QR gigante de Yape/Plin, adaptable a TV, Tablet o 2do monitor.</div>
-        </div>
-      </div>
     </section>
 
-    <!-- DETALLE DE LOS 3 PILARES ACTUALES DEL PROYECTO -->
+    <!-- SECCIÓN 2: ARQUITECTURA DETALLADA DE LAS PESTAÑAS Y FUNCIONALIDADES DEL PANEL ADMINISTRATIVO -->
     <section class="section">
-      <div class="section-title">📦 1. Los 3 Pilares Operativos Integrados en el Sistema</div>
+      <div class="section-title">💻 1. Panel de Control y Administración (Módulo Central de Operaciones)</div>
       <div class="section-sub">
-        Estructura funcional de los 3 módulos que componen la solución y cómo interactúan entre sí:
+        Detalle técnico exhaustivo de cada una de las pestañas, interfaces y procesos integrados en el sistema de gestión interna:
       </div>
 
-      <div class="grid-3">
+      <div class="grid-2">
         <div class="box">
-          <h3>Pilar 1: Panel Central de Control y Caja (Admin & Recepción)</h3>
+          <h3>1.1. Escáner de Acceso Instantáneo (Pestaña /scan)</h3>
           <ul class="feature-list">
-            <li><strong>Gestión de Socios:</strong> Altas rápidas, renovación de planes, congelamiento temporal y búsqueda inmediata por DNI, nombre o código.</li>
-            <li><strong>Caja Blindada por Turnos:</strong> Apertura con fondo inicial de sencillo, registro de ingresos/egresos y cuadre estricto de efectivo vs. digital (Yape / Plin / Transferencia).</li>
-            <li><strong>Punto de Venta (POS Tienda):</strong> Venta ágil de bebidas, proteínas, pases diarios y cobro de planes con boleta automática.</li>
-            <li><strong>Impresión Térmica 80mm:</strong> Renderizado de alta densidad en negro puro (<code>#000000</code>), código QR de comprobante y corte automático. Envío opcional a WhatsApp.</li>
-            <li><strong>Modo Local PC Autónomo:</strong> Permite seguir atendiendo, cobrando y registrando asistencias en la computadora del gimnasio aun sin internet.</li>
+            <li><strong>Validación Ultrarrápida (<2 ms):</strong> Comprueba la vigencia de la membresía en milisegundos mediante código QR.</li>
+            <li><strong>Compatibilidad Dual de Escaneo:</strong> Funciona con escáneres ópticos 2D USB de sobremesa (manos libres) y también mediante cámara web/laptop.</li>
+            <li><strong>Respuesta Sonora y Visual Inteligente:</strong> Campanilla de audio y banner verde ante socio habilitado; timbre de advertencia y pantalla roja ante membresía vencida o socio inactivo.</li>
+            <li><strong>Atajos de Teclado Operativos:</strong> Permite operar la recepción con teclas rápidas sin necesidad de usar el mouse durante horas punta.</li>
           </ul>
         </div>
 
         <div class="box">
-          <h3>Pilar 2: Web App Móvil para los Socios (PWA para Android & iOS)</h3>
+          <h3>1.2. Dashboard Ejecutivo en Vivo (Pestaña /home)</h3>
           <ul class="feature-list">
-            <li><strong>Carné Digital QR Inteligente:</strong> Abre en menos de 1 segundo en el celular del socio, incluso sin datos móviles (modo offline).</li>
-            <li><strong>Semáforo de Vigencia:</strong> Indica visualmente el estado de su membresía y los días exactos que le quedan de entrenamiento.</li>
-            <li><strong>Registro y Racha de Asistencias:</strong> Calendario mensual interactivo que motiva la constancia del socio mostrando los días asistidos.</li>
-            <li><strong>Entrenador Virtual y Rutinas Visuales:</strong> Biblioteca de ejercicios por grupo muscular (Pecho, Espalda, Piernas, etc.) con temporizador de descanso entre series.</li>
-            <li><strong>Calculadora Corporal & Récords (PR):</strong> Cálculo de IMC, tasa metabólica y registro de pesos máximos en ejercicios clave.</li>
+            <li><strong>Métricas Operativas del Día:</strong> Contador de socios con membresía activa, total de accesos registrados hoy y nuevos inscritos.</li>
+            <li><strong>Resumen Financiero del Turno:</strong> Total cobrado en el día desglosado automáticamente entre Efectivo, Yape, Plin y Tarjetas.</li>
+            <li><strong>Alertas Tempranas de Vencimiento:</strong> Lista prioritaria de socios cuyas membresías vencen en los próximos 7 días para gestionar renovaciones.</li>
+            <li><strong>Gráfica de Afluencia por Horarios:</strong> Curva que visualiza las horas de mayor y menor tráfico de personas en las salas de máquinas.</li>
           </ul>
         </div>
 
         <div class="box">
-          <h3>Pilar 3: Pantalla Interactiva de Recepción (Display Cliente)</h3>
+          <h3>1.3. Padrón y Gestión de Socios (Pestaña /members)</h3>
           <ul class="feature-list">
-            <li><strong>Bienvenida Automática (5.5 seg):</strong> Al escanear el QR, muestra en pantalla la foto, nombre del socio, plan activo y días restantes con sonido confirmatorio.</li>
-            <li><strong>Alerta Roja de Membresía Vencida:</strong> Notifica de forma inmediata y clara si el socio requiere renovar su plan antes de ingresar.</li>
-            <li><strong>Proyección de Cobro Yape / Plin:</strong> Al cobrar en caja, despliega el monto exacto y el código QR oficial de Yape/Plin en grande para que el cliente escanee cómodamente.</li>
-            <li><strong>Spots Publicitarios Programados:</strong> Emite anuncios rotativos configurables sobre promociones, suplementos o avisos del gimnasio.</li>
-            <li><strong>100% Adaptable:</strong> Funciona en Smart TV, Tablet, monitor secundario extendido o directamente en el monitor de caja.</li>
+            <li><strong>Ficha de Inscripción Completa:</strong> Registro con DNI, nombres, teléfono de WhatsApp, fecha de nacimiento, foto del socio y contacto de emergencia.</li>
+            <li><strong>Control de Planes y Fechas:</strong> Asignación de membresías con cálculo automático de fecha fin y semáforo de días restantes.</li>
+            <li><strong>Congelamiento Temporal de Membresías:</strong> Permite pausar días por motivos de salud o viaje, reprogramando la fecha de vencimiento sin alterar la contabilidad.</li>
+            <li><strong>Historial Inalterable por Socio:</strong> Registro de cada pago realizado, fechas de renovación, historial de asistencias y rutinas asignadas.</li>
+            <li><strong>Emisión de Carnés Físicos y Digitales:</strong> Genera credenciales con código QR listas para exportar a PDF para impresión en PVC/plastificado, y código QR para celulares.</li>
+          </ul>
+        </div>
+
+        <div class="box">
+          <h3>1.4. Punto de Venta y Tienda (Pestaña /store)</h3>
+          <ul class="feature-list">
+            <li><strong>Catálogo de Productos:</strong> Venta organizada de bebidas hidratantes, proteínas, creatinas, snacks saludables, pases diarios y accesorios.</li>
+            <li><strong>Control de Inventario (Stock):</strong> Descuento automático de existencias con cada venta y alertas cuando un producto se agota.</li>
+            <li><strong>Carrito de Cobro Ágil:</strong> Selección rápida de productos y membresías en una sola transacción para evitar demoras en el mostrador.</li>
+            <li><strong>Múltiples Métodos de Cobro:</strong> Permite cobrar combinando Efectivo, Yape, Plin y POS en una misma boleta.</li>
+          </ul>
+        </div>
+
+        <div class="box">
+          <h3>1.5. Control de Caja Blindada por Turnos (Pestaña /cash)</h3>
+          <ul class="feature-list">
+            <li><strong>Apertura con Fondo de Sencillo:</strong> Registro obligatorio del dinero base con el que cada cajero inicia su turno de atención.</li>
+            <li><strong>Registro de Movimientos (Ingresos y Gastos):</strong> Registro de salidas de dinero (limpieza, compras menores) con concepto, monto y sustento.</li>
+            <li><strong>Arqueo y Cuadre de Caja:</strong> Separación estricta entre dinero en <strong>Efectivo físico</strong> y dinero digital <strong>(Yape, Plin y Cuentas Bancarias)</strong>.</li>
+            <li><strong>Cierre de Turno Auditable:</strong> Comparación automática entre el dinero esperado por el sistema y el dinero real contado por el cajero, reportando sobrante o faltante.</li>
+            <li><strong>Historial de Turnos Cerrados:</strong> Base de datos de turnos anteriores con identificación del usuario, hora de apertura, hora de cierre y boletas emitidas.</li>
+          </ul>
+        </div>
+
+        <div class="box">
+          <h3>1.6. Impresión Térmica 80mm y Boletas Digitales</h3>
+          <ul class="feature-list">
+            <li><strong>Renderizado de Alta Densidad (#000000):</strong> Configuración monocromática pura a 203 DPI que garantiza letras negras profundas y duraderas sin tonos grises.</li>
+            <li><strong>Código QR Nítido y Autocorte:</strong> Generación de código QR para verificación rápida del comprobante y corte automático de papel.</li>
+            <li><strong>Boleta Digital por WhatsApp:</strong> Envío directo del comprobante digital al número de WhatsApp del socio con un solo clic.</li>
+            <li><strong>Datos Fiscales y Comerciales:</strong> Incluye encabezado con nombre del gimnasio, RUC/DNI, dirección, teléfono y detalle desglosado de la compra.</li>
+          </ul>
+        </div>
+
+        <div class="box">
+          <h3>1.7. Gestión de Rutinas y Ejercicios (Pestaña /routines)</h3>
+          <ul class="feature-list">
+            <li><strong>Biblioteca Visual de Ejercicios:</strong> Base de datos clasificada por grupos musculares (Pecho, Espalda, Piernas, Hombros, Brazos, Core y Cardio).</li>
+            <li><strong>Ficha Técnica de Movimientos:</strong> Series, repeticiones recomendadas, cargas sugeridas y explicación de postura correcta.</li>
+            <li><strong>Creador de Planes de Entrenamiento:</strong> Armado de rutinas personalizadas por días de la semana según el objetivo del alumno (fuerza, hipertrofia, pérdida de grasa).</li>
+            <li><strong>Temporizador y Cronómetro Deportivo:</strong> Herramienta integrada para control de descanso entre series, intervalos HIIT y circuitos Tabata.</li>
+          </ul>
+        </div>
+
+        <div class="box">
+          <h3>1.8. Centro de Reportes, Estadísticas y Archivos (Pestaña /reports)</h3>
+          <ul class="feature-list">
+            <li><strong>Reportes Financieros por Período:</strong> Consulta de recaudación por día, semana, mes o rango personalizado de fechas.</li>
+            <li><strong>Reportes de Asistencia y Afluencia:</strong> Listado de socios frecuentes, horas de mayor congestión y socios en riesgo de deserción por inasistencia.</li>
+            <li><strong>Exportación a Microsoft Excel (.xlsx):</strong> Descarga de hojas de cálculo completas con fórmulas y formato profesional para contabilidad.</li>
+            <li><strong>Exportación a PDF A4:</strong> Generación de reportes ejecutivos listos para imprimir o archivar con membrete y cuadros comparativos.</li>
+            <li><strong>Sincronización con Google Sheets:</strong> Conexión en vivo para respaldar cada cobro y asistencia en una hoja de cálculo en la nube de Google.</li>
+          </ul>
+        </div>
+
+        <div class="box">
+          <h3>1.9. Notificaciones y Avisos Masivos (Pestaña /announcements)</h3>
+          <ul class="feature-list">
+            <li><strong>Publicación de Comunicados:</strong> Creación de avisos sobre feriados, mantenimiento de salas, nuevos horarios o promociones de renovación.</li>
+            <li><strong>Difusión Multicanal:</strong> El aviso se despliega instantáneamente en la aplicación móvil de todos los socios y en la pantalla de recepción.</li>
+          </ul>
+        </div>
+
+        <div class="box">
+          <h3>1.10. Ajustes del Sistema y Roles del Personal (Pestaña /settings)</h3>
+          <ul class="feature-list">
+            <li><strong>Personalización de Marca:</strong> Carga de logotipo oficial, nombre comercial, colores institucionales y textos legales de comprobantes.</li>
+            <li><strong>Configuración de Tarifas de Planes:</strong> Creación y edición de planes de membresía (diario, mensual, trimestral, anual) con precios y días de gracia.</li>
+            <li><strong>Configuración de Cobros Yape / Plin:</strong> Registro de número de celular receptor y código QR oficial para pagos digitales en recepción.</li>
+            <li><strong>Gestión de Usuarios y Permisos:</strong> Creación de cuentas para Administradores, Recepcionistas y Entrenadores con contraseñas seguras y permisos restringidos.</li>
           </ul>
         </div>
       </div>
@@ -467,252 +522,331 @@ const htmlContent = `<!DOCTYPE html>
 
     <div class="page-break"></div>
 
-    <!-- PÁGINA 2: MÓDULO OPCIONAL WEB PÚBLICA Y ADAPTABILIDAD DE EQUIPOS -->
+    <!-- SECCIÓN 3: WEB APP DEL SOCIO (PWA) Y PANTALLA DISPLAY CLIENTE -->
     <section class="section">
-      <div class="section-title">🌐 2. Módulo de Expansión Futura: Sitio Web Público Oficial del Gimnasio</div>
+      <div class="section-title">📱 2. Aplicación Móvil para Socios (PWA para Android & iOS)</div>
       <div class="section-sub">
-        Aclaración sobre el alcance actual y la posibilidad de incorporar una página web corporativa en internet:
+        Una experiencia moderna para que el socio lleve el gimnasio en su teléfono sin necesidad de descargar apps pesadas desde Play Store o App Store:
       </div>
 
-      <div class="grid-2">
+      <div class="grid-3">
         <div class="box">
-          <h3>¿Por qué el sistema actual se enfoca en la gestión interna?</h3>
-          <p style="font-size:13px;color:#cbd5e1;margin-bottom:12px">
-            El núcleo del proyecto actual está diseñado para resolver la <strong>operación diaria dentro del gimnasio</strong>: control de accesos por QR, auditoría de caja, impresión de boletas y la app móvil de los socios ya inscritos.
+          <h3>Carné Digital QR Offline</h3>
+          <p style="font-size:12.5px;color:#cbd5e1;margin-bottom:8px">
+            Se instala con un toque como una aplicación nativa en la pantalla de inicio del celular.
           </p>
-          <p style="font-size:13px;color:#cbd5e1">
-            Una web pública tiene como objetivo captar clientes nuevos en internet (Google, redes sociales). Por ello, se ofrece como un <strong>módulo de expansión digital opcional</strong> que puede ser desarrollado e implementado a medida del cliente.
-          </p>
+          <ul class="feature-list">
+            <li>Abre en menos de 1 segundo incluso si el socio no tiene internet ni saldo en la puerta del gimnasio (Service Worker offline).</li>
+            <li>Muestra el código QR único del socio con sello de agua y validación dinámica anti-capturas de pantalla.</li>
+          </ul>
         </div>
 
         <div class="box">
-          <h3>¿Qué incluiría el Sitio Web Público Corporativo si se implementa?</h3>
+          <h3>Semáforo de Vigencia y Asistencias</h3>
+          <p style="font-size:12.5px;color:#cbd5e1;margin-bottom:8px">
+            Transparencia total para que el socio siempre conozca el estado de su membresía:
+          </p>
           <ul class="feature-list">
-            <li><strong>Landing Page Corporativa:</strong> Diseño profesional con la historia, identidad y logotipo del gimnasio.</li>
-            <li><strong>Ubicación y Horarios:</strong> Mapa interactivo de Google Maps, dirección exacta y horarios por turnos.</li>
-            <li><strong>Catálogo de Planes y Tarifas:</strong> Detalle de membresías (diarias, mensuales, trimestrales, anuales) y promociones vigentes.</li>
-            <li><strong>Galería de Instalaciones y Máquinas:</strong> Fotografías de alta calidad de las áreas de pesas, cardio y servicios.</li>
-            <li><strong>Contacto Directo a WhatsApp:</strong> Botón flotante para que prospectos consulten o se inscriban con un clic.</li>
-            <li><strong>Requisitos Técnicos:</strong> Requiere la adquisición de un dominio web propio (ej. <code>www.tugimnasio.pe</code> o <code>.com</code>) y servicio de hosting anual, lo cual se cotiza por separado.</li>
+            <li><strong>Verde:</strong> Membresía activa con contador exacto de días restantes.</li>
+            <li><strong>Ámbar:</strong> Alerta preventiva cuando faltan menos de 5 días para vencer.</li>
+            <li><strong>Rojo:</strong> Notificación de membresía vencida para regularizar en caja.</li>
+            <li><strong>Racha de Entrenamientos:</strong> Calendario mensual que premia los días asistidos para fomentar la disciplina deportiva.</li>
+          </ul>
+        </div>
+
+        <div class="box">
+          <h3>Rutinas, Cronómetro e IMC</h3>
+          <p style="font-size:12.5px;color:#cbd5e1;margin-bottom:8px">
+            Herramientas deportivas que le dan valor agregado a la mensualidad del gimnasio:
+          </p>
+          <ul class="feature-list">
+            <li>Acceso a la rutina asignada por su entrenador con imágenes y técnica correcta de cada ejercicio.</li>
+            <li>Temporizador sonoro y vibratorio para controlar los segundos de descanso entre series.</li>
+            <li>Calculadoras de Índice de Masa Corporal (IMC), requerimiento calórico (TDEE) y registro de pesos máximos personales (PR).</li>
           </ul>
         </div>
       </div>
     </section>
 
-    <!-- ADAPTABILIDAD TOTAL DE EQUIPAMIENTO -->
+    <!-- SECCIÓN 4: PANTALLA INTERACTIVA DE RECEPCIÓN / DISPLAY CLIENTE -->
     <section class="section">
-      <div class="section-title">🖥️ 3. Adaptabilidad de Hardware: Trabajamos con lo que Tienes o lo Implementamos de Cero</div>
+      <div class="section-title">📺 3. Pantalla Interactiva de Recepción y Alertas (Módulo Display)</div>
       <div class="section-sub">
-        No exigimos comprar equipos costosos. El sistema se adapta a la infraestructura física existente de cada gimnasio:
+        Módulo visual proyectado hacia los socios, adaptable a cualquier tipo de pantalla que el gimnasio decida emplear:
+      </div>
+
+      <div class="grid-2">
+        <div class="box">
+          <h3>3.1. Funcionalidades en Tiempo Real</h3>
+          <ul class="feature-list">
+            <li><strong>Bienvenida Automática (5.5 seg):</strong> Al escanear el QR, muestra foto del socio, nombre, plan contratado y días restantes con sonido confirmatorio.</li>
+            <li><strong>Alerta Roja de Membresía Vencida:</strong> Notificación clara y audible que solicita al socio acercarse a recepción a renovar antes de ingresar.</li>
+            <li><strong>Cobro Yape / Plin Gigante:</strong> Al cobrar en caja, la pantalla proyecta el monto exacto y el código QR de pago para que el cliente pague de inmediato con su celular.</li>
+            <li><strong>Rotación de Spots Publicitarios:</strong> Difunde anuncios de promociones, suplementos o avisos del gimnasio mientras no hay ingresos en curso.</li>
+          </ul>
+        </div>
+
+        <div class="box">
+          <h3>3.2. Adaptabilidad a los Equipos del Local</h3>
+          <ul class="feature-list">
+            <li><strong>Opción 1 (Tablet en Mostrador):</strong> Una tablet colocada frente al socio conectada a la red Wi-Fi del gimnasio.</li>
+            <li><strong>Opción 2 (Segundo Monitor HDMI):</strong> Monitor secundario conectado a la computadora de recepción orientado hacia los clientes.</li>
+            <li><strong>Opción 3 (Smart TV en Pared):</strong> Televisor visible en la sala principal. Si el local cuenta con DVR de cámaras de seguridad, el sistema activa el modo <strong>Picture-in-Picture (PiP)</strong> para mantener las cámaras en vivo el 90% del tiempo y mostrar bienvenidas o anuncios en momentos clave.</li>
+            <li><strong>Opción 4 (Pantalla Única):</strong> Si el gimnasio no desea pantallas adicionales, la recepción opera normalmente desde el monitor principal de caja.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <div class="page-break"></div>
+
+    <!-- SECCIÓN 5: SITIO WEB PÚBLICO OPCIONAL Y FIABILIDAD LOCAL EN PC -->
+    <section class="section">
+      <div class="section-title">🌐 4. Módulo Opcional de Expansión: Sitio Web Público Corporativo</div>
+      <div class="section-sub">
+        Alcance y características de una página web oficial en internet en caso de que el propietario desee implementar presencia digital:
+      </div>
+
+      <div class="grid-2">
+        <div class="box">
+          <h3>¿Por qué este módulo se cotiza como expansión independiente?</h3>
+          <p style="font-size:12.5px;color:#cbd5e1;margin-bottom:8px">
+            El sistema principal resuelve la <strong>operación diaria dentro del local</strong> (caja, accesos, rutinas y app de socios inscritos).
+          </p>
+          <p style="font-size:12.5px;color:#cbd5e1">
+            Una página web pública tiene como propósito captar clientes que aún no conocen el gimnasio mediante búsquedas en Google y redes sociales. Por requerir la adquisición anual de un <strong>dominio propio (ej. www.tugimnasio.pe o .com)</strong> y <strong>servicio de hosting en la nube</strong>, se ofrece como un desarrollo a medida adicional.
+          </p>
+        </div>
+
+        <div class="box">
+          <h3>¿Qué contiene el Sitio Web Público Corporativo?</h3>
+          <ul class="feature-list">
+            <li><strong>Landing Page Institucional:</strong> Presentación del gimnasio, filosofía de entrenamiento y fotografías de las instalaciones.</li>
+            <li><strong>Catálogo Público de Membresías:</strong> Detalle de planes diarios, semanales, mensuales y promociones de temporada.</li>
+            <li><strong>Ubicación con Google Maps:</strong> Mapa interactivo con dirección, referencias y horarios de atención por turnos.</li>
+            <li><strong>Botón de Inscripción a WhatsApp:</strong> Enlace directo para que los interesados chateen directamente con la recepción del gimnasio.</li>
+            <li><strong>Optimización Móvil y SEO:</strong> Carga rápida en celulares y posicionamiento en Google para aparecer cuando busquen gimnasios en la zona.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 6: FIABILIDAD OPERATIVA EN LA PC DEL DUEÑO (OFFLINE-FIRST) -->
+    <section class="section">
+      <div class="section-title">⚡ 5. Fiabilidad Operativa: Modo Local en la PC del Dueño (Sin Caídas por Internet)</div>
+      <div class="section-sub">
+        El sistema está diseñado con una arquitectura de contingencia para que el gimnasio jamás deje de operar ante cortes de red:
+      </div>
+
+      <div class="diagram-card">
+        <svg viewBox="0 0 740 130" width="100%" height="130" style="display:block">
+          <rect x="15" y="15" width="210" height="100" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+          <text x="120" y="38" fill="#065f46" font-size="11" font-weight="900" text-anchor="middle">1. OPERACIÓN EN LÍNEA</text>
+          <text x="120" y="58" fill="#0f172a" font-size="10.5" font-weight="800" text-anchor="middle">Nube + Espejo Local</text>
+          <text x="120" y="78" fill="#334155" font-size="9.5" text-anchor="middle">Las transacciones se graban en la nube</text>
+          <text x="120" y="93" fill="#065f46" font-size="9.5" font-weight="700" text-anchor="middle">y en la memoria local de tu PC (<1 ms)</text>
+
+          <path d="M 230 65 L 260 65" stroke="#d97706" stroke-width="2.5" stroke-dasharray="4,4"/>
+          <polygon points="265,65 257,61 257,69" fill="#d97706"/>
+          <text x="247" y="56" fill="#b45309" font-size="8.5" font-weight="800" text-anchor="middle">Corte de red</text>
+
+          <rect x="270" y="15" width="220" height="100" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+          <text x="380" y="38" fill="#92400e" font-size="11" font-weight="900" text-anchor="middle">2. MODO LOCAL PC</text>
+          <text x="380" y="58" fill="#0f172a" font-size="10.5" font-weight="800" text-anchor="middle">Contingencia Autónoma</text>
+          <text x="380" y="78" fill="#334155" font-size="9.5" text-anchor="middle">El lector QR valida en 0.1s, se cobran boletas</text>
+          <text x="380" y="93" fill="#92400e" font-size="9.5" font-weight="700" text-anchor="middle">y todo queda grabado en la Cola Local</text>
+
+          <path d="M 495 65 L 525 65" stroke="#2563eb" stroke-width="2.5"/>
+          <polygon points="530,65 522,61 522,69" fill="#2563eb"/>
+          <text x="512" y="56" fill="#1d4ed8" font-size="8.5" font-weight="800" text-anchor="middle">Vuelve red</text>
+
+          <rect x="535" y="15" width="190" height="100" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+          <text x="630" y="38" fill="#1e40af" font-size="11" font-weight="900" text-anchor="middle">3. AUTO-SINCRONIZACIÓN</text>
+          <text x="630" y="58" fill="#0f172a" font-size="10.5" font-weight="800" text-anchor="middle">1 Clic o Automático</text>
+          <text x="630" y="78" fill="#334155" font-size="9.5" text-anchor="middle">Las transacciones suben a la nube</text>
+          <text x="630" y="93" fill="#1e40af" font-size="9.5" font-weight="700" text-anchor="middle">sin duplicados y se ven en tu celular</text>
+        </svg>
+      </div>
+
+      <div class="grid-3" style="margin-top:14px">
+        <div class="box">
+          <h3>Botón Directo en el Panel</h3>
+          <p style="font-size:12px;color:#cbd5e1">
+            El botón <strong>⚡ Modo Local PC</strong> en la barra superior permite conmutar la operación a modo desconectado ante cortes de internet.
+          </p>
+        </div>
+        <div class="box">
+          <h3>Contador de Registros Protegidos</h3>
+          <p style="font-size:12px;color:#cbd5e1">
+            El semáforo indica en tiempo real: <code>⚡ MODO LOCAL · X operaciones guardadas</code>, confirmando que cada cobro quedó asegurado en el disco de la computadora.
+          </p>
+        </div>
+        <div class="box">
+          <h3>Instalador de Respaldo (.BAT)</h3>
+          <p style="font-size:12px;color:#cbd5e1">
+            Se proporciona un script ejecutable para Windows (<code>Instalar_Sistema_Local_PC.bat</code>) que inicia el sistema localmente con acceso directo en el escritorio.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <div class="page-break"></div>
+
+    <!-- SECCIÓN 7: COSTOS DE EQUIPOS FÍSICOS Y PLANES CON O SIN HARDWARE -->
+    <section class="section">
+      <div class="section-title">🛠️ 6. Especificaciones y Costos Detallados de Equipos Físicos</div>
+      <div class="section-sub">
+        Desglose de hardware recomendado para operación continua (el dueño puede comprarlos por su cuenta o solicitarlos llave en mano):
       </div>
 
       <table>
         <thead>
           <tr>
-            <th>Escenario de Uso</th>
-            <th>Equipamiento Físico Utilizado</th>
-            <th>Modo de Funcionamiento</th>
-            <th>Inversión en Equipos</th>
+            <th>Equipo Físico</th>
+            <th>Modelo Recomendado</th>
+            <th>Especificación Técnica Clave</th>
+            <th>Costo Compra Mercado</th>
+            <th>Precio Instalado / Garantía</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong>Opción A: Pantalla Única (Cero Hardware Extra)</strong></td>
-            <td>Laptop o PC actual del gimnasio</td>
-            <td>El recepcionista atiende todo desde el Panel Admin en una sola pantalla. La confirmación de acceso QR y cobro se muestra directamente en el panel.</td>
-            <td><span class="badge-ok">S/ 0 (Usa lo que ya tiene)</span></td>
+            <td><strong>Lector Óptico QR 2D</strong></td>
+            <td><strong>Netum NT-2050M</strong> o <strong>Honeywell HF680</strong></td>
+            <td>Sensor CMOS 60fps, pedestal pesado manos libres, lente antirreflejo para celulares (lectura en 0.1s sin presionar botones).</td>
+            <td>S/ 180 – S/ 220</td>
+            <td><span class="badge-ok">S/ 260 – S/ 280</span></td>
           </tr>
           <tr>
-            <td><strong>Opción B: Recepción con Tablet en Mostrador</strong></td>
-            <td>Laptop de caja + Tablet Android/iPad sobre el mostrador</td>
-            <td>La tablet muestra el módulo Display mirando hacia el socio (bienvenida QR, alertas y QR de Yape para pagar). Se conecta por red local Wi-Fi.</td>
-            <td><span class="badge-info">Usa tablet existente o económica</span></td>
+            <td><strong>Impresora Térmica 80mm</strong></td>
+            <td><strong>Xprinter XP-N160II</strong> o <strong>Epson TM-T20III</strong></td>
+            <td>Cabezal térmico japonés 203 DPI, impresión negro intenso (#000000), guillotina de autocorte (1.5M cortes), conexión USB.</td>
+            <td>S/ 190 – S/ 230</td>
+            <td><span class="badge-ok">S/ 270 – S/ 290</span></td>
           </tr>
           <tr>
-            <td><strong>Opción C: Doble Monitor en Recepción</strong></td>
-            <td>PC con 2 salidas de video + 2do monitor para clientes</td>
-            <td>El cajero opera en su monitor principal y el segundo monitor muestra la pantalla de clientes con bienvenida interactiva.</td>
-            <td><span class="badge-info">Monitor HDMI estándar</span></td>
+            <td><strong>Computadora de Caja</strong></td>
+            <td><strong>Mini PC Intel N100 / Core i5</strong></td>
+            <td>16GB RAM DDR4, SSD M.2 NVMe 512GB ultra rápido, doble salida HDMI nativa, chasis compacto y consumo mínimo (15W).</td>
+            <td>S/ 780 – S/ 860</td>
+            <td><span class="badge-ok">S/ 950 – S/ 990</span></td>
           </tr>
           <tr>
-            <td><strong>Opción D: Smart TV en Sala (con o sin Cámaras CCTV)</strong></td>
-            <td>Smart TV en pared + Enlace HDMI (o capturadora si hay DVR)</td>
-            <td>Si el gimnasio tiene cámaras de seguridad conectadas a la TV, el sistema activa el modo <strong>Picture-in-Picture (PiP)</strong> para mostrar las cámaras el 90% del tiempo y superponer bienvenidas QR y anuncios en momentos clave. Si no tiene cámaras, funciona como pantalla de bienvenida y publicidad continua.</td>
-            <td><span class="badge-info">Aprovecha la TV que tenga el local</span></td>
+            <td><strong>Kit de Enlace Display / TV</strong></td>
+            <td><strong>Capturadora HDMI-USB 3.0 + Cable Blindado</strong></td>
+            <td>Permite vincular el sistema a la TV o monitor de sala y activar modo Picture-in-Picture (PiP) si cuenta con DVR de cámaras.</td>
+            <td>S/ 65 – S/ 80</td>
+            <td><span class="badge-ok">S/ 110 – S/ 120</span></td>
+          </tr>
+          <tr>
+            <td><strong>TOTAL HARDWARE NUEVO</strong></td>
+            <td><strong>Kit Completo de Recepción (4 Equipos)</strong></td>
+            <td>Hardware dedicado nuevo con cables, probado y calibrado para operación diaria continua.</td>
+            <td>S/ 1,215 – S/ 1,390</td>
+            <td><span class="badge-gold">S/ 1,590 – S/ 1,680</span></td>
           </tr>
         </tbody>
       </table>
     </section>
 
-    <div class="page-break"></div>
-
-    <!-- PÁGINA 3: OPERACIÓN LOCAL EN LA PC DEL DUEÑO (OFFLINE-FIRST) Y EQUIPOS RECOMENDADOS -->
+    <!-- SECCIÓN 8: MODALIDADES DE CONTRATACIÓN (CON EQUIPOS VS. SIN EQUIPOS) -->
     <section class="section">
-      <div class="section-title">⚡ 4. Fiabilidad Operativa: ¿Cómo Funciona el Modo Local en la PC del Dueño?</div>
+      <div class="section-title">💼 7. Planes de Inversión: Modalidad Solo Software vs. Modalidad Llave en Mano</div>
       <div class="section-sub">
-        Arquitectura de contingencia diseñada para que el gimnasio no se detenga si se corta el internet o la energía del router:
+        Opciones claras y transparentes para ajustarse al presupuesto de cada gimnasio:
       </div>
 
-      <!-- DIAGRAMA DE ARQUITECTURA OFFLINE-FIRST -->
+      <div class="grid-2" style="margin-bottom:16px">
+        <!-- MODALIDAD A -->
+        <div class="price-box">
+          <div>
+            <span class="badge-info" style="margin-bottom:8px;display:inline-block">MODALIDAD A: SOLO SOFTWARE</span>
+            <h3>El Gimnasio Utiliza sus Propios Equipos</h3>
+            <p style="font-size:12.5px;color:#cbd5e1;margin-bottom:12px">
+              El cliente utiliza la laptop o PC que ya tiene en su local, su propia impresora o tablet. No gasta en hardware extra.
+            </p>
+            <ul class="feature-list" style="margin-bottom:14px">
+              <li>Instalación del sistema en su computadora.</li>
+              <li>Configuración de red, modo local y base de datos.</li>
+              <li>Carga inicial del padrón de socios activos.</li>
+              <li>Capacitación presencial/remota al personal de caja.</li>
+            </ul>
+          </div>
+          <div>
+            <table style="margin-top:0">
+              <tbody>
+                <tr>
+                  <td><strong>Plan Mensual:</strong></td>
+                  <td style="text-align:right"><strong>S/ 89 / mes</strong> <em>(+ S/ 250 instalación única)</em></td>
+                </tr>
+                <tr>
+                  <td><strong>Plan Anual (2 meses gratis):</strong></td>
+                  <td style="text-align:right"><strong>S/ 890 / año</strong> <em>(+ S/ 150 instalación única)</em></td>
+                </tr>
+                <tr>
+                  <td><strong>Licencia Vitalicia Local:</strong></td>
+                  <td style="text-align:right"><strong style="color:var(--cyan)">S/ 1,450 pago único</strong> <em>(Cero mensualidades)</em></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- MODALIDAD B -->
+        <div class="price-box featured">
+          <div>
+            <span class="badge-gold" style="margin-bottom:8px;display:inline-block">⭐ MODALIDAD B: LLAVE EN MANO</span>
+            <h3>Software + Equipos Nuevos Completos Instalados</h3>
+            <p style="font-size:12.5px;color:#cbd5e1;margin-bottom:12px">
+              Nosotros entregamos e instalamos todos los equipos físicos nuevos en tu mostrador listos para operar desde el primer minuto.
+            </p>
+            <ul class="feature-list" style="margin-bottom:14px">
+              <li><strong>Mini PC NUC</strong> (16GB RAM + 512GB SSD NVMe Dual HDMI).</li>
+              <li><strong>Lector Óptico QR 2D</strong> manos libres de alta velocidad (0.1s).</li>
+              <li><strong>Ticketera Térmica 80mm</strong> con guillotina de autocorte.</li>
+              <li><strong>Cables HDMI blindados</strong> + Enlace a TV/Monitor.</li>
+              <li>Instalación, cableado prolijo y capacitación incluidos.</li>
+            </ul>
+          </div>
+          <div>
+            <table style="margin-top:0">
+              <tbody>
+                <tr>
+                  <td><strong>Equipos Físicos Nuevos:</strong></td>
+                  <td style="text-align:right"><strong>S/ 1,590</strong> <em>(Hardware nuevo con garantía)</em></td>
+                </tr>
+                <tr>
+                  <td><strong>Con Suscripción Mensual:</strong></td>
+                  <td style="text-align:right"><strong>S/ 1,590</strong> (equipos) + <strong>S/ 89 / mes</strong></td>
+                </tr>
+                <tr>
+                  <td><strong>Con Licencia Vitalicia Completa:</strong></td>
+                  <td style="text-align:right"><strong style="color:var(--gold)">S/ 2,890</strong> <em>(Equipos nuevos + Software de por vida)</em></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <div class="diagram-card">
-        <svg viewBox="0 0 740 160" width="100%" height="160" style="display:block">
-          <!-- Bloque 1 -->
-          <rect x="15" y="20" width="210" height="120" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
-          <text x="120" y="44" fill="#065f46" font-size="12" font-weight="900" text-anchor="middle">1. OPERACIÓN EN LÍNEA</text>
-          <text x="120" y="66" fill="#0f172a" font-size="11" font-weight="800" text-anchor="middle">Nube + Espejo Local</text>
-          <text x="120" y="88" fill="#334155" font-size="10" text-anchor="middle">Cada venta y asistencia se guarda</text>
-          <text x="120" y="103" fill="#334155" font-size="10" text-anchor="middle">en la nube y replica una copia</text>
-          <text x="120" y="118" fill="#065f46" font-size="10" font-weight="800" text-anchor="middle">en la memoria de tu PC (&lt;1 ms)</text>
-
-          <!-- Flecha 1 -->
-          <path d="M 230 80 L 260 80" stroke="#d97706" stroke-width="3" stroke-dasharray="4,4"/>
-          <polygon points="265,80 257,75 257,85" fill="#d97706"/>
-          <text x="247" y="70" fill="#b45309" font-size="9" font-weight="800" text-anchor="middle">Si no hay red</text>
-
-          <!-- Bloque 2 -->
-          <rect x="270" y="20" width="220" height="120" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
-          <text x="380" y="44" fill="#92400e" font-size="12" font-weight="900" text-anchor="middle">2. MODO LOCAL PC</text>
-          <text x="380" y="66" fill="#0f172a" font-size="11" font-weight="800" text-anchor="middle">Contingencia Automática</text>
-          <text x="380" y="88" fill="#334155" font-size="10" text-anchor="middle">El escáner QR valida en 0.1s,</text>
-          <text x="380" y="103" fill="#334155" font-size="10" text-anchor="middle">se imprimen boletas y se guarda</text>
-          <text x="380" y="118" fill="#92400e" font-size="10" font-weight="800" text-anchor="middle">en la Cola de Memoria Local</text>
-
-          <!-- Flecha 2 -->
-          <path d="M 495 80 L 525 80" stroke="#2563eb" stroke-width="3"/>
-          <polygon points="530,80 522,75 522,85" fill="#2563eb"/>
-          <text x="512" y="70" fill="#1d4ed8" font-size="9" font-weight="800" text-anchor="middle">Al volver red</text>
-
-          <!-- Bloque 3 -->
-          <rect x="535" y="20" width="190" height="120" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
-          <text x="630" y="44" fill="#1e40af" font-size="12" font-weight="900" text-anchor="middle">3. AUTO-SINCRONIZACIÓN</text>
-          <text x="630" y="66" fill="#0f172a" font-size="11" font-weight="800" text-anchor="middle">1 Clic o Automático</text>
-          <text x="630" y="88" fill="#334155" font-size="10" text-anchor="middle">Las transacciones locales suben</text>
-          <text x="630" y="103" fill="#334155" font-size="10" text-anchor="middle">a la nube sin duplicados y se</text>
-          <text x="630" y="118" fill="#1e40af" font-size="10" font-weight="800" text-anchor="middle">actualizan en tu celular</text>
-        </svg>
-      </div>
-
-      <div class="grid-3" style="margin-top:16px">
-        <div class="box">
-          <h3>Botón de Activación en el Panel</h3>
-          <p style="font-size:12px;color:#cbd5e1">
-            En la barra superior del Panel Admin existe el botón <strong>⚡ Modo Local PC</strong>. Permite forzar el modo desconectado para realizar pruebas o trabajar sin depender de la señal de internet.
-          </p>
-        </div>
-        <div class="box">
-          <h3>Indicador y Contador en Vivo</h3>
-          <p style="font-size:12px;color:#cbd5e1">
-            Un semáforo avisa: <code>⚡ MODO LOCAL ACTIVO · X operaciones guardadas</code>. Cada venta o registro muestra una confirmación con hora exacta, indicando que quedó grabado en la PC local.
-          </p>
-        </div>
-        <div class="box">
-          <h3>Instalador Autónomo (.BAT)</h3>
-          <p style="font-size:12px;color:#cbd5e1">
-            Se proporciona un archivo ejecutable para Windows (<code>Instalar_Sistema_Local_PC.bat</code>) que permite iniciar el sistema localmente con un doble clic en el escritorio.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- GALERÍA DE EQUIPOS FÍSICOS RECOMENDADOS -->
-    <section class="section">
-      <div class="section-title">📷 5. Especificaciones de Equipos Físicos Recomendados (Opcional)</div>
-      <div class="section-sub">
-        Si el gimnasio desea implementar equipos dedicados nuevos, recomendamos estos modelos probados por su durabilidad y rapidez:
-      </div>
-
-      <div class="shot-grid">
-        <div class="shot-card">
-          <img src="${imgScanner}" alt="Lector Óptico QR 2D" />
-          <div class="cap">
-            <strong>Lector Óptico 2D Manos Libres (Netum NT-2050M o Honeywell HF680)</strong>
-            Sensor CMOS de 60 cuadros por segundo con lente antirreflejo. Lee códigos QR en pantallas de celular (incluso con brillo bajo o mica rajada) en 0.1 segundos sin presionar botones.
-          </div>
-        </div>
-        <div class="shot-card">
-          <img src="${imgPrinter}" alt="Impresora Térmica 80mm" />
-          <div class="cap">
-            <strong>Ticketera Térmica 80mm con Autocorte (Xprinter XP-N160II o Epson TM-T20III)</strong>
-            Cabezal térmico japonés de 203 DPI y corte automático. Imprime boletas en negro puro (#000000) con código QR nítido que no se borra, usando papel estándar de 80mm.
-          </div>
-        </div>
-        <div class="shot-card">
-          <img src="${imgMiniPc}" alt="Mini PC de Recepción" />
-          <div class="cap">
-            <strong>Mini PC Compacta de Bajo Consumo (Intel N100 / Core i5, 16GB RAM, SSD NVMe)</strong>
-            Chasis compacto y silencioso con doble salida HDMI (para monitor de caja y pantalla externa), arranque en 8 segundos y consumo eléctrico mínimo (15W).
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="page-break"></div>
-
-    <!-- PÁGINA 4: PLANES DE CONTRATACIÓN Y SERVICIOS -->
-    <section class="section">
-      <div class="section-title">💼 6. Modalidades de Contratación del Software y Servicios</div>
-      <div class="section-sub">
-        Opciones claras y transparentes para que el propietario elija la modalidad que mejor se adapte a su presupuesto:
-      </div>
-
-      <div class="grid-3">
-        <div class="box" style="border-color:var(--gold)">
-          <span class="badge-ok" style="margin-bottom:8px;display:inline-block">⭐ MODALIDAD RECOMENDADA</span>
-          <h3>Plan 1: Socio Tecnológico Mensual</h3>
-          <div class="price-tag" style="margin:4px 0">S/ 89 <span class="price-sub">/ mes</span></div>
-          <div style="font-size:12px;color:var(--gold);margin-bottom:12px">+ S/ 290 de instalación, configuración y capacitación inicial</div>
-          <ul class="feature-list">
-            <li>Sistema completo: Panel Admin, Caja por turnos, Display de pantalla y Web App de socios.</li>
-            <li>Bóveda en la nube 24/7 para supervisar asistencias y caja desde el celular del dueño.</li>
-            <li>Soporte técnico continuo, resolución de dudas y actualizaciones del sistema.</li>
-            <li>Sin permanencia forzosa.</li>
-          </ul>
-        </div>
-
-        <div class="box" style="border-color:var(--emerald)">
-          <span class="badge-ok" style="margin-bottom:8px;display:inline-block">🔥 AHORRO DE 2 MESES</span>
-          <h3>Plan 2: Socio Tecnológico Anual</h3>
-          <div class="price-tag" style="margin:4px 0;color:var(--emerald)">S/ 890 <span class="price-sub">/ año</span></div>
-          <div style="font-size:12px;color:var(--emerald);margin-bottom:12px">+ S/ 190 de instalación (Equivale a solo S/ 74 al mes)</div>
-          <ul class="feature-list">
-            <li>Todo lo incluido en el Plan Mensual con descuento directo.</li>
-            <li>Respaldo continuo en la nube, Google Sheets contable y envío de boletas por WhatsApp.</li>
-            <li>Mantenimiento preventivo programado y soporte prioritario.</li>
-          </ul>
-        </div>
-
-        <div class="box" style="border-color:var(--cyan)">
-          <span class="badge-ok" style="margin-bottom:8px;display:inline-block">🏆 PROPIEDAD TOTAL</span>
-          <h3>Plan 3: Licencia Vitalicia en Local</h3>
-          <div class="price-tag" style="margin:4px 0;color:var(--cyan)">S/ 1,450</div>
-          <div style="font-size:12px;color:var(--cyan);margin-bottom:12px">Pago único definitivo por el software instalado en el local</div>
-          <ul class="feature-list">
-            <li>Software instalado de por vida en la computadora del gimnasio.</li>
-            <li>Cero mensualidades obligatorias para la operación local.</li>
-            <li>Incluye instalador local .BAT, base de datos local y 6 meses de garantía técnica.</li>
-            <li>Servicio opcional de nube para ver caja desde celular por S/ 50/mes.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="diagram-card" style="margin-top:20px">
-        <div style="font-weight:800;font-size:14px;color:var(--gold);margin-bottom:8px">Servicio de Instalación y Puesta en Marcha con Equipos Propios del Gimnasio:</div>
-        <p style="font-size:13px;color:#cbd5e1">
-          Si el propietario ya cuenta con su propia computadora, laptop, pantalla o ticketera, <strong>no necesita comprar equipos adicionales</strong>. Nosotros realizamos la instalación del software, la configuración del modo local y la red, la carga inicial de socios y la capacitación del personal por una tarifa única de <strong>S/ 250 a S/ 290</strong> según la modalidad elegida.
+        <div style="font-weight:800;font-size:13px;color:var(--gold);margin-bottom:4px">Garantía y Compromiso de Entrega:</div>
+        <p style="font-size:12px;color:#cbd5e1">
+          Todo el sistema se entrega 100% configurado con el nombre, logotipo oficial, tarifas y cuentas de <strong class="gym-name">TU GIMNASIO</strong>. Se incluye soporte técnico directo para resolver cualquier duda o eventualidad operativa.
         </p>
       </div>
     </section>
 
-    <!-- RESUMEN FINAL Y BOTÓN DE IMPRESIÓN -->
+    <!-- CIERRE DE PRESENTACIÓN -->
     <section class="section" style="background:linear-gradient(135deg, rgba(245,180,0,0.06), rgba(16,185,129,0.06));border-color:rgba(245,180,0,0.3)">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px">
         <div>
-          <div style="font-size:17px;font-weight:900;color:#fff">Resumen del Compromiso Técnico y Entrega</div>
-          <div style="font-size:13px;color:#cbd5e1;margin-top:3px;max-width:750px">
-            El sistema se entrega 100% personalizado con el nombre, colores institucionales y tarifas de <strong class="gym-name">TU GIMNASIO</strong>, con garantía de funcionamiento continuo tanto en línea como en modo local sin internet.
+          <div style="font-size:16px;font-weight:900;color:#fff">Listo para Modernizar tu Gimnasio</div>
+          <div style="font-size:12.5px;color:#cbd5e1;margin-top:2px;max-width:750px">
+            Solicita una demostración en vivo con tus propios equipos o solicita la instalación llave en mano.
           </div>
         </div>
-        <button class="btn btn-gold" onclick="window.print()" style="font-size:13.5px;padding:9px 18px">🖨️ Imprimir / Guardar en PDF</button>
+        <button class="btn btn-gold" onclick="window.print()" style="font-size:13px;padding:8px 16px">🖨️ Imprimir / Guardar en PDF</button>
       </div>
     </section>
   </main>
@@ -729,7 +863,7 @@ const htmlContent = `<!DOCTYPE html>
 `;
 
 fs.writeFileSync(htmlOut, htmlContent, 'utf8');
-console.log('✅ Wrote clean propuesta.html');
+console.log('✅ Wrote exhaustive propuesta.html');
 
 // Generate PDF using Edge
 const edge = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';

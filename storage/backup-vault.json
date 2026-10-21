@@ -1,6 +1,6 @@
 {
   "gym_name": "RD Fitness Club",
-  "exported_at": "2026-10-16T18:01:36.278Z",
+  "exported_at": "2026-10-21T17:31:37.269Z",
   "version": "2.8",
   "users": [
     {
@@ -89,6 +89,31 @@
       "trainer_id": null,
       "created_at": "2026-10-13 18:00:00",
       "consent": 1
+    },
+    {
+      "id": 4,
+      "code": "RD-0004",
+      "name": "luis flores",
+      "dni": "74575257",
+      "phone": "982797859",
+      "email": null,
+      "birth": "2010-06-16",
+      "gender": "Masculino",
+      "address": null,
+      "emergency": "",
+      "health": "",
+      "goal": "",
+      "level": "principiante",
+      "photo": null,
+      "qr_key": "766cd35c78a6abee6f1c0f6376ac061c",
+      "phys_ver": 1,
+      "status": "active",
+      "block_reason": null,
+      "notes": null,
+      "frozen_from": null,
+      "trainer_id": null,
+      "created_at": "2026-10-16 22:39:46",
+      "consent": 1
     }
   ],
   "memberships": [
@@ -131,6 +156,20 @@
       "status": "active",
       "created_by": 1,
       "created_at": "2026-10-13 18:00:00",
+      "extra_days": 0,
+      "promo_note": null
+    },
+    {
+      "id": 4,
+      "member_id": 4,
+      "plan_id": 3,
+      "plan_name": "6 meses",
+      "start_date": "2026-10-16",
+      "end_date": "2027-04-15",
+      "price": 300,
+      "status": "active",
+      "created_by": 1,
+      "created_at": "2026-10-16 22:39:46",
       "extra_days": 0,
       "promo_note": null
     }
@@ -285,6 +324,31 @@
       "qty": null,
       "unit_price": null,
       "unit_cost": null
+    },
+    {
+      "id": 7,
+      "member_id": 4,
+      "membership_id": 4,
+      "concept": "Membresía 6 meses",
+      "amount": 300,
+      "method": "efectivo",
+      "note": null,
+      "day": "2026-10-16",
+      "created_at": "2026-10-16 22:39:46",
+      "user_id": 1,
+      "voided": 0,
+      "void_reason": null,
+      "op_code": null,
+      "voucher_img": null,
+      "receipt_no": "B001-000007",
+      "daily_pass_id": null,
+      "verified": 0,
+      "shift_id": 2,
+      "category": "gym",
+      "product_id": null,
+      "qty": null,
+      "unit_price": null,
+      "unit_cost": null
     }
   ],
   "expenses": [],
@@ -344,6 +408,82 @@
       "exit_ts": null,
       "duration_min": null,
       "status": "rejected",
+      "notes": null
+    },
+    {
+      "id": 4,
+      "uid": "srv-3f85298a85de239ecdd06c43d1115dbe",
+      "member_id": 3,
+      "code": "RD-0003",
+      "ts": "2026-10-16T17:08:02.342Z",
+      "day": "2026-10-16",
+      "hour": 12,
+      "result": "ok",
+      "reason": "Membresía vigente",
+      "kind": "D",
+      "device": null,
+      "user_id": 1,
+      "direction": "in",
+      "exit_ts": "2026-10-16T17:11:38.588Z",
+      "duration_min": 4,
+      "status": "completed",
+      "notes": null
+    },
+    {
+      "id": 5,
+      "uid": "84ed5ef2-432a-4a67-92b4-aaba86c7010b",
+      "member_id": 3,
+      "code": "RD-0003",
+      "ts": "2026-10-16T17:08:02.405Z",
+      "day": "2026-10-16",
+      "hour": 12,
+      "result": "ok",
+      "reason": "Membresía vigente",
+      "kind": "D",
+      "device": "admin-g35",
+      "user_id": 1,
+      "direction": "in",
+      "exit_ts": "2026-10-16T17:11:38.568Z",
+      "duration_min": 4,
+      "status": "completed",
+      "notes": null
+    },
+    {
+      "id": 6,
+      "uid": "srv-f38914ed48541cefbd5ebc3c473f8468",
+      "member_id": 3,
+      "code": "RD-0003",
+      "ts": "2026-10-17T15:19:58.623Z",
+      "day": "2026-10-17",
+      "hour": 10,
+      "result": "ok",
+      "reason": "Membresía vigente",
+      "kind": "D",
+      "device": null,
+      "user_id": 1,
+      "direction": "in",
+      "exit_ts": "2026-10-17T15:23:15.849Z",
+      "duration_min": 3,
+      "status": "completed",
+      "notes": null
+    },
+    {
+      "id": 7,
+      "uid": "43528a25-4269-4400-ab79-8d2c450978ea",
+      "member_id": 3,
+      "code": "RD-0003",
+      "ts": "2026-10-17T15:19:58.643Z",
+      "day": "2026-10-17",
+      "hour": 10,
+      "result": "ok",
+      "reason": "Membresía vigente",
+      "kind": "D",
+      "device": "admin-g35",
+      "user_id": 1,
+      "direction": "in",
+      "exit_ts": "2026-10-17T15:23:15.515Z",
+      "duration_min": 3,
+      "status": "completed",
       "notes": null
     }
   ],
@@ -584,6 +724,16 @@
       "push_critical": 1,
       "push_news": 1,
       "push_promos": 1,
+      "last_push_at": "2026-10-16 17:26:00",
+      "alert_mode": "sound"
+    },
+    {
+      "member_id": 4,
+      "show_promos": 1,
+      "show_reminders": 1,
+      "push_critical": 1,
+      "push_news": 1,
+      "push_promos": 1,
       "last_push_at": null,
       "alert_mode": "sound"
     }
@@ -604,14 +754,124 @@
       "cta_url": "",
       "push": 1,
       "push_sent": 1,
-      "archived": 0,
+      "archived": 1,
       "created_by": 1,
       "created_at": "2026-10-13T23:26:12Z",
       "image_url": "/photos/ann-1791933972462-e51881.jpg"
+    },
+    {
+      "id": 2,
+      "kind": "aviso",
+      "title": "HOLA",
+      "body": "BUEN DIA",
+      "audience": "all",
+      "member_id": null,
+      "priority": "importante",
+      "pinned": 1,
+      "starts_at": "2026-10-16T17:23:00.000Z",
+      "ends_at": "2026-10-31T17:24:00.000Z",
+      "cta_label": "",
+      "cta_url": "",
+      "push": 1,
+      "push_sent": 1,
+      "archived": 0,
+      "created_by": 1,
+      "created_at": "2026-10-16 17:24:22",
+      "image_url": "/photos/ann-1792171462169-638aaa.jpg"
+    },
+    {
+      "id": 3,
+      "kind": "aviso",
+      "title": "QUE TAL",
+      "body": "ESTIMADOS",
+      "audience": "all",
+      "member_id": null,
+      "priority": "info",
+      "pinned": 1,
+      "starts_at": "2026-10-16T17:25:00.000Z",
+      "ends_at": "2026-10-17T17:25:00.000Z",
+      "cta_label": "",
+      "cta_url": "",
+      "push": 1,
+      "push_sent": 1,
+      "archived": 0,
+      "created_by": 1,
+      "created_at": "2026-10-16 17:25:59",
+      "image_url": "/photos/ann-1792171559986-2071d4.jpg"
+    },
+    {
+      "id": 4,
+      "kind": "cierre",
+      "title": "atencion el dia de hoy solo turno tarde",
+      "body": "la atencion el dia de hoy sera de 3:00 pm a 10: 00 pm",
+      "audience": "all",
+      "member_id": null,
+      "priority": "importante",
+      "pinned": 1,
+      "starts_at": "2026-10-16T22:31:00.000Z",
+      "ends_at": "2026-10-17T22:31:00.000Z",
+      "cta_label": "",
+      "cta_url": "",
+      "push": 1,
+      "push_sent": 1,
+      "archived": 0,
+      "created_by": 1,
+      "created_at": "2026-10-16 22:34:59",
+      "image_url": "/photos/ann-1792190099483-d615b0.jpg"
     }
   ],
-  "inbox_reads": [],
-  "push_subs": [],
+  "inbox_reads": [
+    {
+      "member_id": 3,
+      "ref": "a:1",
+      "read_at": "2026-10-14 17:59:24",
+      "dismissed": 0
+    },
+    {
+      "member_id": 3,
+      "ref": "s:pay:6",
+      "read_at": "2026-10-14 17:59:24",
+      "dismissed": 0
+    },
+    {
+      "member_id": 3,
+      "ref": "a:2",
+      "read_at": "2026-10-16 17:24:40",
+      "dismissed": 1
+    },
+    {
+      "member_id": 3,
+      "ref": "a:3",
+      "read_at": "2026-10-16 17:26:08",
+      "dismissed": 0
+    },
+    {
+      "member_id": 3,
+      "ref": "a:4",
+      "read_at": "2026-10-16 22:36:15",
+      "dismissed": 1
+    }
+  ],
+  "push_subs": [
+    {
+      "id": 1,
+      "member_id": 3,
+      "endpoint": "https://fcm.googleapis.com/fcm/send/fJ7CO4hA_ZM:APA91bG-VX43Y5aCeEtR6LFuzIJ_6Brw8Rfm4cY_WD7Ipdhd4TG6jvLnZimjt2kuYuV_cQU5EmJIbrtNGrKBTzV0IqlfjbUle4ryNZviBX10fK9y5ap5cHvYCIT5jEdS4QBrHHotuukG",
+      "p256dh": "BI8BquGbptAF5-W2yp99S7GKlilXC9OFGQm3prYusn3jBM8gy4P58qtXWwY3kpBEezmmaCH7M8ly22vdI6L7n0U",
+      "auth": "s9ErTma5ilWVhsdmXQ8IFg",
+      "device_id": "81ea5d57-1b75-49a7-bd76-0b682e71705f",
+      "created_at": "2026-10-14 18:14:22"
+    },
+    {
+      "id": 2,
+      "member_id": 3,
+      "endpoint": "https://wns2-bn3p.notify.windows.com/w/?token=BQYAAACoMq4hBAmmfzq38FtaIHS4RniEp4UHhNrd3usyVjOSKczBmRGzrvexQQOLDpLXI1ICJ9usRss%2bNw0ek4N3qU%2bLgX7haaCdJo8eTwoxMlYuQBgzCMqjdk6aKKwBoBvZNcCuRohJZRDafOsGQcATUZhJJtrleK3u9cXyKiOMfzvDHzfyUm9D0Hqv0kYxiZ6eh4FENFv%2bbkThuJ6FtePyZRBpuzN6cs1kycwX3AIeXO1xlZjV8zMzJSDL8r3epCJEhXs7QR53gWgiyhv3BaQPOhd02plJ0P%2f1K2%2bauFTqbnoCmlVb76PQEWdt%2fK542j%2f8yM5Dmd2a85WezB7dRDokqdVI",
+      "p256dh": "BBhYE4iZe4fCxy8CAR4yufdgMRfMKxJjOWSbnSAroMCMjWcs5NNOumjhR9WRfPJvGFk8jZ388oEoQJpRPRhMBcU",
+      "auth": "yWnmva9KMK_hdjx8X2mIMA",
+      "device_id": "d453fd40-2c7e-48ab-93d9-cb7181512375",
+      "created_at": "2026-10-16 17:03:22"
+    }
+  ],
   "routines": [
     {
       "id": 1,
@@ -823,58 +1083,6 @@
     },
     {
       "id": 17,
-      "name": "Especialización Brazos de Acero & Antebrazos (4 días)",
-      "goal": "Maximizar tamaño de bíceps, tríceps y antebrazos sin descuidar torso y pierna",
-      "level": "intermedio",
-      "days_per_week": 4,
-      "description": "Programa de especialización para brazos rezagados: incluye un día exclusivo de bombeo de brazos y antebrazos con ángulos de máximo estiramiento y contracción.",
-      "template": 1,
-      "member_id": null,
-      "created_by": null,
-      "created_at": "2026-10-16 16:53:44",
-      "active": 1
-    },
-    {
-      "id": 18,
-      "name": "Espalda en V & Hombros 3D (4 días)",
-      "goal": "Ensanchar clavículas y dorsales para lograr una silueta estética en V",
-      "level": "intermedio",
-      "days_per_week": 4,
-      "description": "Enfocado en amplitud dorsal, deltoides laterales/posteriores y trapecios con soporte completo de pierna y empuje.",
-      "template": 1,
-      "member_id": null,
-      "created_by": null,
-      "created_at": "2026-10-16 16:53:44",
-      "active": 1
-    },
-    {
-      "id": 19,
-      "name": "Calistenia & Peso Corporal Pro (4 días)",
-      "goal": "Dominio del peso corporal, fuerza relativa y definición atlética",
-      "level": "intermedio",
-      "days_per_week": 4,
-      "description": "Entrenamiento funcional basado en dominadas, fondos, flexiones avanzadas, core gimnástico y potencia de piernas.",
-      "template": 1,
-      "member_id": null,
-      "created_by": null,
-      "created_at": "2026-10-16 16:53:44",
-      "active": 1
-    },
-    {
-      "id": 20,
-      "name": "Glúteos & Abdomen Esculpido (5 días)",
-      "goal": "Máxima hipertrofia de glúteo mayor/medio y cintura compacta",
-      "level": "intermedio",
-      "days_per_week": 5,
-      "description": "Frecuencia 3 de tren inferior enfocada en diferentes vectores de carga (horizontal, vertical, abducción) más 2 sesiones de torso estilizado y core.",
-      "template": 1,
-      "member_id": null,
-      "created_by": null,
-      "created_at": "2026-10-16 16:53:44",
-      "active": 1
-    },
-    {
-      "id": 21,
       "name": "Postura, Core & Movilidad Articular (3 días)",
       "goal": "Eliminar dolores de espalda, mejorar flexibilidad y fortalecer el centro",
       "level": "principiante",
@@ -883,7 +1091,59 @@
       "template": 1,
       "member_id": null,
       "created_by": null,
-      "created_at": "2026-10-16 16:53:44",
+      "created_at": "2026-10-16 16:31:54",
+      "active": 1
+    },
+    {
+      "id": 18,
+      "name": "Especialización Brazos de Acero & Antebrazos (4 días)",
+      "goal": "Maximizar tamaño de bíceps, tríceps y antebrazos sin descuidar torso y pierna",
+      "level": "intermedio",
+      "days_per_week": 4,
+      "description": "Programa de especialización para brazos rezagados: incluye un día exclusivo de bombeo de brazos y antebrazos con ángulos de máximo estiramiento y contracción.",
+      "template": 1,
+      "member_id": null,
+      "created_by": null,
+      "created_at": "2026-10-16 16:31:54",
+      "active": 1
+    },
+    {
+      "id": 19,
+      "name": "Espalda en V & Hombros 3D (4 días)",
+      "goal": "Ensanchar clavículas y dorsales para lograr una silueta estética en V",
+      "level": "intermedio",
+      "days_per_week": 4,
+      "description": "Enfocado en amplitud dorsal, deltoides laterales/posteriores y trapecios con soporte completo de pierna y empuje.",
+      "template": 1,
+      "member_id": null,
+      "created_by": null,
+      "created_at": "2026-10-16 16:31:54",
+      "active": 1
+    },
+    {
+      "id": 20,
+      "name": "Calistenia & Peso Corporal Pro (4 días)",
+      "goal": "Dominio del peso corporal, fuerza relativa y definición atlética",
+      "level": "intermedio",
+      "days_per_week": 4,
+      "description": "Entrenamiento funcional basado en dominadas, fondos, flexiones avanzadas, core gimnástico y potencia de piernas.",
+      "template": 1,
+      "member_id": null,
+      "created_by": null,
+      "created_at": "2026-10-16 16:31:54",
+      "active": 1
+    },
+    {
+      "id": 21,
+      "name": "Glúteos & Abdomen Esculpido (5 días)",
+      "goal": "Máxima hipertrofia de glúteo mayor/medio y cintura compacta",
+      "level": "intermedio",
+      "days_per_week": 5,
+      "description": "Frecuencia 3 de tren inferior enfocada en diferentes vectores de carga (horizontal, vertical, abducción) más 2 sesiones de torso estilizado y core.",
+      "template": 1,
+      "member_id": null,
+      "created_by": null,
+      "created_at": "2026-10-16 16:31:54",
       "active": 1
     }
   ],
@@ -5154,7 +5414,7 @@
     },
     {
       "id": 411,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 0,
       "day_title": "Día 1: Brazos & Antebrazos (Fuerza)",
       "pos": 0,
@@ -5167,7 +5427,7 @@
     },
     {
       "id": 412,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 0,
       "day_title": "Día 1: Brazos & Antebrazos (Fuerza)",
       "pos": 1,
@@ -5180,7 +5440,7 @@
     },
     {
       "id": 413,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 0,
       "day_title": "Día 1: Brazos & Antebrazos (Fuerza)",
       "pos": 2,
@@ -5193,7 +5453,7 @@
     },
     {
       "id": 414,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 0,
       "day_title": "Día 1: Brazos & Antebrazos (Fuerza)",
       "pos": 3,
@@ -5206,7 +5466,7 @@
     },
     {
       "id": 415,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 0,
       "day_title": "Día 1: Brazos & Antebrazos (Fuerza)",
       "pos": 4,
@@ -5219,7 +5479,7 @@
     },
     {
       "id": 416,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 0,
       "day_title": "Día 1: Brazos & Antebrazos (Fuerza)",
       "pos": 5,
@@ -5232,7 +5492,7 @@
     },
     {
       "id": 417,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 0,
       "day_title": "Día 1: Brazos & Antebrazos (Fuerza)",
       "pos": 6,
@@ -5245,7 +5505,7 @@
     },
     {
       "id": 418,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 1,
       "day_title": "Día 2: Piernas & Core",
       "pos": 0,
@@ -5258,7 +5518,7 @@
     },
     {
       "id": 419,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 1,
       "day_title": "Día 2: Piernas & Core",
       "pos": 1,
@@ -5271,7 +5531,7 @@
     },
     {
       "id": 420,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 1,
       "day_title": "Día 2: Piernas & Core",
       "pos": 2,
@@ -5284,7 +5544,7 @@
     },
     {
       "id": 421,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 1,
       "day_title": "Día 2: Piernas & Core",
       "pos": 3,
@@ -5297,7 +5557,7 @@
     },
     {
       "id": 422,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 1,
       "day_title": "Día 2: Piernas & Core",
       "pos": 4,
@@ -5310,7 +5570,7 @@
     },
     {
       "id": 423,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 1,
       "day_title": "Día 2: Piernas & Core",
       "pos": 5,
@@ -5323,7 +5583,7 @@
     },
     {
       "id": 424,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 2,
       "day_title": "Día 3: Pecho, Espalda & Hombros",
       "pos": 0,
@@ -5336,7 +5596,7 @@
     },
     {
       "id": 425,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 2,
       "day_title": "Día 3: Pecho, Espalda & Hombros",
       "pos": 1,
@@ -5349,7 +5609,7 @@
     },
     {
       "id": 426,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 2,
       "day_title": "Día 3: Pecho, Espalda & Hombros",
       "pos": 2,
@@ -5362,7 +5622,7 @@
     },
     {
       "id": 427,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 2,
       "day_title": "Día 3: Pecho, Espalda & Hombros",
       "pos": 3,
@@ -5375,7 +5635,7 @@
     },
     {
       "id": 428,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 2,
       "day_title": "Día 3: Pecho, Espalda & Hombros",
       "pos": 4,
@@ -5388,7 +5648,7 @@
     },
     {
       "id": 429,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 2,
       "day_title": "Día 3: Pecho, Espalda & Hombros",
       "pos": 5,
@@ -5401,7 +5661,7 @@
     },
     {
       "id": 430,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 3,
       "day_title": "Día 4: Brazos & Agarre (Hipertrofia)",
       "pos": 0,
@@ -5414,7 +5674,7 @@
     },
     {
       "id": 431,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 3,
       "day_title": "Día 4: Brazos & Agarre (Hipertrofia)",
       "pos": 1,
@@ -5427,7 +5687,7 @@
     },
     {
       "id": 432,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 3,
       "day_title": "Día 4: Brazos & Agarre (Hipertrofia)",
       "pos": 2,
@@ -5440,7 +5700,7 @@
     },
     {
       "id": 433,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 3,
       "day_title": "Día 4: Brazos & Agarre (Hipertrofia)",
       "pos": 3,
@@ -5453,7 +5713,7 @@
     },
     {
       "id": 434,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 3,
       "day_title": "Día 4: Brazos & Agarre (Hipertrofia)",
       "pos": 4,
@@ -5466,7 +5726,7 @@
     },
     {
       "id": 435,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 3,
       "day_title": "Día 4: Brazos & Agarre (Hipertrofia)",
       "pos": 5,
@@ -5479,7 +5739,7 @@
     },
     {
       "id": 436,
-      "routine_id": 17,
+      "routine_id": 18,
       "day_index": 3,
       "day_title": "Día 4: Brazos & Agarre (Hipertrofia)",
       "pos": 6,
@@ -5492,7 +5752,7 @@
     },
     {
       "id": 437,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 0,
       "day_title": "Día 1: Amplitud Dorsal & Hombro Lateral",
       "pos": 0,
@@ -5505,7 +5765,7 @@
     },
     {
       "id": 438,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 0,
       "day_title": "Día 1: Amplitud Dorsal & Hombro Lateral",
       "pos": 1,
@@ -5518,7 +5778,7 @@
     },
     {
       "id": 439,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 0,
       "day_title": "Día 1: Amplitud Dorsal & Hombro Lateral",
       "pos": 2,
@@ -5531,7 +5791,7 @@
     },
     {
       "id": 440,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 0,
       "day_title": "Día 1: Amplitud Dorsal & Hombro Lateral",
       "pos": 3,
@@ -5544,7 +5804,7 @@
     },
     {
       "id": 441,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 0,
       "day_title": "Día 1: Amplitud Dorsal & Hombro Lateral",
       "pos": 4,
@@ -5557,7 +5817,7 @@
     },
     {
       "id": 442,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 0,
       "day_title": "Día 1: Amplitud Dorsal & Hombro Lateral",
       "pos": 5,
@@ -5570,7 +5830,7 @@
     },
     {
       "id": 443,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 1,
       "day_title": "Día 2: Pierna Completa & Glúteo",
       "pos": 0,
@@ -5583,7 +5843,7 @@
     },
     {
       "id": 444,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 1,
       "day_title": "Día 2: Pierna Completa & Glúteo",
       "pos": 1,
@@ -5596,7 +5856,7 @@
     },
     {
       "id": 445,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 1,
       "day_title": "Día 2: Pierna Completa & Glúteo",
       "pos": 2,
@@ -5609,7 +5869,7 @@
     },
     {
       "id": 446,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 1,
       "day_title": "Día 2: Pierna Completa & Glúteo",
       "pos": 3,
@@ -5622,7 +5882,7 @@
     },
     {
       "id": 447,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 1,
       "day_title": "Día 2: Pierna Completa & Glúteo",
       "pos": 4,
@@ -5635,7 +5895,7 @@
     },
     {
       "id": 448,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 2,
       "day_title": "Día 3: Pecho, Densidad de Espalda & Trapecio",
       "pos": 0,
@@ -5648,7 +5908,7 @@
     },
     {
       "id": 449,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 2,
       "day_title": "Día 3: Pecho, Densidad de Espalda & Trapecio",
       "pos": 1,
@@ -5661,7 +5921,7 @@
     },
     {
       "id": 450,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 2,
       "day_title": "Día 3: Pecho, Densidad de Espalda & Trapecio",
       "pos": 2,
@@ -5674,7 +5934,7 @@
     },
     {
       "id": 451,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 2,
       "day_title": "Día 3: Pecho, Densidad de Espalda & Trapecio",
       "pos": 3,
@@ -5687,7 +5947,7 @@
     },
     {
       "id": 452,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 2,
       "day_title": "Día 3: Pecho, Densidad de Espalda & Trapecio",
       "pos": 4,
@@ -5700,7 +5960,7 @@
     },
     {
       "id": 453,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 2,
       "day_title": "Día 3: Pecho, Densidad de Espalda & Trapecio",
       "pos": 5,
@@ -5713,7 +5973,7 @@
     },
     {
       "id": 454,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 3,
       "day_title": "Día 4: Hombros 3D, Brazos & Core",
       "pos": 0,
@@ -5726,7 +5986,7 @@
     },
     {
       "id": 455,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 3,
       "day_title": "Día 4: Hombros 3D, Brazos & Core",
       "pos": 1,
@@ -5739,7 +5999,7 @@
     },
     {
       "id": 456,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 3,
       "day_title": "Día 4: Hombros 3D, Brazos & Core",
       "pos": 2,
@@ -5752,7 +6012,7 @@
     },
     {
       "id": 457,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 3,
       "day_title": "Día 4: Hombros 3D, Brazos & Core",
       "pos": 3,
@@ -5765,7 +6025,7 @@
     },
     {
       "id": 458,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 3,
       "day_title": "Día 4: Hombros 3D, Brazos & Core",
       "pos": 4,
@@ -5778,7 +6038,7 @@
     },
     {
       "id": 459,
-      "routine_id": 18,
+      "routine_id": 19,
       "day_index": 3,
       "day_title": "Día 4: Hombros 3D, Brazos & Core",
       "pos": 5,
@@ -5791,7 +6051,7 @@
     },
     {
       "id": 460,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 0,
       "day_title": "Día 1: Empuje Calisténico & Core",
       "pos": 0,
@@ -5804,7 +6064,7 @@
     },
     {
       "id": 461,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 0,
       "day_title": "Día 1: Empuje Calisténico & Core",
       "pos": 1,
@@ -5817,7 +6077,7 @@
     },
     {
       "id": 462,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 0,
       "day_title": "Día 1: Empuje Calisténico & Core",
       "pos": 2,
@@ -5830,7 +6090,7 @@
     },
     {
       "id": 463,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 0,
       "day_title": "Día 1: Empuje Calisténico & Core",
       "pos": 3,
@@ -5843,7 +6103,7 @@
     },
     {
       "id": 464,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 0,
       "day_title": "Día 1: Empuje Calisténico & Core",
       "pos": 4,
@@ -5856,7 +6116,7 @@
     },
     {
       "id": 465,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 0,
       "day_title": "Día 1: Empuje Calisténico & Core",
       "pos": 5,
@@ -5869,7 +6129,7 @@
     },
     {
       "id": 466,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 1,
       "day_title": "Día 2: Tirón Calisténico & Agarre",
       "pos": 0,
@@ -5882,7 +6142,7 @@
     },
     {
       "id": 467,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 1,
       "day_title": "Día 2: Tirón Calisténico & Agarre",
       "pos": 1,
@@ -5895,7 +6155,7 @@
     },
     {
       "id": 468,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 1,
       "day_title": "Día 2: Tirón Calisténico & Agarre",
       "pos": 2,
@@ -5908,7 +6168,7 @@
     },
     {
       "id": 469,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 1,
       "day_title": "Día 2: Tirón Calisténico & Agarre",
       "pos": 3,
@@ -5921,7 +6181,7 @@
     },
     {
       "id": 470,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 1,
       "day_title": "Día 2: Tirón Calisténico & Agarre",
       "pos": 4,
@@ -5934,7 +6194,7 @@
     },
     {
       "id": 471,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 2,
       "day_title": "Día 3: Pierna Atlética & Pliometría",
       "pos": 0,
@@ -5947,7 +6207,7 @@
     },
     {
       "id": 472,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 2,
       "day_title": "Día 3: Pierna Atlética & Pliometría",
       "pos": 1,
@@ -5960,7 +6220,7 @@
     },
     {
       "id": 473,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 2,
       "day_title": "Día 3: Pierna Atlética & Pliometría",
       "pos": 2,
@@ -5973,7 +6233,7 @@
     },
     {
       "id": 474,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 2,
       "day_title": "Día 3: Pierna Atlética & Pliometría",
       "pos": 3,
@@ -5986,7 +6246,7 @@
     },
     {
       "id": 475,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 2,
       "day_title": "Día 3: Pierna Atlética & Pliometría",
       "pos": 4,
@@ -5999,7 +6259,7 @@
     },
     {
       "id": 476,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 3,
       "day_title": "Día 4: Full Body Metabólico",
       "pos": 0,
@@ -6012,7 +6272,7 @@
     },
     {
       "id": 477,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 3,
       "day_title": "Día 4: Full Body Metabólico",
       "pos": 1,
@@ -6025,7 +6285,7 @@
     },
     {
       "id": 478,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 3,
       "day_title": "Día 4: Full Body Metabólico",
       "pos": 2,
@@ -6038,7 +6298,7 @@
     },
     {
       "id": 479,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 3,
       "day_title": "Día 4: Full Body Metabólico",
       "pos": 3,
@@ -6051,7 +6311,7 @@
     },
     {
       "id": 480,
-      "routine_id": 19,
+      "routine_id": 20,
       "day_index": 3,
       "day_title": "Día 4: Full Body Metabólico",
       "pos": 4,
@@ -6064,7 +6324,7 @@
     },
     {
       "id": 481,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 0,
       "day_title": "Día 1: Vector Horizontal (Glúteo Mayor)",
       "pos": 0,
@@ -6077,7 +6337,7 @@
     },
     {
       "id": 482,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 0,
       "day_title": "Día 1: Vector Horizontal (Glúteo Mayor)",
       "pos": 1,
@@ -6090,7 +6350,7 @@
     },
     {
       "id": 483,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 0,
       "day_title": "Día 1: Vector Horizontal (Glúteo Mayor)",
       "pos": 2,
@@ -6103,7 +6363,7 @@
     },
     {
       "id": 484,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 0,
       "day_title": "Día 1: Vector Horizontal (Glúteo Mayor)",
       "pos": 3,
@@ -6116,7 +6376,7 @@
     },
     {
       "id": 485,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 0,
       "day_title": "Día 1: Vector Horizontal (Glúteo Mayor)",
       "pos": 4,
@@ -6129,7 +6389,7 @@
     },
     {
       "id": 486,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 0,
       "day_title": "Día 1: Vector Horizontal (Glúteo Mayor)",
       "pos": 5,
@@ -6142,7 +6402,7 @@
     },
     {
       "id": 487,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 1,
       "day_title": "Día 2: Espalda, Hombros & Postura",
       "pos": 0,
@@ -6155,7 +6415,7 @@
     },
     {
       "id": 488,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 1,
       "day_title": "Día 2: Espalda, Hombros & Postura",
       "pos": 1,
@@ -6168,7 +6428,7 @@
     },
     {
       "id": 489,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 1,
       "day_title": "Día 2: Espalda, Hombros & Postura",
       "pos": 2,
@@ -6181,7 +6441,7 @@
     },
     {
       "id": 490,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 1,
       "day_title": "Día 2: Espalda, Hombros & Postura",
       "pos": 3,
@@ -6194,7 +6454,7 @@
     },
     {
       "id": 491,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 1,
       "day_title": "Día 2: Espalda, Hombros & Postura",
       "pos": 4,
@@ -6207,7 +6467,7 @@
     },
     {
       "id": 492,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 2,
       "day_title": "Día 3: Vector Vertical (Cuádriceps & Glúteo)",
       "pos": 0,
@@ -6220,7 +6480,7 @@
     },
     {
       "id": 493,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 2,
       "day_title": "Día 3: Vector Vertical (Cuádriceps & Glúteo)",
       "pos": 1,
@@ -6233,7 +6493,7 @@
     },
     {
       "id": 494,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 2,
       "day_title": "Día 3: Vector Vertical (Cuádriceps & Glúteo)",
       "pos": 2,
@@ -6246,7 +6506,7 @@
     },
     {
       "id": 495,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 2,
       "day_title": "Día 3: Vector Vertical (Cuádriceps & Glúteo)",
       "pos": 3,
@@ -6259,7 +6519,7 @@
     },
     {
       "id": 496,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 2,
       "day_title": "Día 3: Vector Vertical (Cuádriceps & Glúteo)",
       "pos": 4,
@@ -6272,7 +6532,7 @@
     },
     {
       "id": 497,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 3,
       "day_title": "Día 4: Brazos Tonificados & Core",
       "pos": 0,
@@ -6285,7 +6545,7 @@
     },
     {
       "id": 498,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 3,
       "day_title": "Día 4: Brazos Tonificados & Core",
       "pos": 1,
@@ -6298,7 +6558,7 @@
     },
     {
       "id": 499,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 3,
       "day_title": "Día 4: Brazos Tonificados & Core",
       "pos": 2,
@@ -6311,7 +6571,7 @@
     },
     {
       "id": 500,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 3,
       "day_title": "Día 4: Brazos Tonificados & Core",
       "pos": 3,
@@ -6324,7 +6584,7 @@
     },
     {
       "id": 501,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 3,
       "day_title": "Día 4: Brazos Tonificados & Core",
       "pos": 4,
@@ -6337,7 +6597,7 @@
     },
     {
       "id": 502,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 3,
       "day_title": "Día 4: Brazos Tonificados & Core",
       "pos": 5,
@@ -6350,7 +6610,7 @@
     },
     {
       "id": 503,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 4,
       "day_title": "Día 5: Isquiotibiales & Bombeo Glúteo",
       "pos": 0,
@@ -6363,7 +6623,7 @@
     },
     {
       "id": 504,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 4,
       "day_title": "Día 5: Isquiotibiales & Bombeo Glúteo",
       "pos": 1,
@@ -6376,7 +6636,7 @@
     },
     {
       "id": 505,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 4,
       "day_title": "Día 5: Isquiotibiales & Bombeo Glúteo",
       "pos": 2,
@@ -6389,7 +6649,7 @@
     },
     {
       "id": 506,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 4,
       "day_title": "Día 5: Isquiotibiales & Bombeo Glúteo",
       "pos": 3,
@@ -6402,7 +6662,7 @@
     },
     {
       "id": 507,
-      "routine_id": 20,
+      "routine_id": 21,
       "day_index": 4,
       "day_title": "Día 5: Isquiotibiales & Bombeo Glúteo",
       "pos": 4,
@@ -6415,7 +6675,7 @@
     },
     {
       "id": 508,
-      "routine_id": 21,
+      "routine_id": 17,
       "day_index": 0,
       "day_title": "Día 1: Columna, Escápulas & Core",
       "pos": 0,
@@ -6428,7 +6688,7 @@
     },
     {
       "id": 509,
-      "routine_id": 21,
+      "routine_id": 17,
       "day_index": 0,
       "day_title": "Día 1: Columna, Escápulas & Core",
       "pos": 1,
@@ -6441,7 +6701,7 @@
     },
     {
       "id": 510,
-      "routine_id": 21,
+      "routine_id": 17,
       "day_index": 0,
       "day_title": "Día 1: Columna, Escápulas & Core",
       "pos": 2,
@@ -6454,7 +6714,7 @@
     },
     {
       "id": 511,
-      "routine_id": 21,
+      "routine_id": 17,
       "day_index": 0,
       "day_title": "Día 1: Columna, Escápulas & Core",
       "pos": 3,
@@ -6467,7 +6727,7 @@
     },
     {
       "id": 512,
-      "routine_id": 21,
+      "routine_id": 17,
       "day_index": 0,
       "day_title": "Día 1: Columna, Escápulas & Core",
       "pos": 4,
@@ -6480,7 +6740,7 @@
     },
     {
       "id": 513,
-      "routine_id": 21,
+      "routine_id": 17,
       "day_index": 0,
       "day_title": "Día 1: Columna, Escápulas & Core",
       "pos": 5,
@@ -6493,7 +6753,7 @@
     },
     {
       "id": 514,
-      "routine_id": 21,
+      "routine_id": 17,
       "day_index": 1,
       "day_title": "Día 2: Cadera, Isquios & Glúteo Medio",
       "pos": 0,
@@ -6506,7 +6766,7 @@
     },
     {
       "id": 515,
-      "routine_id": 21,
+      "routine_id": 17,
       "day_index": 1,
       "day_title": "Día 2: Cadera, Isquios & Glúteo Medio",
       "pos": 1,
@@ -6519,7 +6779,7 @@
     },
     {
       "id": 516,
-      "routine_id": 21,
+      "routine_id": 17,
       "day_index": 1,
       "day_title": "Día 2: Cadera, Isquios & Glúteo Medio",
       "pos": 2,
@@ -6532,7 +6792,7 @@
     },
     {
       "id": 517,
-      "routine_id": 21,
+      "routine_id": 17,
       "day_index": 1,
       "day_title": "Día 2: Cadera, Isquios & Glúteo Medio",
       "pos": 3,
@@ -6545,7 +6805,7 @@
     },
     {
       "id": 518,
-      "routine_id": 21,
+      "routine_id": 17,
       "day_index": 1,
       "day_title": "Día 2: Cadera, Isquios & Glúteo Medio",
       "pos": 4,
@@ -6558,7 +6818,7 @@
     },
     {
       "id": 519,
-      "routine_id": 21,
+      "routine_id": 17,
       "day_index": 2,
       "day_title": "Día 3: Estabilidad Total & Cardio Suave",
       "pos": 0,
@@ -6571,7 +6831,7 @@
     },
     {
       "id": 520,
-      "routine_id": 21,
+      "routine_id": 17,
       "day_index": 2,
       "day_title": "Día 3: Estabilidad Total & Cardio Suave",
       "pos": 1,
@@ -6584,7 +6844,7 @@
     },
     {
       "id": 521,
-      "routine_id": 21,
+      "routine_id": 17,
       "day_index": 2,
       "day_title": "Día 3: Estabilidad Total & Cardio Suave",
       "pos": 2,
@@ -6597,7 +6857,7 @@
     },
     {
       "id": 522,
-      "routine_id": 21,
+      "routine_id": 17,
       "day_index": 2,
       "day_title": "Día 3: Estabilidad Total & Cardio Suave",
       "pos": 3,
@@ -6610,7 +6870,7 @@
     },
     {
       "id": 523,
-      "routine_id": 21,
+      "routine_id": 17,
       "day_index": 2,
       "day_title": "Día 3: Estabilidad Total & Cardio Suave",
       "pos": 4,
@@ -6622,10 +6882,36 @@
       "note": null
     }
   ],
-  "assignments": [],
+  "assignments": [
+    {
+      "id": 1,
+      "member_id": 3,
+      "routine_id": 7,
+      "assigned_by": null,
+      "assigned_at": "2026-10-15 03:01:17",
+      "active": 1,
+      "note": null
+    }
+  ],
   "workouts": [],
   "set_logs": [],
-  "measurements": [],
+  "measurements": [
+    {
+      "id": 1,
+      "member_id": 3,
+      "day": "2026-10-14",
+      "weight": 55,
+      "height": 160,
+      "chest": null,
+      "waist": null,
+      "hip": null,
+      "arm": null,
+      "thigh": null,
+      "body_fat": null,
+      "note": null,
+      "by_staff": 0
+    }
+  ],
   "cash_shifts": [
     {
       "id": 1,
@@ -6643,6 +6929,23 @@
       "status": "closed",
       "notes": "Cuadrado exacto en prueba",
       "created_at": "2026-10-11 23:21:54"
+    },
+    {
+      "id": 2,
+      "user_id": 1,
+      "user_name": "Administrador RD",
+      "shift_name": "Turno Mañana (6:00 am - 2:00 pm)",
+      "day": "2026-10-16",
+      "opened_at": "2026-10-16T17:07:50.713Z",
+      "closed_at": null,
+      "initial_cash": 50,
+      "expected_cash": 0,
+      "actual_cash": 0,
+      "diff_cash": 0,
+      "expected_digital": 0,
+      "status": "open",
+      "notes": null,
+      "created_at": "2026-10-16 17:07:50"
     }
   ]
 }
