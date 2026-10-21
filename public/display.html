@@ -1015,7 +1015,7 @@
 
       <div class="mode-status-bar">
         <span class="rec-dot"></span>
-        <span id="tv_status_label">CCTV 4 CANALES EN VIVO + ALERTAS ACTIVAS</span>
+        <span id="tv_status_label">PANTALLA DE RECEPCIÓN Y CARTELERA EN VIVO</span>
       </div>
 
       <div class="top-actions">
@@ -1023,9 +1023,9 @@
           <div class="clock-time" id="clock_time">--:--:--</div>
           <div class="clock-date" id="clock_date">--</div>
         </div>
-        <button class="ctrl-btn active" id="btn_mode_cctv" title="Alternar entre Modo TV Cámaras CCTV y Modo Solo Cartelera">
+        <button class="ctrl-btn" id="btn_mode_cctv" title="Alternar entre Modo Pantalla de Recepción y Modo con Cámaras CCTV">
           <svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-          <span id="mode_btn_txt">Modo TV + CCTV</span>
+          <span id="mode_btn_txt">Activar Cámaras CCTV</span>
         </button>
         <button class="ctrl-btn" id="btn_trigger_promo" title="Mostrar Spot Publicitario de Planes Ahora (Tecla P)">
           <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -1078,12 +1078,20 @@
   <div class="cfg-modal-backdrop" id="cfg_backdrop">
     <div class="cfg-modal">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <h3 style="margin:0;color:var(--gold)">Configuración de TV de Cámaras CCTV y Rotación</h3>
+        <h3 style="margin:0;color:var(--gold)">Configuración de Pantalla de Recepción y TV CCTV</h3>
         <button class="ctrl-btn" id="cfg_close">✕ Cerrar</button>
       </div>
 
       <div class="cfg-row">
-        <label>1. Fuente de Video de las Cámaras de Seguridad:</label>
+        <label>1. Modo de Operación de la Pantalla:</label>
+        <select id="cfg_tv_mode_select">
+          <option value="signage_only">📺 Modo Estándar: Pantalla de Recepción y Cartelera (Ideal para TV o Tablet sin cámaras)</option>
+          <option value="cctv_rotative">🎥 Modo Híbrido: Monitoreo CCTV + Alertas Prioritarias en PiP (Para TV con cámaras)</option>
+        </select>
+      </div>
+
+      <div class="cfg-row" id="cfg_cam_source_row">
+        <label>2. Fuente de Video de Cámaras CCTV (Solo si Modo CCTV está activo):</label>
         <select id="cfg_cam_source">
           <option value="sim_grid">Cuadrícula DVR 4 Cámaras Activa (Ideal para Mostrador / Demo)</option>
           <option value="usb_capture">Capturadora HDMI-a-USB desde el DVR / Cámara Web Conectada (1080p En Vivo)</option>
@@ -1157,11 +1165,11 @@
 
       // ---------------- Estado de Configuración de TV + CCTV ----------------
       let tvConfig = {
-        tvMode: localStorage.getItem('rd_tv_mode') || 'cctv_rotative', // 'cctv_rotative' | 'signage_only'
+        tvMode: localStorage.getItem('rd_tv_mode') || 'signage_only', // 'signage_only' | 'cctv_rotative'
         camSource: localStorage.getItem('rd_cam_source') || 'sim_grid', // 'sim_grid' | 'usb_capture' | 'custom_urls'
         usbDeviceId: localStorage.getItem('rd_usb_device_id') || '',
         urls: JSON.parse(localStorage.getItem('rd_cam_urls') || '["","","",""]'),
-        promoIntervalSec: Number(localStorage.getItem('rd_promo_interval') ?? 180),
+        promoIntervalSec: Number(localStorage.getItem('rd_promo_interval') ?? 120),
         promoDurationSec: Number(localStorage.getItem('rd_promo_duration') ?? 16)
       };
 
@@ -1209,8 +1217,8 @@
           el.textContent = `${now.toISOString().slice(0, 10)} ${timeStr}`;
         });
 
-        // Control del temporizador de rotación publicitaria cuando está en reposo (mostrando las cámaras)
-        if (tvConfig.tvMode === 'cctv_rotative' && tvConfig.promoIntervalSec > 0 && currentEventState.mode === 'idle' && !promoActive) {
+        // Control del temporizador de rotación publicitaria en reposo (funciona en modo Cartelera y en modo CCTV)
+        if (tvConfig.promoIntervalSec > 0 && currentEventState.mode === 'idle' && !promoActive) {
           secondsToNextPromo--;
           if (secondsToNextPromo <= 0) {
             triggerPromoSpot();
@@ -1224,7 +1232,7 @@
         } else if (currentEventState.mode !== 'idle') {
           nextPromoEl.textContent = 'Alerta Prioritaria en Vivo';
         } else {
-          nextPromoEl.textContent = 'Modo Cartelera Continua';
+          nextPromoEl.textContent = 'Pantalla Activa';
         }
       }
       setInterval(updateClock, 1000);
@@ -1304,13 +1312,15 @@
           cctvLayer.className = 'cctv-layer hidden-mode';
           stage.classList.remove('empty');
           btnModeCctv.classList.remove('active');
-          modeBtnTxt.textContent = 'Modo Solo Cartelera';
-          tvStatusLabel.textContent = 'CARTELERA DIGITAL COMPLETA';
+          modeBtnTxt.textContent = 'Activar Cámaras CCTV';
+          tvStatusLabel.textContent = promoActive
+            ? 'SPOT PUBLICITARIO / PROMOCIONES EN VIVO'
+            : 'PANTALLA DE RECEPCIÓN Y CARTELERA EN VIVO';
           return;
         }
 
         btnModeCctv.classList.add('active');
-        modeBtnTxt.textContent = 'Modo TV + CCTV';
+        modeBtnTxt.textContent = 'Modo CCTV Activo (PiP)';
 
         // Si no hay evento ni spot publicitario activo: las cámaras ocupan el 100% de la TV
         if (isIdle && !promoActive) {
@@ -1808,6 +1818,8 @@
       }
 
       // ---------------- Modal de Configuración y Demo ----------------
+      const selTvMode = document.getElementById('cfg_tv_mode_select');
+      const camSourceRow = document.getElementById('cfg_cam_source_row');
       const selSource = document.getElementById('cfg_cam_source');
       const usbWrap = document.getElementById('cfg_usb_device_wrap');
       const selUsb = document.getElementById('cfg_usb_device');
@@ -1823,15 +1835,30 @@
       }
 
       function syncCfgModalFields() {
+        if (selTvMode) selTvMode.value = tvConfig.tvMode;
+        if (camSourceRow) camSourceRow.style.display = tvConfig.tvMode === 'cctv_rotative' ? 'block' : 'none';
         selSource.value = tvConfig.camSource;
-        usbWrap.style.display = tvConfig.camSource === 'usb_capture' ? 'block' : 'none';
-        urlsWrap.style.display = tvConfig.camSource === 'custom_urls' ? 'block' : 'none';
+        usbWrap.style.display = (tvConfig.tvMode === 'cctv_rotative' && tvConfig.camSource === 'usb_capture') ? 'block' : 'none';
+        urlsWrap.style.display = (tvConfig.tvMode === 'cctv_rotative' && tvConfig.camSource === 'custom_urls') ? 'block' : 'none';
         if (tvConfig.camSource === 'usb_capture') populateVideoDevices();
         [1, 2, 3, 4].forEach(i => {
           document.getElementById('cfg_url_' + i).value = tvConfig.urls[i - 1] || '';
         });
         document.getElementById('cfg_promo_interval').value = String(tvConfig.promoIntervalSec);
         document.getElementById('cfg_promo_duration').value = String(tvConfig.promoDurationSec);
+      }
+
+      if (selTvMode) {
+        selTvMode.onchange = () => {
+          if (camSourceRow) camSourceRow.style.display = selTvMode.value === 'cctv_rotative' ? 'block' : 'none';
+          if (selTvMode.value !== 'cctv_rotative') {
+            usbWrap.style.display = 'none';
+            urlsWrap.style.display = 'none';
+          } else {
+            usbWrap.style.display = selSource.value === 'usb_capture' ? 'block' : 'none';
+            urlsWrap.style.display = selSource.value === 'custom_urls' ? 'block' : 'none';
+          }
+        };
       }
 
       selSource.onchange = () => {
@@ -1847,12 +1874,16 @@
       document.getElementById('cfg_close').onclick = () => cfgBackdrop.classList.remove('open');
 
       document.getElementById('cfg_save').onclick = () => {
+        if (selTvMode) {
+          tvConfig.tvMode = selTvMode.value;
+          localStorage.setItem('rd_tv_mode', tvConfig.tvMode);
+        }
         tvConfig.camSource = selSource.value;
         tvConfig.usbDeviceId = selUsb.value || '';
         tvConfig.urls = [1, 2, 3, 4].map(i => document.getElementById('cfg_url_' + i).value.trim());
         tvConfig.promoIntervalSec = Number(document.getElementById('cfg_promo_interval').value);
         tvConfig.promoDurationSec = Number(document.getElementById('cfg_promo_duration').value);
-        secondsToNextPromo = tvConfig.promoIntervalSec || 180;
+        secondsToNextPromo = tvConfig.promoIntervalSec || 120;
 
         localStorage.setItem('rd_cam_source', tvConfig.camSource);
         localStorage.setItem('rd_usb_device_id', tvConfig.usbDeviceId);

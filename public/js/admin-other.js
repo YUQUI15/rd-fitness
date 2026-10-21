@@ -872,10 +872,17 @@
         };
         searchInp.onkeydown = e => {
           if (e.key === 'Enter') {
-            const val = searchInp.value.trim().toLowerCase();
+            const raw = searchInp.value.trim().toLowerCase();
+            let qtyToAdd = 1;
+            let val = raw;
+            const starMatch = raw.match(/^(\d+)[\*xX\s]+(.*)$/);
+            if (starMatch) {
+              qtyToAdd = parseInt(starMatch[1], 10) || 1;
+              val = starMatch[2].trim();
+            }
             const direct = availableProds.find(p => (p.barcode && p.barcode.toLowerCase() === val) || p.name.toLowerCase() === val);
             if (direct) {
-              addToCart(direct);
+              addToCart(direct, qtyToAdd);
               searchInp.value = '';
               term = '';
               renderGrid();
@@ -899,15 +906,16 @@
           if (p) addToCart(p);
         };
 
-        function addToCart(p) {
+        function addToCart(p, qty = 1) {
           if (p.stock <= 0) return RD.toast(`El producto "${p.name}" está agotado`, 'warn');
           const existing = cart.find(it => it.product.id === p.id);
           const activePrice = (p.promo_price > 0 && p.promo_price < p.price) ? p.promo_price : p.price;
           if (existing) {
-            if (existing.qty >= p.stock) return RD.toast(`Stock máximo disponible alcanzado (${p.stock} un.)`, 'warn');
-            existing.qty++;
+            if (existing.qty + qty > p.stock) return RD.toast(`Stock máximo disponible alcanzado (${p.stock} un.)`, 'warn');
+            existing.qty += qty;
           } else {
-            cart.push({ product: p, qty: 1, price: activePrice });
+            const addQ = Math.min(qty, p.stock);
+            cart.push({ product: p, qty: addQ, price: activePrice });
           }
           RD.beep('tick');
           renderCart();
@@ -931,7 +939,7 @@
                 </div>
                 <div class="row gap center">
                   <button type="button" class="icon-btn" data-cminus="${idx}">−</button>
-                  <span class="bold small" style="min-width:20px;text-align:center">${it.qty}</span>
+                  <span class="bold small click" data-ceditqty="${idx}" title="Toca para ingresar cantidad numérica manual" style="min-width:24px;text-align:center;padding:2px 4px;border-radius:4px;background:rgba(255,255,255,0.06)">${it.qty}</span>
                   <button type="button" class="icon-btn" data-cplus="${idx}">＋</button>
                 </div>
                 <div class="bold small right" style="min-width:60px">${money(lineTotal)}</div>
@@ -968,7 +976,23 @@
           updateCashChange(tot);
         };
 
-        cartList.onclick = e => {
+        cartList.onclick = async e => {
+          const eq = e.target.closest('[data-ceditqty]');
+          if (eq) {
+            const idx = +eq.dataset.ceditqty;
+            const cur = cart[idx];
+            const ans = await RD.prompt(`Cantidad: ${cur.product.name}`, `Ingresa la cantidad deseada (Stock máx: ${cur.product.stock}):`, String(cur.qty));
+            if (ans !== null && ans !== '') {
+              const num = parseInt(ans, 10);
+              if (num > 0 && num <= cur.product.stock) {
+                cur.qty = num;
+                renderCart();
+              } else if (num > cur.product.stock) {
+                RD.toast(`Stock máximo disponible: ${cur.product.stock} un.`, 'warn');
+              }
+            }
+            return;
+          }
           const m = e.target.closest('[data-cminus]');
           if (m) {
             const idx = +m.dataset.cminus;

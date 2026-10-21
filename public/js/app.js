@@ -251,8 +251,19 @@
       </div>
 
       ${(!isOk) ? `
-      <div class="mt" style="position:relative;z-index:1">
-        <a class="btn primary block" target="_blank" rel="noopener" href="${renewWa}" style="display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('whatsapp', '', 18)} Renovar Membresía por WhatsApp</a>
+      <div class="mt" style="position:relative;z-index:1;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.32);padding:14px;border-radius:12px;text-align:center">
+        <div style="color:#ef4444;font-weight:800;font-size:0.95rem;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:4px">
+          ${RD.icon('lock', '', 16)} ACCESO A SALA INHABILITADO
+        </div>
+        <p class="tiny muted" style="margin:0 0 12px">Tu plan ha finalizado. Tu historial, racha y marcas de entrenamiento siguen guardados. Renueva hoy para reactivar tu carné de ingreso:</p>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+          <a class="btn primary sm" target="_blank" rel="noopener" href="${renewWa}" style="display:inline-flex;align-items:center;gap:6px;font-size:0.84rem">
+            ${RD.icon('whatsapp', '', 16)} Renovar por WhatsApp
+          </a>
+          <button type="button" class="btn sm" id="btn_yape_direct_modal" style="display:inline-flex;align-items:center;gap:6px;font-size:0.84rem">
+            💜 Pagar con Yape / Plin
+          </button>
+        </div>
       </div>` : ''}
     </div>
 
@@ -403,6 +414,28 @@
     };
     el.querySelector('#btn_quick_receipt').onclick = () => RD.hub.openReceipts();
 
+    const btnYapeModal = el.querySelector('#btn_yape_direct_modal');
+    if (btnYapeModal) {
+      btnYapeModal.onclick = () => {
+        const qrUrl = fresh.settings?.yape_qr_url || '/logo.svg';
+        const num = fresh.settings?.yape_phone || '982 404 043';
+        const tit = fresh.settings?.yape_holder || fresh.settings?.gym_name || 'RD Fitness';
+        RD.openModal('Renovación Rápida Yape / Plin', `
+          <div style="text-align:center;padding:10px 0">
+            <p class="small muted">Transfiere el monto de tu mensualidad y envía tu comprobante al WhatsApp de recepción:</p>
+            <div style="background:#fff;padding:14px;border-radius:14px;display:inline-block;margin:12px 0;box-shadow:0 6px 18px rgba(0,0,0,0.25)">
+              <img src="${esc(qrUrl)}" alt="Yape QR" style="width:180px;height:180px;object-fit:contain" onerror="this.src='/logo.svg'">
+            </div>
+            <div style="font-size:1.25rem;font-weight:900;color:var(--gold);letter-spacing:1px">${esc(num)}</div>
+            <div class="tiny muted mt2">Titular: <b>${esc(tit)}</b></div>
+            <a class="btn ok block mt" target="_blank" rel="noopener" href="${renewWa}" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px">
+              ${RD.icon('whatsapp', '', 18)} Enviar Comprobante a Recepción
+            </a>
+          </div>
+        `);
+      };
+    }
+
     const qrBox = el.querySelector('#qrcodebox');
     const cdBar = el.querySelector('#cdbar');
 
@@ -410,6 +443,20 @@
       if (!member?.qr_key) return;
       const payload = await RD.digitalPayload(member.code, member.qr_key);
       qrBox.innerHTML = RD.qrSvg(payload, { margin: 1 });
+      if (!isOk) {
+        const overlay = document.createElement('div');
+        overlay.className = 'qr-expired-overlay';
+        overlay.style = 'position:absolute;inset:0;background:rgba(15,23,42,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;text-align:center;border-radius:12px;backdrop-filter:blur(3px);border:2px solid #ef4444';
+        overlay.innerHTML = `
+          <div style="background:#ef4444;color:#fff;font-weight:900;font-size:0.75rem;padding:3px 8px;border-radius:999px;margin-bottom:6px;display:inline-flex;align-items:center;gap:4px">
+            ${RD.icon('lock', '', 12)} ACCESO INACTIVO
+          </div>
+          <div style="font-size:0.88rem;font-weight:800;color:#fff">MEMBRESÍA EXPIRADA</div>
+          <div style="font-size:0.75rem;color:#fca5a5;margin-top:2px">Renueva en caja para volver a ingresar</div>
+        `;
+        qrBox.style.position = 'relative';
+        qrBox.appendChild(overlay);
+      }
     }
 
     function tick() {

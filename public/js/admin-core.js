@@ -485,7 +485,7 @@ pause`;
       <nav class="nav">${items.map(([k, v]) => `<button data-v="${k}"><span class="i">${RD.icon(v[0], '', 20)}</span>${v[1]}</button>`).join('')}</nav>
     </div>`;
     document.querySelectorAll('.nav button').forEach(b => b.onclick = () => go(b.dataset.v));
-    $('#themetoggle').onclick = () => { RD.toggleTheme(); layout(); };
+    $('#themetoggle').onclick = () => { RD.toggleTheme(); };
     $('#who').onclick = userMenu;
     $('#btn_local_mode').onclick = RD.openLocalModeModal;
     $('#btn_customer_screen').onclick = RD.openCustomerDisplayWindow;
@@ -501,7 +501,7 @@ pause`;
         <button class="btn" id="rf">${RD.icon('refresh')} Actualizar datos ahora</button>
         <button class="btn danger" id="lo">Cerrar sesión</button>
       </div>`);
-    m.el.querySelector('#tm').onclick = () => { m.close(); RD.toggleTheme(); layout(); };
+    m.el.querySelector('#tm').onclick = () => { m.close(); RD.toggleTheme(); };
     m.el.querySelector('#lo').onclick = () => { m.close(); logout(); };
     m.el.querySelector('#rf').onclick = async () => { try { await RD.flushScans(); await RD.syncMembers(); RD.toast('Datos actualizados'); } catch (e) { RD.toast(e.message, 'err'); } };
     m.el.querySelector('#cp').onclick = () => { m.close(); changePassword(); };
