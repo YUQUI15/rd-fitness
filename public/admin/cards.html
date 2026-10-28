@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Impresión de Tarjetas y Carnets QR - RD Fitness Club</title>
+  <title>Estudio de Tarjetas y Carnets QR (PDF / PNG / WhatsApp) - RD Fitness Club</title>
   <link rel="icon" type="image/svg+xml" href="/logo.svg">
-  <link rel="stylesheet" href="/css/style.css?v=5.4">
+  <link rel="stylesheet" href="/css/style.css?v=5.5">
   <script>
     (function(){
       var t = localStorage.getItem('rd_theme');
@@ -14,16 +14,42 @@
   </script>
   <style>
     body { background: var(--bg, #141418); color: var(--text, #fff); margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    .toolbar { position: sticky; top: 0; z-index: 100; background: rgba(11,11,13,0.96); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line, #2b2b32); padding: .8rem 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-    [data-theme="light"] .toolbar { background: rgba(255,255,255,0.96); border-bottom-color: #CBD5E1; box-shadow: 0 2px 10px rgba(15,23,42,0.05); }
-    .filter-bar { max-width: 1020px; margin: 14px auto 0; padding: 0 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .filter-bar input[type="search"] { flex: 1; min-width: 220px; background: var(--bg2, #1c1c22); border: 1px solid var(--line, #2f2f38); color: var(--text, #fff); padding: 8px 12px; border-radius: 8px; }
+    .toolbar { position: sticky; top: 0; z-index: 100; background: rgba(11,11,13,0.96); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line, #2b2b32); padding: .8rem 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: .8rem; flex-wrap: wrap; }
+    [data-theme="light"] .toolbar { background: rgba(255,255,255,0.96); border-bottom-color: #CBD5E1; box-shadow: 0 2px 10px rgba(15,23,42,0.06); }
+    .info-banner { max-width: 1060px; margin: 14px auto 0; padding: 10px 16px; border-radius: 10px; background: rgba(245,180,0,0.09); border: 1px solid rgba(245,180,0,0.28); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 12.5px; }
+    [data-theme="light"] .info-banner { background: #FFFBEB; border-color: #FDE68A; color: #78350F; }
+    .filter-bar { max-width: 1060px; margin: 12px auto 0; padding: 0 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .filter-bar input[type="search"] { flex: 1; min-width: 220px; background: var(--bg2, #1c1c22); border: 1px solid var(--line, #2f2f38); color: var(--text, #fff); padding: 9px 14px; border-radius: 8px; font-size: 13.5px; }
     [data-theme="light"] .filter-bar input[type="search"] { background: #FFFFFF; border-color: #94A3B8; color: #0F172A; }
-    .sheet { max-width: 1020px; margin: 16px auto 40px; padding: 16px 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; justify-content: center; }
+    .sheet { max-width: 1060px; margin: 16px auto 50px; padding: 12px 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(344px, 1fr)); gap: 22px; justify-content: center; }
+
+    /* Tarjeta contenedora y barra de acciones individuales */
+    .card-item-wrap {
+      display: flex; flex-direction: column; gap: 8px; align-items: center;
+      background: var(--bg2, #1b1b22); border: 1px solid var(--line, #2d2d37);
+      border-radius: 14px; padding: 12px; transition: all .18s ease;
+    }
+    [data-theme="light"] .card-item-wrap {
+      background: #FFFFFF; border-color: #CBD5E1; box-shadow: 0 2px 8px rgba(15,23,42,0.05);
+    }
+    .card-item-wrap.is-selected {
+      border-color: #d4a017;
+      box-shadow: 0 0 0 1px rgba(245,180,0,0.35), 0 8px 20px rgba(0,0,0,0.2);
+    }
+    [data-theme="light"] .card-item-wrap.is-selected {
+      border-color: #B45309;
+      box-shadow: 0 0 0 2px rgba(180,83,9,0.2), 0 6px 16px rgba(15,23,42,0.08);
+    }
+    .card-select-bar { width: 340px; display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; color: var(--muted, #a1a1aa); padding: 0 2px; gap: 6px; }
+    [data-theme="light"] .card-select-bar { color: #334155; }
+    .card-actions-bar {
+      width: 340px; display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 6px; margin-top: 2px;
+    }
+    .card-actions-bar .btn {
+      justify-content: center; font-size: 11.5px; font-weight: 700; padding: 6px 8px; border-radius: 8px;
+    }
 
     /* Medidas exactas de tarjeta CR-80 (PVC): 85.6mm x 53.98mm */
-    .card-item-wrap { display: flex; flex-direction: column; gap: 8px; align-items: center; }
-    .card-select-bar { width: 340px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted, #a1a1aa); padding: 0 4px; }
     .pvc-card {
       width: 340px; height: 215px;
       border-radius: 12px;
@@ -31,13 +57,13 @@
       overflow: hidden;
       background: linear-gradient(135deg, #1b1b1f 0%, #0c0c0e 60%, #17150f 100%);
       border: 1.5px solid #d4a017;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
       box-sizing: border-box;
       padding: 12px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      color: #fff;
+      color: #fff !important;
       page-break-inside: avoid;
     }
     .pvc-card::before {
@@ -51,9 +77,9 @@
     .card-top { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(245,180,0,0.32); padding-bottom: 6px; }
     .card-logo { display: flex; align-items: center; gap: 8px; }
     .card-logo img { height: 28px; width: 28px; object-fit: contain; flex-shrink: 0; border-radius: 6px; }
-    .card-logo .brand-txt { font-size: 13px; font-weight: 900; letter-spacing: 0.5px; color: #f5b400; line-height: 1.1; }
-    .card-logo .slogan { font-size: 7px; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.8px; }
-    .tag-loc { font-size: 8px; font-weight: 700; background: rgba(245,180,0,0.18); border: 1px solid rgba(245,180,0,0.4); color: #ffd24a; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+    .card-logo .brand-txt { font-size: 13px; font-weight: 900; letter-spacing: 0.5px; color: #f5b400 !important; line-height: 1.1; }
+    .card-logo .slogan { font-size: 7px; color: #a1a1aa !important; text-transform: uppercase; letter-spacing: 0.8px; }
+    .tag-loc { font-size: 8px; font-weight: 700; background: rgba(245,180,0,0.18); border: 1px solid rgba(245,180,0,0.4); color: #ffd24a !important; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
 
     .card-body { display: flex; align-items: center; gap: 12px; margin: 6px 0; }
     .card-avatar {
@@ -62,17 +88,17 @@
       background: #27272a;
       flex: none; overflow: hidden;
       display: flex; align-items: center; justify-content: center;
-      font-size: 24px; font-weight: 800; color: #f5b400;
+      font-size: 24px; font-weight: 800; color: #f5b400 !important;
     }
     .card-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .card-details { flex: 1; min-width: 0; }
-    .card-name { font-size: 14px; font-weight: 800; color: #fff; line-height: 1.2; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .card-code { font-size: 18px; font-weight: 900; color: #f5b400; letter-spacing: 1px; margin-top: 2px; }
-    .card-role { font-size: 8.5px; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .card-name { font-size: 14px; font-weight: 800; color: #ffffff !important; line-height: 1.2; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-code { font-size: 18px; font-weight: 900; color: #f5b400 !important; letter-spacing: 1px; margin-top: 2px; }
+    .card-role { font-size: 8.5px; color: #a1a1aa !important; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
 
     .card-qr-box {
       width: 66px; height: 66px;
-      background: #fff;
+      background: #fff !important;
       border-radius: 6px;
       padding: 3px;
       flex: none;
@@ -87,7 +113,7 @@
       align-items: center;
       justify-content: space-between;
       font-size: 7.5px;
-      color: #a1a1aa;
+      color: #a1a1aa !important;
     }
 
     /* REVERSO DE LA TARJETA */
@@ -95,13 +121,14 @@
       text-align: center;
       padding: 14px;
     }
-    .back-rules { font-size: 8px; color: #d4d4d8; line-height: 1.35; margin: 6px 0; }
-    .back-contacts { font-size: 8.5px; color: #ffd24a; font-weight: 600; line-height: 1.4; border: 1px solid rgba(245,180,0,0.3); padding: 6px; border-radius: 6px; background: rgba(0,0,0,0.35); }
+    .back-rules { font-size: 8px; color: #d4d4d8 !important; line-height: 1.35; margin: 6px 0; }
+    .back-contacts { font-size: 8.5px; color: #ffd24a !important; font-weight: 600; line-height: 1.4; border: 1px solid rgba(245,180,0,0.3); padding: 6px; border-radius: 6px; background: rgba(0,0,0,0.35); }
 
     /* ESTILOS PARA IMPRESIÓN (Ctrl + P) */
     @media print {
       body { background: #fff!important; color: #000!important; margin: 0!important; }
-      .toolbar, .filter-bar, .card-select-bar, .noprint { display: none!important; }
+      .toolbar, .info-banner, .filter-bar, .card-select-bar, .card-actions-bar, .noprint { display: none!important; }
+      .card-item-wrap { background: transparent!important; border: none!important; box-shadow: none!important; padding: 0!important; }
       .card-item-wrap.unselected { display: none!important; }
       .sheet {
         max-width: none!important;
@@ -127,30 +154,39 @@
 <body>
   <div class="toolbar noprint">
     <div class="row gap">
-      <img src="/logo.svg" style="height:34px;width:34px;border-radius:8px;object-fit:contain" alt="RD">
+      <img src="/logo.svg" style="height:36px;width:36px;border-radius:8px;object-fit:contain" alt="RD">
       <div>
-        <b>Estudio de Tarjetas y Carnets Físicos QR (CR-80 PVC)</b>
+        <b>Estudio de Tarjetas QR · Guardar en PDF, Imagen HD y Compartir</b>
         <div class="muted small" id="status">Cargando socios…</div>
       </div>
     </div>
     <div class="row gap wrap">
       <label class="check small"><input type="checkbox" id="showback" checked> <span>Incluir reverso</span></label>
+      <button class="btn primary sm" id="btndownloadpdf" title="Descargar archivo PDF en tamaño exacto CR-80 (85.6x54mm) listo para enviar a imprenta o guardar">📄 Descargar PDF</button>
+      <button class="btn ok sm" id="btndownloadpng" title="Descargar imagen PNG de alta resolución (300 DPI)">🖼️ Guardar PNG HD</button>
+      <button class="btn info sm" id="btnsharebatch" style="background:#0284c7;color:#fff;border-color:#0284c7" title="Compartir o enviar por WhatsApp a una imprenta o al socio">📲 Compartir / Enviar</button>
+      <button class="btn sm ghost" id="btnprint" onclick="window.print()" title="Imprimir directamente si tienes impresora conectada">🖨️ Imprimir</button>
       <button class="btn sm" id="themetoggle" data-theme-toggle onclick="RD.toggleTheme()" title="Cambiar Modo Claro / Oscuro">☀️ / 🌙</button>
       <a class="btn sm" href="/admin/">← Panel Admin</a>
-      <button class="btn primary sm" id="btnprint" onclick="window.print()">🖨️ IMPRIMIR TARJETAS</button>
+    </div>
+  </div>
+
+  <div class="info-banner noprint" id="infobanner" style="margin-left:20px;margin-right:20px">
+    <div>
+      💡 <b>¿No hay impresora en el gimnasio?</b> Usa <b>📄 Descargar PDF</b> o el botón <b>📄 PDF / 📲 Enviar</b> de cada socio para guardar las tarjetas en formato exacto <b>PVC CR-80 (85.6 × 53.98 mm con guías de corte)</b> y enviarlas por <b>WhatsApp</b> a cualquier imprenta, centro de copiado o directamente al celular del socio.
     </div>
   </div>
 
   <div class="filter-bar noprint" id="filterbar" style="display:none">
-    <input type="search" id="qcard" placeholder="Buscar socio por nombre o código (ej. RD-0001)…">
-    <button class="btn sm" id="selall">Seleccionar todos</button>
-    <button class="btn sm ghost" id="selnone">Limpiar selección</button>
+    <input type="search" id="qcard" placeholder="🔍 Buscar socio por nombre, código (RD-0001) o DNI…">
+    <button class="btn sm" id="selall">✅ Seleccionar visibles</button>
+    <button class="btn sm ghost" id="selnone">⬜ Limpiar selección</button>
   </div>
 
   <div class="sheet" id="cards"></div>
 
   <script src="/vendor/qrcode.js"></script>
-  <script src="/js/common.js?v=5.3"></script>
+  <script src="/js/common.js?v=5.5"></script>
   <script>
     (async () => {
       const RD = window.RD;
@@ -162,13 +198,469 @@
 
       const params = new URLSearchParams(location.search);
       const ids = params.get('ids') || '';
+      const autoDownload = params.get('autodownload') || '';
+
+      // Precargar logo para renderizado Canvas 300 DPI
+      let cachedLogoImg = null;
+      function loadImage(src) {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => resolve(img);
+          img.onerror = () => resolve(null);
+          img.src = src;
+        });
+      }
+      async function getLogoImg() {
+        if (!cachedLogoImg) cachedLogoImg = await loadImage('/logo.svg');
+        return cachedLogoImg;
+      }
+
+      // Utilidades Canvas 300 DPI
+      function roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+
+      function drawQrOnCanvas(ctx, payload, boxX, boxY, boxSize) {
+        roundRect(ctx, boxX, boxY, boxSize, boxSize, 18);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        const qr = window.qrcode(0, 'M');
+        qr.addData(payload);
+        qr.make();
+        const n = qr.getModuleCount();
+        const margin = 2;
+        const total = n + margin * 2;
+        const cell = boxSize / total;
+        ctx.fillStyle = '#000000';
+        for (let r = 0; r < n; r++) {
+          for (let c = 0; c < n; c++) {
+            if (qr.isDark(r, c)) {
+              const rx = Math.floor(boxX + (c + margin) * cell);
+              const ry = Math.floor(boxY + (r + margin) * cell);
+              const rw = Math.ceil(boxX + (c + margin + 1) * cell) - rx;
+              const rh = Math.ceil(boxY + (r + margin + 1) * cell) - ry;
+              ctx.fillRect(rx, ry, rw, rh);
+            }
+          }
+        }
+      }
+
+      // Renderiza una cara (front o back) de la tarjeta CR-80 a 300 DPI (1012 x 638 px)
+      async function renderCardFaceCanvas(card, gym, side = 'front') {
+        const W = 1012, H = 638;
+        const cv = document.createElement('canvas');
+        cv.width = W; cv.height = H;
+        const ctx = cv.getContext('2d');
+        const logo = await getLogoImg();
+
+        // Fondo oscuro metálico con borde dorado
+        roundRect(ctx, 2, 2, W - 4, H - 4, 34);
+        const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+        bgGrad.addColorStop(0, '#1b1b1f');
+        bgGrad.addColorStop(0.6, '#0c0c0e');
+        bgGrad.addColorStop(1, '#1c180f');
+        ctx.fillStyle = bgGrad;
+        ctx.fill();
+        ctx.save();
+        ctx.clip();
+
+        // Resplandor superior derecho
+        const radGrad = ctx.createRadialGradient(W - 60, 40, 10, W - 60, 40, 320);
+        radGrad.addColorStop(0, 'rgba(245,180,0,0.22)');
+        radGrad.addColorStop(1, 'rgba(245,180,0,0)');
+        ctx.fillStyle = radGrad;
+        ctx.fillRect(W - 400, -200, 500, 500);
+
+        const gymName = String(gym.gym_name || 'RD FITNESS CLUB').toUpperCase();
+        const gymSlogan = String(gym.gym_slogan || 'DISCIPLINA · CONSTANCIA · RESULTADOS').toUpperCase();
+        const gymPhone = String(gym.gym_phone || '982 404 043');
+        const gymAddr = String(gym.gym_address || 'Calle Antonio José de Sucre Lt. 10, Chivay');
+        const gymOpen = String(gym.opening || 'Lun a Sáb 6:00 a 21:00');
+
+        if (side === 'front') {
+          // Línea divisoria superior
+          ctx.strokeStyle = 'rgba(245,180,0,0.38)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(36, 134);
+          ctx.lineTo(W - 36, 134);
+          ctx.stroke();
+
+          // Logo + Marca
+          if (logo) {
+            ctx.drawImage(logo, 36, 28, 86, 86);
+          }
+          ctx.fillStyle = '#f5b400';
+          ctx.font = '900 37px system-ui, -apple-system, sans-serif';
+          ctx.textBaseline = 'top';
+          ctx.fillText(gymName, 138, 38);
+
+          ctx.fillStyle = '#a1a1aa';
+          ctx.font = '700 20px system-ui, -apple-system, sans-serif';
+          ctx.fillText(gymSlogan, 138, 86);
+
+          // Etiqueta CHIVAY
+          roundRect(ctx, W - 178, 44, 142, 48, 12);
+          ctx.fillStyle = 'rgba(245,180,0,0.18)';
+          ctx.fill();
+          ctx.lineWidth = 2.5;
+          ctx.strokeStyle = 'rgba(245,180,0,0.5)';
+          ctx.stroke();
+          ctx.fillStyle = '#ffd24a';
+          ctx.font = '800 23px system-ui, -apple-system, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('CHIVAY', W - 107, 56);
+          ctx.textAlign = 'left';
+
+          // Avatar circular del socio
+          const cx = 128, cy = 350, r = 90;
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.fillStyle = '#27272a';
+          ctx.fill();
+          ctx.clip();
+          if (card.photo) {
+            const pImg = await loadImage(card.photo);
+            if (pImg) {
+              const s = Math.max((r * 2) / pImg.width, (r * 2) / pImg.height);
+              const dw = pImg.width * s, dh = pImg.height * s;
+              ctx.drawImage(pImg, cx - dw / 2, cy - dh / 2, dw, dh);
+            }
+          } else {
+            ctx.fillStyle = '#f5b400';
+            ctx.font = '800 76px system-ui, -apple-system, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(card.name || 'R')[0].toUpperCase(), cx, cy + 3);
+          }
+          ctx.restore();
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.lineWidth = 6;
+          ctx.strokeStyle = '#f5b400';
+          ctx.stroke();
+
+          // Datos del socio
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+          ctx.fillStyle = '#ffffff';
+          const fullName = String(card.name || 'SOCIO').toUpperCase();
+          ctx.font = '800 40px system-ui, -apple-system, sans-serif';
+          let fontSize = 40;
+          while (fontSize > 26 && ctx.measureText(fullName).width > 500) {
+            fontSize -= 2;
+            ctx.font = `800 ${fontSize}px system-ui, -apple-system, sans-serif`;
+          }
+          ctx.fillText(fullName, 244, 272);
+
+          ctx.fillStyle = '#f5b400';
+          ctx.font = '900 54px system-ui, -apple-system, sans-serif';
+          ctx.fillText(String(card.code || ''), 244, 326);
+
+          ctx.fillStyle = '#a1a1aa';
+          ctx.font = '700 24px system-ui, -apple-system, sans-serif';
+          ctx.fillText(`SOCIO OFICIAL${card.dni ? ' · DNI ' + card.dni : ''}`, 244, 394);
+
+          // QR Code Box
+          drawQrOnCanvas(ctx, card.payload, W - 240, 246, 204);
+
+          // Footer
+          ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(36, H - 72);
+          ctx.lineTo(W - 36, H - 72);
+          ctx.stroke();
+
+          ctx.fillStyle = '#a1a1aa';
+          ctx.font = '600 22px system-ui, -apple-system, sans-serif';
+          ctx.fillText('Calle Sucre Lt. 10 · Chivay', 36, H - 50);
+          ctx.textAlign = 'right';
+          ctx.fillText(`WhatsApp: ${gymPhone}`, W - 36, H - 50);
+          ctx.textAlign = 'left';
+        } else {
+          // REVERSO DE LA TARJETA
+          if (logo) {
+            ctx.drawImage(logo, W / 2 - 210, 42, 68, 68);
+          }
+          ctx.fillStyle = '#f5b400';
+          ctx.font = '900 38px system-ui, -apple-system, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText(gymName, W / 2 + 28, 56);
+
+          ctx.fillStyle = '#d4d4d8';
+          ctx.font = '600 25px system-ui, -apple-system, sans-serif';
+          ctx.fillText('Esta credencial es personal e intransferible.', W / 2, 152);
+          ctx.fillText('Acércala al lector óptico al ingresar y salir del gimnasio.', W / 2, 190);
+          ctx.fillText('En caso de pérdida, solicita su reposición inmediata en recepción.', W / 2, 228);
+
+          // Caja de contacto
+          roundRect(ctx, 64, 290, W - 128, 225, 18);
+          ctx.fillStyle = 'rgba(0,0,0,0.42)';
+          ctx.fill();
+          ctx.lineWidth = 2.5;
+          ctx.strokeStyle = 'rgba(245,180,0,0.38)';
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffd24a';
+          ctx.font = '700 25px system-ui, -apple-system, sans-serif';
+          ctx.fillText(`📍 ${gymAddr}`, W / 2, 318);
+          ctx.fillText(`📲 Atención / Yape: ${gymPhone}`, W / 2, 366);
+          ctx.fillText(`🕒 Horario: ${gymOpen}`, W / 2, 414);
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '800 23px system-ui, -apple-system, sans-serif';
+          ctx.fillText(`SOCIO: ${String(card.name || '').toUpperCase()} (${card.code})`, W / 2, 462);
+
+          ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(36, H - 70);
+          ctx.lineTo(W - 36, H - 70);
+          ctx.stroke();
+
+          ctx.fillStyle = '#a1a1aa';
+          ctx.font = '700 22px system-ui, -apple-system, sans-serif';
+          ctx.fillText(gymSlogan, W / 2, H - 48);
+          ctx.textAlign = 'left';
+        }
+
+        ctx.restore();
+        // Borde exterior dorado
+        roundRect(ctx, 2, 2, W - 4, H - 4, 34);
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#d4a017';
+        ctx.stroke();
+
+        return cv;
+      }
+
+      // Genera imagen PNG HD combinada (Anverso + Reverso o solo Anverso) para un socio
+      async function buildSingleCardPngBlob(card, gym, includeBack) {
+        const frontCv = await renderCardFaceCanvas(card, gym, 'front');
+        if (!includeBack) {
+          return new Promise(res => frontCv.toBlob(res, 'image/png'));
+        }
+        const backCv = await renderCardFaceCanvas(card, gym, 'back');
+        const pad = 40;
+        const headerH = 74;
+        const out = document.createElement('canvas');
+        out.width = frontCv.width + pad * 2;
+        out.height = frontCv.height * 2 + pad * 3 + headerH;
+        const ctx = out.getContext('2d');
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, out.width, out.height);
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '800 30px system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`CARNET OFICIAL QR · ${card.name.toUpperCase()} (${card.code})`, out.width / 2, 50);
+
+        ctx.drawImage(frontCv, pad, headerH + pad / 2);
+        ctx.drawImage(backCv, pad, headerH + pad / 2 + frontCv.height + pad);
+        return new Promise(res => out.toBlob(res, 'image/png'));
+      }
+
+      // Dibuja marcas de corte (guías milimétricas para guillotina/tijera) alrededor de cada tarjeta en la hoja A4
+      function drawCropMarks(ctx, x, y, w, h) {
+        const len = 22;
+        const off = 6;
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        // Arriba-Izquierda
+        ctx.moveTo(x - off - len, y); ctx.lineTo(x - off, y);
+        ctx.moveTo(x, y - off - len); ctx.lineTo(x, y - off);
+        // Arriba-Derecha
+        ctx.moveTo(x + w + off, y); ctx.lineTo(x + w + off + len, y);
+        ctx.moveTo(x + w, y - off - len); ctx.lineTo(x + w, y - off);
+        // Abajo-Izquierda
+        ctx.moveTo(x - off - len, y + h); ctx.lineTo(x - off, y + h);
+        ctx.moveTo(x, y + h + off); ctx.lineTo(x, y + h + off + len);
+        // Abajo-Derecha
+        ctx.moveTo(x + w + off, y + h); ctx.lineTo(x + w + off + len, y + h);
+        ctx.moveTo(x + w, y + h + off); ctx.lineTo(x + w, y + h + off + len);
+        ctx.stroke();
+      }
+
+      // Empaqueta páginas JPEG A4 en un documento PDF 1.4 binario real (sin abrir diálogo de impresión)
+      function encodeJpegPagesToPdfBlob(jpegPages, pageWmm = 210, pageHmm = 297) {
+        const ptW = +(pageWmm * 72 / 25.4).toFixed(2); // 595.28
+        const ptH = +(pageHmm * 72 / 25.4).toFixed(2); // 841.89
+        const enc = new TextEncoder();
+        const chunks = [];
+        let offset = 0;
+        const pushStr = (s) => {
+          const b = enc.encode(s);
+          chunks.push(b);
+          offset += b.length;
+        };
+        const pushBytes = (b) => {
+          chunks.push(b);
+          offset += b.length;
+        };
+
+        const totalPages = jpegPages.length;
+        const totalObjs = 2 + totalPages * 3;
+        const offsets = new Array(totalObjs + 1).fill(0);
+
+        pushStr('%PDF-1.4\n%\xFF\xFF\xFF\xFF\n');
+
+        // Obj 1: Catalog
+        offsets[1] = offset;
+        pushStr('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+
+        // Obj 2: Pages
+        const kids = jpegPages.map((_, i) => `${3 + i * 3} 0 R`).join(' ');
+        offsets[2] = offset;
+        pushStr(`2 0 obj\n<< /Type /Pages /Kids [${kids}] /Count ${totalPages} >>\nendobj\n`);
+
+        for (let i = 0; i < totalPages; i++) {
+          const pg = jpegPages[i];
+          const pageObj = 3 + i * 3;
+          const contentObj = 4 + i * 3;
+          const imgObj = 5 + i * 3;
+
+          offsets[pageObj] = offset;
+          pushStr(`${pageObj} 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${ptW} ${ptH}] /Resources << /XObject << /Im0 ${imgObj} 0 R >> >> /Contents ${contentObj} 0 R >>\nendobj\n`);
+
+          const streamCmd = `q ${ptW} 0 0 ${ptH} 0 0 cm /Im0 Do Q`;
+          offsets[contentObj] = offset;
+          pushStr(`${contentObj} 0 obj\n<< /Length ${streamCmd.length} >>\nstream\n${streamCmd}\nendstream\nendobj\n`);
+
+          offsets[imgObj] = offset;
+          pushStr(`${imgObj} 0 obj\n<< /Type /XObject /Subtype /Image /Width ${pg.width} /Height ${pg.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${pg.bytes.length} >>\nstream\n`);
+          pushBytes(pg.bytes);
+          pushStr('\nendstream\nendobj\n');
+        }
+
+        const xrefStart = offset;
+        pushStr(`xref\n0 ${totalObjs + 1}\n0000000000 65535 f \n`);
+        for (let id = 1; id <= totalObjs; id++) {
+          pushStr(String(offsets[id]).padStart(10, '0') + ' 00000 n \n');
+        }
+        pushStr(`trailer\n<< /Size ${totalObjs + 1} /Root 1 0 R >>\nstartxref\n${xrefStart}\n%%EOF\n`);
+
+        return new Blob(chunks, { type: 'application/pdf' });
+      }
+
+      function dataUrlToUint8Array(dataUrl) {
+        const base64 = dataUrl.split(',')[1];
+        const bin = atob(base64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return bytes;
+      }
+
+      // Genera un archivo PDF A4 real a escala exacta 1:1 (85.6mm x 53.98mm) con las tarjetas indicadas
+      async function buildCardsPdfBlob(cardList, gym, includeBack) {
+        const faces = [];
+        for (const c of cardList) {
+          faces.push({ card: c, side: 'front' });
+          if (includeBack) faces.push({ card: c, side: 'back' });
+        }
+
+        const PX_MM = 10;
+        const pageW = 210 * PX_MM; // 2100
+        const pageH = 297 * PX_MM; // 2970
+        const cardW = Math.round(85.6 * PX_MM);  // 856 px (85.6 mm exactos)
+        const cardH = Math.round(53.98 * PX_MM); // 540 px (53.98 mm exactos)
+        const gapX = 8 * PX_MM;
+        const gapY = 7 * PX_MM;
+        const startX = Math.round((pageW - (cardW * 2 + gapX)) / 2);
+        const startY = 30 * PX_MM;
+
+        const perPage = 8;
+        const totalPages = Math.max(1, Math.ceil(faces.length / perPage));
+        const jpegPages = [];
+
+        for (let p = 0; p < totalPages; p++) {
+          const pageFaces = faces.slice(p * perPage, (p + 1) * perPage);
+          const cv = document.createElement('canvas');
+          cv.width = pageW;
+          cv.height = pageH;
+          const ctx = cv.getContext('2d');
+
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, pageW, pageH);
+
+          ctx.fillStyle = '#0f172a';
+          ctx.font = '800 32px system-ui, -apple-system, sans-serif';
+          ctx.fillText(`${String(gym.gym_name || 'RD FITNESS CLUB').toUpperCase()} — PLANCHA DE IMPRESIÓN DE CARNETS QR (CR-80 PVC)`, startX, 115);
+
+          ctx.fillStyle = '#475569';
+          ctx.font = '600 22px system-ui, -apple-system, sans-serif';
+          ctx.fillText(`✂ Instrucciones de Impresión: Imprimir en hoja A4 al 100% (Tamaño Real / Sin escalar). Medida exacta de cada carnet: 85.6 mm × 53.98 mm.`, startX, 158);
+
+          ctx.strokeStyle = '#cbd5e1';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(startX, 185);
+          ctx.lineTo(pageW - startX, 185);
+          ctx.stroke();
+
+          for (let idx = 0; idx < pageFaces.length; idx++) {
+            const item = pageFaces[idx];
+            const col = idx % 2;
+            const row = Math.floor(idx / 2);
+            const x = startX + col * (cardW + gapX);
+            const y = startY + row * (cardH + gapY);
+
+            ctx.fillStyle = '#64748b';
+            ctx.font = '700 18px system-ui, -apple-system, sans-serif';
+            ctx.fillText(`${item.side === 'front' ? 'ANVERSO (FRENTE)' : 'REVERSO (DORSO)'} · ${item.card.code} (${item.card.name})`, x + 4, y - 10);
+
+            const faceCv = await renderCardFaceCanvas(item.card, gym, item.side);
+            ctx.drawImage(faceCv, x, y, cardW, cardH);
+            drawCropMarks(ctx, x, y, cardW, cardH);
+          }
+
+          ctx.fillStyle = '#64748b';
+          ctx.font = '600 20px system-ui, -apple-system, sans-serif';
+          ctx.fillText(`Generado el ${RD.fmtDate(RD.limaDay())} · Total en lote: ${cardList.length} socio(s) · QR Estático Firmado (HMAC-SHA256)`, startX, pageH - 90);
+          ctx.textAlign = 'right';
+          ctx.fillText(`Página ${p + 1} de ${totalPages}`, pageW - startX, pageH - 90);
+          ctx.textAlign = 'left';
+
+          const dataUrl = cv.toDataURL('image/jpeg', 0.95);
+          jpegPages.push({
+            width: pageW,
+            height: pageH,
+            bytes: dataUrlToUint8Array(dataUrl)
+          });
+        }
+
+        return encodeJpegPagesToPdfBlob(jpegPages, 210, 297);
+      }
+
+      function triggerBlobDownload(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1500);
+      }
+
+      function cleanFileName(s) {
+        return String(s || 'Socio').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9_\-]+/g, '_').replace(/^_+|_+$/g, '');
+      }
 
       async function fetchCards() {
         let token = localStorage.getItem('rd_staff_token');
         const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
         let res = await fetch('/api/cards?ids=' + encodeURIComponent(ids), { headers });
         if (res.status === 401) {
-          // Intentar reanudar sesión con cookie HttpOnly
           const r2 = await fetch('/api/auth/staff-resume', { method: 'POST' }).catch(() => null);
           if (r2 && r2.ok) {
             const d2 = await r2.json();
@@ -182,56 +674,87 @@
         return res;
       }
 
-      async function loadAndRender() {
-        let res;
+      // Fallback Offline usando rd_snapshot si no hay internet
+      async function buildOfflineCardsFromSnapshot() {
         try {
-          res = await fetchCards();
+          const snap = JSON.parse(localStorage.getItem('rd_snapshot') || 'null');
+          if (!snap || !Array.isArray(snap.members)) return null;
+          const idList = ids.split(',').map(Number).filter(Boolean);
+          const rows = idList.length
+            ? snap.members.filter(m => idList.includes(Number(m.id)))
+            : snap.members.filter(m => m.status !== 'inactive');
+          const out = [];
+          for (const m of rows) {
+            const pv = m.pv || 1;
+            const sig = m.key ? await RD.hmac(m.key, `${m.code}|P${pv}`) : '000000000000';
+            out.push({
+              id: m.id,
+              code: m.code,
+              name: m.name,
+              dni: m.dni || '',
+              phone: m.phone || '',
+              photo: m.photo || null,
+              payload: `RD1.${m.code}.P${pv}.${sig}`
+            });
+          }
+          return { cards: out, settings: JSON.parse(localStorage.getItem('rd_public') || '{}') };
+        } catch {
+          return null;
+        }
+      }
+
+      async function loadAndRender() {
+        let data = null;
+        try {
+          const res = await fetchCards();
+          if (res.status === 401) {
+            statusEl.textContent = 'Autenticación requerida';
+            filterBar.style.display = 'none';
+            cardsEl.innerHTML = `
+              <div style="grid-column:1/-1;max-width:380px;margin:30px auto;width:100%">
+                <form class="box" id="cardlogin">
+                  <div class="brand">
+                    <img class="logo" src="/logo.svg" alt="RD">
+                    <h2>RD Fitness Club</h2>
+                    <p class="muted small">Ingresa con tu cuenta de administrador o recepción para descargar o compartir carnets QR</p>
+                  </div>
+                  <div id="lerr" class="banner err" style="display:none"></div>
+                  <label class="field"><span>Usuario</span><input name="u" value="admin" required autofocus></label>
+                  <label class="field"><span>Contraseña</span><input name="p" type="password" required></label>
+                  <button class="btn primary block" type="submit">Desbloquear Tarjetas QR</button>
+                </form>
+              </div>`;
+            const lf = document.getElementById('cardlogin');
+            lf.onsubmit = async e => {
+              e.preventDefault();
+              const errEl = document.getElementById('lerr');
+              errEl.style.display = 'none';
+              try {
+                const r = await RD.api.post('/auth/login', { username: lf.u.value, password: lf.p.value });
+                localStorage.setItem('rd_staff_token', r.token);
+                localStorage.setItem('rd_staff_user', JSON.stringify(r.user));
+                loadAndRender();
+              } catch (err) {
+                errEl.textContent = err.message || 'Credenciales incorrectas';
+                errEl.style.display = 'block';
+              }
+            };
+            return;
+          }
+          if (res.ok) data = await res.json();
         } catch (err) {
-          cardsEl.innerHTML = `<div class="empty bad">Error de red: ${RD.esc(err.message)}</div>`;
+          data = await buildOfflineCardsFromSnapshot();
+          if (!data) {
+            cardsEl.innerHTML = `<div class="empty bad">Error de red: ${RD.esc(err.message)}</div>`;
+            return;
+          }
+        }
+
+        if (!data) {
+          cardsEl.innerHTML = `<div class="empty bad">No se pudieron cargar las tarjetas.</div>`;
           return;
         }
 
-        if (res.status === 401) {
-          statusEl.textContent = 'Autenticación requerida';
-          filterBar.style.display = 'none';
-          cardsEl.innerHTML = `
-            <div style="grid-column:1/-1;max-width:380px;margin:30px auto;width:100%">
-              <form class="box" id="cardlogin">
-                <div class="brand">
-                  <img class="logo" src="/logo.svg" alt="RD">
-                  <h2>RD Fitness Club</h2>
-                  <p class="muted small">Ingresa con tu cuenta de administrador o recepción para imprimir carnets QR</p>
-                </div>
-                <div id="lerr" class="banner err" style="display:none"></div>
-                <label class="field"><span>Usuario</span><input name="u" value="admin" required autofocus></label>
-                <label class="field"><span>Contraseña</span><input name="p" type="password" required></label>
-                <button class="btn primary block" type="submit">Desbloquear Tarjetas QR</button>
-              </form>
-            </div>`;
-          const lf = document.getElementById('cardlogin');
-          lf.onsubmit = async e => {
-            e.preventDefault();
-            const errEl = document.getElementById('lerr');
-            errEl.style.display = 'none';
-            try {
-              const r = await RD.api.post('/auth/login', { username: lf.u.value, password: lf.p.value });
-              localStorage.setItem('rd_staff_token', r.token);
-              localStorage.setItem('rd_staff_user', JSON.stringify(r.user));
-              loadAndRender();
-            } catch (err) {
-              errEl.textContent = err.message || 'Credenciales incorrectas';
-              errEl.style.display = 'block';
-            }
-          };
-          return;
-        }
-
-        if (!res.ok) {
-          cardsEl.innerHTML = `<div class="empty bad">Error al cargar tarjetas (${res.status})</div>`;
-          return;
-        }
-
-        const data = await res.json();
         const cards = data.cards || [];
         const gym = data.settings || {};
         const selected = new Set(cards.map(c => c.id));
@@ -239,20 +762,227 @@
 
         filterBar.style.display = cards.length > 1 ? 'flex' : 'none';
 
+        function getSelectedList() {
+          return cards.filter(c => selected.has(c.id));
+        }
+
         function updateStatus() {
-          statusEl.textContent = `${selected.size} de ${cards.length} tarjeta(s) seleccionada(s) para imprimir`;
+          statusEl.textContent = `${selected.size} de ${cards.length} tarjeta(s) seleccionada(s) · Formato CR-80 (85.6 × 53.98 mm)`;
+          const pdfBtn = document.getElementById('btndownloadpdf');
+          if (pdfBtn) {
+            pdfBtn.innerHTML = selected.size === 1
+              ? `📄 Descargar PDF (1 Carnet)`
+              : `📄 Descargar PDF (${selected.size} Carnets)`;
+          }
+        }
+
+        async function downloadPdfFor(list, btnEl) {
+          if (!list.length) return RD.toast('Selecciona al menos una tarjeta primero', 'warn');
+          await RD.busy(btnEl, async () => {
+            const includeBack = showBackCb.checked;
+            const blob = await buildCardsPdfBlob(list, gym, includeBack);
+            const fname = list.length === 1
+              ? `Carnet_${list[0].code}_${cleanFileName(list[0].name)}.pdf`
+              : `Carnets_QR_RD_FITNESS_${RD.limaDay()}_${list.length}_socios.pdf`;
+            triggerBlobDownload(blob, fname);
+            RD.toast(`✅ PDF descargado: ${fname}`, 'ok');
+          });
+        }
+
+        async function downloadPngFor(list, btnEl) {
+          if (!list.length) return RD.toast('Selecciona al menos una tarjeta primero', 'warn');
+          await RD.busy(btnEl, async () => {
+            const includeBack = showBackCb.checked;
+            if (list.length === 1) {
+              const c = list[0];
+              const blob = await buildSingleCardPngBlob(c, gym, includeBack);
+              const fname = `Carnet_${c.code}_${cleanFileName(c.name)}.png`;
+              triggerBlobDownload(blob, fname);
+              RD.toast(`✅ Imagen PNG HD descargada: ${fname}`, 'ok');
+            } else {
+              for (const c of list.slice(0, 10)) {
+                const blob = await buildSingleCardPngBlob(c, gym, includeBack);
+                triggerBlobDownload(blob, `Carnet_${c.code}_${cleanFileName(c.name)}.png`);
+                await new Promise(r => setTimeout(r, 250));
+              }
+              RD.toast(`✅ ${Math.min(list.length, 10)} imágenes PNG descargadas (para lotes grandes usa Descargar PDF)`, 'ok');
+            }
+          });
+        }
+
+        function openShareModal(list) {
+          if (!list.length) return RD.toast('Selecciona al menos una tarjeta primero', 'warn');
+          const isSingle = list.length === 1;
+          const singleCard = isSingle ? list[0] : null;
+          const memberPhone = singleCard?.phone ? String(singleCard.phone).replace(/\D/g, '') : '';
+
+          const m = RD.openModal(
+            isSingle ? `Compartir Carnet QR · ${singleCard.name}` : `Compartir / Enviar ${list.length} Carnets QR`,
+            `
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="banner info small" style="line-height:1.45">
+                💡 <b>Sin impresora en el gimnasio:</b> Puedes descargar o compartir el archivo <b>PDF a escala exacta (85.6 × 53.98 mm)</b> para enviarlo por WhatsApp a una imprenta/centro de copiado, o enviarle su <b>Carnet Digital en Imagen HD</b> directamente al socio.
+              </div>
+
+              <div class="grid g2 gap">
+                <button type="button" class="btn primary" id="sh_dl_pdf" style="justify-content:center;padding:12px">
+                  📄 Guardar PDF (Imprenta A4)
+                </button>
+                <button type="button" class="btn ok" id="sh_dl_png" style="justify-content:center;padding:12px">
+                  🖼️ Guardar Imagen PNG HD
+                </button>
+              </div>
+
+              <button type="button" class="btn info block" id="sh_native_pdf" style="background:#0284c7;color:#fff;border-color:#0284c7;justify-content:center;padding:12px;font-weight:800">
+                📲 Compartir Archivo PDF directo (WhatsApp / Correo / Celular)
+              </button>
+
+              ${isSingle ? `
+              <button type="button" class="btn info block" id="sh_native_png" style="background:#7c3aed;color:#fff;border-color:#7c3aed;justify-content:center;padding:11px;font-weight:800">
+                📲 Compartir Imagen PNG directo al Socio
+              </button>
+              ` : ''}
+
+              <hr style="border-color:var(--line);margin:4px 0">
+
+              ${isSingle ? `
+              <div class="box" style="background:var(--bg2);padding:12px;border-radius:10px;border:1px solid var(--line)">
+                <div class="small bold mb">👤 Enviar Carnet por WhatsApp al Socio (${RD.esc(singleCard.name)}):</div>
+                <div class="row gap">
+                  <input id="wa_socio_phone" value="${RD.esc(memberPhone)}" placeholder="Celular del socio (ej. 982404043)" style="flex:1">
+                  <button type="button" class="btn ok sm" id="btn_wa_socio">📲 Descargar PNG + Abrir WhatsApp</button>
+                </div>
+                <div class="tiny muted mt2">Descarga automáticamente la imagen HD del carnet y abre el chat de WhatsApp del socio para adjuntarla.</div>
+              </div>
+              ` : ''}
+
+              <div class="box" style="background:var(--bg2);padding:12px;border-radius:10px;border:1px solid var(--line)">
+                <div class="small bold mb">🏪 Enviar PDF por WhatsApp a Imprenta / Centro de Impresión:</div>
+                <div class="row gap">
+                  <input id="wa_print_phone" placeholder="Celular de imprenta (opcional, o deja vacío para elegir contacto)" style="flex:1">
+                  <button type="button" class="btn primary sm" id="btn_wa_print">📄 Descargar PDF + Abrir WhatsApp</button>
+                </div>
+                <div class="tiny muted mt2">Descarga el archivo PDF con guías de corte CR-80 y abre WhatsApp con las instrucciones listas para la imprenta.</div>
+              </div>
+            </div>
+            `
+          );
+
+          m.el.querySelector('#sh_dl_pdf').onclick = () => downloadPdfFor(list, m.el.querySelector('#sh_dl_pdf'));
+          m.el.querySelector('#sh_dl_png').onclick = () => downloadPngFor(list, m.el.querySelector('#sh_dl_png'));
+
+          m.el.querySelector('#sh_native_pdf').onclick = async () => {
+            const btn = m.el.querySelector('#sh_native_pdf');
+            await RD.busy(btn, async () => {
+              const blob = await buildCardsPdfBlob(list, gym, showBackCb.checked);
+              const fname = isSingle
+                ? `Carnet_${singleCard.code}_${cleanFileName(singleCard.name)}.pdf`
+                : `Carnets_QR_RD_FITNESS_${RD.limaDay()}.pdf`;
+              const file = new File([blob], fname, { type: 'application/pdf' });
+              if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                  await navigator.share({
+                    title: `Carnets QR - ${gym.gym_name || 'RD Fitness Club'}`,
+                    text: `Archivo PDF de carnets QR en medida oficial CR-80 (85.6 x 53.98 mm). Imprimir al 100% tamaño real.`,
+                    files: [file]
+                  });
+                  return;
+                } catch (e) {
+                  if (e.name === 'AbortError') return;
+                }
+              }
+              triggerBlobDownload(blob, fname);
+              RD.toast('📄 PDF descargado en tu equipo. Ya puedes adjuntarlo en WhatsApp Web o correo.', 'ok', 4500);
+            });
+          };
+
+          const natPngBtn = m.el.querySelector('#sh_native_png');
+          if (natPngBtn && isSingle) {
+            natPngBtn.onclick = async () => {
+              await RD.busy(natPngBtn, async () => {
+                const blob = await buildSingleCardPngBlob(singleCard, gym, showBackCb.checked);
+                const fname = `Carnet_${singleCard.code}_${cleanFileName(singleCard.name)}.png`;
+                const file = new File([blob], fname, { type: 'image/png' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                  try {
+                    await navigator.share({
+                      title: `Carnet Oficial ${singleCard.code} - ${singleCard.name}`,
+                      text: `¡Hola ${singleCard.name}! Aquí tienes tu Carnet Oficial con código QR de ${gym.gym_name || 'RD Fitness Club'}.`,
+                      files: [file]
+                    });
+                    return;
+                  } catch (e) {
+                    if (e.name === 'AbortError') return;
+                  }
+                }
+                triggerBlobDownload(blob, fname);
+                RD.toast('🖼️ Imagen PNG descargada. Ya puedes adjuntarla por WhatsApp.', 'ok', 4500);
+              });
+            };
+          }
+
+          const waSocioBtn = m.el.querySelector('#btn_wa_socio');
+          if (waSocioBtn && isSingle) {
+            waSocioBtn.onclick = async () => {
+              await RD.busy(waSocioBtn, async () => {
+                const blob = await buildSingleCardPngBlob(singleCard, gym, showBackCb.checked);
+                const fname = `Carnet_${singleCard.code}_${cleanFileName(singleCard.name)}.png`;
+                triggerBlobDownload(blob, fname);
+                const ph = m.el.querySelector('#wa_socio_phone').value.trim().replace(/\D/g, '');
+                const text = [
+                  `¡Hola *${singleCard.name}*! 💪`,
+                  `Te enviamos tu *Carnet Oficial QR* de *${gym.gym_name || 'RD Fitness Club'}* (Código: *${singleCard.code}*).`,
+                  `Puedes presentarlo desde tu celular o imprimirlo en tamaño tarjeta CR-80 para registrar tu ingreso y salida en recepción.`,
+                  `🌐 Portal de Socio: ${location.origin}`
+                ].join('\n');
+                const url = ph
+                  ? `https://wa.me/${ph.length === 9 ? '51' + ph : ph}?text=${encodeURIComponent(text)}`
+                  : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+                window.open(url, '_blank');
+                RD.toast('🖼️ Carnet descargado. Adjúntalo en la ventana de WhatsApp que se abrió.', 'ok', 5000);
+              });
+            };
+          }
+
+          m.el.querySelector('#btn_wa_print').onclick = async () => {
+            const btn = m.el.querySelector('#btn_wa_print');
+            await RD.busy(btn, async () => {
+              const blob = await buildCardsPdfBlob(list, gym, showBackCb.checked);
+              const fname = isSingle
+                ? `Carnet_${singleCard.code}_${cleanFileName(singleCard.name)}.pdf`
+                : `Carnets_QR_RD_FITNESS_${RD.limaDay()}_${list.length}_socios.pdf`;
+              triggerBlobDownload(blob, fname);
+              const ph = m.el.querySelector('#wa_print_phone').value.trim().replace(/\D/g, '');
+              const text = [
+                `Hola, te envío el archivo PDF *${fname}* con *${list.length} carnet(s) QR* de *${gym.gym_name || 'RD Fitness Club'}*.`,
+                `📌 *Especificaciones de impresión:*`,
+                `• Formato de hoja: *A4 al 100% (Tamaño Real / Sin escalar)*`,
+                `• Medida exacta de cada tarjeta: *85.6 mm × 53.98 mm (Estándar PVC CR-80)* con guías de corte incluidas.`
+              ].join('\n');
+              const url = ph
+                ? `https://wa.me/${ph.length === 9 ? '51' + ph : ph}?text=${encodeURIComponent(text)}`
+                : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+              window.open(url, '_blank');
+              RD.toast('📄 PDF descargado. Adjunta el archivo PDF en la ventana de WhatsApp.', 'ok', 5000);
+            });
+          };
         }
 
         function render() {
           updateStatus();
           if (!cards.length) {
-            cardsEl.innerHTML = '<div class="empty">No hay socios registrados para imprimir tarjetas.</div>';
+            cardsEl.innerHTML = '<div class="empty">No hay socios registrados para generar tarjetas.</div>';
             return;
           }
 
           const showBack = showBackCb.checked;
           const q = search.toLowerCase();
-          const filtered = cards.filter(c => !q || String(c.name || '').toLowerCase().includes(q) || String(c.code || '').toLowerCase().includes(q));
+          const filtered = cards.filter(c =>
+            !q ||
+            String(c.name || '').toLowerCase().includes(q) ||
+            String(c.code || '').toLowerCase().includes(q) ||
+            String(c.dni || '').toLowerCase().includes(q)
+          );
 
           cardsEl.innerHTML = filtered.map(c => {
             const qrSvg = RD.qrSvg(c.payload, { margin: 1 });
@@ -278,7 +1008,7 @@
                 <div class="card-details">
                   <div class="card-name">${RD.esc(c.name)}</div>
                   <div class="card-code">${RD.esc(c.code)}</div>
-                  <div class="card-role">SOCIO OFICIAL</div>
+                  <div class="card-role">SOCIO OFICIAL${c.dni ? ' · DNI ' + RD.esc(c.dni) : ''}</div>
                 </div>
                 <div class="card-qr-box">
                   ${qrSvg}
@@ -313,13 +1043,18 @@
             </div>`;
 
             return `
-              <div class="card-item-wrap ${isSel ? '' : 'unselected'}" data-cid="${c.id}" style="opacity:${isSel ? '1' : '0.45'}">
+              <div class="card-item-wrap ${isSel ? 'is-selected' : 'unselected'}" data-cid="${c.id}" style="opacity:${isSel ? '1' : '0.55'}">
                 <div class="card-select-bar noprint">
-                  <label class="check"><input type="checkbox" class="cb-card" data-id="${c.id}" ${isSel ? 'checked' : ''}> <span>Imprimir a <b>${RD.esc(c.name)}</b></span></label>
-                  <span>${RD.esc(c.code)}</span>
+                  <label class="check" style="cursor:pointer"><input type="checkbox" class="cb-card" data-id="${c.id}" ${isSel ? 'checked' : ''}> <span><b>${RD.esc(c.name)}</b></span></label>
+                  <span class="badge" style="font-family:monospace;font-weight:800">${RD.esc(c.code)}</span>
                 </div>
                 ${front}
                 ${showBack ? back : ''}
+                <div class="card-actions-bar noprint">
+                  <button type="button" class="btn sm primary btn-one-pdf" data-id="${c.id}" title="Guardar solo este carnet en PDF listo para imprimir">📄 Guardar PDF</button>
+                  <button type="button" class="btn sm ok btn-one-png" data-id="${c.id}" title="Guardar solo este carnet en Imagen PNG HD">🖼️ PNG HD</button>
+                  <button type="button" class="btn sm info btn-one-share" data-id="${c.id}" style="background:#0284c7;color:#fff;border-color:#0284c7" title="Compartir o enviar por WhatsApp al socio o imprenta">📲 Enviar / WhatsApp</button>
+                </div>
               </div>`;
           }).join('');
 
@@ -330,18 +1065,55 @@
               const wrap = cb.closest('.card-item-wrap');
               if (wrap) {
                 wrap.classList.toggle('unselected', !cb.checked);
-                wrap.style.opacity = cb.checked ? '1' : '0.45';
+                wrap.classList.toggle('is-selected', cb.checked);
+                wrap.style.opacity = cb.checked ? '1' : '0.55';
               }
               updateStatus();
             };
           });
+
+          cardsEl.querySelectorAll('.btn-one-pdf').forEach(btn => {
+            btn.onclick = () => {
+              const c = cards.find(x => x.id === Number(btn.dataset.id));
+              if (c) downloadPdfFor([c], btn);
+            };
+          });
+
+          cardsEl.querySelectorAll('.btn-one-png').forEach(btn => {
+            btn.onclick = () => {
+              const c = cards.find(x => x.id === Number(btn.dataset.id));
+              if (c) downloadPngFor([c], btn);
+            };
+          });
+
+          cardsEl.querySelectorAll('.btn-one-share').forEach(btn => {
+            btn.onclick = () => {
+              const c = cards.find(x => x.id === Number(btn.dataset.id));
+              if (c) openShareModal([c]);
+            };
+          });
         }
+
+        document.getElementById('btndownloadpdf').onclick = () => downloadPdfFor(getSelectedList(), document.getElementById('btndownloadpdf'));
+        document.getElementById('btndownloadpng').onclick = () => downloadPngFor(getSelectedList(), document.getElementById('btndownloadpng'));
+        document.getElementById('btnsharebatch').onclick = () => openShareModal(getSelectedList());
 
         showBackCb.onchange = render;
         qInp.oninput = () => { search = qInp.value.trim(); render(); };
-        document.getElementById('selall').onclick = () => { cards.forEach(c => selected.add(c.id)); render(); };
+        document.getElementById('selall').onclick = () => {
+          const q = search.toLowerCase();
+          cards.filter(c => !q || String(c.name || '').toLowerCase().includes(q) || String(c.code || '').toLowerCase().includes(q) || String(c.dni || '').toLowerCase().includes(q))
+               .forEach(c => selected.add(c.id));
+          render();
+        };
         document.getElementById('selnone').onclick = () => { selected.clear(); render(); };
         render();
+
+        if (autoDownload === 'pdf' && cards.length) {
+          setTimeout(() => downloadPdfFor(getSelectedList(), document.getElementById('btndownloadpdf')), 350);
+        } else if (autoDownload === 'png' && cards.length) {
+          setTimeout(() => downloadPngFor(getSelectedList(), document.getElementById('btndownloadpng')), 350);
+        }
       }
 
       loadAndRender();

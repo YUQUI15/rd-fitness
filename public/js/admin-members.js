@@ -376,7 +376,10 @@
       <div class="grid mt">
         ${r.receipt ? `<button class="btn ok" id="rcptbtn">${RD.icon('receipt', '', 15)} Ver e Imprimir Boleta</button>` : ''}
         ${wa ? `<a class="btn ok" target="_blank" rel="noopener" href="${wa}">${RD.icon('whatsapp', '', 15)} Enviar Boleta y Acceso por WhatsApp</a>` : ''}
-        <a class="btn primary" target="_blank" href="/admin/cards.html?ids=${mem.id}">${RD.icon('printer', '', 15)} Imprimir tarjeta QR</a>
+        <div class="grid g2 keep gap">
+          <a class="btn primary" target="_blank" href="/admin/cards.html?ids=${mem.id}&autodownload=pdf">${RD.icon('save', '', 15)} Descargar Carnet PDF</a>
+          <a class="btn" target="_blank" href="/admin/cards.html?ids=${mem.id}">${RD.icon('idcard', '', 15)} Carnet QR (PNG / Compartir)</a>
+        </div>
         <button class="btn" id="prof">Ver ficha del socio</button>
       </div>`);
     if (r.receipt) {
@@ -601,7 +604,8 @@
       </div>
       <div class="row gap wrap mt" id="acts">
         ${can('admin', 'recepcion') && m.status !== 'inactive' ? `<button class="btn primary sm" data-a="renew">${RD.icon('card')} Renovar</button>` : ''}
-        ${can('admin', 'recepcion') ? `<a class="btn sm" target="_blank" href="/admin/cards.html?ids=${m.id}">${RD.icon('printer')} Tarjeta QR</a>` : ''}
+        ${can('admin', 'recepcion') ? `<a class="btn sm" target="_blank" href="/admin/cards.html?ids=${m.id}">${RD.icon('idcard')} Carnet QR (PDF / Compartir)</a>` : ''}
+        ${can('admin', 'recepcion') ? `<a class="btn sm ghost" target="_blank" href="/admin/cards.html?ids=${m.id}&autodownload=pdf" title="Descargar directamente el PDF del carnet listo para enviar o imprimir">${RD.icon('save')} Guardar Carnet PDF</a>` : ''}
         <button class="btn sm ghost" data-a="att-sheet">${RD.icon('reports')} Ficha Asistencias</button>
         ${RD.waLink(m.phone, '') ? `<a class="btn sm ok" target="_blank" rel="noopener" href="${RD.waLink(m.phone, 'Hola ' + m.name.split(' ')[0] + ', te escribimos de ' + (RD.pub.gym_name || 'RD Fitness Club') + '. ')}">${RD.icon('whatsapp')} WhatsApp</a>` : ''}
         ${can('admin', 'recepcion', 'entrenador') ? `<button class="btn sm" data-a="edit">${RD.icon('edit')} Editar</button>` : ''}

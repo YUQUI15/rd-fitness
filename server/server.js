@@ -653,10 +653,20 @@ api.post('/members/:id/reissue-card', staff('admin', 'recepcion'), wrap((req, re
 api.get('/cards', staff('admin', 'recepcion'), wrap((req, res) => {
   const ids = String(req.query.ids || '').split(',').map(Number).filter(Boolean);
   const rows = ids.length
-    ? q.all(`SELECT * FROM members WHERE id IN (${ids.map(() => '?').join(',')}) ORDER BY id`, ...ids)
-    : q.all("SELECT * FROM members WHERE status!='inactive' ORDER BY id");
+    ? q.all(MEMBER_SELECT + ` WHERE m.id IN (${ids.map(() => '?').join(',')}) ORDER BY m.id`, ...ids)
+    : q.all(MEMBER_SELECT + " WHERE m.status!='inactive' ORDER BY m.id");
   res.json({
-    cards: rows.map(m => ({ id: m.id, code: m.code, name: m.name, photo: m.photo, payload: L.physicalPayload(m) })),
+    cards: rows.map(m => ({
+      id: m.id,
+      code: m.code,
+      name: m.name,
+      dni: m.dni || '',
+      phone: m.phone || '',
+      plan_name: m.plan_name || '',
+      end_date: m.end_date || '',
+      photo: m.photo,
+      payload: L.physicalPayload(m)
+    })),
     settings: getSettings()
   });
 }));
