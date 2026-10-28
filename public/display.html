@@ -1000,6 +1000,22 @@
       .promo-grid { grid-template-columns: repeat(2, 1fr); }
       .cctv-layer.pip-mode { width: 180px; height: 110px; }
     }
+
+    /* Adaptación de Alto Contraste para Modo Claro en TV / Monitor */
+    [data-theme="light"] .tv-bottom-ticker { background: rgba(255, 255, 255, 0.96); border-top: 1px solid #cbd5e1; color: #0f172a; }
+    [data-theme="light"] .mode-status-bar { background: #f1f5f9; border-color: #cbd5e1; color: #0f172a; }
+    [data-theme="light"] .promo-plan-box { background: #f8fafc; border-color: #cbd5e1; }
+    [data-theme="light"] .promo-plan-box.featured { background: linear-gradient(145deg, #fffbeb, #ffffff); border-color: var(--gold); }
+    [data-theme="light"] .pay-pill.yape { color: #6d28d9; border-color: #c4b5fd; background: #f5f3ff; }
+    [data-theme="light"] .pay-pill.plin { color: #0369a1; border-color: #7dd3fc; background: #e0f2fe; }
+    [data-theme="light"] .status-badge.goodbye { background: #e0f2fe; color: #0369a1; border-color: #0284c7; }
+    [data-theme="light"] .duration-stat-box { background: #e0f2fe; border-color: #7dd3fc; }
+    [data-theme="light"] .duration-stat-val { color: #0369a1; }
+    [data-theme="light"] .cfg-modal { background: #ffffff; color: #0f172a; border-color: #cbd5e1; box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25); }
+    [data-theme="light"] .cfg-row label { color: #334155; }
+    [data-theme="light"] .cfg-row select, [data-theme="light"] .cfg-row input { background: #ffffff; color: #0f172a; border-color: #94a3b8; }
+    [data-theme="light"] .demo-bar { border-top-color: #cbd5e1; }
+    [data-theme="light"] .demo-btn { background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; }
   </style>
 </head>
 <body>
@@ -1189,13 +1205,14 @@
       function applyTheme(t) {
         document.documentElement.setAttribute('data-theme', t);
         localStorage.setItem('rd_display_theme', t);
+        localStorage.setItem('rd_theme', t);
         if (t === 'light') {
           themeIcon.innerHTML = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>';
         } else {
           themeIcon.innerHTML = '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>';
         }
       }
-      applyTheme(localStorage.getItem('rd_display_theme') || 'dark');
+      applyTheme(localStorage.getItem('rd_theme') || localStorage.getItem('rd_display_theme') || 'dark');
       themeToggle.onclick = () => {
         const cur = document.documentElement.getAttribute('data-theme');
         applyTheme(cur === 'light' ? 'dark' : 'light');

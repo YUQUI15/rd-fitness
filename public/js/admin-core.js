@@ -604,7 +604,7 @@ pause`;
     RD.registerSW();
     RD.syncTime();
     try { RD.pub = await (await fetch('/api/public')).json(); localStorage.setItem('rd_public', JSON.stringify(RD.pub)); } catch { }
-    document.documentElement.style.setProperty('--gold', RD.pub.color || '#f5b400');
+    if (RD.syncBrandColor) RD.syncBrandColor();
     const authed = await ensureStaffAuth();
     if (!authed) return showLogin();
     layout();

@@ -621,21 +621,21 @@
             </linearGradient>
           </defs>
           <!-- Grid lines -->
-          <line x1="${padX}" y1="${gridY3}" x2="${W - 15}" y2="${gridY3}" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3"/>
-          <text x="${padX - 8}" y="${gridY3 + 4}" fill="#736878" font-size="10" text-anchor="end">${Math.round(maxW - 1.5)}k</text>
-          <line x1="${padX}" y1="${gridY2}" x2="${W - 15}" y2="${gridY2}" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3"/>
-          <text x="${padX - 8}" y="${gridY2 + 4}" fill="#736878" font-size="10" text-anchor="end">${midW}k</text>
-          <line x1="${padX}" y1="${gridY1}" x2="${W - 15}" y2="${gridY1}" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3"/>
-          <text x="${padX - 8}" y="${gridY1 + 4}" fill="#736878" font-size="10" text-anchor="end">${Math.round(minW + 1.5)}k</text>
+          <line x1="${padX}" y1="${gridY3}" x2="${W - 15}" y2="${gridY3}" stroke="var(--line)" stroke-dasharray="3"/>
+          <text x="${padX - 8}" y="${gridY3 + 4}" fill="var(--muted)" font-size="10" text-anchor="end">${Math.round(maxW - 1.5)}k</text>
+          <line x1="${padX}" y1="${gridY2}" x2="${W - 15}" y2="${gridY2}" stroke="var(--line)" stroke-dasharray="3"/>
+          <text x="${padX - 8}" y="${gridY2 + 4}" fill="var(--muted)" font-size="10" text-anchor="end">${midW}k</text>
+          <line x1="${padX}" y1="${gridY1}" x2="${W - 15}" y2="${gridY1}" stroke="var(--line)" stroke-dasharray="3"/>
+          <text x="${padX - 8}" y="${gridY1 + 4}" fill="var(--muted)" font-size="10" text-anchor="end">${Math.round(minW + 1.5)}k</text>
 
           <!-- Area & Line -->
           <path d="${areaD}" fill="url(#weightGrad)"/>
-          <path d="${pathD}" fill="none" stroke="#b76e79" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="${pathD}" fill="none" stroke="var(--gold)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 
           <!-- Interactive Points -->
           ${points.map((p, i) => `
-            <circle cx="${p.x}" cy="${p.y}" r="5" fill="#FAF7FA" stroke="#b76e79" stroke-width="2.5" class="chart-point" data-tip="${RD.fmtDate(p.day)}: ${p.val} kg"/>
-            ${i === 0 || i === points.length - 1 || i === Math.floor(points.length / 2) ? `<text x="${p.x}" y="${H - 8}" fill="#736878" font-size="9" text-anchor="middle">${RD.fmtDate(p.day)}</text>` : ''}
+            <circle cx="${p.x}" cy="${p.y}" r="5" fill="var(--bg2)" stroke="var(--gold)" stroke-width="2.5" class="chart-point" data-tip="${RD.fmtDate(p.day)}: ${p.val} kg"/>
+            ${i === 0 || i === points.length - 1 || i === Math.floor(points.length / 2) ? `<text x="${p.x}" y="${H - 8}" fill="var(--muted)" font-size="9" text-anchor="middle">${RD.fmtDate(p.day)}</text>` : ''}
           `).join('')}
         </svg>
       </div>`;
@@ -656,15 +656,15 @@
       <div class="svg-chart-container">
         <svg class="svg-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
           <!-- Baseline -->
-          <line x1="${padX}" y1="${H - padY}" x2="${W - 10}" y2="${H - padY}" stroke="rgba(255,255,255,0.15)"/>
+          <line x1="${padX}" y1="${H - padY}" x2="${W - 10}" y2="${H - padY}" stroke="var(--line)"/>
           ${weeklyVolume.map((item, i) => {
             const h = Math.max(4, (item.volume / maxV) * (H - padY * 2));
             const x = padX + i * ((W - padX - 10) / weeklyVolume.length) + 6;
             const y = H - padY - h;
             return `
-              <rect x="${x}" y="${y}" width="${barW}" height="${h}" rx="4" fill="#f5b400" opacity="0.85" class="chart-bar"/>
-              <text x="${x + barW / 2}" y="${y - 5}" fill="#f5b400" font-size="9" font-weight="700" text-anchor="middle">${Math.round(item.volume / 1000)}k</text>
-              <text x="${x + barW / 2}" y="${H - 8}" fill="#736878" font-size="9" text-anchor="middle">S${i + 1}</text>`;
+              <rect x="${x}" y="${y}" width="${barW}" height="${h}" rx="4" fill="var(--gold)" opacity="0.88" class="chart-bar"/>
+              <text x="${x + barW / 2}" y="${y - 5}" fill="var(--gold)" font-size="9" font-weight="700" text-anchor="middle">${Math.round(item.volume / 1000)}k</text>
+              <text x="${x + barW / 2}" y="${H - 8}" fill="var(--muted)" font-size="9" text-anchor="middle">S${i + 1}</text>`;
           }).join('')}
         </svg>
       </div>`;

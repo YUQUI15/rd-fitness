@@ -451,17 +451,99 @@
       background: #090a0f;
       color: #fff;
     }
+
+    /* ============================================================ */
+    /* MODO CLARO (GOOGLE SHEETS LIGHT DE ALTO CONTRASTE)           */
+    /* ============================================================ */
+    [data-theme="light"] {
+      --bg: #FAF8F5;
+      --panel: #FFFFFF;
+      --panel-2: #F1F5F9;
+      --grid-bg: #FFFFFF;
+      --grid-line: #CBD5E1;
+      --text: #0F172A;
+      --muted: #475569;
+      --accent: #B45309;
+      --accent-2: #D97706;
+      --accent-soft: #FEF3C7;
+    }
+    [data-theme="light"] .doc-title,
+    [data-theme="light"] .summary-pills b,
+    [data-theme="light"] .kpi-val,
+    [data-theme="light"] .chart-box h3 { color: #0F172A; }
+    [data-theme="light"] .live-badge { background: #DCFCE7; color: #14532D; border-color: #86EFAC; }
+    [data-theme="light"] .date-pill { background: #F1F5F9; border-color: #CBD5E1; color: #334155; }
+    [data-theme="light"] .date-pill input[type="date"] { color: #0F172A; }
+    [data-theme="light"] .btn { background: #F1F5F9; color: #0F172A; border-color: #CBD5E1; }
+    [data-theme="light"] .btn:hover { background: #E2E8F0; border-color: #94A3B8; }
+    [data-theme="light"] .btn.primary { background: linear-gradient(135deg, #FBBF24, #D97706); color: #111827; font-weight: 800; }
+    [data-theme="light"] .btn.excel { background: #15803D; color: #FFFFFF; border-color: #166534; }
+    [data-theme="light"] .formula-bar { background: #F8FAFC; border-bottom-color: #CBD5E1; }
+    [data-theme="light"] .search-input { background: #FFFFFF; border-color: #94A3B8; color: #0F172A; }
+    [data-theme="light"] .dash-banner { background: linear-gradient(135deg, #FFFFFF, #FFFBEB); border-color: #FDE68A; border-left: 4px solid #D97706; }
+    [data-theme="light"] .kpi-card,
+    [data-theme="light"] .chart-box { background: #FFFFFF; border-color: #CBD5E1; box-shadow: 0 2px 8px rgba(15,23,42,0.04); }
+    [data-theme="light"] .bar-track { background: #E2E8F0; }
+    [data-theme="light"] table.sheet-grid thead tr.col-letters th,
+    [data-theme="light"] table.sheet-grid td.row-num,
+    [data-theme="light"] table.sheet-grid th.row-num { background: #F1F5F9; color: #475569; border-color: #CBD5E1; }
+    [data-theme="light"] table.sheet-grid thead tr.col-headers th { background: #E2E8F0; color: #0F172A; border-color: #CBD5E1; }
+    [data-theme="light"] table.sheet-grid thead tr.col-headers th:hover { background: #FEF3C7; color: #B45309; }
+    [data-theme="light"] table.sheet-grid tbody tr:nth-child(even) { background: #F8FAFC; }
+    [data-theme="light"] table.sheet-grid tbody tr:hover { background: #FFFBEB; }
+    [data-theme="light"] table.sheet-grid tfoot tr td { background: #F1F5F9; color: #0F172A; }
+    [data-theme="light"] .pill.ok { background: #DCFCE7; color: #14532D; }
+    [data-theme="light"] .pill.warn { background: #FEF3C7; color: #78350F; }
+    [data-theme="light"] .pill.err { background: #FFE4E6; color: #881337; }
+    [data-theme="light"] .pill.info { background: #E0F2FE; color: #0C4A6E; }
+    [data-theme="light"] .sheet-tab:hover { background: #F1F5F9; color: #0F172A; }
+    [data-theme="light"] .sheet-tab.active { background: #FEF3C7; color: #B45309; border-bottom-color: #D97706; }
+    [data-theme="light"] .sheet-tab .cnt { background: #E2E8F0; color: #1E293B; }
+    [data-theme="light"] .modal-card,
+    [data-theme="light"] .login-box { background: #FFFFFF; border-color: #CBD5E1; color: #0F172A; box-shadow: 0 20px 50px rgba(15,23,42,0.2); }
+    [data-theme="light"] .login-box input { background: #FFFFFF; border-color: #94A3B8; color: #0F172A; }
+    [data-theme="light"] [style*="color:#4ade80"],
+    [data-theme="light"] [style*="color:#22c55e"] { color: #15803D !important; }
+    [data-theme="light"] [style*="color:#60a5fa"],
+    [data-theme="light"] [style*="color:#38bdf8"] { color: #0369A1 !important; }
+    [data-theme="light"] [style*="color:#fbbf24"],
+    [data-theme="light"] [style*="color:#f59e0b"],
+    [data-theme="light"] [style*="color:#f5b400"] { color: #B45309 !important; }
+    [data-theme="light"] [style*="color:#f87171"],
+    [data-theme="light"] [style*="color:#ef4444"] { color: #B91C1C !important; }
+    [data-theme="light"] [style*="color:#a78bfa"],
+    [data-theme="light"] [style*="color:#c084fc"] { color: #6D28D9 !important; }
+
     @media print {
       .sheets-topbar, .formula-bar, .tabs-bar { display: none !important; }
       body, .workspace { height: auto !important; overflow: visible !important; background: #fff !important; color: #000 !important; }
       table.sheet-grid th, table.sheet-grid td { border: 1px solid #cbd5e1 !important; color: #000 !important; background: #fff !important; }
     }
   </style>
+  <script>
+    (function() {
+      var t = localStorage.getItem('rd_theme') || 'dark';
+      if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+      window.toggleSheetsTheme = function() {
+        var cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        var next = cur === 'light' ? 'dark' : 'light';
+        if (next === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        else document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('rd_theme', next);
+        var b = document.getElementById('btnThemeSheets');
+        if (b) b.textContent = next === 'light' ? '🌙 Oscuro' : '☀️ Claro';
+      };
+      window.addEventListener('DOMContentLoaded', function() {
+        var b = document.getElementById('btnThemeSheets');
+        if (b) b.textContent = document.documentElement.getAttribute('data-theme') === 'light' ? '🌙 Oscuro' : '☀️ Claro';
+      });
+    })();
+  </script>
 </head>
 <body>
   <header class="sheets-topbar">
     <div class="brand-group">
-      <img src="/logo.svg?v=5.3" alt="RD Fitness Club">
+      <img src="/logo.svg?v=5.4" alt="RD Fitness Club">
       <div>
         <div class="doc-title">
           <span>RD Fitness Club — Libro Maestro Cloud Sheets</span>
@@ -485,6 +567,7 @@
       <button class="btn excel" onclick="downloadExcel()">📥 Descargar Excel (.xlsx)</button>
       <button class="btn" onclick="downloadActiveCsv()">📄 CSV Hoja</button>
       <button class="btn" onclick="openGoogleDriveModal()">☁️ Google Drive / Script</button>
+      <button class="btn" id="btnThemeSheets" onclick="toggleSheetsTheme()" title="Alternar Modo Claro / Oscuro">☀️ Claro</button>
       <a class="btn" href="/admin/">⬅ Panel Admin</a>
     </div>
   </header>

@@ -1570,17 +1570,18 @@
     inp.oninput = () => {
       const val = parseFloat(inp.value) || 0;
       const diff = +(val - expCash).toFixed(2);
+      const isLight = RD.getTheme && RD.getTheme() === 'light';
       if (Math.abs(diff) < 0.05) {
-        prev.style.color = '#4ade80';
-        prev.style.background = '#064e3b';
+        prev.style.color = isLight ? '#14532d' : '#4ade80';
+        prev.style.background = isLight ? '#dcfce7' : '#064e3b';
         prev.innerHTML = `<span class="badge ok">${RD.icon('check')} CAJA CUADRADA EXACTA (Diferencia S/ 0.00)</span>`;
       } else if (diff > 0) {
-        prev.style.color = '#60a5fa';
-        prev.style.background = '#1e3a8a';
-        prev.innerHTML = `<span class="badge ok">${RD.icon('plus')} SOBRANTE EN CAJA: +${money(diff)}</span>`;
+        prev.style.color = isLight ? '#0369a1' : '#60a5fa';
+        prev.style.background = isLight ? '#e0f2fe' : '#1e3a8a';
+        prev.innerHTML = `<span class="badge info">${RD.icon('plus')} SOBRANTE EN CAJA: +${money(diff)}</span>`;
       } else {
-        prev.style.color = '#f87171';
-        prev.style.background = '#7f1d1d';
+        prev.style.color = isLight ? '#881337' : '#f87171';
+        prev.style.background = isLight ? '#ffe4e6' : '#7f1d1d';
         prev.innerHTML = `<span class="badge denied">${RD.icon('x')} FALTANTE EN CAJA: -${money(Math.abs(diff))}</span>`;
       }
     };
@@ -3742,7 +3743,7 @@ function verEstado() {
         RD.toast('Ajustes guardados');
         RD.pub = await (await fetch('/api/public')).json();
         localStorage.setItem('rd_public', JSON.stringify(RD.pub));
-        document.documentElement.style.setProperty('--gold', RD.pub.color || '#f5b400');
+        if (RD.syncBrandColor) RD.syncBrandColor();
       } catch (err) {
         RD.toast(err.message, 'err');
       }

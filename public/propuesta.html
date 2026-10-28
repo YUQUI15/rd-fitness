@@ -357,7 +357,62 @@
       .shot-card img { height: 110px !important; object-fit: contain !important; background: #0b1120 !important; }
       .page-break { page-break-after: always !important; break-after: page !important; }
     }
+
+    /* ============================================================ */
+    /* MODO CLARO PROFESIONAL DE ALTO CONTRASTE (DOSSIER)           */
+    /* ============================================================ */
+    [data-theme="light"] {
+      --bg: #FAF8F5;
+      --card: #FFFFFF;
+      --card-2: #F1F5F9;
+      --border: #CBD5E1;
+      --gold: #B45309;
+      --gold-soft: #FEF3C7;
+      --emerald: #15803D;
+      --emerald-soft: #DCFCE7;
+      --cyan: #0369A1;
+      --cyan-soft: #E0F2FE;
+      --purple: #6D28D9;
+      --text: #0F172A;
+      --muted: #475569;
+    }
+    [data-theme="light"] body { background: #FAF8F5; color: #0F172A; }
+    [data-theme="light"] .topbar { background: rgba(255, 255, 255, 0.96); border-bottom-color: #CBD5E1; box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05); }
+    [data-theme="light"] .customizer input { background: #FFFFFF; color: #0F172A; border-color: #94A3B8; }
+    [data-theme="light"] .hero { background: linear-gradient(135deg, #FFFFFF, #FFFBEB); border-color: #FDE68A; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06); }
+    [data-theme="light"] .hero p, [data-theme="light"] .feature-list li { color: #1E293B; }
+    [data-theme="light"] .section { background: #FFFFFF; border-color: #CBD5E1; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04); }
+    [data-theme="light"] .box, [data-theme="light"] .shot-card, [data-theme="light"] .price-box { background: #F8FAFC; border-color: #CBD5E1; }
+    [data-theme="light"] .price-box.featured { background: linear-gradient(180deg, #FFFBEB, #FFFFFF); border-color: #D97706; }
+    [data-theme="light"] .price-tag, [data-theme="light"] .shot-card .cap strong { color: #0F172A; }
+    [data-theme="light"] .shot-card .cap { color: #334155; }
+    [data-theme="light"] .diagram-card { background: #F1F5F9; border-color: #CBD5E1; }
+    [data-theme="light"] th { background: #F1F5F9; color: #0F172A; border-bottom-color: #CBD5E1; }
+    [data-theme="light"] td { color: #1E293B; border-bottom-color: #E2E8F0; }
+    [data-theme="light"] .badge-ok { background: #DCFCE7; color: #14532D; }
+    [data-theme="light"] .badge-info { background: #E0F2FE; color: #0C4A6E; }
+    [data-theme="light"] .badge-gold { background: #FEF3C7; color: #92400E; }
+    [data-theme="light"] .btn-gold { background: linear-gradient(135deg, #FBBF24, #D97706); color: #111827; }
   </style>
+  <script>
+    (function() {
+      var t = localStorage.getItem('rd_theme') || 'dark';
+      if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+      window.togglePropuestaTheme = function() {
+        var cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        var next = cur === 'light' ? 'dark' : 'light';
+        if (next === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        else document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('rd_theme', next);
+        var b = document.getElementById('btnThemeProp');
+        if (b) b.textContent = next === 'light' ? '🌙 Oscuro' : '☀️ Claro';
+      };
+      window.addEventListener('DOMContentLoaded', function() {
+        var b = document.getElementById('btnThemeProp');
+        if (b) b.textContent = document.documentElement.getAttribute('data-theme') === 'light' ? '🌙 Oscuro' : '☀️ Claro';
+      });
+    })();
+  </script>
 </head>
 <body>
   <header class="topbar">
@@ -372,6 +427,7 @@
       <a class="btn" href="display.html" target="_blank" title="Ver Pantalla de Recepción y TV CCTV">📺 Display Cliente</a>
       <a class="btn btn-gold" href="INFORME_PROPUESTA_COMERCIAL_GIMNASIOS.pdf" download="INFORME_PROPUESTA_COMERCIAL_GIMNASIOS.pdf" title="Descargar documento PDF completo">📥 Descargar PDF</a>
       <button class="btn" onclick="window.print()" title="Imprimir documento en papel">🖨️ Imprimir</button>
+      <button class="btn" id="btnThemeProp" onclick="togglePropuestaTheme()" title="Alternar Modo Claro / Oscuro">☀️ Claro</button>
     </div>
   </header>
 

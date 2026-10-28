@@ -5,17 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Impresión de Tarjetas y Carnets QR - RD Fitness Club</title>
   <link rel="icon" type="image/svg+xml" href="/logo.svg">
-  <link rel="stylesheet" href="/css/style.css?v=5.3">
+  <link rel="stylesheet" href="/css/style.css?v=5.4">
+  <script>
+    (function(){
+      var t = localStorage.getItem('rd_theme');
+      if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    })();
+  </script>
   <style>
-    body { background: #141418; color: #fff; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    .toolbar { position: sticky; top: 0; z-index: 100; background: rgba(11,11,13,0.96); backdrop-filter: blur(10px); border-bottom: 1px solid #2b2b32; padding: .8rem 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    body { background: var(--bg, #141418); color: var(--text, #fff); margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    .toolbar { position: sticky; top: 0; z-index: 100; background: rgba(11,11,13,0.96); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line, #2b2b32); padding: .8rem 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    [data-theme="light"] .toolbar { background: rgba(255,255,255,0.96); border-bottom-color: #CBD5E1; box-shadow: 0 2px 10px rgba(15,23,42,0.05); }
     .filter-bar { max-width: 1020px; margin: 14px auto 0; padding: 0 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .filter-bar input[type="search"] { flex: 1; min-width: 220px; background: #1c1c22; border: 1px solid #2f2f38; color: #fff; padding: 8px 12px; border-radius: 8px; }
+    .filter-bar input[type="search"] { flex: 1; min-width: 220px; background: var(--bg2, #1c1c22); border: 1px solid var(--line, #2f2f38); color: var(--text, #fff); padding: 8px 12px; border-radius: 8px; }
+    [data-theme="light"] .filter-bar input[type="search"] { background: #FFFFFF; border-color: #94A3B8; color: #0F172A; }
     .sheet { max-width: 1020px; margin: 16px auto 40px; padding: 16px 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; justify-content: center; }
 
     /* Medidas exactas de tarjeta CR-80 (PVC): 85.6mm x 53.98mm */
     .card-item-wrap { display: flex; flex-direction: column; gap: 8px; align-items: center; }
-    .card-select-bar { width: 340px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: #a1a1aa; padding: 0 4px; }
+    .card-select-bar { width: 340px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted, #a1a1aa); padding: 0 4px; }
     .pvc-card {
       width: 340px; height: 215px;
       border-radius: 12px;
@@ -127,6 +135,7 @@
     </div>
     <div class="row gap wrap">
       <label class="check small"><input type="checkbox" id="showback" checked> <span>Incluir reverso</span></label>
+      <button class="btn sm" id="themetoggle" data-theme-toggle onclick="RD.toggleTheme()" title="Cambiar Modo Claro / Oscuro">☀️ / 🌙</button>
       <a class="btn sm" href="/admin/">← Panel Admin</a>
       <button class="btn primary sm" id="btnprint" onclick="window.print()">🖨️ IMPRIMIR TARJETAS</button>
     </div>

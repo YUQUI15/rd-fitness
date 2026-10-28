@@ -1215,17 +1215,28 @@
 
   // ---------- Sistema de Tema (Claro / Oscuro) ----------
   RD.getTheme = () => document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  RD.syncBrandColor = () => {
+    const isLight = RD.getTheme() === 'light';
+    if (isLight) {
+      document.documentElement.style.removeProperty('--gold');
+    } else if (RD.pub && RD.pub.color) {
+      document.documentElement.style.setProperty('--gold', RD.pub.color);
+    }
+  };
   RD.setTheme = (theme, notify = false) => {
     const isLight = theme === 'light';
     if (isLight) {
       document.documentElement.setAttribute('data-theme', 'light');
       localStorage.setItem('rd_theme', 'light');
+      localStorage.setItem('rd_display_theme', 'light');
     } else {
       document.documentElement.removeAttribute('data-theme');
       localStorage.setItem('rd_theme', 'dark');
+      localStorage.setItem('rd_display_theme', 'dark');
     }
+    RD.syncBrandColor();
     const metaTheme = document.querySelector('meta[name="theme-color"]');
-    if (metaTheme) metaTheme.setAttribute('content', isLight ? '#FAF7FA' : '#0b0b0d');
+    if (metaTheme) metaTheme.setAttribute('content', isLight ? '#FAF8F5' : '#0b0b0d');
 
     document.querySelectorAll('[data-theme-toggle], #themetoggle, #appthemetoggle, .theme-toggle').forEach(btn => {
       btn.innerHTML = isLight ? RD.icon('moon', '', 18) : RD.icon('sun', '', 18);
