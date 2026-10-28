@@ -1703,14 +1703,20 @@ api.get('/reports/export/csv', staff('admin', 'recepcion'), wrap((req, res) => {
 // Feed completo en JSON para sincronización en tiempo real con Google Sheets (vía Apps Script)
 api.get('/reports/sheets-feed', wrap((req, res) => {
   const settings = getSettings();
+  const sess = loadSession(req);
+  const isStaff = sess && sess.kind === 'staff';
   const clientKey = req.query.key || req.headers['x-rd-key'];
-  if (!clientKey || clientKey !== settings.google_sheets_key) {
+  if (!isStaff && (!clientKey || clientKey !== settings.google_sheets_key)) {
     return bad(res, 'Clave de Google Sheets inválida o ausente', 403);
   }
   const today = L.limaDay();
   const to = req.query.to || today;
   const from = req.query.from || L.addDays(to, -365);
   const ds = buildDataset({ from, to, q, settings });
+  if (isStaff) {
+    ds.sheets_key = settings.google_sheets_key;
+    ds.google_sheet_url = settings.google_sheet_url || '';
+  }
   res.json(ds);
 }));
 
@@ -2542,6 +2548,7 @@ async function start() {
       console.warn('[START] Error sincronizando bóveda en la nube al arranque:', e.message);
     }
   }
+  try { q.run("UPDATE settings SET value='' WHERE key='google_sheet_url' AND value LIKE '%1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms%'"); } catch {}
   backup();
   checkpoint();
   saveVault();

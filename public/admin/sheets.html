@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloud Sheets en Vivo (19 Hojas) - RD Fitness Club</title>
+  <link rel="icon" href="/logo.svg?v=5.3">
+  <style>
+    :root {
+      --bg: #090a0f;
+      --panel: #11131a;
+      --panel-2: #171a24;
+      --grid-bg: #0d0f14;
+      --grid-line: rgba(255,255,255,0.08);
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --accent: #f5b400;
+      --accent-2: #d97706;
+      --accent-soft: rgba(245,180,0,0.15);
+      --sheet-green: #107c41;
+      --sheet-green-2: #16a34a;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --err: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    /* Top Spreadsheet Bar */
+    .sheets-topbar {
+      background: var(--panel);
+      border-bottom: 1px solid var(--grid-line);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-group img {
+      height: 36px;
+      width: 36px;
+      object-fit: contain;
+      background: transparent !important;
+      filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+    }
+    .doc-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .live-badge {
+      background: rgba(34,197,94,0.15);
+      color: #4ade80;
+      border: 1px solid rgba(34,197,94,0.35);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .doc-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .date-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--panel-2);
+      border: 1px solid var(--grid-line);
+      padding: 4px 8px;
+      border-radius: 7px;
+      font-size: 11.5px;
+      color: var(--muted);
+    }
+    .date-pill input[type="date"] {
+      background: transparent;
+      border: 0;
+      color: #fff;
+      font-size: 11.5px;
+      font-family: inherit;
+      outline: none;
+    }
+    .btn {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.14);
+      padding: 6px 11px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      text-decoration: none;
+      transition: 0.15s;
+      white-space: nowrap;
+    }
+    .btn:hover { border-color: var(--accent); background: #1f2433; }
+    .btn.primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #090a0f;
+      border: 0;
+    }
+    .btn.excel {
+      background: var(--sheet-green);
+      color: #fff;
+      border-color: #15803d;
+    }
+    .btn.excel:hover { background: var(--sheet-green-2); }
+    .btn.sm { padding: 4px 8px; font-size: 11px; }
+
+    /* Formula & Filter Bar */
+    .formula-bar {
+      background: #13161f;
+      border-bottom: 1px solid var(--grid-line);
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .cell-ref {
+      background: var(--panel-2);
+      border: 1px solid var(--grid-line);
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-size: 11.5px;
+      font-weight: 800;
+      color: var(--accent);
+      min-width: 140px;
+      text-align: center;
+    }
+    .fx-symbol {
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-weight: 700;
+      color: var(--muted);
+      font-size: 14px;
+      padding: 0 4px;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 220px;
+      background: #090b10;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #fff;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--accent); }
+    .summary-pills {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      color: var(--muted);
+    }
+    .summary-pills b { color: #fff; font-variant-numeric: tabular-nums; }
+
+    /* Main Workspace */
+    .workspace {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+      background: var(--grid-bg);
+    }
+
+    /* Dashboard View */
+    .dash-wrap {
+      padding: 18px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    .dash-banner {
+      background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      border: 1px solid var(--grid-line);
+      border-left: 4px solid var(--accent);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .kpi-section-title {
+      font-size: 11.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--accent);
+      margin: 14px 0 8px;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+      gap: 10px;
+    }
+    .kpi-card {
+      background: var(--panel);
+      border: 1px solid var(--grid-line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .kpi-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .kpi-label { font-size: 11px; color: var(--muted); font-weight: 600; }
+    .kpi-val {
+      font-size: 20px;
+      font-weight: 900;
+      margin-top: 4px;
+      font-variant-numeric: tabular-nums;
+      color: #fff;
+    }
+    .kpi-sub { font-size: 10.5px; color: var(--muted); margin-top: 3px; }
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .chart-box {
+      background: var(--panel);
+      border: 1px solid var(--grid-line);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .chart-box h3 {
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .bar-list { display: grid; gap: 7px; }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 125px 1fr 95px;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+    }
+    .bar-track {
+      height: 10px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      border-radius: 999px;
+    }
+    .bar-val { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    /* Spreadsheet Table Grid */
+    .sheet-table-wrap {
+      min-width: 100%;
+      display: inline-block;
+    }
+    table.sheet-grid {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      font-variant-numeric: tabular-nums;
+    }
+    table.sheet-grid th, table.sheet-grid td {
+      border-right: 1px solid var(--grid-line);
+      border-bottom: 1px solid var(--grid-line);
+      padding: 6px 10px;
+      white-space: nowrap;
+    }
+    table.sheet-grid thead tr.col-letters th {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #161922;
+      color: #6b7280;
+      font-size: 10.5px;
+      font-weight: 700;
+      text-align: center;
+      padding: 3px 6px;
+      user-select: none;
+    }
+    table.sheet-grid thead tr.col-headers th {
+      position: sticky;
+      top: 22px;
+      z-index: 20;
+      background: #1d2230;
+      color: #f9fafb;
+      font-weight: 800;
+      font-size: 11.5px;
+      text-align: left;
+      cursor: pointer;
+      user-select: none;
+    }
+    table.sheet-grid thead tr.col-headers th:hover {
+      background: #262d40;
+      color: var(--accent);
+    }
+    table.sheet-grid td.row-num, table.sheet-grid th.row-num {
+      position: sticky;
+      left: 0;
+      z-index: 15;
+      background: #161922;
+      color: #6b7280;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      width: 42px;
+      min-width: 42px;
+      user-select: none;
+    }
+    table.sheet-grid tbody tr:nth-child(even) { background: rgba(255,255,255,0.015); }
+    table.sheet-grid tbody tr:hover { background: rgba(255,255,255,0.05); }
+    table.sheet-grid tfoot tr td {
+      position: sticky;
+      bottom: 0;
+      z-index: 18;
+      background: #1a202c;
+      color: #fff;
+      font-weight: 800;
+      border-top: 2px solid var(--accent);
+    }
+    .t-right { text-align: right; }
+    .t-center { text-align: center; }
+    .pill {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      font-weight: 800;
+    }
+    .pill.ok { background: rgba(34,197,94,0.16); color: #4ade80; }
+    .pill.warn { background: rgba(245,158,11,0.18); color: #fbbf24; }
+    .pill.err { background: rgba(239,68,68,0.18); color: #f87171; }
+    .pill.info { background: rgba(59,130,246,0.18); color: #60a5fa; }
+
+    /* Bottom Sheet Tabs Bar (Google Sheets style) */
+    .tabs-bar {
+      background: var(--panel);
+      border-top: 1px solid var(--grid-line);
+      display: flex;
+      align-items: center;
+      overflow-x: auto;
+      padding: 0 10px;
+      height: 40px;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .sheet-tab {
+      background: transparent;
+      color: var(--muted);
+      border: 0;
+      border-bottom: 3px solid transparent;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 6px 6px 0 0;
+      transition: 0.15s;
+    }
+    .sheet-tab:hover { background: rgba(255,255,255,0.04); color: #fff; }
+    .sheet-tab.active {
+      background: var(--panel-2);
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .sheet-tab .cnt {
+      background: rgba(255,255,255,0.08);
+      color: #d1d5db;
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 999px;
+    }
+
+    /* Modal */
+    .modal-back {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 16px;
+    }
+    .modal-card {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 14px;
+      max-width: 680px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .login-box {
+      max-width: 390px;
+      margin: 10vh auto;
+      background: var(--panel);
+      border: 1px solid var(--grid-line);
+      border-radius: 14px;
+      padding: 26px;
+      text-align: center;
+    }
+    .login-box input {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: #090a0f;
+      color: #fff;
+    }
+    @media print {
+      .sheets-topbar, .formula-bar, .tabs-bar { display: none !important; }
+      body, .workspace { height: auto !important; overflow: visible !important; background: #fff !important; color: #000 !important; }
+      table.sheet-grid th, table.sheet-grid td { border: 1px solid #cbd5e1 !important; color: #000 !important; background: #fff !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="sheets-topbar">
+    <div class="brand-group">
+      <img src="/logo.svg?v=5.3" alt="RD Fitness Club">
+      <div>
+        <div class="doc-title">
+          <span>RD Fitness Club — Libro Maestro Cloud Sheets</span>
+          <span class="live-badge" id="syncStatus">● EN VIVO</span>
+        </div>
+        <div class="doc-sub" id="docSub">19 hojas contables, operativas y de asistencia conectadas en tiempo real</div>
+      </div>
+    </div>
+
+    <div class="toolbar-actions">
+      <div class="date-pill">
+        <span>Desde</span>
+        <input type="date" id="dateFrom">
+        <span>Hasta</span>
+        <input type="date" id="dateTo">
+      </div>
+      <button class="btn sm" onclick="setQuickRange(0)" title="Solo hoy">Hoy</button>
+      <button class="btn sm" onclick="setQuickRange(30)" title="Últimos 30 días">30d</button>
+      <button class="btn sm" onclick="setQuickRange(365)" title="Último año completo">1 Año</button>
+      <button class="btn primary" id="btnRefresh" onclick="loadDataset(true)">🔄 Actualizar Datos</button>
+      <button class="btn excel" onclick="downloadExcel()">📥 Descargar Excel (.xlsx)</button>
+      <button class="btn" onclick="downloadActiveCsv()">📄 CSV Hoja</button>
+      <button class="btn" onclick="openGoogleDriveModal()">☁️ Google Drive / Script</button>
+      <a class="btn" href="/admin/">⬅ Panel Admin</a>
+    </div>
+  </header>
+
+  <div class="formula-bar">
+    <div class="cell-ref" id="activeSheetBadge">📊 Dashboard</div>
+    <span class="fx-symbol">fx</span>
+    <input type="text" class="search-input" id="searchInp" placeholder="🔍 Buscar o filtrar instantáneamente en esta hoja (nombre, DNI, código, comprobante, fecha, método)..." oninput="renderActiveView()">
+    <div class="summary-pills" id="summaryReadout"></div>
+  </div>
+
+  <main class="workspace" id="workspace">
+    <div style="padding:15vh 20px;text-align:center;color:var(--muted)">Cargando Libro Maestro en Vivo de RD Fitness Club…</div>
+  </main>
+
+  <nav class="tabs-bar" id="tabsBar"></nav>
+
+  <!-- Modal Google Drive / Apps Script -->
+  <div class="modal-back" id="gdriveModal" onclick="if(event.target===this)this.style.display='none'">
+    <div class="modal-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="font-size:16px;font-weight:800">☁️ Sincronización con Google Drive / Google Sheets</h3>
+        <button class="btn sm" onclick="document.getElementById('gdriveModal').style.display='none'">✕ Cerrar</button>
+      </div>
+      <p style="font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:12px">
+        Esta interfaz (<b>Cloud Sheets en Vivo</b>) ya tiene las <b>19 hojas y gráficos automatizados</b> sin necesidad de configurar nada. Si además deseas tener una copia sincronizada en tu cuenta personal de Google Drive (<code>@gmail.com</code>), tienes dos opciones directas:
+      </p>
+      <div style="background:var(--panel-2);border:1px solid var(--grid-line);border-radius:10px;padding:12px;margin-bottom:12px">
+        <div style="font-weight:800;font-size:13px;color:#4ade80;margin-bottom:6px">Opción A (Instantánea, sin scripts): Descargar y abrir en Google Drive</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Descarga el Libro Maestro de 19 hojas en formato <code>.xlsx</code> y súbelo a tu Google Drive o ábrelo en Excel con todas las fórmulas y pestañas listas.</p>
+        <button class="btn excel" onclick="downloadExcel()">📥 Descargar Libro Completo (.xlsx - 19 Hojas)</button>
+      </div>
+      <div style="background:var(--panel-2);border:1px solid var(--grid-line);border-radius:10px;padding:12px;margin-bottom:12px">
+        <div style="font-weight:800;font-size:13px;color:var(--accent);margin-bottom:6px">Opción B (Conector Apps Script en tu propia cuenta de Google)</div>
+        <p style="font-size:11.5px;color:var(--muted);line-height:1.45;margin-bottom:8px">
+          <b>Importante:</b> En Google Sheets, el menú <i>Extensiones → Apps Script</i> solo está habilitado cuando el archivo pertenece a tu propia cuenta de Google. Haz clic en el botón <b>1. Crear Hoja Propia en tu Google</b>, entra a <i>Extensiones → Apps Script</i>, pega el código del botón <b>2</b> y guarda.
+        </p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <a class="btn" href="https://sheets.new" target="_blank" rel="noopener">1. ➕ Crear Hoja Propia en tu Google (sheets.new)</a>
+          <button class="btn primary" onclick="copyAppsScript()">2. 📋 Copiar Script Maestro Automatizado</button>
+        </div>
+        <label style="display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px">Opcional: Guarda aquí el enlace de tu hoja personal de Google Sheets para abrirla rápido:</label>
+        <div style="display:flex;gap:6px">
+          <input id="customSheetUrl" type="url" placeholder="https://docs.google.com/spreadsheets/d/tu-hoja-propia/edit" style="flex:1;background:#090a0f;border:1px solid var(--grid-line);color:#fff;padding:7px 10px;border-radius:6px;font-size:12px">
+          <button class="btn primary" onclick="saveCustomSheetUrl()">Guardar URL</button>
+          <button class="btn" id="btnOpenSavedSheet" style="display:none" onclick="openSavedSheet()">↗ Abrir</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TOKEN_KEY = 'rd_staff_token';
+    let DATASET = null;
+    let ACTIVE_TAB = 'dashboard';
+    let SORT_COL = -1;
+    let SORT_ASC = true;
+
+    const TAB_ICONS = {
+      dashboard: '📊',
+      daily: '📅',
+      payments: '🧾',
+      methods: '💳',
+      sales: '🛒',
+      inventory: '📦',
+      topProducts: '🏆',
+      members: '👥',
+      expiring: '⏳',
+      atRisk: '⚠️',
+      memberships: '🪪',
+      plans: '📋',
+      attendance: '📍',
+      hourly: '⏰',
+      weekday: '📆',
+      heatmap: '🔥',
+      denied: '🛡️',
+      shifts: '🔐',
+      expenses: '💸'
+    };
+
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+    }
+    function fmtMoney(n) {
+      return 'S/ ' + Number(n || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function initDates() {
+      const now = new Date(Date.now() - 5 * 3600 * 1000);
+      const to = now.toISOString().slice(0, 10);
+      const fromDate = new Date(now.getTime() - 365 * 86400 * 1000);
+      const from = fromDate.toISOString().slice(0, 10);
+      document.getElementById('dateFrom').value = from;
+      document.getElementById('dateTo').value = to;
+      document.getElementById('dateFrom').onchange = () => loadDataset(true);
+      document.getElementById('dateTo').onchange = () => loadDataset(true);
+    }
+
+    function setQuickRange(days) {
+      const now = new Date(Date.now() - 5 * 3600 * 1000);
+      const to = now.toISOString().slice(0, 10);
+      const fromDate = new Date(now.getTime() - days * 86400 * 1000);
+      document.getElementById('dateFrom').value = fromDate.toISOString().slice(0, 10);
+      document.getElementById('dateTo').value = to;
+      loadDataset(true);
+    }
+
+    async function ensureStaffAuth() {
+      let token = localStorage.getItem(TOKEN_KEY);
+      if (token) return token;
+      try {
+        const r = await fetch('/api/auth/staff-resume', { credentials: 'include' });
+        if (r.ok) {
+          const d = await r.json();
+          if (d && d.token) {
+            localStorage.setItem(TOKEN_KEY, d.token);
+            return d.token;
+          }
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    function showInlineLogin() {
+      const ws = document.getElementById('workspace');
+      ws.innerHTML = `
+        <div class="login-box">
+          <img src="/logo.svg?v=5.3" style="height:64px;width:64px;object-fit:contain;margin-bottom:10px" alt="Logo">
+          <h2 style="font-size:18px;margin-bottom:4px">RD Fitness Club</h2>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Inicia sesión para abrir el Libro Maestro Cloud Sheets en Vivo</p>
+          <form id="loginForm">
+            <input id="lu" placeholder="Usuario (admin)" value="admin" required>
+            <input id="lp" type="password" placeholder="Contraseña" required autofocus>
+            <div id="lerr" style="color:#f87171;font-size:12px;margin-bottom:8px;display:none"></div>
+            <button type="submit" class="btn primary" style="width:100%;justify-content:center;padding:10px">Ingresar a Cloud Sheets</button>
+          </form>
+        </div>
+      `;
+      document.getElementById('loginForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const errEl = document.getElementById('lerr');
+        errEl.style.display = 'none';
+        try {
+          const r = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              username: document.getElementById('lu').value.trim(),
+              password: document.getElementById('lp').value
+            })
+          });
+          const data = await r.json();
+          if (!r.ok) throw new Error(data.error || 'Credenciales incorrectas');
+          localStorage.setItem(TOKEN_KEY, data.token);
+          loadDataset(true);
+        } catch (err) {
+          errEl.textContent = err.message;
+          errEl.style.display = 'block';
+        }
+      };
+    }
+
+    async function loadDataset(manual = false) {
+      const token = await ensureStaffAuth();
+      if (!token) return showInlineLogin();
+
+      const btn = document.getElementById('btnRefresh');
+      const status = document.getElementById('syncStatus');
+      if (btn) btn.textContent = '⏳ Sincronizando...';
+      status.textContent = '● ACTUALIZANDO...';
+
+      const from = document.getElementById('dateFrom').value;
+      const to = document.getElementById('dateTo').value;
+
+      try {
+        const r = await fetch(`/api/reports/sheets-feed?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, {
+          headers: { 'Authorization': 'Bearer ' + token },
+          credentials: 'include'
+        });
+        if (r.status === 401 || r.status === 403) {
+          localStorage.removeItem(TOKEN_KEY);
+          return showInlineLogin();
+        }
+        if (!r.ok) throw new Error('Error al sincronizar datos');
+        DATASET = await r.json();
+
+        const nowStr = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        status.textContent = '● EN VIVO · ' + nowStr;
+        document.getElementById('docSub').textContent = `Período: ${DATASET.meta.from} al ${DATASET.meta.to} · Zona: ${DATASET.meta.timezone} · 19 Hojas Activas`;
+
+        if (DATASET.google_sheet_url && !DATASET.google_sheet_url.includes('1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms')) {
+          document.getElementById('customSheetUrl').value = DATASET.google_sheet_url;
+          document.getElementById('btnOpenSavedSheet').style.display = 'inline-flex';
+        }
+
+        renderTabs();
+        renderActiveView();
+      } catch (e) {
+        status.textContent = '● ERROR DE RED';
+      } finally {
+        if (btn) btn.textContent = '🔄 Actualizar Datos';
+      }
+    }
+
+    function selectTab(key) {
+      ACTIVE_TAB = key;
+      SORT_COL = -1;
+      SORT_ASC = true;
+      renderTabs();
+      renderActiveView();
+    }
+
+    function renderTabs() {
+      if (!DATASET) return;
+      const bar = document.getElementById('tabsBar');
+      const order = ['dashboard', ...(DATASET.tableOrder || Object.keys(DATASET.tables))];
+      bar.innerHTML = order.map(k => {
+        if (k === 'dashboard') {
+          return `<button class="sheet-tab ${ACTIVE_TAB === 'dashboard' ? 'active' : ''}" onclick="selectTab('dashboard')">📊 Dashboard Ejecutivo</button>`;
+        }
+        const t = DATASET.tables[k];
+        if (!t) return '';
+        const icon = TAB_ICONS[k] || '📄';
+        return `<button class="sheet-tab ${ACTIVE_TAB === k ? 'active' : ''}" onclick="selectTab('${k}')">${icon} ${esc(t.name)} <span class="cnt">${(t.rows || []).length}</span></button>`;
+      }).join('');
+    }
+
+    function renderActiveView() {
+      if (!DATASET) return;
+      if (ACTIVE_TAB === 'dashboard') {
+        renderDashboard();
+      } else {
+        renderSheetGrid(ACTIVE_TAB);
+      }
+    }
+
+    function renderDashboard() {
+      const k = DATASET.kpis || {};
+      const m = DATASET.meta || {};
+      document.getElementById('activeSheetBadge').textContent = '📊 Dashboard Ejecutivo';
+      document.getElementById('summaryReadout').innerHTML = `<span>Ingresos: <b>${fmtMoney(k.ingresos)}</b></span> · <span>Utilidad: <b>${fmtMoney(k.utilidad)}</b></span> · <span>Socios Vigentes: <b>${k.socios_vigentes || 0}</b></span>`;
+
+      const methods = DATASET.methods || [];
+      const maxMethod = Math.max(1, ...methods.map(x => x.total || 0));
+
+      const topProds = (DATASET.topProducts || []).slice(0, 6);
+      const maxProd = Math.max(1, ...topProds.map(x => x.total || 0));
+
+      const hourly = (DATASET.hourly || []).filter(h => h.hour >= 6 && h.hour <= 22);
+      const maxHour = Math.max(1, ...hourly.map(h => h.in || 0));
+
+      const dailyRows = (DATASET.tables?.daily?.rows || []).slice(-10).reverse();
+      const maxDaily = Math.max(1, ...dailyRows.map(r => Number(r[4] || 0)));
+
+      document.getElementById('workspace').innerHTML = `
+        <div class="dash-wrap">
+          <div class="dash-banner">
+            <div>
+              <div style="font-size:17px;font-weight:900;color:#fff">${esc(m.gym_name)} — Panel Contable y Operativo en Tiempo Real</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px">${esc(m.address)} · Cel/Yape: ${esc(m.phone)} · Generado: ${esc(m.generated)}</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn primary" onclick="selectTab('payments')">🧾 Ver Cobros (${k.operaciones || 0})</button>
+              <button class="btn" onclick="selectTab('members')">👥 Ver Socios (${k.socios_total || 0})</button>
+              <button class="btn" onclick="selectTab('attendance')">📍 Ver Asistencias (${k.visitas || 0})</button>
+            </div>
+          </div>
+
+          <div class="kpi-section-title">1. Finanzas, Caja y Rentabilidad del Período (${esc(m.from)} al ${esc(m.to)})</div>
+          <div class="kpi-grid">
+            <div class="kpi-card" onclick="selectTab('daily')">
+              <div class="kpi-label">INGRESOS TOTALES</div>
+              <div class="kpi-val" style="color:#4ade80">${fmtMoney(k.ingresos)}</div>
+              <div class="kpi-sub">${k.operaciones || 0} cobros registrados</div>
+            </div>
+            <div class="kpi-card" onclick="selectTab('memberships')">
+              <div class="kpi-label">INGRESOS GIMNASIO</div>
+              <div class="kpi-val">${fmtMoney(k.gimnasio)}</div>
+              <div class="kpi-sub">Membresías y pases diarios</div>
+            </div>
+            <div class="kpi-card" onclick="selectTab('sales')">
+              <div class="kpi-label">VENTAS TIENDA POS</div>
+              <div class="kpi-val">${fmtMoney(k.tienda)}</div>
+              <div class="kpi-sub">Utilidad tienda: ${fmtMoney(k.utilidad_tienda)}</div>
+            </div>
+            <div class="kpi-card" onclick="selectTab('expenses')">
+              <div class="kpi-label">GASTOS OPERATIVOS</div>
+              <div class="kpi-val" style="color:#f87171">${fmtMoney(k.gastos)}</div>
+              <div class="kpi-sub">Egresos registrados en caja</div>
+            </div>
+            <div class="kpi-card" onclick="selectTab('daily')">
+              <div class="kpi-label">UTILIDAD NETA</div>
+              <div class="kpi-val" style="color:var(--accent)">${fmtMoney(k.utilidad)}</div>
+              <div class="kpi-sub">Ingresos menos gastos</div>
+            </div>
+            <div class="kpi-card" onclick="selectTab('methods')">
+              <div class="kpi-label">EFECTIVO EN CAJA</div>
+              <div class="kpi-val">${fmtMoney(k.efectivo)}</div>
+              <div class="kpi-sub">Digital (Yape/Plin/POS): ${fmtMoney(k.digital)}</div>
+            </div>
+          </div>
+
+          <div class="kpi-section-title">2. Cartera de Socios, Membresías y Asistencia</div>
+          <div class="kpi-grid">
+            <div class="kpi-card" onclick="selectTab('members')">
+              <div class="kpi-label">SOCIOS VIGENTES</div>
+              <div class="kpi-val" style="color:#4ade80">${k.socios_vigentes || 0}</div>
+              <div class="kpi-sub">De ${k.socios_total || 0} socios en padrón</div>
+            </div>
+            <div class="kpi-card" onclick="selectTab('expiring')">
+              <div class="kpi-label">POR VENCER (≤ 7 DÍAS)</div>
+              <div class="kpi-val" style="color:#fbbf24">${k.por_vencer || 0}</div>
+              <div class="kpi-sub">Vencidos recientes: ${k.vencidos || 0}</div>
+            </div>
+            <div class="kpi-card" onclick="selectTab('memberships')">
+              <div class="kpi-label">ALTAS Y RENOVACIONES</div>
+              <div class="kpi-val">${(k.nuevos || 0) + (k.renovaciones || 0)}</div>
+              <div class="kpi-sub">${k.nuevos || 0} nuevas · ${k.renovaciones || 0} renov.</div>
+            </div>
+            <div class="kpi-card" onclick="selectTab('attendance')">
+              <div class="kpi-label">ASISTENCIAS REGISTRADAS</div>
+              <div class="kpi-val">${k.visitas || 0}</div>
+              <div class="kpi-sub">${k.unicos || 0} atletas únicos (${k.visitas_dia || 0}/día)</div>
+            </div>
+            <div class="kpi-card" onclick="selectTab('atRisk')">
+              <div class="kpi-label">SOCIOS EN RIESGO</div>
+              <div class="kpi-val" style="color:#fb923c">${k.en_riesgo || 0}</div>
+              <div class="kpi-sub">Vigentes con 10+ días sin asistir</div>
+            </div>
+            <div class="kpi-card" onclick="selectTab('inventory')">
+              <div class="kpi-label">ALERTAS DE STOCK TIENDA</div>
+              <div class="kpi-val" style="color:${k.stock_bajo > 0 ? '#f87171' : '#4ade80'}">${k.stock_bajo || 0}</div>
+              <div class="kpi-sub">Productos por reponer</div>
+            </div>
+          </div>
+
+          <div class="charts-grid">
+            <div class="chart-box">
+              <h3><span>💳 Ingresos por Método de Pago</span> <button class="btn sm" onclick="selectTab('methods')">Abrir Hoja ↗</button></h3>
+              <div class="bar-list">
+                ${methods.map(m => `
+                  <div class="bar-row">
+                    <span>${esc(m.label)} (${m.n})</span>
+                    <div class="bar-track"><div class="bar-fill" style="width:${Math.round((m.total / maxMethod) * 100)}%"></div></div>
+                    <span class="bar-val">${fmtMoney(m.total)}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="chart-box">
+              <h3><span>📅 Últimos Días con Movimiento</span> <button class="btn sm" onclick="selectTab('daily')">Abrir Hoja ↗</button></h3>
+              <div class="bar-list">
+                ${dailyRows.slice(0, 6).map(r => `
+                  <div class="bar-row">
+                    <span>${esc(r[0])} (${esc(r[1].slice(0,3))})</span>
+                    <div class="bar-track"><div class="bar-fill" style="width:${Math.round((Number(r[4]||0) / maxDaily) * 100)}%"></div></div>
+                    <span class="bar-val">${fmtMoney(r[4])}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="chart-box">
+              <h3><span>⏰ Afluencia Horaria en Sala</span> <button class="btn sm" onclick="selectTab('hourly')">Abrir Hoja ↗</button></h3>
+              <div class="bar-list">
+                ${hourly.filter((_, i) => i % 2 === 0 || hourly[i].in > 0).slice(0, 7).map(h => `
+                  <div class="bar-row">
+                    <span>${String(h.hour).padStart(2,'0')}:00 hrs</span>
+                    <div class="bar-track"><div class="bar-fill" style="width:${Math.round((h.in / maxHour) * 100)}%"></div></div>
+                    <span class="bar-val">${h.in} ingresos</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="chart-box">
+              <h3><span>🏆 Top Productos Tienda</span> <button class="btn sm" onclick="selectTab('topProducts')">Abrir Hoja ↗</button></h3>
+              <div class="bar-list">
+                ${topProds.length ? topProds.map(p => `
+                  <div class="bar-row">
+                    <span style="overflow:hidden;text-overflow:ellipsis">${esc(p.name)} (${p.qty})</span>
+                    <div class="bar-track"><div class="bar-fill" style="width:${Math.round((p.total / maxProd) * 100)}%"></div></div>
+                    <span class="bar-val">${fmtMoney(p.total)}</span>
+                  </div>
+                `).join('') : '<div style="color:var(--muted);font-size:12px">Sin ventas de tienda en el rango seleccionado</div>'}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function colLetter(idx) {
+      let s = '';
+      let n = idx;
+      while (n >= 0) {
+        s = String.fromCharCode((n % 26) + 65) + s;
+        n = Math.floor(n / 26) - 1;
+      }
+      return s;
+    }
+
+    function formatCell(val, type) {
+      if (val === null || val === undefined || val === '') return '';
+      if (type === 'money') return fmtMoney(val);
+      if (type === 'pct') return (Number(val || 0) * 100).toFixed(1) + '%';
+      const s = String(val);
+      if (['Vigente', 'Activo', 'Sí', 'Abierto', 'Salida registrada'].includes(s)) {
+        return `<span class="pill ok">${esc(s)}</span>`;
+      }
+      if (['Por vencer', 'Pendiente', 'En sala', 'Programada'].includes(s)) {
+        return `<span class="pill warn">${esc(s)}</span>`;
+      }
+      if (['Vencido', 'Bloqueado', 'Baja', 'AGOTADO', 'BAJO', 'Denegado', 'QR inválido'].includes(s)) {
+        return `<span class="pill err">${esc(s)}</span>`;
+      }
+      return esc(s);
+    }
+
+    function sortByCol(colIdx) {
+      if (SORT_COL === colIdx) SORT_ASC = !SORT_ASC;
+      else { SORT_COL = colIdx; SORT_ASC = true; }
+      renderSheetGrid(ACTIVE_TAB);
+    }
+
+    function renderSheetGrid(tabKey) {
+      const table = DATASET.tables[tabKey];
+      if (!table) return;
+
+      const q = document.getElementById('searchInp').value.trim().toLowerCase();
+      const headers = table.headers || [];
+      const types = table.types || [];
+      let rows = (table.rows || []).slice();
+
+      if (q) {
+        rows = rows.filter(r => r.some(c => String(c ?? '').toLowerCase().includes(q)));
+      }
+
+      if (SORT_COL >= 0 && SORT_COL < headers.length) {
+        const t = types[SORT_COL] || 'text';
+        rows.sort((a, b) => {
+          const va = a[SORT_COL], vb = b[SORT_COL];
+          if (['money', 'int', 'dec', 'pct', 'min'].includes(t)) {
+            return SORT_ASC ? (Number(va || 0) - Number(vb || 0)) : (Number(vb || 0) - Number(va || 0));
+          }
+          return SORT_ASC
+            ? String(va ?? '').localeCompare(String(vb ?? ''), 'es')
+            : String(vb ?? '').localeCompare(String(va ?? ''), 'es');
+        });
+      }
+
+      document.getElementById('activeSheetBadge').textContent = `${TAB_ICONS[tabKey] || '📄'} ${table.name} (${rows.length})`;
+
+      // Calculate automatic column totals
+      const sums = headers.map((_, c) => {
+        if (!['money', 'int'].includes(types[c])) return null;
+        return rows.reduce((acc, r) => acc + (Number(r[c]) || 0), 0);
+      });
+
+      const moneySummary = [];
+      headers.forEach((h, c) => {
+        if (types[c] === 'money' && sums[c] !== null) {
+          moneySummary.push(`<span>${esc(h)}: <b>${fmtMoney(sums[c])}</b></span>`);
+        }
+      });
+      document.getElementById('summaryReadout').innerHTML =
+        `<span>Filas: <b>${rows.length}</b></span>` + (moneySummary.length ? ' · ' + moneySummary.slice(0, 3).join(' · ') : '');
+
+      const lettersHtml = `<tr class="col-letters"><th class="row-num">#</th>${headers.map((_, i) => `<th>${colLetter(i)}</th>`).join('')}</tr>`;
+      const headersHtml = `<tr class="col-headers"><th class="row-num"></th>${headers.map((h, i) => {
+        const arrow = SORT_COL === i ? (SORT_ASC ? ' ▲' : ' ▼') : '';
+        return `<th onclick="sortByCol(${i})">${esc(h)}${arrow}</th>`;
+      }).join('')}</tr>`;
+
+      const bodyHtml = rows.length ? rows.map((r, rIdx) => `
+        <tr>
+          <td class="row-num">${rIdx + 1}</td>
+          ${headers.map((_, cIdx) => {
+            const t = types[cIdx] || 'text';
+            const align = ['money', 'int', 'dec', 'pct', 'min'].includes(t) ? 't-right' : '';
+            return `<td class="${align}">${formatCell(r[cIdx], t)}</td>`;
+          }).join('')}
+        </tr>
+      `).join('') : `<tr><td class="row-num">-</td><td colspan="${headers.length}" style="text-align:center;padding:30px;color:var(--muted)">No hay registros que coincidan con el filtro en esta hoja.</td></tr>`;
+
+      const footHtml = rows.length ? `
+        <tfoot>
+          <tr>
+            <td class="row-num">∑</td>
+            ${headers.map((_, cIdx) => {
+              if (cIdx === 0 && sums[0] === null) return `<td>TOTALES (${rows.length} filas)</td>`;
+              if (types[cIdx] === 'money') return `<td class="t-right">${fmtMoney(sums[cIdx])}</td>`;
+              if (types[cIdx] === 'int') return `<td class="t-right">${sums[cIdx]}</td>`;
+              return '<td></td>';
+            }).join('')}
+          </tr>
+        </tfoot>
+      ` : '';
+
+      document.getElementById('workspace').innerHTML = `
+        <div class="sheet-table-wrap">
+          <table class="sheet-grid">
+            <thead>${lettersHtml}${headersHtml}</thead>
+            <tbody>${bodyHtml}</tbody>
+            ${footHtml}
+          </table>
+        </div>
+      `;
+    }
+
+    async function downloadExcel() {
+      const token = await ensureStaffAuth();
+      if (!token) return showInlineLogin();
+      const from = document.getElementById('dateFrom').value;
+      const to = document.getElementById('dateTo').value;
+      const r = await fetch(`/api/reports/export/excel?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, {
+        headers: { 'Authorization': 'Bearer ' + token },
+        credentials: 'include'
+      });
+      if (!r.ok) return alert('Error al generar el archivo Excel');
+      const blob = await r.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `Libro_Maestro_RD_FITNESS_${from}_al_${to}.xlsx`;
+      a.click();
+    }
+
+    async function downloadActiveCsv() {
+      const token = await ensureStaffAuth();
+      if (!token) return showInlineLogin();
+      const tab = ACTIVE_TAB === 'dashboard' ? 'daily' : ACTIVE_TAB;
+      const from = document.getElementById('dateFrom').value;
+      const to = document.getElementById('dateTo').value;
+      const r = await fetch(`/api/reports/export/csv?table=${encodeURIComponent(tab)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, {
+        headers: { 'Authorization': 'Bearer ' + token },
+        credentials: 'include'
+      });
+      if (!r.ok) return alert('Error al exportar CSV');
+      const blob = await r.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `RD_FITNESS_${tab}_${to}.csv`;
+      a.click();
+    }
+
+    function openGoogleDriveModal() {
+      document.getElementById('gdriveModal').style.display = 'flex';
+    }
+
+    async function saveCustomSheetUrl() {
+      const token = await ensureStaffAuth();
+      const url = document.getElementById('customSheetUrl').value.trim();
+      const r = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        credentials: 'include',
+        body: JSON.stringify({ google_sheet_url: url })
+      });
+      if (r.ok) {
+        if (url) {
+          document.getElementById('btnOpenSavedSheet').style.display = 'inline-flex';
+          alert('Enlace guardado correctamente.');
+        } else {
+          document.getElementById('btnOpenSavedSheet').style.display = 'none';
+        }
+      }
+    }
+
+    function openSavedSheet() {
+      const url = document.getElementById('customSheetUrl').value.trim();
+      if (url) window.open(url, '_blank', 'noopener');
+    }
+
+    function copyAppsScript() {
+      const key = DATASET?.sheets_key || '';
+      const origin = location.origin;
+      const script = `/**
+ * RD FITNESS CLUB | SINCRONIZADOR AUTOMÁTICO GOOGLE SHEETS (19 HOJAS)
+ * 1. En tu propia hoja (https://sheets.new), abre Extensiones -> Apps Script
+ * 2. Pega este código, presiona Guardar (💾) y ejecuta actualizarTodoAhora()
+ */
+const CONFIG = {
+  ENDPOINT: "${origin}/api/reports/sheets-feed",
+  KEY: "${key}"
+};
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu('⚡ RD Fitness Club')
+    .addItem('🔄 Actualizar las 19 Hojas Ahora', 'actualizarTodoAhora')
+    .addToUi();
+}
+function actualizarTodoAhora() {
+  var res = UrlFetchApp.fetch(CONFIG.ENDPOINT + '?key=' + encodeURIComponent(CONFIG.KEY), { muteHttpExceptions: true });
+  var data = JSON.parse(res.getContentText());
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var order = data.tableOrder || Object.keys(data.tables);
+  for (var i = 0; i < order.length; i++) {
+    var t = data.tables[order[i]];
+    if (!t) continue;
+    var sh = ss.getSheetByName(t.name) || ss.insertSheet(t.name);
+    sh.clear();
+    var allRows = [t.headers].concat(t.rows || []);
+    sh.getRange(1, 1, allRows.length, t.headers.length).setValues(allRows);
+    sh.getRange(1, 1, 1, t.headers.length).setFontWeight('bold').setBackground('#f5b400').setFontColor('#ffffff');
+    sh.setFrozenRows(1);
+  }
+}`;
+      navigator.clipboard.writeText(script).then(() => {
+        alert('¡Código Apps Script copiado al portapapeles! Ahora abre https://sheets.new, entra a Extensiones -> Apps Script y pégalo.');
+      });
+    }
+
+    initDates();
+    loadDataset(false);
+    setInterval(() => loadDataset(false), 60000);
+  </script>
+</body>
+</html>

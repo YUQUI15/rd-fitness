@@ -347,6 +347,7 @@ q.run("UPDATE settings SET value=? WHERE key='gym_address' AND LOWER(value) LIKE
 // La clave antigua era adivinable y daba acceso a datos financieros y personales: se reemplaza por una aleatoria
 q.run("UPDATE settings SET value=? WHERE key='google_sheets_key' AND (value='RD-CHIVAY-2026' OR value IS NULL OR value='')",
   require('crypto').randomBytes(12).toString('hex'));
+q.run("UPDATE settings SET value='' WHERE key='google_sheet_url' AND value LIKE '%1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms%'");
 const getSettings = () => {
   const map = Object.fromEntries(q.all('SELECT key,value FROM settings').map(r => [r.key, r.value]));
   if (map.gym_address) map.gym_address = sanitizeGymAddress(map.gym_address);

@@ -231,51 +231,9 @@
     }
   };
 
-  RD.openGoogleSheetsDirect = async () => {
-    let settings = {};
-    try { settings = await RD.api.get('/settings'); } catch {}
-    const url = String(settings.google_sheet_url || '').trim();
-    if (url && /^https?:\/\//i.test(url)) {
-      window.open(url, '_blank', 'noopener,noreferrer');
-      RD.toast('Abriendo Google Sheets oficial…');
-    } else {
-      const m = RD.openModal('Google Sheets Oficial', `
-        <div class="mb">
-          <p class="muted small mb">Conecta tu hoja de Google Sheets para acceder directamente con un solo clic desde cualquier lugar del sistema.</p>
-          <label class="field"><span>Enlace de tu Hoja en Google Sheets (URL completa)</span>
-            <input id="gs_url_inp" placeholder="https://docs.google.com/spreadsheets/d/..." value="${esc(url)}">
-          </label>
-        </div>
-        <div class="grid g2 keep mb">
-          <button class="btn primary" id="gs_save_btn">Guardar y Abrir</button>
-          <button class="btn" id="gs_new_btn">Crear Hoja Nueva</button>
-        </div>
-        <div class="center mt">
-          <button class="btn ghost sm" id="gs_sync_guide_btn">${RD.icon('settings', '', 14)} Ver Guía y Código Apps Script</button>
-        </div>
-      `);
-      m.el.querySelector('#gs_save_btn').onclick = async () => {
-        const newUrl = m.el.querySelector('#gs_url_inp').value.trim();
-        if (!newUrl || !/^https?:\/\//i.test(newUrl)) {
-          RD.toast('Ingresa una URL válida que empiece con https://', 'err');
-          return;
-        }
-        try {
-          await RD.api.put('/settings', { google_sheet_url: newUrl });
-          RD.toast('Enlace de Google Sheets guardado');
-          m.close();
-          window.open(newUrl, '_blank', 'noopener,noreferrer');
-        } catch (err) { RD.toast(err.message, 'err'); }
-      };
-      m.el.querySelector('#gs_new_btn').onclick = () => {
-        window.open('https://sheets.new', '_blank', 'noopener,noreferrer');
-      };
-      m.el.querySelector('#gs_sync_guide_btn').onclick = () => {
-        m.close();
-        if (typeof RD.openGoogleSheetsSyncModal === 'function') RD.openGoogleSheetsSyncModal(settings);
-        else go('reports');
-      };
-    }
+  RD.openGoogleSheetsDirect = () => {
+    window.open('/admin/sheets.html', '_blank');
+    RD.toast('Abriendo Libro Maestro Cloud Sheets en Vivo (19 hojas)…');
   };
 
   RD.openLocalModeModal = async () => {
