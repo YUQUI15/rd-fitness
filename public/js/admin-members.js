@@ -54,7 +54,7 @@
       view.innerHTML = `
       <div class="row gap wrap mb">
         <input id="q" class="grow" placeholder="Buscar por nombre, DNI, celular o código" style="min-width:200px">
-        ${can('admin', 'recepcion') ? '<button class="btn primary" id="new">＋ Nuevo socio</button>' : ''}
+        ${can('admin', 'recepcion') ? `<a class="btn" href="/admin/cards.html" target="_blank" style="text-decoration:none">${RD.icon('idcard', '', 15)} Carnets QR</a><button class="btn primary" id="new">＋ Nuevo socio</button>` : ''}
       </div>
       <div class="chips mb" id="chips">${FILTERS.map(([k, l]) => `<span class="chip ${k === 'all' ? 'on' : ''}" data-f="${k}">${l}</span>`).join('')}</div>
       <div class="card"><div class="muted small mb" id="cnt"></div><div class="list" id="list"></div></div>`;

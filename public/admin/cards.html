@@ -3,15 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Impresión de Tarjetas PVC - RD Fitness Club</title>
+  <title>Impresión de Tarjetas y Carnets QR - RD Fitness Club</title>
   <link rel="icon" type="image/svg+xml" href="/logo.svg">
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/style.css?v=5.2">
   <style>
-    body { background: #1a1a1e; color: #fff; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    .toolbar { position: sticky; top: 0; z-index: 100; background: #0b0b0d; border-bottom: 1px solid #2b2b32; padding: .8rem 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-    .sheet { max-width: 1000px; margin: 20px auto; padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 20px; justify-content: center; }
+    body { background: #141418; color: #fff; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    .toolbar { position: sticky; top: 0; z-index: 100; background: rgba(11,11,13,0.96); backdrop-filter: blur(10px); border-bottom: 1px solid #2b2b32; padding: .8rem 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .filter-bar { max-width: 1020px; margin: 14px auto 0; padding: 0 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .filter-bar input[type="search"] { flex: 1; min-width: 220px; background: #1c1c22; border: 1px solid #2f2f38; color: #fff; padding: 8px 12px; border-radius: 8px; }
+    .sheet { max-width: 1020px; margin: 16px auto 40px; padding: 16px 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; justify-content: center; }
 
-    /* Medidas exactas de tarjeta CR-80 (PVC): 85.6mm x 53.98mm (~324px x 204px a 96dpi, o 1011x638 a 300dpi) */
+    /* Medidas exactas de tarjeta CR-80 (PVC): 85.6mm x 53.98mm */
+    .card-item-wrap { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+    .card-select-bar { width: 340px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: #a1a1aa; padding: 0 4px; }
     .pvc-card {
       width: 340px; height: 215px;
       border-radius: 12px;
@@ -33,12 +37,12 @@
       position: absolute;
       top: -30px; right: -30px;
       width: 110px; height: 110px;
-      background: radial-gradient(circle, rgba(245,180,0,0.15) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(245,180,0,0.18) 0%, transparent 70%);
       pointer-events: none;
     }
-    .card-top { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(245,180,0,0.3); padding-bottom: 6px; }
+    .card-top { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(245,180,0,0.32); padding-bottom: 6px; }
     .card-logo { display: flex; align-items: center; gap: 8px; }
-    .card-logo img { height: 28px; width: 28px; object-fit: contain; flex-shrink: 0; }
+    .card-logo img { height: 28px; width: 28px; object-fit: contain; flex-shrink: 0; border-radius: 6px; }
     .card-logo .brand-txt { font-size: 13px; font-weight: 900; letter-spacing: 0.5px; color: #f5b400; line-height: 1.1; }
     .card-logo .slogan { font-size: 7px; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.8px; }
     .tag-loc { font-size: 8px; font-weight: 700; background: rgba(245,180,0,0.18); border: 1px solid rgba(245,180,0,0.4); color: #ffd24a; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
@@ -75,7 +79,7 @@
       align-items: center;
       justify-content: space-between;
       font-size: 7.5px;
-      color: #71717a;
+      color: #a1a1aa;
     }
 
     /* REVERSO DE LA TARJETA */
@@ -83,13 +87,14 @@
       text-align: center;
       padding: 14px;
     }
-    .back-rules { font-size: 8px; color: #a1a1aa; line-height: 1.35; margin: 8px 0; }
-    .back-contacts { font-size: 8.5px; color: #ffd24a; font-weight: 600; line-height: 1.4; border: 1px solid rgba(245,180,0,0.3); padding: 6px; border-radius: 6px; background: rgba(0,0,0,0.3); }
+    .back-rules { font-size: 8px; color: #d4d4d8; line-height: 1.35; margin: 6px 0; }
+    .back-contacts { font-size: 8.5px; color: #ffd24a; font-weight: 600; line-height: 1.4; border: 1px solid rgba(245,180,0,0.3); padding: 6px; border-radius: 6px; background: rgba(0,0,0,0.35); }
 
     /* ESTILOS PARA IMPRESIÓN (Ctrl + P) */
     @media print {
       body { background: #fff!important; color: #000!important; margin: 0!important; }
-      .toolbar, .noprint { display: none!important; }
+      .toolbar, .filter-bar, .card-select-bar, .noprint { display: none!important; }
+      .card-item-wrap.unselected { display: none!important; }
       .sheet {
         max-width: none!important;
         margin: 0!important;
@@ -114,126 +119,223 @@
 <body>
   <div class="toolbar noprint">
     <div class="row gap">
-      <img src="/logo.svg" style="height:32px" alt="">
+      <img src="/logo.svg" style="height:34px;width:34px;border-radius:8px;object-fit:contain" alt="RD">
       <div>
-        <b>Impresión de Tarjetas PVC</b>
-        <div class="muted small" id="status">Cargando datos…</div>
+        <b>Estudio de Tarjetas y Carnets Físicos QR (CR-80 PVC)</b>
+        <div class="muted small" id="status">Cargando socios…</div>
       </div>
     </div>
     <div class="row gap wrap">
-      <label class="check small"><input type="checkbox" id="showback"> <span>Mostrar reverso</span></label>
-      <button class="btn sm" onclick="window.close()">Cerrar</button>
-      <button class="btn primary sm" onclick="window.print()"><svg class="rd-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>IMPRIMIR TARJETAS</button>
+      <label class="check small"><input type="checkbox" id="showback" checked> <span>Incluir reverso</span></label>
+      <a class="btn sm" href="/admin/">← Panel Admin</a>
+      <button class="btn primary sm" id="btnprint" onclick="window.print()">🖨️ IMPRIMIR TARJETAS</button>
     </div>
+  </div>
+
+  <div class="filter-bar noprint" id="filterbar" style="display:none">
+    <input type="search" id="qcard" placeholder="Buscar socio por nombre o código (ej. RD-0001)…">
+    <button class="btn sm" id="selall">Seleccionar todos</button>
+    <button class="btn sm ghost" id="selnone">Limpiar selección</button>
   </div>
 
   <div class="sheet" id="cards"></div>
 
   <script src="/vendor/qrcode.js"></script>
-  <script src="/js/common.js"></script>
+  <script src="/js/common.js?v=5.2"></script>
   <script>
     (async () => {
       const RD = window.RD;
       const cardsEl = document.getElementById('cards');
       const statusEl = document.getElementById('status');
       const showBackCb = document.getElementById('showback');
+      const filterBar = document.getElementById('filterbar');
+      const qInp = document.getElementById('qcard');
 
       const params = new URLSearchParams(location.search);
       const ids = params.get('ids') || '';
 
-      const token = localStorage.getItem('rd_staff_token');
-      if (!token) {
-        cardsEl.innerHTML = '<div class="empty">Inicia sesión en el panel de administración primero.</div>';
-        return;
+      async function fetchCards() {
+        let token = localStorage.getItem('rd_staff_token');
+        const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+        let res = await fetch('/api/cards?ids=' + encodeURIComponent(ids), { headers });
+        if (res.status === 401) {
+          // Intentar reanudar sesión con cookie HttpOnly
+          const r2 = await fetch('/api/auth/staff-resume', { method: 'POST' }).catch(() => null);
+          if (r2 && r2.ok) {
+            const d2 = await r2.json();
+            localStorage.setItem('rd_staff_token', d2.token);
+            localStorage.setItem('rd_staff_user', JSON.stringify(d2.user));
+            res = await fetch('/api/cards?ids=' + encodeURIComponent(ids), {
+              headers: { 'Authorization': 'Bearer ' + d2.token }
+            });
+          }
+        }
+        return res;
       }
 
-      let data;
-      try {
-        const res = await fetch('/api/cards?ids=' + encodeURIComponent(ids), {
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-        if (!res.ok) throw new Error('Error al cargar tarjetas');
-        data = await res.json();
-      } catch (err) {
-        cardsEl.innerHTML = `<div class="empty bad">Error: ${err.message}</div>`;
-        return;
-      }
-
-      const cards = data.cards || [];
-      const gym = data.settings || {};
-      statusEl.textContent = `${cards.length} tarjeta(s) lista(s) para imprimir`;
-
-      function render() {
-        if (!cards.length) {
-          cardsEl.innerHTML = '<div class="empty">No se seleccionó ningún socio.</div>';
+      async function loadAndRender() {
+        let res;
+        try {
+          res = await fetchCards();
+        } catch (err) {
+          cardsEl.innerHTML = `<div class="empty bad">Error de red: ${RD.esc(err.message)}</div>`;
           return;
         }
 
-        const showBack = showBackCb.checked;
-        cardsEl.innerHTML = cards.map(c => {
-          // Generar QR en formato SVG limpio
-          const qrSvg = RD.qrSvg(c.payload, { margin: 1 });
+        if (res.status === 401) {
+          statusEl.textContent = 'Autenticación requerida';
+          filterBar.style.display = 'none';
+          cardsEl.innerHTML = `
+            <div style="grid-column:1/-1;max-width:380px;margin:30px auto;width:100%">
+              <form class="box" id="cardlogin">
+                <div class="brand">
+                  <img class="logo" src="/logo.svg" alt="RD">
+                  <h2>RD Fitness Club</h2>
+                  <p class="muted small">Ingresa con tu cuenta de administrador o recepción para imprimir carnets QR</p>
+                </div>
+                <div id="lerr" class="banner err" style="display:none"></div>
+                <label class="field"><span>Usuario</span><input name="u" value="admin" required autofocus></label>
+                <label class="field"><span>Contraseña</span><input name="p" type="password" required></label>
+                <button class="btn primary block" type="submit">Desbloquear Tarjetas QR</button>
+              </form>
+            </div>`;
+          const lf = document.getElementById('cardlogin');
+          lf.onsubmit = async e => {
+            e.preventDefault();
+            const errEl = document.getElementById('lerr');
+            errEl.style.display = 'none';
+            try {
+              const r = await RD.api.post('/auth/login', { username: lf.u.value, password: lf.p.value });
+              localStorage.setItem('rd_staff_token', r.token);
+              localStorage.setItem('rd_staff_user', JSON.stringify(r.user));
+              loadAndRender();
+            } catch (err) {
+              errEl.textContent = err.message || 'Credenciales incorrectas';
+              errEl.style.display = 'block';
+            }
+          };
+          return;
+        }
 
-          const front = `
-          <div class="pvc-card">
-            <div class="card-top">
-              <div class="card-logo">
-                <img src="/logo.svg" alt="RD">
-                <div>
-                  <div class="brand-txt">${RD.esc(gym.gym_name || 'RD FITNESS CLUB')}</div>
-                  <div class="slogan">${RD.esc(gym.gym_slogan || 'Disciplina · Constancia · Resultados')}</div>
+        if (!res.ok) {
+          cardsEl.innerHTML = `<div class="empty bad">Error al cargar tarjetas (${res.status})</div>`;
+          return;
+        }
+
+        const data = await res.json();
+        const cards = data.cards || [];
+        const gym = data.settings || {};
+        const selected = new Set(cards.map(c => c.id));
+        let search = '';
+
+        filterBar.style.display = cards.length > 1 ? 'flex' : 'none';
+
+        function updateStatus() {
+          statusEl.textContent = `${selected.size} de ${cards.length} tarjeta(s) seleccionada(s) para imprimir`;
+        }
+
+        function render() {
+          updateStatus();
+          if (!cards.length) {
+            cardsEl.innerHTML = '<div class="empty">No hay socios registrados para imprimir tarjetas.</div>';
+            return;
+          }
+
+          const showBack = showBackCb.checked;
+          const q = search.toLowerCase();
+          const filtered = cards.filter(c => !q || String(c.name || '').toLowerCase().includes(q) || String(c.code || '').toLowerCase().includes(q));
+
+          cardsEl.innerHTML = filtered.map(c => {
+            const qrSvg = RD.qrSvg(c.payload, { margin: 1 });
+            const isSel = selected.has(c.id);
+
+            const front = `
+            <div class="pvc-card">
+              <div class="card-top">
+                <div class="card-logo">
+                  <img src="/logo.svg" alt="RD">
+                  <div>
+                    <div class="brand-txt">${RD.esc(gym.gym_name || 'RD FITNESS CLUB')}</div>
+                    <div class="slogan">${RD.esc(gym.gym_slogan || 'Disciplina · Constancia · Resultados')}</div>
+                  </div>
+                </div>
+                <div class="tag-loc">CHIVAY</div>
+              </div>
+
+              <div class="card-body">
+                <div class="card-avatar">
+                  ${c.photo ? `<img src="${RD.esc(c.photo)}" alt="">` : RD.esc((c.name || 'R')[0])}
+                </div>
+                <div class="card-details">
+                  <div class="card-name">${RD.esc(c.name)}</div>
+                  <div class="card-code">${RD.esc(c.code)}</div>
+                  <div class="card-role">SOCIO OFICIAL</div>
+                </div>
+                <div class="card-qr-box">
+                  ${qrSvg}
                 </div>
               </div>
-              <div class="tag-loc">CHIVAY</div>
-            </div>
 
-            <div class="card-body">
-              <div class="card-avatar">
-                ${c.photo ? `<img src="${RD.esc(c.photo)}" alt="">` : RD.esc(c.name[0] || 'RD')}
+              <div class="card-footer">
+                <span>Calle Sucre Lt. 10 · Chivay</span>
+                <span>WhatsApp: ${RD.esc(gym.gym_phone || '982 404 043')}</span>
               </div>
-              <div class="card-details">
-                <div class="card-name">${RD.esc(c.name)}</div>
-                <div class="card-code">${RD.esc(c.code)}</div>
-                <div class="card-role">SOCIO OFICIAL</div>
+            </div>`;
+
+            const back = `
+            <div class="pvc-card back">
+              <div class="card-logo" style="justify-content:center;margin-bottom:4px">
+                <img src="/logo.svg" style="height:24px;width:24px" alt="RD">
+                <div class="brand-txt">${RD.esc(gym.gym_name || 'RD FITNESS CLUB')}</div>
               </div>
-              <div class="card-qr-box">
-                ${qrSvg}
+              <div class="back-rules">
+                Esta credencial es <b>personal e intransferible</b>.<br>
+                Acércala al lector óptico al ingresar y salir del gimnasio.<br>
+                En caso de pérdida, solicita su reposición inmediata en recepción.
               </div>
-            </div>
+              <div class="back-contacts">
+                📍 ${RD.esc(gym.gym_address || 'Calle Antonio José de Sucre Lt. 10, Chivay')}<br>
+                📲 Atención / Yape: ${RD.esc(gym.gym_phone || '982 404 043')}<br>
+                🕒 ${RD.esc(gym.opening || 'Lun a Sáb 6:00 a 21:00')}
+              </div>
+              <div class="card-footer" style="justify-content:center;margin-top:4px">
+                <span>DISCIPLINA · CONSTANCIA · RESULTADOS</span>
+              </div>
+            </div>`;
 
-            <div class="card-footer">
-              <span>Calle Sucre Lt. 10 · Chivay</span>
-              <span>WhatsApp: ${RD.esc(gym.gym_phone || '982 404 043')}</span>
-            </div>
-          </div>`;
+            return `
+              <div class="card-item-wrap ${isSel ? '' : 'unselected'}" data-cid="${c.id}" style="opacity:${isSel ? '1' : '0.45'}">
+                <div class="card-select-bar noprint">
+                  <label class="check"><input type="checkbox" class="cb-card" data-id="${c.id}" ${isSel ? 'checked' : ''}> <span>Imprimir a <b>${RD.esc(c.name)}</b></span></label>
+                  <span>${RD.esc(c.code)}</span>
+                </div>
+                ${front}
+                ${showBack ? back : ''}
+              </div>`;
+          }).join('');
 
-          const back = `
-          <div class="pvc-card back">
-            <div class="card-logo" style="justify-content:center;margin-bottom:6px">
-              <img src="/logo.svg" style="height:24px" alt="RD">
-              <div class="brand-txt">${RD.esc(gym.gym_name || 'RD FITNESS CLUB')}</div>
-            </div>
-            <div class="back-rules">
-              Esta credencial es <b>personal e intransferible</b>.<br>
-              Debe presentarse al escáner al ingresar a la sala.<br>
-              En caso de pérdida o deterioro, comuníquese con recepción para su anulación inmediata.
-            </div>
-            <div class="back-contacts">
-              ${RD.icon('pin')} ${RD.esc(gym.gym_address || 'Calle Antonio José de Sucre Lt. 10, Chivay')}<br>
-              ${RD.icon('phone')} Atención: ${RD.esc(gym.gym_phone || '982 404 043')}<br>
-              ${RD.icon('clock')} ${RD.esc(gym.opening || 'Lun a Sáb 6:00 a 21:00')}
-            </div>
-            <div class="card-footer" style="justify-content:center;margin-top:6px">
-              <span>TU MEJOR VERSIÓN EMPIEZA AQUÍ</span>
-            </div>
-          </div>`;
+          cardsEl.querySelectorAll('.cb-card').forEach(cb => {
+            cb.onchange = () => {
+              const id = Number(cb.dataset.id);
+              if (cb.checked) selected.add(id); else selected.delete(id);
+              const wrap = cb.closest('.card-item-wrap');
+              if (wrap) {
+                wrap.classList.toggle('unselected', !cb.checked);
+                wrap.style.opacity = cb.checked ? '1' : '0.45';
+              }
+              updateStatus();
+            };
+          });
+        }
 
-          return front + (showBack ? back : '');
-        }).join('');
+        showBackCb.onchange = render;
+        qInp.oninput = () => { search = qInp.value.trim(); render(); };
+        document.getElementById('selall').onclick = () => { cards.forEach(c => selected.add(c.id)); render(); };
+        document.getElementById('selnone').onclick = () => { selected.clear(); render(); };
+        render();
       }
 
-      showBackCb.onchange = render;
-      render();
+      loadAndRender();
     })();
   </script>
 </body>

@@ -153,7 +153,7 @@
     root.innerHTML = `
     <div class="auth"><form class="box" id="lf" autocomplete="on">
       <div class="brand"><img class="logo" src="/logo.svg" alt="RD"><h1>${esc(p.gym_name || 'RD Fitness Club')}</h1><p>Panel de gestión</p></div>
-      ${msg ? `<div class="banner err">${esc(msg)}</div>` : ''}
+      <div id="lf_err" class="banner err" style="${msg ? '' : 'display:none'}">${esc(msg || '')}</div>
       <label class="field"><span>Usuario</span><input name="u" autocomplete="username" autocapitalize="none" required autofocus></label>
       <label class="field"><span>Contraseña</span><input name="p" type="password" autocomplete="current-password" required></label>
       <button class="btn primary block" type="submit">Ingresar</button>
@@ -162,13 +162,28 @@
     $('#lf').onsubmit = async e => {
       e.preventDefault();
       const f = e.target;
-      await RD.busy(f.querySelector('button'), async () => {
+      const errBox = $('#lf_err');
+      if (errBox) errBox.style.display = 'none';
+      const runBusy = RD.busy || (async (btn, fn) => {
+        if (btn) btn.disabled = true;
+        try { return await fn(); } finally { if (btn) btn.disabled = false; }
+      });
+      await runBusy(f.querySelector('button'), async () => {
         try {
           const r = await RD.api.post('/auth/login', { username: f.u.value, password: f.p.value });
           localStorage.setItem('rd_staff_token', r.token);
           localStorage.setItem('rd_staff_user', JSON.stringify(r.user));
-          RD.user = r.user; boot();
-        } catch (err) { RD.toast(err.message, 'err'); }
+          RD.user = r.user;
+          layout();
+          if (navigator.onLine) { RD.flushScans(); RD.syncMembers().catch(() => { }); RD.getPlans().catch(() => { }); }
+          const saved = localStorage.getItem('rd_last_view');
+          const h = (location.hash || '').replace('#/', '') || saved;
+          go(h && NAV[h] ? h : (RD.user.role === 'entrenador' ? 'home' : 'scan'));
+        } catch (err) {
+          const m = err.message || 'Usuario o contraseña incorrectos';
+          if (errBox) { errBox.textContent = m; errBox.style.display = 'block'; }
+          if (RD.toast) RD.toast(m, 'err');
+        }
       });
     };
   }
@@ -472,6 +487,9 @@ pause`;
         <button class="top-btn" id="btn_customer_screen" title="Abrir Pantalla TV / Cámaras CCTV en 2do Monitor o Ventana Acoplada">
           ${RD.icon('monitor', '', 15)} <span>TV / CCTV</span>
         </button>
+        <a class="top-btn" href="/admin/cards.html" target="_blank" style="text-decoration:none" title="Estudio de Impresión de Tarjetas y Carnets QR Físicos">
+          ${RD.icon('idcard', '', 15)} <span>Carnets QR</span>
+        </a>
         <button class="top-btn" id="btn_google_sheets" title="Abrir Google Sheets Oficial del Gimnasio">
           ${RD.icon('sheet', '', 15)} <span>Sheets</span>
         </button>

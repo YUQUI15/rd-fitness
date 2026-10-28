@@ -29,14 +29,43 @@ const db = new DatabaseSync(DB_FILE);
 db.exec('PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000; PRAGMA cache_size = -16000; PRAGMA temp_store = MEMORY;');
 
 const clean = a => a.map(v => (v === undefined ? null : (typeof v === 'boolean' ? (v ? 1 : 0) : v)));
+let isBooting = true;
+let isRestoring = false;
+let cloudReady = !CloudVault.isConfigured();
+let localVaultTimer = null;
+
+function scheduleAutoVault(sql) {
+  if (isBooting || isRestoring) return;
+  const s = String(sql || '').trim().toUpperCase();
+  if (!s || s.startsWith('SELECT') || s.startsWith('PRAGMA') || s.startsWith('CREATE') || s.startsWith('ALTER')) return;
+  if (s.includes('INTO AUDIT') || s.includes('SET LAST_SEEN=')) return;
+  if (localVaultTimer) clearTimeout(localVaultTimer);
+  localVaultTimer = setTimeout(() => {
+    localVaultTimer = null;
+    saveVault();
+  }, 800);
+  if (localVaultTimer.unref) localVaultTimer.unref();
+}
+
 const q = {
   get: (sql, ...a) => db.prepare(sql).get(...clean(a)),
   all: (sql, ...a) => db.prepare(sql).all(...clean(a)),
-  run: (sql, ...a) => db.prepare(sql).run(...clean(a)),
+  run: (sql, ...a) => {
+    const r = db.prepare(sql).run(...clean(a));
+    scheduleAutoVault(sql);
+    return r;
+  },
   tx(fn) {
     db.exec('BEGIN IMMEDIATE');
-    try { const r = fn(); db.exec('COMMIT'); return r; }
-    catch (e) { db.exec('ROLLBACK'); throw e; }
+    try {
+      const r = fn();
+      db.exec('COMMIT');
+      scheduleAutoVault('COMMIT');
+      return r;
+    } catch (e) {
+      db.exec('ROLLBACK');
+      throw e;
+    }
   }
 };
 
@@ -550,8 +579,9 @@ function getVaultData() {
   return {
     gym_name: getSettings().gym_name || 'RD Fitness Club',
     exported_at: new Date().toISOString(),
-    version: '2.8',
+    version: '3.0',
     users: q.all('SELECT id, username, name, role, pass_hash, active, must_change, created_at FROM users'),
+    sessions: q.all('SELECT * FROM sessions'),
     members: q.all('SELECT * FROM members'),
     memberships: q.all('SELECT * FROM memberships'),
     payments: q.all('SELECT * FROM payments'),
@@ -577,6 +607,7 @@ function getVaultData() {
 }
 
 function saveVault() {
+  if (isRestoring) return false;
   try {
     const data = getVaultData();
     const targetPaths = [
@@ -591,10 +622,8 @@ function saveVault() {
       } catch {}
     }
 
-    if (CloudVault.isConfigured()) {
-      CloudVault.push(data).catch(e => {
-        console.warn('[CLOUD VAULT] Sync error:', e.message);
-      });
+    if (CloudVault.isConfigured() && cloudReady) {
+      CloudVault.schedule(() => getVaultData(), 1000);
     }
 
     return true;
@@ -607,56 +636,71 @@ function saveVault() {
 function applyVaultData(d) {
   if (!d || (!Array.isArray(d.members) && !Array.isArray(d.users))) return 0;
   let restored = 0;
-  q.tx(() => {
-    const insertRows = (tbl, rows) => {
-      if (!Array.isArray(rows) || !rows.length) return 0;
-      let c = 0;
-      for (const r of rows) {
-        const keys = Object.keys(r);
-        const cols = keys.join(', ');
-        const ph = keys.map(() => '?').join(', ');
-        const vals = Object.values(r);
-        try {
-          q.run(`INSERT OR REPLACE INTO ${tbl} (${cols}) VALUES (${ph})`, ...vals);
-          c++;
-        } catch (e) {}
-      }
-      return c;
-    };
-
-    if (Array.isArray(d.settings)) {
-      d.settings.forEach(s => {
-        if (s && s.key === 'gym_address') s.value = sanitizeGymAddress(s.value);
-      });
-    }
-    insertRows('settings', d.settings);
-    q.run("UPDATE settings SET value=? WHERE key='gym_address' AND LOWER(value) LIKE '%muya%'", CLEAN_GYM_ADDRESS);
-    insertRows('users', d.users);
-    insertRows('plans', d.plans);
-    insertRows('products', d.products);
-    restored = insertRows('members', d.members);
-    insertRows('memberships', d.memberships);
-    insertRows('payments', d.payments);
-    insertRows('expenses', d.expenses);
-    insertRows('attendance', d.attendance);
-    insertRows('daily_passes', d.daily_passes);
-    insertRows('member_credentials', d.member_credentials);
-    insertRows('member_prefs', d.member_prefs);
-    insertRows('announcements', d.announcements);
-    insertRows('inbox_reads', d.inbox_reads);
-    insertRows('push_subs', d.push_subs);
-    insertRows('routines', d.routines);
-    insertRows('routine_items', d.routine_items);
-    insertRows('assignments', d.assignments);
-    insertRows('workouts', d.workouts);
-    insertRows('set_logs', d.set_logs);
-    insertRows('measurements', d.measurements);
-    insertRows('cash_shifts', d.cash_shifts);
-  });
+  isRestoring = true;
   try {
-    seedExercises();
-    seedRoutines();
-  } catch (e) {}
+    db.exec('PRAGMA foreign_keys = OFF;');
+    q.tx(() => {
+      const replaceTable = (tbl, rows, { keepIfEmpty = false } = {}) => {
+        if (!Array.isArray(rows)) return 0;
+        if (keepIfEmpty && rows.length === 0) return 0;
+        try { q.run(`DELETE FROM ${tbl}`); } catch (e) {}
+        let c = 0;
+        for (const r of rows) {
+          const keys = Object.keys(r);
+          const cols = keys.join(', ');
+          const ph = keys.map(() => '?').join(', ');
+          const vals = Object.values(r);
+          try {
+            q.run(`INSERT OR REPLACE INTO ${tbl} (${cols}) VALUES (${ph})`, ...vals);
+            c++;
+          } catch (e) {}
+        }
+        return c;
+      };
+
+      if (Array.isArray(d.settings)) {
+        d.settings.forEach(s => {
+          if (s && s.key === 'gym_address') s.value = sanitizeGymAddress(s.value);
+        });
+      }
+      replaceTable('settings', d.settings, { keepIfEmpty: true });
+      for (const [k, v] of Object.entries(DEFAULT_SETTINGS)) {
+        q.run('INSERT OR IGNORE INTO settings(key,value) VALUES(?,?)', k, v);
+      }
+      q.run("UPDATE settings SET value=? WHERE key='gym_address' AND LOWER(value) LIKE '%muya%'", CLEAN_GYM_ADDRESS);
+      replaceTable('users', d.users, { keepIfEmpty: true });
+      if (Array.isArray(d.sessions) && d.sessions.length > 0) {
+        replaceTable('sessions', d.sessions);
+      }
+      replaceTable('plans', d.plans, { keepIfEmpty: true });
+      replaceTable('products', d.products, { keepIfEmpty: true });
+      restored = replaceTable('members', d.members);
+      replaceTable('memberships', d.memberships);
+      replaceTable('payments', d.payments);
+      replaceTable('expenses', d.expenses);
+      replaceTable('attendance', d.attendance);
+      replaceTable('daily_passes', d.daily_passes);
+      replaceTable('member_credentials', d.member_credentials);
+      replaceTable('member_prefs', d.member_prefs);
+      replaceTable('announcements', d.announcements);
+      replaceTable('inbox_reads', d.inbox_reads);
+      replaceTable('push_subs', d.push_subs);
+      replaceTable('routines', d.routines, { keepIfEmpty: true });
+      replaceTable('routine_items', d.routine_items, { keepIfEmpty: true });
+      replaceTable('assignments', d.assignments);
+      replaceTable('workouts', d.workouts);
+      replaceTable('set_logs', d.set_logs);
+      replaceTable('measurements', d.measurements);
+      replaceTable('cash_shifts', d.cash_shifts);
+    });
+    try {
+      seedExercises();
+      seedRoutines();
+    } catch (e) {}
+  } finally {
+    try { db.exec('PRAGMA foreign_keys = ON;'); } catch {}
+    isRestoring = false;
+  }
   checkpoint();
   return restored;
 }
@@ -686,32 +730,43 @@ function restoreVault() {
 }
 
 async function restoreVaultFromCloud() {
-  if (!CloudVault.isConfigured()) return 0;
+  if (!CloudVault.isConfigured()) {
+    cloudReady = true;
+    return 0;
+  }
   try {
     const d = await CloudVault.pull();
-    if (!d) return 0;
-    const restored = applyVaultData(d);
-    if (restored > 0) {
-      try {
-        const targetPaths = [
-          path.join(DATA_DIR, 'backup-vault.json'),
-          path.join(__dirname, '..', 'storage', 'backup-vault.json')
-        ];
-        for (const p of targetPaths) {
-          fs.mkdirSync(path.dirname(p), { recursive: true });
-          fs.writeFileSync(p, JSON.stringify(d, null, 2), 'utf8');
-        }
-      } catch {}
+    if (!d) {
+      cloudReady = true;
+      await CloudVault.push(getVaultData()).catch(() => {});
+      return q.get('SELECT COUNT(*) c FROM members')?.c || 0;
     }
+    const restored = applyVaultData(d);
+    try {
+      const fresh = getVaultData();
+      CloudVault._lastSig = CloudVault._sig(fresh);
+      const targetPaths = [
+        path.join(DATA_DIR, 'backup-vault.json'),
+        path.join(__dirname, '..', 'storage', 'backup-vault.json')
+      ];
+      for (const p of targetPaths) {
+        fs.mkdirSync(path.dirname(p), { recursive: true });
+        fs.writeFileSync(p, JSON.stringify(fresh, null, 2), 'utf8');
+      }
+    } catch {}
+    cloudReady = true;
     console.log(`[CLOUD VAULT] Sincronización desde la nube completada (${CloudVault.getProvider()}): ${restored} socios restaurados.`);
     return restored;
   } catch (err) {
-    console.warn('[CLOUD VAULT] Error en restoreVaultFromCloud:', err.message);
+    console.warn('[CLOUD VAULT] Error en restoreVaultFromCloud (se reintentará en 15s sin sobrescribir la nube):', err.message);
+    const t = setTimeout(() => { restoreVaultFromCloud().catch(() => {}); }, 15000);
+    if (t.unref) t.unref();
     return 0;
   }
 }
 
 restoreVault();
+isBooting = false;
 
 // ---------- Consolidación WAL y Respaldo automático ----------
 function checkpoint() {
