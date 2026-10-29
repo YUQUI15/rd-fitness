@@ -1008,7 +1008,516 @@
     .replace(/\s*\(?\s*al costado de\s+(la\s+)?discoteca\s+muya\s*\)?/gi, '')
     .trim() || 'Calle Antonio José de Sucre Lt. 10, Chivay';
 
-  // ---------- Generador de Boletas / Tickets (Térmico 58mm/80mm y WhatsApp) ----------
+  // ---------- Motor Universal de Impresión Ejecutiva A4 y Tickets Térmicos 80mm (Cero Hojas en Blanco) ----------
+  RD.runIsolatedPrint = (fullHtml, docTitle = 'Documento Oficial') => {
+    let iframe = document.getElementById('rd-isolated-print-frame');
+    if (iframe) iframe.remove();
+    iframe = document.createElement('iframe');
+    iframe.id = 'rd-isolated-print-frame';
+    iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;pointer-events:none';
+    document.body.appendChild(iframe);
+
+    const win = iframe.contentWindow;
+    const doc = win.document;
+    doc.open();
+    doc.write(fullHtml);
+    doc.close();
+
+    const triggerPrint = () => {
+      if (iframe._printed) return;
+      iframe._printed = true;
+      const prevTitle = document.title;
+      if (docTitle) document.title = docTitle;
+      setTimeout(() => {
+        try {
+          win.focus();
+          win.print();
+        } catch (e) {
+          window.print();
+        } finally {
+          setTimeout(() => { document.title = prevTitle; }, 800);
+        }
+      }, 180);
+    };
+
+    const imgs = Array.from(doc.images || []);
+    if (!imgs.length) {
+      triggerPrint();
+    } else {
+      let loaded = 0;
+      const checkDone = () => { loaded++; if (loaded >= imgs.length) triggerPrint(); };
+      imgs.forEach(img => {
+        if (img.complete) checkDone();
+        else { img.onload = checkDone; img.onerror = checkDone; }
+      });
+      setTimeout(triggerPrint, 900);
+    }
+  };
+
+  RD.printThermalTicket = (ticketHtml, title = 'Ticket_RDFitness') => {
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>${RD.esc(title)}</title>
+<style>
+  @page { size: 80mm auto; margin: 2mm; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 74mm !important;
+    height: auto !important;
+    min-height: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: 'Courier New', Consolas, monospace !important;
+    font-size: 11.5px !important;
+    line-height: 1.3 !important;
+  }
+  .receipt-ticket {
+    width: 100% !important;
+    padding: 2mm 1mm !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    position: relative !important;
+  }
+  .watermark-bg { display: none !important; }
+  .r-center { text-align: center !important; }
+  .r-bold, b, strong { font-weight: 900 !important; color: #000000 !important; }
+  .r-small { font-size: 10.5px !important; }
+  .r-tiny { font-size: 9.5px !important; }
+  .muted { color: #000000 !important; }
+  .r-line { text-align: center !important; font-weight: 900 !important; margin: 4px 0 !important; overflow: hidden !important; white-space: nowrap !important; }
+  .r-row { display: flex !important; justify-content: space-between !important; gap: 6px !important; margin: 2px 0 !important; font-weight: 700 !important; }
+  img, svg { max-width: 100% !important; filter: contrast(180%) !important; }
+</style>
+</head>
+<body>${ticketHtml}</body>
+</html>`;
+    RD.runIsolatedPrint(html, title);
+  };
+
+  RD.printExecutiveDocument = (opts = {}) => {
+    const gymName = opts.gym?.name || 'RD FITNESS CLUB';
+    const gymSlogan = opts.gym?.slogan || 'Disciplina · Constancia · Resultados · Chivay';
+    const gymAddress = RD.cleanAddress(opts.gym?.address || 'Calle Antonio José de Sucre Lt. 10, Chivay');
+    const gymPhone = opts.gym?.phone || '982404043';
+    const gymRuc = opts.gym?.ruc || '10702548911';
+    const orientation = opts.orientation === 'landscape' ? 'landscape' : 'portrait';
+    const docType = opts.docType || 'DOCUMENTO EJECUTIVO OFICIAL';
+    const docCode = opts.docCode || ('DOC-' + new Date().toISOString().slice(0, 10).replace(/-/g, ''));
+    const title = opts.title || 'Reporte Ejecutivo';
+    const subtitle = opts.subtitle || '';
+    const period = opts.period || new Date().toLocaleDateString('es-PE');
+    const emittedAt = new Date().toLocaleDateString('es-PE') + ' ' + new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+    const fileTitle = (opts.fileName || `${title}_${docCode}`).replace(/[^a-zA-Z0-9_-]+/g, '_');
+
+    const sigs = opts.signatures || [
+      { title: 'ELABORADO Y VERIFICADO POR', name: 'Administración y Control de Caja', sub: gymName },
+      { title: 'CONFORMIDAD Y V°B° GERENCIA', name: 'Dirección General', sub: `${gymName} · Chivay` }
+    ];
+
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>${RD.esc(fileTitle)}</title>
+<style>
+  @page { size: A4 ${orientation}; margin: 10mm 12mm; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-family: 'Segoe UI', Inter, -apple-system, BlinkMacSystemFont, Roboto, sans-serif !important;
+    font-size: 9.2pt !important;
+    line-height: 1.38 !important;
+  }
+  .doc-page {
+    position: relative;
+    width: 100%;
+  }
+  .doc-watermark {
+    position: fixed;
+    top: 52%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-28deg);
+    font-size: 60pt;
+    font-weight: 900;
+    color: rgba(180, 83, 9, 0.038);
+    letter-spacing: 8px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .doc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2.5px solid #b45309;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .doc-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .doc-brand img {
+    width: 54px;
+    height: 54px;
+    object-fit: contain;
+    border-radius: 8px;
+  }
+  .doc-gym-name {
+    font-size: 14pt;
+    font-weight: 900;
+    color: #0f172a;
+    letter-spacing: 0.4px;
+    line-height: 1.15;
+  }
+  .doc-gym-slogan {
+    font-size: 8.5pt;
+    font-weight: 700;
+    color: #b45309;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 1px;
+  }
+  .doc-gym-meta {
+    font-size: 8pt;
+    color: #475569;
+    margin-top: 2px;
+  }
+  .doc-meta-box {
+    text-align: right;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-right: 4px solid #b45309;
+    border-radius: 6px;
+    padding: 6px 10px;
+    min-width: 210px;
+  }
+  .doc-meta-type {
+    font-size: 7.5pt;
+    font-weight: 900;
+    color: #92400e;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+  .doc-meta-code {
+    font-size: 10pt;
+    font-weight: 900;
+    color: #0f172a;
+    font-family: Consolas, monospace;
+    margin: 1px 0;
+  }
+  .doc-meta-sub {
+    font-size: 7.8pt;
+    color: #334155;
+  }
+  .doc-title-banner {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-left: 4px solid #0f172a;
+    border-radius: 6px;
+    padding: 7px 12px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .doc-title-banner h1 {
+    margin: 0;
+    font-size: 11.5pt;
+    font-weight: 900;
+    color: #0f172a;
+    text-transform: uppercase;
+  }
+  .doc-title-banner p {
+    margin: 2px 0 0 0;
+    font-size: 8.2pt;
+    color: #475569;
+  }
+  .doc-period-pill {
+    background: #ffffff;
+    border: 1px solid #94a3b8;
+    border-radius: 5px;
+    padding: 4px 8px;
+    font-size: 8pt;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    text-align: right;
+  }
+  .doc-section {
+    margin-bottom: 11px;
+    position: relative;
+    z-index: 1;
+  }
+  .doc-sec-title {
+    font-size: 9.5pt;
+    font-weight: 900;
+    color: #0f172a;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 4px 8px;
+    background: #f1f5f9;
+    border-left: 3.5px solid #b45309;
+    margin-bottom: 6px;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+  .doc-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 7px;
+    margin-bottom: 10px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .doc-kpi {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 6px 9px;
+    background: #ffffff;
+  }
+  .doc-kpi.accent {
+    background: #fffbeb;
+    border-color: #fcd34d;
+  }
+  .doc-kpi .k-lbl {
+    font-size: 7.4pt;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .doc-kpi .k-val {
+    font-size: 12pt;
+    font-weight: 900;
+    color: #0f172a;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .doc-kpi.accent .k-val { color: #b45309; }
+  .doc-kpi .k-sub {
+    font-size: 7.4pt;
+    color: #64748b;
+    margin-top: 1px;
+  }
+  .doc-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    margin-bottom: 9px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .doc-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 9px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .doc-box {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 7px 10px;
+    background: #ffffff;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .doc-box h4 {
+    margin: 0 0 5px 0;
+    font-size: 8.8pt;
+    font-weight: 900;
+    color: #92400e;
+    text-transform: uppercase;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 3px;
+  }
+  table.doc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.4pt;
+    margin-bottom: 6px;
+  }
+  table.doc-table thead {
+    display: table-header-group;
+  }
+  table.doc-table tfoot {
+    display: table-footer-group;
+  }
+  table.doc-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  table.doc-table th {
+    background: #1e293b !important;
+    color: #ffffff !important;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 7.6pt;
+    letter-spacing: 0.3px;
+    padding: 5px 7px;
+    border: 1px solid #1e293b;
+    text-align: left;
+  }
+  table.doc-table td {
+    padding: 4.5px 7px;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
+    vertical-align: middle;
+  }
+  table.doc-table tbody tr:nth-child(even) td {
+    background: #f8fafc;
+  }
+  table.doc-table tfoot td {
+    background: #fffbeb !important;
+    color: #0f172a !important;
+    font-weight: 900;
+    border-top: 2px solid #b45309;
+    padding: 5.5px 7px;
+  }
+  .t-right { text-align: right !important; font-variant-numeric: tabular-nums; }
+  .t-center { text-align: center !important; }
+  .t-mono { font-family: Consolas, monospace; font-size: 8pt; }
+  .doc-badge {
+    display: inline-block;
+    padding: 1.5px 6px;
+    border-radius: 4px;
+    font-size: 7.4pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    border: 1px solid #94a3b8;
+    background: #f1f5f9;
+    color: #0f172a;
+  }
+  .doc-badge.ok { background: #dcfce7 !important; color: #14532d !important; border-color: #86efac !important; }
+  .doc-badge.warn { background: #fef3c7 !important; color: #78350f !important; border-color: #fcd34d !important; }
+  .doc-badge.bad { background: #ffe4e6 !important; color: #881337 !important; border-color: #fda4af !important; }
+  .doc-badge.info { background: #e0f2fe !important; color: #0c4a6e !important; border-color: #7dd3fc !important; }
+  .doc-signatures {
+    display: grid;
+    grid-template-columns: repeat(${sigs.length}, 1fr);
+    gap: 24px;
+    margin-top: 24px;
+    padding-top: 8px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .doc-sig-box {
+    text-align: center;
+    padding-top: 28px;
+  }
+  .doc-sig-line {
+    border-top: 1.5px solid #334155;
+    padding-top: 5px;
+    margin: 0 14px;
+  }
+  .doc-sig-title {
+    font-size: 7.6pt;
+    font-weight: 900;
+    color: #0f172a;
+    text-transform: uppercase;
+  }
+  .doc-sig-name {
+    font-size: 8.2pt;
+    font-weight: 700;
+    color: #334155;
+    margin-top: 1px;
+  }
+  .doc-sig-sub {
+    font-size: 7.4pt;
+    color: #64748b;
+  }
+  .doc-footer {
+    margin-top: 10px;
+    padding-top: 5px;
+    border-top: 1px solid #cbd5e1;
+    display: flex;
+    justify-content: space-between;
+    font-size: 7.3pt;
+    color: #64748b;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+</style>
+</head>
+<body>
+  <div class="doc-page">
+    <div class="doc-watermark">RD FITNESS</div>
+    <header class="doc-header">
+      <div class="doc-brand">
+        <img src="/logo.svg?v=5.6" alt="Logo">
+        <div>
+          <div class="doc-gym-name">${RD.esc(gymName)}</div>
+          <div class="doc-gym-slogan">${RD.esc(gymSlogan)}</div>
+          <div class="doc-gym-meta">${gymRuc ? 'RUC: ' + RD.esc(gymRuc) + ' · ' : ''}${RD.esc(gymAddress)} · Cel: ${RD.esc(gymPhone)}</div>
+        </div>
+      </div>
+      <div class="doc-meta-box">
+        <div class="doc-meta-type">${RD.esc(docType)}</div>
+        <div class="doc-meta-code">N° ${RD.esc(docCode)}</div>
+        <div class="doc-meta-sub">Emisión: <b>${RD.esc(emittedAt)}</b></div>
+      </div>
+    </header>
+
+    <div class="doc-title-banner">
+      <div>
+        <h1>${RD.esc(title)}</h1>
+        ${subtitle ? `<p>${RD.esc(subtitle)}</p>` : ''}
+      </div>
+      <div class="doc-period-pill">
+        Período / Fecha:<br><b>${RD.esc(period)}</b>
+      </div>
+    </div>
+
+    ${opts.bodyHtml || ''}
+
+    <div class="doc-signatures">
+      ${sigs.map(s => `
+        <div class="doc-sig-box">
+          <div class="doc-sig-line">
+            <div class="doc-sig-title">${RD.esc(s.title)}</div>
+            <div class="doc-sig-name">${RD.esc(s.name)}</div>
+            <div class="doc-sig-sub">${RD.esc(s.sub || '')}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <footer class="doc-footer">
+      <span>${RD.esc(opts.footerNote || `Documento oficial generado por el Sistema de Gestión y Auditoría de ${gymName}. Información verificada en base de datos.`)}</span>
+      <span>Hora de Lima (UTC-5) · ${RD.esc(emittedAt)}</span>
+    </footer>
+  </div>
+</body>
+</html>`;
+    RD.runIsolatedPrint(html, fileTitle);
+  };
+
+  // ---------- Generador de Boletas / Tickets (Térmico 58mm/80mm, A4 PDF y WhatsApp) ----------
   RD.waReceiptText = (r) => {
     const cleanAddr = RD.cleanAddress(r.gym?.address || 'Calle Antonio José de Sucre Lt. 10, Chivay');
     return [
@@ -1073,14 +1582,95 @@
           <div class="r-center r-tiny muted">¡Gracias por entrenar con nosotros!</div>
         </div>
       </div>
-      <div class="grid g2 mt gap no-print">
-        <button class="btn primary" id="btnprint">${RD.icon('printer', '', 15)} Imprimir Ticket (58mm / 80mm)</button>
-        ${waUrl ? `<a class="btn ok" target="_blank" rel="noopener" href="${waUrl}">${RD.icon('whatsapp', '', 15)} Enviar por WhatsApp</a>` : `<button class="btn ok" id="btnwa">${RD.icon('whatsapp', '', 15)} Enviar por WhatsApp</button>`}
+      <div class="grid g3 mt gap no-print">
+        <button class="btn primary" id="btnprint">${RD.icon('printer', '', 15)} Ticket 80mm</button>
+        <button class="btn info" id="btnprinta4">${RD.icon('file-text', '', 15)} Guardar PDF A4</button>
+        ${waUrl ? `<a class="btn ok" target="_blank" rel="noopener" href="${waUrl}">${RD.icon('whatsapp', '', 15)} WhatsApp</a>` : `<button class="btn ok" id="btnwa">${RD.icon('whatsapp', '', 15)} WhatsApp</button>`}
       </div>
     `, { wide: false });
 
     modal.el.querySelector('#btnprint').onclick = () => {
-      window.print();
+      const ticketEl = modal.el.querySelector('#rprint');
+      RD.printThermalTicket(ticketEl ? ticketEl.innerHTML : '', `Ticket_${r.receipt_no || 'Pago'}`);
+    };
+    modal.el.querySelector('#btnprinta4').onclick = () => {
+      RD.printExecutiveDocument({
+        gym: r.gym,
+        docType: 'COMPROBANTE OFICIAL DE PAGO',
+        docCode: r.receipt_no || ('REC-' + (r.payment_id || '')),
+        title: 'Comprobante de Pago de Membresía / Servicios',
+        subtitle: 'Documento oficial de recaudación y constancia de vigencia para el socio',
+        period: RD.fmtDateTime(r.date || new Date().toISOString()),
+        fileName: `Comprobante_${r.receipt_no || 'RDFitness'}`,
+        bodyHtml: `
+          <div class="doc-section">
+            <div class="doc-sec-title">I. Datos del Cliente y Transacción</div>
+            <div class="doc-grid-2">
+              <div class="doc-box">
+                <h4>Titular / Socio</h4>
+                <table class="doc-table" style="margin:0">
+                  <tbody>
+                    <tr><td><b>Nombre Completo:</b></td><td><b>${RD.esc(r.client?.name || 'Cliente General')}</b></td></tr>
+                    <tr><td><b>DNI / Código:</b></td><td class="t-mono">${RD.esc(r.client?.doc || '—')}</td></tr>
+                    <tr><td><b>Teléfono:</b></td><td>${RD.esc(r.client?.phone || '—')}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="doc-box">
+                <h4>Datos de Caja</h4>
+                <table class="doc-table" style="margin:0">
+                  <tbody>
+                    <tr><td><b>N° Comprobante:</b></td><td class="t-mono"><b>${RD.esc(r.receipt_no)}</b></td></tr>
+                    <tr><td><b>Método de Pago:</b></td><td><span class="doc-badge ok">${RD.esc((r.method || 'efectivo').toUpperCase())}</span> ${r.op_code ? `Op: #${RD.esc(r.op_code)}` : ''}</td></tr>
+                    <tr><td><b>Atendido por:</b></td><td>${RD.esc(r.user_name || 'Recepción')}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="doc-section">
+            <div class="doc-sec-title">II. Detalle de Conceptos Facturados</div>
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th style="width:50px">Ítem</th>
+                  <th>Descripción del Servicio / Producto</th>
+                  <th>Vigencia / Condición</th>
+                  <th class="t-right" style="width:130px">Importe Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="t-center">01</td>
+                  <td><b>${RD.esc(r.concept)}</b></td>
+                  <td>${RD.esc(r.validity || 'Pago procesado al contado')}</td>
+                  <td class="t-right"><b>${RD.money(r.amount)}</b></td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" class="t-right">TOTAL CANCELADO (SOLES):</td>
+                  <td class="t-right" style="font-size:11pt;color:#b45309">${RD.money(r.amount)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          ${qrSvg ? `
+          <div class="doc-section">
+            <div class="doc-box" style="display:flex;align-items:center;gap:16px">
+              <div style="width:110px;height:110px;flex-shrink:0">${qrSvg}</div>
+              <div>
+                <h4 style="margin-bottom:4px">Credencial QR de Acceso y Verificación</h4>
+                <p style="margin:0;font-size:8.5pt;color:#334155">Presenta este código QR frente al lector óptico 2D en el mostrador de recepción para validar tu ingreso inmediato al establecimiento.</p>
+              </div>
+            </div>
+          </div>` : ''}
+        `,
+        signatures: [
+          { title: 'CONFORMIDAD DEL SOCIO / CLIENTE', name: r.client?.name || 'Cliente', sub: r.client?.doc ? `Doc: ${r.client.doc}` : 'Titular' },
+          { title: 'CAJA Y RECEPCIÓN', name: r.user_name || 'Administración', sub: r.gym?.name || 'RD FITNESS CLUB' }
+        ]
+      });
     };
     const bwa = modal.el.querySelector('#btnwa');
     if (bwa) {
@@ -1199,13 +1789,91 @@
           <div class="r-center" style="font-size:.75rem">_____________________________<br>CONFORMIDAD ADMINISTRACIÓN<br>RD FITNESS CLUB</div>
         </div>
       </div>
-      <div class="row end gap mt no-print">
-        <button class="btn primary" id="btnprintshift">${RD.icon('printer')} Imprimir Acta / Ticket</button>
+      <div class="grid g2 gap mt no-print">
+        <button class="btn primary" id="btnprintshift">${RD.icon('printer')} Ticket Térmico (80mm)</button>
+        <button class="btn info" id="btnprintshifta4">${RD.icon('file-text')} Guardar Acta A4 (PDF)</button>
       </div>
     `, { wide: false });
 
     modal.el.querySelector('#btnprintshift').onclick = () => {
-      window.print();
+      const ticketEl = modal.el.querySelector('#rprint');
+      RD.printThermalTicket(ticketEl ? ticketEl.innerHTML : '', `Acta_Turno_${s.id || ''}`);
+    };
+    modal.el.querySelector('#btnprintshifta4').onclick = () => {
+      RD.printExecutiveDocument({
+        gym: { name: settings.gym_name, slogan: settings.gym_slogan, address: cleanAddr, phone: settings.gym_phone, ruc: settings.gym_ruc },
+        docType: 'ACTA OFICIAL DE CIERRE DE TURNO',
+        docCode: `TURNO-${String(s.id || 1).padStart(4, '0')}`,
+        title: `Acta de Cierre y Arqueo de Caja — Turno #${s.id || ''}`,
+        subtitle: `Conciliación auditada de efectivo físico en gaveta y medios de pago digitales (${s.shift_name || 'General'})`,
+        period: `${s.day || ''} · Apertura: ${RD.fmtDateTime(s.opened_at)} · Cierre: ${RD.fmtDateTime(s.closed_at || new Date().toISOString())}`,
+        fileName: `Acta_Cierre_Turno_${s.id || ''}_${s.day || ''}`,
+        bodyHtml: `
+          <div class="doc-kpis">
+            <div class="doc-kpi accent">
+              <div class="k-lbl">Total Ingresos del Turno</div>
+              <div class="k-val">${RD.money(t.totalIncome || 0)}</div>
+              <div class="k-sub">${t.paymentsCount || 0} operaciones registradas</div>
+            </div>
+            <div class="doc-kpi">
+              <div class="k-lbl">Efectivo Esperado Gaveta</div>
+              <div class="k-val">${RD.money(s.expected_cash || t.expectedCashInDrawer || 0)}</div>
+              <div class="k-sub">Incluye fondo inicial (${RD.money(s.initial_cash || 0)})</div>
+            </div>
+            <div class="doc-kpi">
+              <div class="k-lbl">Efectivo Físico Contado</div>
+              <div class="k-val">${RD.money(s.actual_cash || 0)}</div>
+              <div class="k-sub">Declarado al cierre por cajero(a)</div>
+            </div>
+            <div class="doc-kpi">
+              <div class="k-lbl">Dictamen de Arqueo</div>
+              <div class="k-val" style="color:${diff < 0 ? '#be123c' : '#15803d'};font-size:10pt">${RD.esc(diffLabel)}</div>
+              <div class="k-sub">Cajero(a): ${RD.esc(s.user_name || 'Personal')}</div>
+            </div>
+          </div>
+
+          <div class="doc-grid-2">
+            <div class="doc-box">
+              <h4>1. Movimiento de Efectivo Físico (Gaveta)</h4>
+              <table class="doc-table" style="margin:0">
+                <thead><tr><th>Concepto de Caja Física</th><th class="t-right">Importe (S/)</th></tr></thead>
+                <tbody>
+                  <tr><td>(+) Fondo Inicial de Sencillo (Vuelto)</td><td class="t-right">${RD.money(s.initial_cash || 0)}</td></tr>
+                  <tr><td>(+) Cobros de Gimnasio en Efectivo</td><td class="t-right">${RD.money(t.gymCash || 0)}</td></tr>
+                  <tr><td>(+) Ventas de Tienda POS en Efectivo</td><td class="t-right">${RD.money(t.storeCash || 0)}</td></tr>
+                  <tr><td>(-) Gastos / Egresos Pagados en Efectivo</td><td class="t-right" style="color:#be123c">-${RD.money(t.cashExpenses || 0)}</td></tr>
+                  <tr><td><b>(=) EFECTIVO ESPERADO EN CAJÓN</b></td><td class="t-right"><b>${RD.money(s.expected_cash || t.expectedCashInDrawer || 0)}</b></td></tr>
+                  <tr><td><b>(=) EFECTIVO REAL CONTADO</b></td><td class="t-right"><b>${RD.money(s.actual_cash || 0)}</b></td></tr>
+                </tbody>
+                <tfoot>
+                  <tr><td>DIFERENCIA DE ARQUEO FÍSICO</td><td class="t-right">${RD.esc(diffLabel)}</td></tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <div class="doc-box">
+              <h4>2. Conciliación de Medios Digitales y Bancos</h4>
+              <table class="doc-table" style="margin:0">
+                <thead><tr><th>Canal Digital / Bancario</th><th class="t-right">Recaudado (S/)</th></tr></thead>
+                <tbody>
+                  <tr><td>Billetera Yape (QR / Celular)</td><td class="t-right">${RD.money(t.digitalBreakdown?.yape || 0)}</td></tr>
+                  <tr><td>Billetera Plin</td><td class="t-right">${RD.money(t.digitalBreakdown?.plin || 0)}</td></tr>
+                  <tr><td>Tarjeta POS (Izipay / Niubiz)</td><td class="t-right">${RD.money(t.digitalBreakdown?.card || 0)}</td></tr>
+                  <tr><td>Transferencias Bancarias</td><td class="t-right">${RD.money(t.digitalBreakdown?.transfer || 0)}</td></tr>
+                </tbody>
+                <tfoot>
+                  <tr><td>TOTAL DIGITAL ESPERADO EN CUENTAS</td><td class="t-right">${RD.money(s.expected_digital || t.expectedDigital || 0)}</td></tr>
+                </tfoot>
+              </table>
+              ${s.notes ? `<div style="margin-top:8px;padding:6px 8px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:4px;font-size:8pt"><b>Observaciones del Turno:</b> ${RD.esc(s.notes)}</div>` : ''}
+            </div>
+          </div>
+        `,
+        signatures: [
+          { title: 'FIRMA DEL CAJERO(A) RESPONSABLE', name: s.user_name || 'Cajero(a) de Turno', sub: `Turno #${s.id || ''} · ${s.shift_name || ''}` },
+          { title: 'CONFORMIDAD Y RECEPCIÓN DE CAJA', name: 'Administración / Gerencia General', sub: settings.gym_name || 'RD FITNESS CLUB' }
+        ]
+      });
     };
   };
 

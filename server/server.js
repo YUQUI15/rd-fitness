@@ -2532,6 +2532,8 @@ app.use('/api', api);
 
 // ---------------- Archivos estáticos ----------------
 app.use('/photos', express.static(path.join(DATA_DIR, 'photos'), { maxAge: '7d', index: false }));
+app.use('/3d', express.static(path.join(__dirname, '..', 'public', 'anatomy'), { maxAge: '1h' }));
+app.use('/3d-pro', express.static(path.join(__dirname, '..', 'public', 'anatomy-pro'), { maxAge: '1h' }));
 app.use(express.static(path.join(__dirname, '..', 'public'), {
   maxAge: '1h',
   setHeaders: (res, p) => { if (/(sw\.js|\.html|manifest\.json)$/.test(p)) res.setHeader('Cache-Control', 'no-cache'); }

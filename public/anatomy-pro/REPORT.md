@@ -1,4 +1,4 @@
-# Tu Gimnasio (Marca Propia) a Escala Real: Mostrador de Recepción ➔ Techo CCTV (+3.2m) ➔ Rack 19" ➔ Smart TV 55" PiP
+# RD FITNESS CLUB a Escala Real: Mostrador de Recepción ➔ Techo CCTV (+3.2m) ➔ Rack 19" ➔ Smart TV 55" PiP
 
 _Simulador Espacial y Anatómico 3D v3.0 • Ambientes Reales, Proporción Física Exacta, Boletas #000 y Smart TV con Cámaras + Publicidad Rotativa_
 
@@ -41,11 +41,11 @@ flowchart LR
 
 ## Fichas de equipo
 
-### 1. Smartphone del Socio con Carné Digital QR (o Tarjeta PVC Tu Gimnasio)
+### 1. Smartphone del Socio con Carné Digital QR (o Tarjeta PVC RD FITNESS CLUB)
 
 > **Ubicación:** Mostrador de Recepción • Zona de Ingreso de Socios (z = +10) · **Dimensiones Reales:** 7.6 × 15.8 × 0.8 cm (Smartphone OLED / Carné PVC)
 
-Teléfono del socio presentado frente al lector en la esquina de acceso del mostrador de recepción (z = +10). Sus dimensiones físicas reales (7.6 × 15.8 cm) son las más compactas de la escena, mostrando en pantalla el Carné Digital con código QR y sello de agua de Tu Gimnasio (Marca Propia).
+Teléfono del socio presentado frente al lector en la esquina de acceso del mostrador de recepción (z = +10). Sus dimensiones físicas reales (7.6 × 15.8 cm) son las más compactas de la escena, mostrando en pantalla el Carné Digital con código QR y sello de agua de RD FITNESS CLUB.
 
 | Especificación | Valor |
 |---|---|
@@ -56,7 +56,7 @@ Teléfono del socio presentado frente al lector en la esquina de acceso del most
 
 **Anatomía interna**
 
-- **Placa Lógica Smartphone ARM64** — Ejecuta la PWA de Tu Gimnasio (Marca Propia) con estadísticas, rutinas y carné QR.
+- **Placa Lógica Smartphone ARM64** — Ejecuta la PWA de RD FITNESS CLUB con estadísticas, rutinas y carné QR.
 - **Controlador Display AMOLED & Brillo** — Renderiza el vector SVG del código QR con bordes nítidos (`crispEdges`).
 - **Motor de Token QR (`GYMPRO:Mxxxx`)** — Genera la credencial única vinculada al DNI y vigencia del socio.
 - **Caché Offline Service Worker (`gym-v4.3`)** — Permite abrir el carné QR en la puerta del gimnasio incluso sin señal móvil.
@@ -64,7 +64,7 @@ Teléfono del socio presentado frente al lector en la esquina de acceso del most
 
 **Proceso interno**
 
-1. **Apertura Instantánea del Carné PWA** — El socio abre su carné digital de Tu Gimnasio (Marca Propia) (con o sin internet).
+1. **Apertura Instantánea del Carné PWA** — El socio abre su carné digital de RD FITNESS CLUB (con o sin internet).
 2. **Despliegue de Código QR Oficial** — Se muestra el código QR de alto contraste con marca de agua del gimnasio.
 3. **Presentación frente al Escáner 2D** — El socio acerca su pantalla a 10 cm del lector manos libres sobre el mostrador.
 
@@ -260,7 +260,7 @@ Gran pantalla panorámica vertical de 55 pulgadas (123.2 × 71.4 cm) instalada e
 1. **Estado Base (90%): 4 Cámaras CCTV a Pantalla Completa** — Muestra en vivo las 4 cámaras de seguridad del gimnasio a pantalla completa.
 2. **Reducción Automática de Cámaras a Esquina PiP** — Cuando ocurre un evento importante o toca publicidad, las cámaras pasan a la ventana PiP.
 3. **Proyección Prioritaria: Bienvenida QR / Cobro Yape (5.5s)** — Despliega los datos del socio o el código QR de Yape/Plin con sonido y luego restaura las cámaras.
-4. **Spot Publicitario Programado (16s cada 3 min)** — Anuncia los planes y promociones de Tu Gimnasio (Marca Propia) manteniendo las cámaras visibles en PiP.
+4. **Spot Publicitario Programado (16s cada 3 min)** — Anuncia los planes y promociones de RD FITNESS CLUB manteniendo las cámaras visibles en PiP.
 
 | Puerto | Tipo | Cable | Conectado a |
 |---|---|---|---|
@@ -345,7 +345,7 @@ _Duración simulada: 14.9s_
 4. **Stream USB 3.0 UVC 1080p60** (c_dvr_pc) — El flujo de las 4 cámaras llega a la Mini PC para integrarse en `/display.html`.
 5. **Bus HDMI Directo CCTV** (dvr_capture) — Canal HDMI directo de respaldo hacia la pantalla principal.
 6. **Enlace HDMI a Muro Principal** (c_dvr_tv) — Transmisión continua hacia la Smart TV de 55 pulgadas.
-7. **Spot Publicitario 16s + CCTV PiP** (smart_tv_55) — Cada 3 minutos la Smart TV proyecta durante 16 segundos el Spot Publicitario de Tu Gimnasio (Marca Propia) (manteniendo las cámaras en la esquina PiP) y luego regresa a las 4 cámaras a pantalla completa.
+7. **Spot Publicitario 16s + CCTV PiP** (smart_tv_55) — Cada 3 minutos la Smart TV proyecta durante 16 segundos el Spot Publicitario de RD FITNESS CLUB (manteniendo las cámaras en la esquina PiP) y luego regresa a las 4 cámaras a pantalla completa.
 
 ## Resultado de auditoría
 

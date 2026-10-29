@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cloud Sheets en Vivo (19 Hojas) - RD Fitness Club</title>
-  <link rel="icon" href="/logo.svg?v=5.3">
+  <link rel="icon" href="/logo.svg?v=5.6">
   <style>
     :root {
       --bg: #090a0f;
@@ -514,10 +514,51 @@
     [data-theme="light"] [style*="color:#a78bfa"],
     [data-theme="light"] [style*="color:#c084fc"] { color: #6D28D9 !important; }
 
+    .print-sheet-banner { display: none; }
     @media print {
-      .sheets-topbar, .formula-bar, .tabs-bar { display: none !important; }
-      body, .workspace { height: auto !important; overflow: visible !important; background: #fff !important; color: #000 !important; }
-      table.sheet-grid th, table.sheet-grid td { border: 1px solid #cbd5e1 !important; color: #000 !important; background: #fff !important; }
+      @page { size: A4 landscape; margin: 10mm 12mm; }
+      .sheets-topbar, .formula-bar, .tabs-bar, .modal-back, .login-overlay { display: none !important; }
+      html, body, .workspace, .dash-wrap {
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        display: block !important;
+        overflow: visible !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+      }
+      .print-sheet-banner {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #b45309;
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+        color: #0f172a;
+      }
+      .dash-banner, .kpi-card, .chart-box {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+      }
+      .kpi-val, .chart-box h3 { color: #0f172a !important; }
+      table.sheet-grid { width: 100% !important; border-collapse: collapse !important; font-size: 8.5pt !important; }
+      table.sheet-grid thead { display: table-header-group !important; }
+      table.sheet-grid tfoot { display: table-footer-group !important; }
+      table.sheet-grid tr { break-inside: avoid; page-break-inside: avoid; }
+      table.sheet-grid th, table.sheet-grid td {
+        border: 1px solid #cbd5e1 !important;
+        color: #0f172a !important;
+        background: #ffffff !important;
+        position: static !important;
+        padding: 4px 6px !important;
+      }
+      table.sheet-grid thead tr.col-headers th {
+        background: #f1f5f9 !important;
+        font-weight: 800 !important;
+      }
     }
   </style>
   <script>
@@ -543,7 +584,7 @@
 <body>
   <header class="sheets-topbar">
     <div class="brand-group">
-      <img src="/logo.svg?v=5.4" alt="RD Fitness Club">
+      <img src="/logo.svg?v=5.6" alt="RD Fitness Club">
       <div>
         <div class="doc-title">
           <span>RD Fitness Club — Libro Maestro Cloud Sheets</span>
@@ -566,6 +607,7 @@
       <button class="btn primary" id="btnRefresh" onclick="loadDataset(true)">🔄 Actualizar Datos</button>
       <button class="btn excel" onclick="downloadExcel()">📥 Descargar Excel (.xlsx)</button>
       <button class="btn" onclick="downloadActiveCsv()">📄 CSV Hoja</button>
+      <button class="btn" onclick="window.print()" title="Imprimir o guardar en PDF A4 Horizontal la hoja activa">🖨️ Imprimir / PDF</button>
       <button class="btn" onclick="openGoogleDriveModal()">☁️ Google Drive / Script</button>
       <button class="btn" id="btnThemeSheets" onclick="toggleSheetsTheme()" title="Alternar Modo Claro / Oscuro">☀️ Claro</button>
       <a class="btn" href="/admin/">⬅ Panel Admin</a>
@@ -695,7 +737,7 @@
       const ws = document.getElementById('workspace');
       ws.innerHTML = `
         <div class="login-box">
-          <img src="/logo.svg?v=5.3" style="height:64px;width:64px;object-fit:contain;margin-bottom:10px" alt="Logo">
+          <img src="/logo.svg?v=5.6" style="height:64px;width:64px;object-fit:contain;margin-bottom:10px" alt="Logo">
           <h2 style="font-size:18px;margin-bottom:4px">RD Fitness Club</h2>
           <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Inicia sesión para abrir el Libro Maestro Cloud Sheets en Vivo</p>
           <form id="loginForm">

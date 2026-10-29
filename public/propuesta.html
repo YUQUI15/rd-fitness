@@ -193,17 +193,19 @@
       color: #cbd5e1;
     }
     .feature-list li {
-      display: flex;
-      align-items: flex-start;
-      gap: 6px;
+      display: block;
+      position: relative;
+      padding-left: 18px;
+      line-height: 1.45;
     }
     .feature-list li::before {
       content: "✔";
       color: var(--emerald);
       font-weight: 900;
       font-size: 11px;
-      flex-shrink: 0;
-      margin-top: 2px;
+      position: absolute;
+      left: 0;
+      top: 1px;
     }
     table {
       width: 100%;
@@ -314,48 +316,85 @@
       page-break-after: always;
       break-after: page;
     }
+    .print-only-exec-footer { display: none; }
     @media print {
-      .topbar { display: none !important; }
-      body { background: #fff !important; color: #0f172a !important; padding: 0 !important; font-size: 10px !important; line-height: 1.35 !important; }
-      .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
-      .grid-2, .grid-3 { display: block !important; }
-      .grid-2 > *, .grid-3 > * { margin-bottom: 8px !important; break-inside: avoid !important; }
-      .hero, .section {
-        background: #fff !important;
+      @page { size: A4 portrait; margin: 7mm 9mm; }
+      .topbar, .no-print, .page-break { display: none !important; }
+      html, body {
+        background: #ffffff !important;
         color: #0f172a !important;
-        border: 1px solid #cbd5e1 !important;
-        box-shadow: none !important;
-        break-inside: auto !important;
-        margin-bottom: 8px !important;
-        padding: 8px 12px !important;
-        border-radius: 6px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 8.4pt !important;
+        line-height: 1.28 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
-      .box, .diagram-card, .shot-card, .price-box {
-        background: #fff !important;
+      .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+      .grid-2, .shot-grid { display: flex !important; flex-wrap: wrap !important; gap: 6px !important; }
+      .grid-2 > *, .shot-grid > * { flex: 0 0 calc(50% - 3px) !important; max-width: calc(50% - 3px) !important; box-sizing: border-box !important; margin-bottom: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+      .grid-3 { display: flex !important; flex-wrap: wrap !important; gap: 6px !important; }
+      .grid-3 > * { flex: 0 0 calc(33.333% - 4px) !important; max-width: calc(33.333% - 4px) !important; box-sizing: border-box !important; margin-bottom: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+      .hero, .section {
+        background: #ffffff !important;
         color: #0f172a !important;
         border: 1px solid #cbd5e1 !important;
         box-shadow: none !important;
         break-inside: avoid !important;
+        page-break-inside: avoid !important;
         margin-bottom: 6px !important;
-        padding: 8px 10px !important;
+        padding: 7px 10px !important;
         border-radius: 6px !important;
       }
-      p, .section-sub, .muted, .shot-card .cap, li, td, span, .desc, .feature-list li { color: #1e293b !important; font-size: 10px !important; }
+      .container > .section:nth-of-type(2) {
+        break-inside: auto !important;
+        page-break-inside: auto !important;
+      }
+      .box, .diagram-card, .shot-card, .price-box {
+        background: #f8fafc !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        margin-bottom: 0 !important;
+        padding: 5px 8px !important;
+        border-radius: 5px !important;
+      }
+      .feature-list { gap: 2px !important; font-size: 8pt !important; }
+      .feature-list li { line-height: 1.26 !important; padding-left: 13px !important; }
+      .section-sub { margin-bottom: 6px !important; font-size: 8.2pt !important; }
+      .price-box.featured {
+        background: #fffbeb !important;
+        border: 1.5px solid #d97706 !important;
+      }
+      p, .section-sub, .muted, .shot-card .cap, li, td, span, .desc, .feature-list li, div { color: #1e293b !important; }
+      [style*="color:#fff"], [style*="color: #fff"], [style*="color:#cbd5e1"] { color: #0f172a !important; }
       h1, h2, h3, .section-title, th, .price-tag { color: #0f172a !important; }
-      .hero h1 { font-size: 16px !important; margin-bottom: 4px !important; }
-      .hero p { font-size: 10.5px !important; margin-bottom: 6px !important; }
-      .hero-tag { font-size: 9px !important; padding: 2px 6px !important; margin-bottom: 4px !important; }
-      .hero h1 span, .box h3, .shot-card .cap strong, .section-title { color: #b45309 !important; font-size: 12px !important; }
-      .price-tag { color: #0f172a !important; font-size: 18px !important; font-weight: 900 !important; }
-      .price-tag span { color: #475569 !important; font-size: 10px !important; }
-      th { background: #f8fafc !important; color: #0f172a !important; font-weight: 800 !important; border-bottom: 2px solid #94a3b8 !important; padding: 5px 6px !important; font-size: 9.5px !important; }
-      td { border-bottom: 1px solid #e2e8f0 !important; color: #0f172a !important; padding: 5px 6px !important; font-size: 10px !important; }
+      h1, h2, h3, .section-title, .section-sub { break-after: avoid !important; page-break-after: avoid !important; }
+      .hero h1 { font-size: 14.5pt !important; margin-bottom: 4px !important; line-height: 1.25 !important; }
+      .hero p { font-size: 9.5pt !important; margin-bottom: 6px !important; }
+      .hero-tag { font-size: 8pt !important; padding: 2px 8px !important; margin-bottom: 4px !important; background: #fef3c7 !important; color: #92400e !important; border: 1px solid #fde68a !important; }
+      .hero h1 span, .box h3, .shot-card .cap strong, .section-title { color: #b45309 !important; font-size: 10.5pt !important; }
+      .price-tag { color: #0f172a !important; font-size: 15pt !important; font-weight: 900 !important; }
+      .price-tag span { color: #475569 !important; font-size: 8.5pt !important; }
+      table { width: 100% !important; border-collapse: collapse !important; break-inside: avoid !important; }
+      thead { display: table-header-group !important; }
+      tr { break-inside: avoid !important; page-break-inside: avoid !important; }
+      th { background: #f1f5f9 !important; color: #0f172a !important; font-weight: 800 !important; border: 1px solid #cbd5e1 !important; padding: 5px 8px !important; font-size: 8.5pt !important; }
+      td { border: 1px solid #cbd5e1 !important; color: #0f172a !important; padding: 5px 8px !important; font-size: 9pt !important; }
       .badge-ok { background: #dcfce7 !important; color: #166534 !important; border: 1px solid #86efac !important; }
       .badge-info { background: #e0f2fe !important; color: #0369a1 !important; border: 1px solid #7dd3fc !important; }
       .badge-gold { background: #fef3c7 !important; color: #92400e !important; border: 1px solid #fde68a !important; }
       svg text { fill: #0f172a !important; }
-      .shot-card img { height: 110px !important; object-fit: contain !important; background: #0b1120 !important; }
-      .page-break { page-break-after: always !important; break-after: page !important; }
+      .shot-card img { height: 120px !important; object-fit: contain !important; background: #0f172a !important; }
+      .print-only-exec-footer {
+        display: block !important;
+        margin-top: 10px !important;
+        padding-top: 10px !important;
+        border-top: 2px solid #b45309 !important;
+        break-inside: avoid !important;
+      }
     }
 
     /* ============================================================ */
@@ -392,7 +431,10 @@
     [data-theme="light"] .badge-ok { background: #DCFCE7; color: #14532D; }
     [data-theme="light"] .badge-info { background: #E0F2FE; color: #0C4A6E; }
     [data-theme="light"] .badge-gold { background: #FEF3C7; color: #92400E; }
-    [data-theme="light"] .btn-gold { background: linear-gradient(135deg, #FBBF24, #D97706); color: #111827; }
+    [data-theme="light"] .btn-gold { background: linear-gradient(135deg, #FBBF24, #D97706); color: #111827 !important; }
+    [data-theme="light"] [style*="color:#fff"],
+    [data-theme="light"] [style*="color: #fff"],
+    [data-theme="light"] [style*="color:#cbd5e1"] { color: #0F172A !important; }
   </style>
   <script>
     (function() {
@@ -417,12 +459,13 @@
 <body>
   <header class="topbar">
     <div class="brand-pill">
+      <img src="logo.svg?v=5.6" alt="RD Fitness Club" style="height:40px;width:auto;object-fit:contain;background:transparent !important;" />
       <span class="brand-badge">PROGYM 360°</span>
-      <span>Dossier Técnico Comercial para <strong id="topGymName" style="color:var(--gold)">TU GIMNASIO</strong></span>
+      <span>Dossier Técnico Comercial para <strong id="topGymName" style="color:var(--gold)">RD FITNESS CLUB</strong></span>
     </div>
     <div class="customizer">
       <label for="gymInput">Nombre del Gimnasio:</label>
-      <input id="gymInput" type="text" value="TU GIMNASIO" placeholder="Nombre de tu local..." oninput="syncGymName(this.value)" />
+      <input id="gymInput" type="text" value="RD FITNESS CLUB" placeholder="Nombre de tu local..." oninput="syncGymName(this.value)" />
       <a class="btn" href="anatomy-pro/index.html" target="_blank" title="Ver Arquitectura 3D Interactiva del Gimnasio">🧬 Máquina 3D</a>
       <a class="btn" href="display.html" target="_blank" title="Ver Pantalla de Recepción y TV CCTV">📺 Display Cliente</a>
       <a class="btn btn-gold" href="INFORME_PROPUESTA_COMERCIAL_GIMNASIOS.pdf" download="INFORME_PROPUESTA_COMERCIAL_GIMNASIOS.pdf" title="Descargar documento PDF completo">📥 Descargar PDF</a>
@@ -434,8 +477,13 @@
   <main class="container">
     <!-- SECCIÓN 1: PORTADA Y RESUMEN DEL SISTEMA -->
     <section class="hero">
-      <div class="hero-tag">Documento Oficial de Presentación de Solución Tecnológica</div>
-      <h1>Ecosistema Digital Integral de Gestión, Control de Accesos QR, Caja Blindada y Pantalla de Recepción para <span class="gym-name">TU GIMNASIO</span></h1>
+      <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:8px">
+        <img src="logo.svg?v=5.6" alt="RD Fitness Club" style="height:76px;width:auto;object-fit:contain;background:transparent !important;filter:drop-shadow(0 4px 12px rgba(245,180,0,0.35))" />
+        <div style="flex:1;min-width:260px">
+          <div class="hero-tag">Documento Oficial de Presentación de Solución Tecnológica</div>
+          <h1>Ecosistema Digital Integral de Gestión, Control de Accesos QR, Caja Blindada y Pantalla de Recepción para <span class="gym-name">RD FITNESS CLUB</span></h1>
+        </div>
+      </div>
       <p>
         Plataforma tecnológica completa diseñada específicamente para la administración moderna de gimnasios y centros de entrenamiento. Elimina errores en recepción, garantiza el cuadre diario de caja, entrega a los socios una aplicación móvil propia para sus entrenamientos y se adapta con total flexibilidad a las computadoras y pantallas con las que el local ya cuente.
       </p>
@@ -923,14 +971,32 @@
     <section class="section" style="background:linear-gradient(135deg, rgba(245,180,0,0.06), rgba(16,185,129,0.06));border-color:rgba(245,180,0,0.3)">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px">
         <div>
-          <div style="font-size:16px;font-weight:900;color:#fff">Listo para Modernizar tu Gimnasio</div>
+          <div style="font-size:16px;font-weight:900;color:#fff">Listo para Modernizar RD FITNESS CLUB</div>
           <div style="font-size:12.5px;color:#cbd5e1;margin-top:2px;max-width:750px">
-            Solicita una demostración en vivo con tus propios equipos o solicita la instalación llave en mano.
+            Plataforma integral en producción con control de accesos QR, caja auditada, Cloud Sheets en vivo, estudio de tarjetas PVC y respaldo perpetuo en la nube.
           </div>
         </div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div class="no-print" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <a class="btn btn-gold" href="INFORME_PROPUESTA_COMERCIAL_GIMNASIOS.pdf" download="INFORME_PROPUESTA_COMERCIAL_GIMNASIOS.pdf" style="font-size:13px;padding:8px 16px">📥 Descargar PDF Oficial</a>
           <button class="btn" onclick="window.print()" style="font-size:13px;padding:8px 16px">🖨️ Imprimir</button>
+        </div>
+      </div>
+
+      <!-- BLOQUE EJECUTIVO DE FIRMAS Y CONFORMIDAD (SOLO IMPRESIÓN / PDF A4) -->
+      <div class="print-only-exec-footer">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:22px;text-align:center;">
+          <div>
+            <div style="border-top:1.5px solid #334155;padding-top:5px;font-weight:800;font-size:8.5pt;">DIRECCIÓN DE INGENIERÍA DE SISTEMAS</div>
+            <div style="font-size:7.5pt;color:#64748b;">Arquitectura, Ciberseguridad y Despliegue Cloud</div>
+          </div>
+          <div>
+            <div style="border-top:1.5px solid #334155;padding-top:5px;font-weight:800;font-size:8.5pt;">ADMINISTRACIÓN GENERAL — RD FITNESS CLUB</div>
+            <div style="font-size:7.5pt;color:#64748b;">Chivay, Caylloma — Arequipa, Perú</div>
+          </div>
+          <div>
+            <div style="border-top:1.5px solid #334155;padding-top:5px;font-weight:800;font-size:8.5pt;">CONFORMIDAD DE ENTREGA TÉCNICA</div>
+            <div style="font-size:7.5pt;color:#64748b;">Sello Oficial y Validación Operativa</div>
+          </div>
         </div>
       </div>
     </section>
@@ -938,10 +1004,11 @@
 
   <script>
     function syncGymName(val) {
-      const clean = (val || '').trim() || 'TU GIMNASIO';
+      const clean = (val || '').trim() || 'RD FITNESS CLUB';
       document.getElementById('topGymName').textContent = clean;
       document.querySelectorAll('.gym-name').forEach(el => { el.textContent = clean; });
     }
+    syncGymName('RD FITNESS CLUB');
   </script>
 </body>
 </html>
