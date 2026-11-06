@@ -4823,6 +4823,27 @@ function verEstado() {
           </button>
         </div>
       </div>
+
+      <!-- TARJETA: MARCO LEGAL TRIBUTARIO, DESLINDE DE RESPONSABILIDAD Y SUNAT -->
+      <div class="card" style="border-left: 4px solid #3b82f6; background: linear-gradient(180deg, rgba(59,130,246,0.05) 0%, transparent 100%);">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:0.5rem;">
+          <h3 style="display:flex; align-items:center; gap:8px; margin:0;">
+            ${RD.icon('shield')} Marco Legal, Deslinde Tributario y Cumplimiento SUNAT
+          </h3>
+          <span class="badge info" style="font-weight:bold;">Control Interno (No PSE/OSE)</span>
+        </div>
+        <p class="small muted" style="margin-bottom:0.75rem; line-height:1.5;">
+          <strong>Delimitación de Alcance Técnico y Legal:</strong> Este software es una plataforma tecnológica de gestión administrativa, control de accesos QR, arqueo de caja y seguimiento deportivo para socios. <strong>NO constituye un emisor tributario homologado (PSE/OSE ante SUNAT)</strong>. La declaración de ingresos, la elección de régimen tributario (NRUS, RER, RMT o General) y la emisión de Comprobantes de Pago Electrónicos oficiales (Boletas y Facturas Electrónicas) corresponden única y exclusivamente al titular del establecimiento comercial.
+        </p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <button class="btn primary" id="btn-sunat-legal" style="display:inline-flex; align-items:center; gap:6px;">
+            ${RD.icon('file-text')} Ver Cláusula de Deslinde y Guía SUNAT
+          </button>
+          <a class="btn" href="https://www.sunat.gob.pe/" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:6px; text-decoration:none;">
+            ↗ Portal SUNAT SOL (Emisión Gratuita)
+          </a>
+        </div>
+      </div>
     </div>`;
 
     // 0. Cloud Vault status & actions
@@ -4975,6 +4996,8 @@ function verEstado() {
     // 6. Auditoría de Ciberseguridad y Centro Legal
     const btnLegal = el.querySelector('#btn-admin-legal');
     if (btnLegal) btnLegal.onclick = () => RD.openLegalModal('normas');
+    const btnSunatLegal = el.querySelector('#btn-sunat-legal');
+    if (btnSunatLegal) btnSunatLegal.onclick = () => RD.openLegalModal('sunat');
 
     const btnAudit = el.querySelector('#btn-security-audit');
     if (btnAudit) {

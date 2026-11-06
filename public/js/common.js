@@ -1508,7 +1508,7 @@
     </div>
 
     <footer class="doc-footer">
-      <span>${RD.esc(opts.footerNote || `Documento oficial generado por el Sistema de Gestión y Auditoría de ${gymName}. Información verificada en base de datos.`)}</span>
+      <span>${RD.esc(opts.footerNote || `Documento de gestión y control operativo interno de ${gymName}. No constituye declaración jurada tributaria ni sustituye la contabilidad oficial ante la SUNAT.`)}</span>
       <span>Hora de Lima (UTC-5) · ${RD.esc(emittedAt)}</span>
     </footer>
   </div>
@@ -1525,7 +1525,7 @@
       `Sede: ${cleanAddr}`,
       `Cel: ${r.gym?.phone || '982404043'}`,
       `--------------------------------`,
-      `*COMPROBANTE:* ${r.receipt_no}`,
+      `*RECIBO DE CONTROL INTERNO:* ${r.receipt_no}`,
       `*Fecha:* ${RD.fmtDateTime(r.date || new Date().toISOString())}`,
       `*Cliente:* ${r.client?.name || 'Cliente'}${r.client?.doc ? ` (Doc: ${r.client.doc})` : ''}`,
       `--------------------------------`,
@@ -1536,7 +1536,8 @@
       `*TOTAL PAGADO:* ${RD.money(r.amount)}`,
       `*Método:* ${(r.method || 'Efectivo').toUpperCase()}${r.op_code ? ` (Op: #${r.op_code})` : ''}`,
       r.is_daily_pass ? `\n*PASE DIARIO:* Válido para reingreso hoy mostrando este comprobante o su QR en la puerta.` : '',
-      `\n*Ver Comprobante Digital:* ${location.origin}/#receipt:${r.payment_id}`,
+      `\n*Ver Recibo Digital:* ${location.origin}/#receipt:${r.payment_id}`,
+      `\n_Nota: Documento de control operativo interno no válido para crédito fiscal. Puedes solicitar tu Boleta o Factura Electrónica oficial SUNAT en recepción._`,
       `\n_${r.gym?.slogan || 'Disciplina · Constancia · Resultados'}_`,
       `¡Gracias por tu preferencia!`
     ].filter(Boolean).join('\n');
@@ -1548,7 +1549,7 @@
     const qrSvg = r.qr_payload ? RD.qrSvg(r.qr_payload, { margin: 1 }) : null;
     const cleanAddr = RD.cleanAddress(r.gym?.address);
 
-    const modal = RD.openModal(`${RD.icon('receipt')} Comprobante Oficial de Pago`, `
+    const modal = RD.openModal(`${RD.icon('receipt')} Comprobante de Pago (Control Interno)`, `
       <div class="receipt-wrap" id="rprint">
         <div class="receipt-ticket watermark-container" style="position:relative">
           <div class="watermark-bg" style="font-size:2.4rem;color:rgba(0,0,0,0.05)">RD FITNESS</div>
@@ -1558,7 +1559,8 @@
           <div class="r-center r-small">${RD.esc(cleanAddr)}</div>
           <div class="r-center r-small">RUC: ${RD.esc(r.gym?.ruc || '10702548911')} · Cel: ${RD.esc(r.gym?.phone || '982404043')}</div>
           <div class="r-line">================================</div>
-          <div class="r-row"><span class="r-bold">BOLETA:</span> <span class="r-bold">${RD.esc(r.receipt_no)}</span></div>
+          <div class="r-row"><span class="r-bold">RECIBO INTERNO:</span> <span class="r-bold">${RD.esc(r.receipt_no)}</span></div>
+          <div class="r-center r-tiny muted" style="font-size:0.65rem;line-height:1.2;margin:2px 0 4px">[CONTROL INTERNO · NO VÁLIDO PARA CRÉDITO FISCAL]</div>
           <div class="r-row"><span>FECHA:</span> <span>${RD.fmtDateTime(r.date || new Date().toISOString())}</span></div>
           <div class="r-row"><span>CLIENTE:</span> <span>${RD.esc(r.client?.name || 'Cliente')}</span></div>
           ${r.client?.doc ? `<div class="r-row"><span>DOC / CÓDIGO:</span> <span>${RD.esc(r.client.doc)}</span></div>` : ''}
@@ -1580,6 +1582,9 @@
           <div class="r-line">================================</div>
           <div class="r-center r-small r-bold">¡DISCIPLINA · CONSTANCIA · RESULTADOS!</div>
           <div class="r-center r-tiny muted">¡Gracias por entrenar con nosotros!</div>
+          <div class="r-center r-tiny" style="font-size:0.62rem;color:#475569;margin-top:4px;line-height:1.25">
+            Doc. de control operativo interno. La Boleta o Factura Electrónica oficial SUNAT se emite a solicitud del socio conforme a ley.
+          </div>
         </div>
       </div>
       <div class="grid g3 mt gap no-print">
@@ -1596,12 +1601,13 @@
     modal.el.querySelector('#btnprinta4').onclick = () => {
       RD.printExecutiveDocument({
         gym: r.gym,
-        docType: 'COMPROBANTE OFICIAL DE PAGO',
+        docType: 'RECIBO DE CONTROL INTERNO DE PAGO',
         docCode: r.receipt_no || ('REC-' + (r.payment_id || '')),
-        title: 'Comprobante de Pago de Membresía / Servicios',
-        subtitle: 'Documento oficial de recaudación y constancia de vigencia para el socio',
+        title: 'Recibo de Control Interno — Membresía y Servicios',
+        subtitle: 'Constancia administrativa de pago y vigencia para el socio del establecimiento',
         period: RD.fmtDateTime(r.date || new Date().toISOString()),
-        fileName: `Comprobante_${r.receipt_no || 'RDFitness'}`,
+        fileName: `Recibo_Interno_${r.receipt_no || 'RDFitness'}`,
+        footerNote: `Documento de control operativo interno de ${r.gym?.name || 'RD FITNESS CLUB'}. No constituye Comprobante de Pago Electrónico (CPE) regulado por la R.S. N° 007-99/SUNAT ni otorga derecho a crédito fiscal. La emisión de la Boleta o Factura Electrónica oficial corresponde al titular del establecimiento a través de SUNAT SOL o su sistema homologado.`,
         bodyHtml: `
           <div class="doc-section">
             <div class="doc-sec-title">I. Datos del Cliente y Transacción</div>
@@ -1620,7 +1626,7 @@
                 <h4>Datos de Caja</h4>
                 <table class="doc-table" style="margin:0">
                   <tbody>
-                    <tr><td><b>N° Comprobante:</b></td><td class="t-mono"><b>${RD.esc(r.receipt_no)}</b></td></tr>
+                    <tr><td><b>N° Recibo Interno:</b></td><td class="t-mono"><b>${RD.esc(r.receipt_no)}</b></td></tr>
                     <tr><td><b>Método de Pago:</b></td><td><span class="doc-badge ok">${RD.esc((r.method || 'efectivo').toUpperCase())}</span> ${r.op_code ? `Op: #${RD.esc(r.op_code)}` : ''}</td></tr>
                     <tr><td><b>Atendido por:</b></td><td>${RD.esc(r.user_name || 'Recepción')}</td></tr>
                   </tbody>
@@ -1629,7 +1635,7 @@
             </div>
           </div>
           <div class="doc-section">
-            <div class="doc-sec-title">II. Detalle de Conceptos Facturados</div>
+            <div class="doc-sec-title">II. Detalle de Conceptos Facturados (Control Interno)</div>
             <table class="doc-table">
               <thead>
                 <tr>
@@ -1654,6 +1660,11 @@
                 </tr>
               </tfoot>
             </table>
+          </div>
+          <div class="doc-section">
+            <div class="doc-box" style="background:#f8fafc;border-left:4px solid #64748b;font-size:7.5pt;color:#475569;line-height:1.35">
+              <b>DESLINDE DE RESPONSABILIDAD TRIBUTARIA Y CONTROL INTERNO:</b> Este recibo constituye un documento operativo de control interno y constancia de pago de membresía para el socio. No reemplaza ni sustituye los Comprobantes de Pago Electrónicos oficiales (Boleta o Factura Electrónica) regulados por el Código Tributario y la SUNAT. El titular del gimnasio es el único responsable de la emisión tributaria correspondiente mediante su Clave SOL en el Portal SUNAT o su proveedor PSE homologado.
+            </div>
           </div>
           ${qrSvg ? `
           <div class="doc-section">
@@ -1783,10 +1794,13 @@
           <div class="r-small"><b>OBSERVACIONES:</b> ${RD.esc(s.notes)}</div>
           ` : ''}
           <div class="r-line">================================</div>
+          <div class="r-center r-tiny" style="font-size:0.62rem;color:#475569;margin-top:2px;line-height:1.25">
+            Acta de arqueo y conciliación operativa interna. Documento administrativo que no sustituye libros contables ni declaraciones tributarias ante SUNAT.
+          </div>
           <br><br>
           <div class="r-center" style="font-size:.75rem">_____________________________<br>FIRMA DEL CAJERO(A)<br>${RD.esc(s.user_name || '')}</div>
           <br><br>
-          <div class="r-center" style="font-size:.75rem">_____________________________<br>CONFORMIDAD ADMINISTRACIÓN<br>RD FITNESS CLUB</div>
+          <div class="r-center" style="font-size:.75rem">_____________________________<br>CONFORMIDAD ADMINISTRACIÓN<br>${RD.esc(settings.gym_name || 'RD FITNESS CLUB')}</div>
         </div>
       </div>
       <div class="grid g2 gap mt no-print">
@@ -1808,6 +1822,7 @@
         subtitle: `Conciliación auditada de efectivo físico en gaveta y medios de pago digitales (${s.shift_name || 'General'})`,
         period: `${s.day || ''} · Apertura: ${RD.fmtDateTime(s.opened_at)} · Cierre: ${RD.fmtDateTime(s.closed_at || new Date().toISOString())}`,
         fileName: `Acta_Cierre_Turno_${s.id || ''}_${s.day || ''}`,
+        footerNote: `Acta de conciliación operativa de caja física y digital de ${settings.gym_name || 'RD FITNESS CLUB'}. Documento administrativo interno no válido como declaración jurada tributaria ni sustituto de libros contables oficiales ante la SUNAT.`,
         bodyHtml: `
           <div class="doc-kpis">
             <div class="doc-kpi accent">
@@ -1992,6 +2007,7 @@
         <span class="chip ${initialTab === 'privacidad' ? 'on' : ''}" data-lt="privacidad" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('shield', '', 14)} Privacidad (Ley 29733)</span>
         <span class="chip ${initialTab === 'terminos' ? 'on' : ''}" data-lt="terminos" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('file-text', '', 14)} Términos y Membresías</span>
         <span class="chip ${initialTab === 'copyright' ? 'on' : ''}" data-lt="copyright" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('lock', '', 14)} Derechos y Ciberseguridad</span>
+        <span class="chip ${initialTab === 'sunat' ? 'on' : ''}" data-lt="sunat" style="display:inline-flex;align-items:center;gap:5px">${RD.icon('shield', '', 14)} Deslinde Tributario & SUNAT</span>
       </div>
       <div id="legalbody"></div>
     `, { wide: true });
@@ -2028,8 +2044,20 @@
           <div class="list small mt">
             <div class="item"><div><b>Vigencia de Planes:</b> Las membresías (1 mes, 3 meses, 6 meses, 1 año) tienen vigencia continua desde la fecha de inicio elegida (inmediata o programada) hasta la fecha de vencimiento indicada en tu boleta digital.</div></div>
             <div class="item"><div><b>Congelamiento de Membresía:</b> En planes trimestrales, semestrales o anuales, el socio puede solicitar en recepción el congelamiento temporal de su plan por motivos de viaje o salud justificados; al descongelar, el sistema repone automáticamente los días exactos restantes.</div></div>
-            <div class="item"><div><b>Comprobantes y Boletas Digitales:</b> Todo pago en efectivo, Yape, Plin, tarjeta POS o transferencia genera un comprobante electrónico verificable en tiempo real desde la sección <b>Perfil → Mis Boletas</b>.</div></div>
+            <div class="item"><div><b>Recibos de Control Interno y Boletas SUNAT:</b> Todo pago procesado en recepción (efectivo, Yape, Plin, tarjeta POS o transferencia) genera un recibo de control operativo interno consultable en tiempo real desde <b>Perfil → Mis Pagos</b>. El cliente o socio que requiera Boleta de Venta o Factura Electrónica con valor tributario oficial puede solicitarla en recepción indicando su DNI o RUC para su emisión gratuita por el titular del establecimiento a través del Portal SUNAT SOL conforme al Código Tributario.</div></div>
             <div class="item"><div><b>Pases Diarios:</b> El Pase Diario es válido únicamente durante la fecha de su emisión (horario de atención del club).</div></div>
+          </div>
+        </div>`,
+      sunat: `
+        <div class="card flat mb">
+          <h3 style="display:flex;align-items:center;gap:8px;color:var(--gold)">${RD.icon('shield', 'gold', 20)} Marco Legal, Deslinde de Responsabilidad Tributaria y Normativa SUNAT</h3>
+          <p class="small muted">Delimitación expresa de responsabilidades legales, técnicas y tributarias en cumplimiento del <b>Código Tributario del Perú (D.S. N° 133-2013-EF)</b>, la <b>Ley Marco de Comprobantes de Pago (D.L. N° 25632)</b> y la <b>R.S. N° 007-99/SUNAT</b>:</p>
+          <div class="list small mt">
+            <div class="item"><div><b>1. Naturaleza Exclusiva del Software (Gestión Operativa Interna):</b> Este software es una plataforma tecnológica de gestión administrativa, control de aforo por torniquetes/lectores QR 2D, seguimiento deportivo de socios y conciliación de caja interna de recepción. <u>NO es un Proveedor de Servicios Electrónicos (PSE) ni un Operador de Servicios Electrónicos (OSE)</u> homologado o registrado ante la SUNAT.</div></div>
+            <div class="item"><div><b>2. Naturaleza de los Comprobantes y Recibos Emitidos:</b> Todas las notas de pago, tickets térmicos (58mm/80mm), recibos PDF y actas de turno emitidos por el sistema tienen carácter estrictamente de <b>Control Operativo Interno</b>. <u>No constituyen Comprobantes de Pago Electrónicos (CPE)</u> regulados por la normativa tributaria ni otorgan derecho a crédito fiscal o sustentación de costo o gasto tributario.</div></div>
+            <div class="item"><div><b>3. Responsabilidad Exclusiva y Excluyente del Titular del Negocio:</b> La inscripción en el RUC, la elección y actualización del régimen tributario (NRUS, RER, RMT o Régimen General), la llevanza de libros contables, la declaración jurada mensual/anual de ingresos, el cálculo y pago de tributos de ley, así como la <b>emisión obligatoria de Boletas de Venta y Facturas Electrónicas oficiales</b> mediante el portal gratuito SUNAT SOL (con RUC y Clave SOL) o facturador electrónico homologado, corresponden única, directa y exclusivamente a la persona natural o jurídica titular del gimnasio.</div></div>
+            <div class="item"><div><b>4. Cláusula de Indemnidad y Exoneración del Desarrollador:</b> El desarrollador, programador, diseñador o proveedor del software e infraestructura tecnológica queda <b>total e irrevocablemente exento y deslindado de cualquier responsabilidad solidaria, civil, administrativa, penal o tributaria</b>. El titular del negocio asume la total defensa e indemnidad del proveedor ante cualquier fiscalización, sanción económica, comiso, multa, acta probatoria o clausura temporal de establecimiento que la SUNAT, municipalidades o cualquier organismo fiscalizador imponga contra el local.</div></div>
+            <div class="item"><div><b>5. Guía Práctica de Cumplimiento SUNAT para el Gimnasio:</b> El titular del negocio puede emitir sus Boletas Electrónicas oficiales de forma 100% gratuita y sin costos de intermediarios ingresando a <b>sunat.gob.pe → Trámites y Consultas → Comprobantes de Pago → Emisión de Boleta Electrónica</b> desde cualquier celular o computadora, utilizando el sistema de control interno como base de conciliación diaria de sus ingresos.</div></div>
           </div>
         </div>`,
       copyright: `

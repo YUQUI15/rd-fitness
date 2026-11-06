@@ -284,6 +284,13 @@ function addDashboard(ctx) {
       'Gimnasio y Tienda tienen cajas y reportes separados; el consolidado es la suma de ambos. Los montos excluyen cobros anulados. Los totales de cada hoja usan SUBTOTAL y se recalculan al filtrar.',
     font: { size: 9, italic: true, color: { argb: GREY } }, alignment: { wrapText: true, vertical: 'top' }
   });
+
+  const lr = nr + 3;
+  ws.mergeCells(lr, 1, lr + 2, COLS);
+  Object.assign(ws.getCell(lr, 1), {
+    value: 'Aviso Legal y Tributario: Hoja de cálculo de conciliación y control operativo interno. Los ingresos y movimientos reportados corresponden al registro informático del sistema y no sustituyen los libros o registros contables oficiales exigidos por la SUNAT. La declaración jurada tributaria, la elección del régimen fiscal (NRUS, RER, RMT o General) y la emisión de Comprobantes de Pago Electrónicos oficiales (CPE) corresponden exclusivamente al titular del establecimiento comercial conforme al Código Tributario del Perú (D.S. N° 133-2013-EF).',
+    font: { size: 8.5, italic: true, color: { argb: GREY } }, alignment: { wrapText: true, vertical: 'top' }
+  });
   pageSetup(ws, null);
   ws.pageSetup.fitToHeight = 0;
   return ws;
