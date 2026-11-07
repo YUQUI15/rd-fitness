@@ -442,8 +442,8 @@ pause`;
         <button class="top-btn" id="btn_local_mode" title="Centro de Control de Modo Local y Contingencia en PC del Dueño">
           ${RD.icon('database', '', 15)} <span>Modo Local PC</span>
         </button>
-        <button class="top-btn" id="btn_customer_screen" title="Abrir Pantalla TV / Cámaras CCTV en 2do Monitor o Ventana Acoplada">
-          ${RD.icon('monitor', '', 15)} <span>TV / CCTV</span>
+        <button class="top-btn" id="btn_customer_screen" title="Abrir Pantalla de Recepción y Bienvenida en Monitor Secundario o Tablet">
+          ${RD.icon('monitor', '', 15)} <span>Pantalla Recepción</span>
         </button>
         <a class="top-btn" href="/admin/cards.html" target="_blank" style="text-decoration:none" title="Estudio de Impresión de Tarjetas y Carnets QR Físicos">
           ${RD.icon('idcard', '', 15)} <span>Carnets QR</span>

@@ -23,42 +23,224 @@
     return exListCache;
   }
 
-  // ---------------- LOGIN DEL SOCIO ----------------
+  // ---------------- LOGIN DEL SOCIO Y PORTAL WEB PUBLICITARIO SEGMENTADO ----------------
   function showLogin(err) {
     RD.hub.stop();
     const themeLbl = () => RD.getTheme && RD.getTheme() === 'light' ? `${RD.icon('moon', '', 14)} Modo Oscuro` : `${RD.icon('sun', '', 14)} Modo Claro`;
     root.innerHTML = `
-    <div class="auth">
-      <form class="box" id="mlf" autocomplete="on">
-        <div class="brand">
-          <img class="logo" src="/logo.svg" alt="RD" style="height:48px;width:48px;max-height:48px;max-width:48px;object-fit:contain;margin:0 auto .6rem" width="48" height="48">
-          <h1>RD FITNESS CLUB</h1>
-          <p>Tu credencial y entrenador digital · Chivay</p>
+    <style>
+      .pub-showcase-shell {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 310px minmax(360px, 440px) 330px;
+        gap: 22px;
+        align-items: start;
+        justify-content: center;
+        padding: 28px 20px;
+        max-width: 1240px;
+        margin: 0 auto;
+      }
+      @media (max-width: 1080px) {
+        .pub-showcase-shell {
+          grid-template-columns: 1fr;
+          max-width: 480px;
+        }
+        .pub-col-center { order: 1; }
+        .pub-col-left { order: 2; }
+        .pub-col-right { order: 3; }
+      }
+      .pub-side-panel {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.22);
+        backdrop-filter: blur(12px);
+      }
+      .pub-side-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--line);
+      }
+      .pub-side-head h3 {
+        font-size: 0.92rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin: 0;
+        color: var(--gold);
+      }
+      .pub-notice-card {
+        padding: 12px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--line);
+        margin-bottom: 10px;
+        transition: transform .2s ease;
+      }
+      .pub-notice-card:hover { transform: translateY(-2px); }
+      .pub-carousel-box {
+        position: relative;
+        overflow: hidden;
+        border-radius: 14px;
+        background: linear-gradient(145deg, rgba(245,180,0,0.12), rgba(15,23,42,0.55));
+        border: 1px solid rgba(245,180,0,0.3);
+        padding: 16px;
+        min-height: 185px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .pub-dots {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+        margin-top: 10px;
+      }
+      .pub-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(148,163,184,0.35);
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        transition: all .25s ease;
+      }
+      .pub-dot.active {
+        width: 22px;
+        background: var(--gold);
+      }
+      .pub-plan-pill {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 9px 12px;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--line);
+        margin-bottom: 7px;
+      }
+      /* Lightbox Modal Elegante para Anuncio Prioritario */
+      .pub-lightbox-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(8, 10, 16, 0.72);
+        backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: pubFadeIn .28s ease;
+      }
+      @keyframes pubFadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+      .pub-lightbox-card {
+        position: relative;
+        width: 100%;
+        max-width: 480px;
+        background: var(--card);
+        border: 1px solid rgba(245,180,0,0.45);
+        border-radius: 22px;
+        padding: 26px 24px 22px;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.65);
+        text-align: center;
+      }
+      .pub-lightbox-close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.06);
+        color: var(--txt);
+        font-size: 1rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .pub-lightbox-timer {
+        height: 4px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 99px;
+        overflow: hidden;
+        margin-top: 16px;
+      }
+      .pub-lightbox-timer > div {
+        height: 100%;
+        background: var(--gold);
+        width: 100%;
+        transition: width 1s linear;
+      }
+    </style>
+
+    <div class="pub-showcase-shell">
+      <!-- COLUMNA IZQUIERDA: AVISOS Y COMUNICADOS OFICIALES -->
+      <aside class="pub-side-panel pub-col-left" id="pub_left_notices">
+        <div class="pub-side-head">
+          <h3>📢 Avisos y Novedades</h3>
+          <span class="badge info" style="font-size:.68rem">En Vivo</span>
         </div>
-        ${err ? `<div class="banner err">${esc(err)}</div>` : ''}
-        <label class="field">
-          <span>DNI, Usuario o Código de socio</span>
-          <input name="username" placeholder="Tu DNI, usuario o código (ej. 74839201)" required autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" autofocus>
-        </label>
-        <label class="field">
-          <span>Contraseña</span>
-          <div class="pw"><input name="password" type="password" placeholder="Tu contraseña o DNI" required autocomplete="current-password"><button type="button" class="pw-eye" data-eye aria-label="Mostrar contraseña">${RD.icon('eye', '', 16)}</button></div>
-          <small class="tiny muted">¿Primera vez o regresas después de meses? Tu contraseña inicial es tu <b>DNI</b>. Si olvidaste tu clave, tu DNI siempre te permite ingresar.</small>
-        </label>
-        <button class="btn primary block" type="submit">Ingresar a mi App</button>
-        <p class="center small mt2"><a href="#" id="forgot">¿Olvidaste tu contraseña?</a></p>
-        <button type="button" class="btn ghost sm mt2 block" id="btn_login_install" style="display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('smartphone', '', 16)} ¿Cómo instalar la App en tu Celular o PC?</button>
-        <p class="center muted tiny mt2">Este dispositivo recordará tu sesión de forma segura.</p>
-        <div class="card flat mt center small muted">
-          ¿Aún no estás registrado? Acércate a recepción en Calle Sucre Lt. 10 para obtener tu código y credencial.
+        <div id="pub_notices_list">
+          <div class="muted small center" style="padding:18px 0">Cargando avisos del gimnasio…</div>
         </div>
-        <p class="center muted tiny mt">Personal del gimnasio: <a href="/admin/">Acceso al panel</a> · <a href="#" id="loginlegal">Reglamento y Privacidad</a></p>
-        <div class="center mt2">
-          <button type="button" class="btn ghost sm" id="loginthemebtn" data-theme-toggle style="display:inline-flex;align-items:center;gap:6px">${themeLbl()}</button>
+      </aside>
+
+      <!-- COLUMNA CENTRAL: ACCESO CREDENCIAL SOCIO -->
+      <div class="pub-col-center">
+        <form class="box" id="mlf" autocomplete="on" style="margin:0 auto;width:100%">
+          <div class="brand">
+            <img class="logo" src="/logo.svg" alt="RD" style="height:54px;width:54px;max-height:54px;max-width:54px;object-fit:contain;margin:0 auto .6rem" width="54" height="54">
+            <h1>RD FITNESS CLUB</h1>
+            <p>Tu credencial y entrenador digital · Chivay</p>
+          </div>
+          ${err ? `<div class="banner err">${esc(err)}</div>` : ''}
+          <label class="field">
+            <span>DNI, Usuario o Código de socio</span>
+            <input name="username" placeholder="Tu DNI, usuario o código (ej. 74839201)" required autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" autofocus>
+          </label>
+          <label class="field">
+            <span>Contraseña</span>
+            <div class="pw"><input name="password" type="password" placeholder="Tu contraseña o DNI" required autocomplete="current-password"><button type="button" class="pw-eye" data-eye aria-label="Mostrar contraseña">${RD.icon('eye', '', 16)}</button></div>
+            <small class="tiny muted">¿Primera vez o regresas después de meses? Tu contraseña inicial es tu <b>DNI</b>. Si olvidaste tu clave, tu DNI siempre te permite ingresar.</small>
+          </label>
+          <button class="btn primary block" type="submit">Ingresar a mi App</button>
+          <p class="center small mt2"><a href="#" id="forgot">¿Olvidaste tu contraseña?</a></p>
+          <button type="button" class="btn ghost sm mt2 block" id="btn_login_install" style="display:flex;align-items:center;justify-content:center;gap:6px">${RD.icon('smartphone', '', 16)} ¿Cómo instalar la App en tu Celular o PC?</button>
+          <p class="center muted tiny mt2">Este dispositivo recordará tu sesión de forma segura.</p>
+          <div class="card flat mt center small muted">
+            ¿Aún no estás registrado? Acércate a recepción en Calle Sucre Lt. 10 para obtener tu código y credencial.
+          </div>
+          <p class="center muted tiny mt">Personal del gimnasio: <a href="/admin/">Acceso al panel</a> · <a href="#" id="loginlegal">Reglamento y Privacidad</a></p>
+          <div class="center mt2">
+            <button type="button" class="btn ghost sm" id="loginthemebtn" data-theme-toggle style="display:inline-flex;align-items:center;gap:6px">${themeLbl()}</button>
+          </div>
+          <div class="center muted tiny mt2">© ${new Date().getFullYear()} RD Fitness Club · Chivay · Derechos Reservados</div>
+        </form>
+      </div>
+
+      <!-- COLUMNA DERECHA: CARRUSEL PUBLICITARIO Y TARIFARIO DINÁMICO -->
+      <aside class="pub-side-panel pub-col-right" id="pub_right_promos">
+        <div class="pub-side-head">
+          <h3>🔥 Promociones y Planes</h3>
+          <span class="badge warn" style="font-size:.68rem">Destacados</span>
         </div>
-        <div class="center muted tiny mt2">© ${new Date().getFullYear()} RD Fitness Club · Chivay · Derechos Reservados</div>
-      </form>
-    </div>`;
+        <div id="pub_carousel_mount"></div>
+        <div style="margin-top:16px">
+          <div class="tiny muted" style="text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:8px">Tarifas y Promociones Vigentes</div>
+          <div id="pub_plans_list">
+            <div class="muted small center">Cargando tarifas vigentes…</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+    <div id="pub_lightbox_mount"></div>`;
 
     const ltb = document.getElementById('loginthemebtn');
     ltb.onclick = () => { RD.toggleTheme(); ltb.innerHTML = themeLbl(); };
@@ -68,6 +250,113 @@
     if (lleg) lleg.onclick = e => { e.preventDefault(); RD.openLegalModal('normas'); };
     root.querySelector('[data-eye]').onclick = e => { const i = e.currentTarget.previousElementSibling; i.type = i.type === 'password' ? 'text' : 'password'; };
     document.getElementById('forgot').onclick = e => { e.preventDefault(); RD.hub.forgot(); };
+
+    // Cargar Vitrina Pública (Avisos Izquierda, Carrusel Derecha, Planes y Lightbox Prioritario)
+    fetch('/api/public/showcase').then(r => r.json()).then(data => {
+      const noticesEl = document.getElementById('pub_notices_list');
+      const carouselEl = document.getElementById('pub_carousel_mount');
+      const plansEl = document.getElementById('pub_plans_list');
+      const lbMount = document.getElementById('pub_lightbox_mount');
+      if (!noticesEl) return;
+
+      const leftList = data.leftNotices?.length ? data.leftNotices : [
+        { title: 'Horario de Atención continua', body: 'Entrena de Lunes a Sábado con asesoría personalizada y control de acceso QR instantáneo.', category: 'info' },
+        { title: 'Pagos Rápidos sin Filas', body: 'Aceptamos Efectivo, Yape y Plin directamente en recepción con comprobante digital.', category: 'evento' }
+      ];
+      noticesEl.innerHTML = leftList.slice(0, 4).map(a => `
+        <div class="pub-notice-card">
+          <div class="row between mb" style="margin-bottom:4px">
+            <span class="badge ${a.category === 'promo' ? 'warn' : a.category === 'urgente' ? 'bad' : 'info'}" style="font-size:.65rem">${esc((a.category || 'aviso').toUpperCase())}</span>
+            ${a.pinned ? '<span class="tiny gold">📌 Destacado</span>' : ''}
+          </div>
+          <div style="font-weight:700;font-size:.9rem;margin-bottom:4px">${esc(a.title)}</div>
+          <div class="small muted" style="line-height:1.45">${esc(a.body)}</div>
+          ${a.cta_label ? `<a href="${esc(a.cta_url || '#')}" class="btn sm ghost mt" style="font-size:.75rem">${esc(a.cta_label)} →</a>` : ''}
+        </div>
+      `).join('');
+
+      // Carrusel derecho
+      const slides = data.rightCarousel?.length ? data.rightCarousel : [
+        { title: '¡Inscríbete Hoy y Transforma tu Físico!', body: 'Equipos biomecánicos profesionales, pesas libres, zona cardio y seguimiento de progreso en tu App.', cta_label: 'Consultar por WhatsApp', cta_url: data.gym?.whatsapp ? `https://wa.me/${String(data.gym.whatsapp).replace(/\D/g, '')}` : '#' }
+      ];
+      let slideIdx = 0;
+      const renderSlide = () => {
+        if (!carouselEl) return;
+        const s = slides[slideIdx % slides.length];
+        carouselEl.innerHTML = `
+          <div class="pub-carousel-box">
+            <div>
+              <span class="badge warn" style="font-size:.65rem;margin-bottom:8px">✨ CAMPAÑA DESTACADA</span>
+              <h4 style="margin:6px 0;font-size:1.05rem">${esc(s.title)}</h4>
+              <p class="small muted" style="margin:0;line-height:1.45">${esc(s.body)}</p>
+            </div>
+            ${s.cta_label ? `<a href="${esc(s.cta_url || '#')}" target="_blank" rel="noopener" class="btn sm primary block mt">${esc(s.cta_label)}</a>` : ''}
+          </div>
+          ${slides.length > 1 ? `<div class="pub-dots">${slides.map((_, i) => `<button type="button" class="pub-dot ${i === slideIdx ? 'active' : ''}" data-sidx="${i}"></button>`).join('')}</div>` : ''}
+        `;
+        carouselEl.querySelectorAll('[data-sidx]').forEach(b => {
+          b.onclick = () => { slideIdx = +b.dataset.sidx; renderSlide(); };
+        });
+      };
+      renderSlide();
+      if (slides.length > 1) {
+        setInterval(() => {
+          if (!document.getElementById('pub_carousel_mount')) return;
+          slideIdx = (slideIdx + 1) % slides.length;
+          renderSlide();
+        }, 6000);
+      }
+
+      // Lista de planes y promociones vigentes
+      if (plansEl && data.plans?.length) {
+        plansEl.innerHTML = data.plans.slice(0, 6).map(p => `
+          <div class="pub-plan-pill" style="${p.is_promo ? 'border-color:rgba(245,158,11,0.45);background:rgba(245,158,11,0.06)' : ''}">
+            <div>
+              <div style="font-weight:700;font-size:.86rem">${esc(p.name)} ${p.is_promo ? '<span class="badge warn" style="font-size:.6rem">PROMO</span>' : ''}</div>
+              <div class="tiny muted">${p.months ? `${p.months} mes(es)` : `${p.days} día(s)`}${p.promo_label ? ` · ${esc(p.promo_label)}` : ''}</div>
+            </div>
+            <div class="gold" style="font-weight:800;font-size:.98rem">${money(p.price)}</div>
+          </div>
+        `).join('');
+      }
+
+      // Lightbox Prioritario Elegante (Solo si existe un anuncio configurado con web_spot = 'lightbox' y no fue cerrado en esta sesión)
+      const lb = data.lightbox;
+      if (lb && lbMount && sessionStorage.getItem('rd_lb_seen_' + lb.id) !== '1') {
+        let secLeft = 12;
+        lbMount.innerHTML = `
+          <div class="pub-lightbox-backdrop" id="pub_lb_bg">
+            <div class="pub-lightbox-card">
+              <button type="button" class="pub-lightbox-close" id="pub_lb_close" title="Cerrar anuncio">✕</button>
+              <span class="badge warn" style="margin-bottom:10px">⭐ ANUNCIO DESTACADO · RD FITNESS CLUB</span>
+              <h2 style="margin:6px 0 10px;font-size:1.35rem">${esc(lb.title)}</h2>
+              <p class="muted" style="line-height:1.55;margin-bottom:16px">${esc(lb.body)}</p>
+              <div class="row center gap">
+                ${lb.cta_label ? `<a href="${esc(lb.cta_url || '#')}" target="_blank" rel="noopener" class="btn primary">${esc(lb.cta_label)}</a>` : ''}
+                <button type="button" class="btn ghost" id="pub_lb_dismiss">Entendido (${secLeft}s)</button>
+              </div>
+              <div class="pub-lightbox-timer"><div id="pub_lb_bar"></div></div>
+            </div>
+          </div>
+        `;
+        const closeLb = () => {
+          sessionStorage.setItem('rd_lb_seen_' + lb.id, '1');
+          if (lbMount) lbMount.innerHTML = '';
+        };
+        document.getElementById('pub_lb_close').onclick = closeLb;
+        document.getElementById('pub_lb_dismiss').onclick = closeLb;
+        document.getElementById('pub_lb_bg').onclick = e => { if (e.target.id === 'pub_lb_bg') closeLb(); };
+        const iv = setInterval(() => {
+          secLeft--;
+          const btnD = document.getElementById('pub_lb_dismiss');
+          const bar = document.getElementById('pub_lb_bar');
+          if (!btnD) { clearInterval(iv); return; }
+          btnD.textContent = `Entendido (${Math.max(0, secLeft)}s)`;
+          if (bar) bar.style.width = `${Math.max(0, (secLeft / 12) * 100)}%`;
+          if (secLeft <= 0) { clearInterval(iv); closeLb(); }
+        }, 1000);
+      }
+    }).catch(() => {});
 
     document.getElementById('mlf').onsubmit = async e => {
       e.preventDefault();

@@ -265,7 +265,13 @@ function ensureColumns() {
 
   // Hub del socio: multimedia en avisos y preferencia de sonido/vibración
   addCol('announcements', 'image_url', 'TEXT');
+  addCol('announcements', 'channel', "TEXT DEFAULT 'both'");
+  addCol('announcements', 'web_spot', "TEXT DEFAULT 'normal'");
   addCol('member_prefs', 'alert_mode', "TEXT DEFAULT 'sound'");
+
+  // Planes dinámicos y promociones temporales sin afectar historial
+  addCol('plans', 'is_promo', 'INTEGER DEFAULT 0');
+  addCol('plans', 'promo_label', 'TEXT');
 
   // Asegurar que por defecto todas las notificaciones estén activas para todos los socios
   try {

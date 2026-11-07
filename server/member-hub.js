@@ -330,10 +330,12 @@ module.exports = function mountMemberHub(api, ctx) {
     const push = (ref, o) => { const r = reads.get(ref); items.push({ ref, read: !!r, dismissed: !!(r && r.dismissed), ...o }); };
 
     for (const a of q.all('SELECT * FROM announcements WHERE archived=0 ORDER BY id DESC LIMIT 200')) {
+      if (a.channel === 'web') continue; // Exclusivo público web: no invadir la App del socio con publicidad externa
       if (!inWindow(a, now) || !matchesAudience(a, m, mp)) continue;
       if (KINDS[a.kind] === 'promos' && !pr.show_promos) continue;
       push('a:' + a.id, {
         id: a.id, source: 'gym', kind: a.kind, title: a.title, body: a.body || '', priority: a.priority, pinned: !!a.pinned,
+        channel: a.channel || 'both', web_spot: a.web_spot || 'normal',
         image_url: a.image_url || null,
         cta: a.cta_label && a.cta_url ? { label: a.cta_label, url: a.cta_url } : null, created_at: asIso(a.starts_at || a.created_at)
       });
@@ -490,6 +492,7 @@ module.exports = function mountMemberHub(api, ctx) {
   }));
 
   function audienceMembers(a) {
+    if (a.channel === 'web') return [];
     if (a.audience === 'member') return a.member_id ? [a.member_id] : [];
     const rows = q.all("SELECT * FROM members WHERE status<>'inactive' AND id IN (SELECT DISTINCT member_id FROM push_subs)");
     return rows.filter(m => matchesAudience(a, m, memberPublic(m))).map(m => m.id);
@@ -547,7 +550,9 @@ module.exports = function mountMemberHub(api, ctx) {
     const kind = String(b.kind || 'aviso');
     if (!KINDS[kind]) { bad(res, 'Tipo de aviso inválido'); return null; }
     const title = clip(b.title, 80); if (!title) { bad(res, 'Escribe un título'); return null; }
-    const audience = AUDIENCES.includes(b.audience) ? b.audience : 'all';
+    const channel = ['app', 'web', 'both'].includes(b.channel) ? b.channel : 'both';
+    const web_spot = ['normal', 'carousel', 'lightbox'].includes(b.web_spot) ? b.web_spot : 'normal';
+    const audience = channel === 'web' ? 'all' : (AUDIENCES.includes(b.audience) ? b.audience : 'all');
     const member_id = audience === 'member' ? num(b.member_id) : null;
     if (audience === 'member' && !q.get('SELECT 1 x FROM members WHERE id=?', member_id)) { bad(res, 'Elige un socio válido'); return null; }
     const starts_at = isoOrNull(b.starts_at), ends_at = isoOrNull(b.ends_at);
@@ -559,26 +564,47 @@ module.exports = function mountMemberHub(api, ctx) {
     return {
       kind, title, body: clip(b.body, 600), audience, member_id, priority: b.priority === 'importante' ? 'importante' : 'info',
       pinned: b.pinned ? 1 : 0, starts_at, ends_at, cta_label: cta_url ? cta_label : '', cta_url,
-      image_url, push: b.push ? 1 : 0
+      image_url, push: (channel !== 'web' && b.push) ? 1 : 0, channel, web_spot
     };
   }
   const annStatus = (a, now) => a.archived ? 'archivado' : a.starts_at && new Date(a.starts_at).getTime() > now ? 'programado' : a.ends_at && new Date(a.ends_at).getTime() < now ? 'finalizado' : 'activo';
+
+  // Showcase público para Sitio Web Corporativo (Avisos Generales, Carrusel Publicitario, Lightbox Destacado y Planes Activos)
+  api.get('/public/showcase', wrap((req, res) => {
+    const now = Date.now();
+    const rawAnns = q.all("SELECT * FROM announcements WHERE archived=0 AND COALESCE(channel,'both') IN ('web','both') ORDER BY pinned DESC, id DESC LIMIT 40");
+    const activeAnns = rawAnns.filter(a => inWindow(a, now)).map(a => ({
+      id: a.id,
+      kind: a.kind,
+      title: a.title,
+      body: a.body || '',
+      priority: a.priority,
+      pinned: !!a.pinned,
+      channel: a.channel || 'both',
+      web_spot: a.web_spot || 'normal',
+      image_url: a.image_url || null,
+      cta: a.cta_label && a.cta_url ? { label: a.cta_label, url: a.cta_url } : null,
+      created_at: asIso(a.starts_at || a.created_at)
+    }));
+    const plans = q.all('SELECT id, name, months, days, price, is_promo, promo_label FROM plans WHERE active=1 ORDER BY is_promo DESC, sort, id');
+    res.json({ announcements: activeAnns, plans, now });
+  }));
 
   api.get('/announcements', staff('admin', 'recepcion'), wrap((req, res) => {
     const now = Date.now();
     const rows = q.all(`SELECT a.*, (SELECT COUNT(*) FROM inbox_reads r WHERE r.ref='a:'||a.id) AS reads,
       (SELECT name FROM users u WHERE u.id=a.created_by) AS author FROM announcements a ${req.query.all ? '' : 'WHERE a.archived=0'} ORDER BY a.id DESC LIMIT 200`);
-    res.json(rows.map(a => ({ ...a, status: annStatus(a, now), starts_at: a.starts_at, ends_at: a.ends_at, created_at: asIso(a.created_at) })));
+    res.json(rows.map(a => ({ ...a, channel: a.channel || 'both', web_spot: a.web_spot || 'normal', status: annStatus(a, now), starts_at: a.starts_at, ends_at: a.ends_at, created_at: asIso(a.created_at) })));
   }));
   api.post('/announcements', staff('admin', 'recepcion'), wrap(async (req, res) => {
     const d = parseAnn(req.body || {}, res); if (!d) return;
-    const r = q.run(`INSERT INTO announcements(kind,title,body,audience,member_id,priority,pinned,starts_at,ends_at,cta_label,cta_url,image_url,push,created_by)
-      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, d.kind, d.title, d.body, d.audience, d.member_id, d.priority, d.pinned, d.starts_at, d.ends_at, d.cta_label, d.cta_url, d.image_url, d.push, req.user.id);
+    const r = q.run(`INSERT INTO announcements(kind,title,body,audience,member_id,priority,pinned,starts_at,ends_at,cta_label,cta_url,image_url,push,channel,web_spot,created_by)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, d.kind, d.title, d.body, d.audience, d.member_id, d.priority, d.pinned, d.starts_at, d.ends_at, d.cta_label, d.cta_url, d.image_url, d.push, d.channel, d.web_spot, req.user.id);
     const id = Number(r.lastInsertRowid);
-    audit(req.user.id, 'announcement.create', { id, kind: d.kind, title: d.title, audience: d.audience });
+    audit(req.user.id, 'announcement.create', { id, kind: d.kind, title: d.title, audience: d.audience, channel: d.channel, web_spot: d.web_spot });
     let push = null;
     const a = q.get('SELECT * FROM announcements WHERE id=?', id);
-    if (d.push && (!d.starts_at || new Date(d.starts_at).getTime() <= Date.now())) push = await dispatchPush(a);
+    if (d.push && d.channel !== 'web' && (!d.starts_at || new Date(d.starts_at).getTime() <= Date.now())) push = await dispatchPush(a);
     try { if (typeof saveVault === 'function') saveVault(); } catch {}
     res.json({ ok: true, id, push, push_enabled: pushEnabled() });
   }));
@@ -599,9 +625,9 @@ module.exports = function mountMemberHub(api, ctx) {
     const id = num(req.params.id);
     const cur = q.get('SELECT * FROM announcements WHERE id=?', id); if (!cur) return bad(res, 'Aviso no encontrado', 404);
     const d = parseAnn(req.body || {}, res); if (!d) return;
-    q.run(`UPDATE announcements SET kind=?,title=?,body=?,audience=?,member_id=?,priority=?,pinned=?,starts_at=?,ends_at=?,cta_label=?,cta_url=?,image_url=?,push=? WHERE id=?`,
-      d.kind, d.title, d.body, d.audience, d.member_id, d.priority, d.pinned, d.starts_at, d.ends_at, d.cta_label, d.cta_url, d.image_url, cur.push_sent ? cur.push : d.push, id);
-    audit(req.user.id, 'announcement.update', { id });
+    q.run(`UPDATE announcements SET kind=?,title=?,body=?,audience=?,member_id=?,priority=?,pinned=?,starts_at=?,ends_at=?,cta_label=?,cta_url=?,image_url=?,push=?,channel=?,web_spot=? WHERE id=?`,
+      d.kind, d.title, d.body, d.audience, d.member_id, d.priority, d.pinned, d.starts_at, d.ends_at, d.cta_label, d.cta_url, d.image_url, cur.push_sent ? cur.push : d.push, d.channel, d.web_spot, id);
+    audit(req.user.id, 'announcement.update', { id, channel: d.channel, web_spot: d.web_spot });
     try { if (typeof saveVault === 'function') saveVault(); } catch {}
     res.json({ ok: true });
   }));

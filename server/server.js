@@ -391,14 +391,23 @@ function buildReceipt(paymentId) {
   };
 }
 
-function activateMembership({ member_id, plan, start, price, userId, method, note, concept, op_code, voucher_img, extra_days, promo_note }) {
+function activateMembership({ member_id, plan, start, end_override, price, userId, method, note, concept, op_code, voucher_img, extra_days, promo_note, is_migration }) {
   const last = q.get("SELECT MAX(end_date) e FROM memberships WHERE member_id=? AND status='active'", member_id);
   const today = L.limaDay();
   let s = start || today;
-  if (!start && last && last.e && last.e >= today) s = L.addDays(last.e, 1); // renovación anticipada: se suma a lo que queda
-  let end = L.membershipEnd(s, plan.months, plan.days);
+  if (!start && !is_migration && last && last.e && last.e >= today) s = L.addDays(last.e, 1); // renovación anticipada: se suma a lo que queda
+  let end = (end_override && /^\d{4}-\d{2}-\d{2}$/.test(String(end_override)))
+    ? String(end_override)
+    : L.membershipEnd(s, plan.months, plan.days);
   const extra = num(extra_days, 0);
-  if (extra > 0) end = L.addDays(end, extra);
+  if (extra > 0 && !end_override) end = L.addDays(end, extra);
+  if (is_migration) {
+    const migNote = promo_note || note || 'Migración de socio antiguo en curso (pago previo al sistema — sin cobro en caja actual)';
+    const ms = q.run('INSERT INTO memberships(member_id,plan_id,plan_name,start_date,end_date,price,created_by,extra_days,promo_note) VALUES(?,?,?,?,?,?,?,?,?)',
+      member_id, plan.id, plan.name, s, end, price, userId, extra, migNote);
+    try { saveVault(); } catch {}
+    return { membership_id: Number(ms.lastInsertRowid), payment_id: null, start: s, end, receipt_no: null, extra_days: extra, is_migration: true };
+  }
   const receipt_no = nextReceiptNo();
   const curShift = getActiveShift(userId);
   const shift_id = curShift ? curShift.id : null;
@@ -408,7 +417,7 @@ function activateMembership({ member_id, plan, start, price, userId, method, not
   const pay = q.run('INSERT INTO payments(member_id,membership_id,concept,amount,method,note,day,user_id,op_code,voucher_img,receipt_no,shift_id,category) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
     member_id, ms.lastInsertRowid, finalConcept, price, method, note || promo_note || null, today, userId, op_code || null, voucher_img || null, receipt_no, shift_id, 'gym');
   try { saveVault(); } catch {}
-  return { membership_id: Number(ms.lastInsertRowid), payment_id: Number(pay.lastInsertRowid), start: s, end, receipt_no, extra_days: extra };
+  return { membership_id: Number(ms.lastInsertRowid), payment_id: Number(pay.lastInsertRowid), start: s, end, receipt_no, extra_days: extra, is_migration: false };
 }
 
 function checkMethod(m) { return METHODS.includes(m) ? m : null; }
@@ -523,8 +532,9 @@ api.post('/members', staff('admin', 'recepcion'), wrap((req, res) => {
     });
   }
   let plan = null;
-  if (b.plan_id) { plan = q.get('SELECT * FROM plans WHERE id=? AND active=1', num(b.plan_id)); if (!plan) return bad(res, 'Plan no válido'); }
-  if (plan && !checkMethod(b.method)) return bad(res, 'Elige el método de pago');
+  const isMigration = !!b.is_migration;
+  if (b.plan_id) { plan = q.get('SELECT * FROM plans WHERE id=?', num(b.plan_id)); if (!plan) return bad(res, 'Plan no válido'); }
+  if (plan && !isMigration && !checkMethod(b.method)) return bad(res, 'Elige el método de pago');
   const price = plan ? num(b.price, plan.price) : 0;
   if (plan && (price < 0 || price > plan.price * 3)) return bad(res, 'Monto inválido');
 
@@ -538,8 +548,9 @@ api.post('/members', staff('admin', 'recepcion'), wrap((req, res) => {
     let ms = null;
     if (plan) ms = activateMembership({
       member_id: id, plan, price, userId: req.user.id,
-      method: b.method, note: b.discount_note, op_code: b.op_code, voucher_img: b.voucher_img,
-      start: b.start_date || null, extra_days: b.extra_days || 0, promo_note: b.promo_note || null
+      method: isMigration ? null : b.method, note: b.discount_note, op_code: b.op_code, voucher_img: b.voucher_img,
+      start: b.start_date || null, end_override: b.end_date || null, extra_days: b.extra_days || 0, promo_note: b.promo_note || null,
+      is_migration: isMigration
     });
     return { id, ms };
   });
@@ -591,19 +602,22 @@ api.post('/members/:id/renew', staff('admin', 'recepcion'), wrap((req, res) => {
   const m = q.get('SELECT * FROM members WHERE id=?', id);
   if (!m) return bad(res, 'Socio no encontrado', 404);
   if (m.status === 'inactive') return bad(res, 'El socio está dado de baja. Reactívalo primero.');
-  const plan = q.get('SELECT * FROM plans WHERE id=? AND active=1', num(req.body?.plan_id));
+  const isMigration = !!req.body?.is_migration;
+  const plan = q.get('SELECT * FROM plans WHERE id=?', num(req.body?.plan_id));
   if (!plan) return bad(res, 'Elige un plan');
-  if (!checkMethod(req.body?.method)) return bad(res, 'Elige el método de pago');
+  if (!isMigration && !checkMethod(req.body?.method)) return bad(res, 'Elige el método de pago');
   const price = num(req.body?.price, plan.price);
   if (price < 0 || price > plan.price * 3) return bad(res, 'Monto inválido');
-  if (price < plan.price && req.user.role !== 'admin' && !req.body?.discount_note) return bad(res, 'Escribe el motivo del descuento');
+  if (!isMigration && price < plan.price && req.user.role !== 'admin' && !req.body?.discount_note) return bad(res, 'Escribe el motivo del descuento');
   const r = q.tx(() => activateMembership({
     member_id: id, plan, price, userId: req.user.id,
-    method: req.body.method, note: req.body.discount_note,
+    method: isMigration ? null : req.body.method, note: req.body.discount_note,
     op_code: req.body.op_code, voucher_img: req.body.voucher_img,
-    start: req.body.start_date || null, extra_days: req.body.extra_days || 0, promo_note: req.body.promo_note || null
+    start: req.body.start_date || null, end_override: req.body.end_date || null,
+    extra_days: req.body.extra_days || 0, promo_note: req.body.promo_note || null,
+    is_migration: isMigration
   }));
-  audit(req.user.id, 'member.renew', { id, plan: plan.name, price });
+  audit(req.user.id, isMigration ? 'member.migrate_plan' : 'member.renew', { id, plan: plan.name, price, is_migration: isMigration });
   const receipt = r.payment_id ? buildReceipt(r.payment_id) : null;
   res.json({ ...r, member: memberPublic(m), receipt });
 }));
@@ -1127,23 +1141,45 @@ api.get('/reports/member/:id/attendance', staff('admin', 'recepcion'), wrap((req
 
 // ---------------- Planes ----------------
 api.get('/plans', anyAuth, wrap((req, res) => {
-  res.json(q.all('SELECT * FROM plans ORDER BY active DESC, sort, id'));
+  res.json(q.all('SELECT * FROM plans ORDER BY active DESC, is_promo DESC, sort, id'));
 }));
 api.post('/plans', staff('admin'), wrap((req, res) => {
   const b = req.body || {};
   if (!b.name || num(b.price) < 0) return bad(res, 'Datos del plan incompletos');
   if (!num(b.months) && !num(b.days)) return bad(res, 'Indica la duración en meses o días');
-  const r = q.run('INSERT INTO plans(name,months,days,price,sort) VALUES(?,?,?,?,?)', b.name, num(b.months), num(b.days), num(b.price), num(b.sort, 9));
+  const is_promo = b.is_promo ? 1 : 0;
+  const promo_label = b.promo_label ? String(b.promo_label).trim().slice(0, 60) : null;
+  const r = q.run('INSERT INTO plans(name,months,days,price,sort,is_promo,promo_label) VALUES(?,?,?,?,?,?,?)',
+    String(b.name).trim(), num(b.months), num(b.days), num(b.price), num(b.sort, 9), is_promo, promo_label);
+  try { saveVault(); } catch {}
   audit(req.user.id, 'plan.create', b);
   res.json({ id: Number(r.lastInsertRowid) });
 }));
 api.put('/plans/:id', staff('admin'), wrap((req, res) => {
   const b = req.body || {}; const p = q.get('SELECT * FROM plans WHERE id=?', num(req.params.id));
   if (!p) return bad(res, 'Plan no encontrado', 404);
-  q.run('UPDATE plans SET name=?, months=?, days=?, price=?, active=?, sort=? WHERE id=?',
-    b.name ?? p.name, b.months ?? p.months, b.days ?? p.days, b.price ?? p.price, b.active ?? p.active, b.sort ?? p.sort, p.id);
+  const is_promo = b.is_promo !== undefined ? (b.is_promo ? 1 : 0) : (p.is_promo || 0);
+  const promo_label = b.promo_label !== undefined ? (b.promo_label ? String(b.promo_label).trim().slice(0, 60) : null) : (p.promo_label || null);
+  q.run('UPDATE plans SET name=?, months=?, days=?, price=?, active=?, sort=?, is_promo=?, promo_label=? WHERE id=?',
+    b.name ?? p.name, b.months ?? p.months, b.days ?? p.days, b.price ?? p.price, b.active ?? p.active, b.sort ?? p.sort, is_promo, promo_label, p.id);
+  try { saveVault(); } catch {}
   audit(req.user.id, 'plan.update', { id: p.id, ...b });
   res.json({ ok: true });
+}));
+api.delete('/plans/:id', staff('admin'), wrap((req, res) => {
+  const p = q.get('SELECT * FROM plans WHERE id=?', num(req.params.id));
+  if (!p) return bad(res, 'Plan no encontrado', 404);
+  const used = q.get('SELECT COUNT(*) n FROM memberships WHERE plan_id=?', p.id)?.n || 0;
+  if (used > 0) {
+    q.run('UPDATE plans SET active=0 WHERE id=?', p.id);
+    try { saveVault(); } catch {}
+    audit(req.user.id, 'plan.archive', { id: p.id, used });
+    return res.json({ ok: true, archived: true, used, message: 'El plan tiene socios históricos registrados; se archivó para mantener intactos sus precios y cierres de caja.' });
+  }
+  q.run('DELETE FROM plans WHERE id=?', p.id);
+  try { saveVault(); } catch {}
+  audit(req.user.id, 'plan.delete', { id: p.id });
+  res.json({ ok: true, deleted: true });
 }));
 
 // ---------------- Pagos, caja, gastos ----------------

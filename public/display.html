@@ -1025,7 +1025,7 @@
         <img src="/logo.svg" alt="RD Fitness Club" style="height:40px;width:40px;object-fit:contain;flex-shrink:0">
         <div>
           <div class="brand-title" id="gym_name">RD FITNESS CLUB</div>
-          <div class="brand-sub" id="gym_slogan">TV MONITOREO CCTV · ACCESOS QR · CHIVAY</div>
+          <div class="brand-sub" id="gym_slogan">MONITOR / TABLET DE RECEPCIÓN · ACCESOS QR · CHIVAY</div>
         </div>
       </div>
 
@@ -1039,9 +1039,8 @@
           <div class="clock-time" id="clock_time">--:--:--</div>
           <div class="clock-date" id="clock_date">--</div>
         </div>
-        <button class="ctrl-btn" id="btn_mode_cctv" title="Alternar entre Modo Pantalla de Recepción y Modo con Cámaras CCTV">
-          <svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-          <span id="mode_btn_txt">Activar Cámaras CCTV</span>
+        <button class="ctrl-btn" id="btn_mode_cctv" style="display:none" title="Modo Pantalla de Recepción">
+          <span id="mode_btn_txt">Modo Recepción</span>
         </button>
         <button class="ctrl-btn" id="btn_trigger_promo" title="Mostrar Spot Publicitario de Planes Ahora (Tecla P)">
           <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -1098,24 +1097,21 @@
   <div class="cfg-modal-backdrop" id="cfg_backdrop">
     <div class="cfg-modal">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <h3 style="margin:0;color:var(--gold)">Configuración de Pantalla de Recepción y TV CCTV</h3>
+        <h3 style="margin:0;color:var(--gold)">Configuración de Pantalla de Recepción (Monitor de Escritorio / Tablet)</h3>
         <button class="ctrl-btn" id="cfg_close">✕ Cerrar</button>
       </div>
 
-      <div class="cfg-row">
+      <div class="cfg-row" style="display:none">
         <label>1. Modo de Operación de la Pantalla:</label>
         <select id="cfg_tv_mode_select">
-          <option value="signage_only">📺 Modo Estándar: Pantalla de Recepción y Cartelera (Ideal para TV o Tablet sin cámaras)</option>
-          <option value="cctv_rotative">🎥 Modo Híbrido: Monitoreo CCTV + Alertas Prioritarias en PiP (Para TV con cámaras)</option>
+          <option value="signage_only" selected>📺 Modo Estándar: Pantalla de Recepción y Cartelera (Monitor / Tablet)</option>
         </select>
       </div>
 
-      <div class="cfg-row" id="cfg_cam_source_row">
-        <label>2. Fuente de Video de Cámaras CCTV (Solo si Modo CCTV está activo):</label>
+      <div class="cfg-row" id="cfg_cam_source_row" style="display:none">
+        <label>Fuente:</label>
         <select id="cfg_cam_source">
-          <option value="sim_grid">Cuadrícula DVR 4 Cámaras Activa (Ideal para Mostrador / Demo)</option>
-          <option value="usb_capture">Capturadora HDMI-a-USB desde el DVR / Cámara Web Conectada (1080p En Vivo)</option>
-          <option value="custom_urls">Streams IP / HTTP / MJPEG de Cámaras del Gimnasio (4 URLs)</option>
+          <option value="sim_grid">Estándar</option>
         </select>
       </div>
 

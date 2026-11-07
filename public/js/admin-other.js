@@ -508,16 +508,16 @@
         </div>
 
         <div class="card mb">
-          <h3>Resumen de Arqueo de Caja del Día</h3>
-          <div class="grid g5 mt2" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:10px">
+          <h3>Resumen de Arqueo de Caja del Día (Efectivo, Yape y Plin)</h3>
+          <div class="grid g5 mt2" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:10px">
             <div class="small">${RD.icon('cash')} Efectivo cobrado: <b>${money(cash.byMethod.efectivo || 0)}</b></div>
             <div class="small">${RD.icon('expense')} Gastos en efectivo: <b class="bad">-${money(cash.expenses.filter(e => e.method === 'efectivo').reduce((a, e) => a + e.amount, 0))}</b></div>
             <div class="small">${RD.icon('qr')} Yape: <b>${money(cash.byMethod.yape || 0)}</b></div>
             <div class="small">${RD.icon('qr')} Plin: <b>${money(cash.byMethod.plin || 0)}</b></div>
-            <div class="small">${RD.icon('card')} Tarjeta POS: <b>${money(cash.byMethod.tarjeta || 0)}</b></div>
+            ${(cash.byMethod.tarjeta || 0) > 0 ? `<div class="small">${RD.icon('card')} Otros / Tarjeta: <b>${money(cash.byMethod.tarjeta || 0)}</b></div>` : ''}
           </div>
           <div class="tip small mt">
-            <b>Regla de Arqueo para el Dueño:</b> Al cerrar caja, debe haber exactamente <b>${money(cash.cash_in_drawer)}</b> en monedas y billetes dentro del cajón físico. En tu aplicación de celular debes tener <b>${money((cash.byMethod.yape || 0) + (cash.byMethod.plin || 0))}</b> entre Yape y Plin, y en el reporte de lote de tu POS físico debes tener <b>${money(cash.byMethod.tarjeta || 0)}</b>.
+            <b>Regla de Arqueo para el Dueño:</b> Al cerrar el turno o el día, debe haber exactamente <b>${money(cash.cash_in_drawer)}</b> en monedas y billetes dentro del cajón físico, y en tu celular debes tener <b>${money((cash.byMethod.yape || 0) + (cash.byMethod.plin || 0))}</b> sumando tus cobros de Yape y Plin.
           </div>
         </div>
 
@@ -1459,13 +1459,16 @@
   function openShiftModal(onDone) {
     const d = RD.openModal(`${RD.icon('unlock')} Apertura de Turno de Caja`, `
       <form id="shiftopenf">
+        <div class="tip small mb" style="border-left:3px solid var(--gold);background:rgba(245,180,0,0.08)">
+          <b>Modalidad de Atención:</b> Elige <b>Turno Mañana</b> o <b>Turno Tarde</b> cuando trabajan 2 recepcionistas/encargados en el día, o elige <b>Turno Único / Día Completo (Atención del Dueño)</b> cuando una sola persona o el propietario atiende toda la jornada.
+        </div>
         <label class="field">
-          <span>Nombre del Turno *</span>
+          <span>Modalidad / Horario del Turno *</span>
           <select name="shift_name" required>
-            <option value="Turno Mañana (6:00 am - 2:00 pm)">Turno Mañana (6:00 am - 2:00 pm)</option>
-            <option value="Turno Tarde / Noche (2:00 pm - 9:00 pm)">Turno Tarde / Noche (2:00 pm - 9:00 pm)</option>
-            <option value="Turno Completo (6:00 am - 9:00 pm)">Turno Completo (6:00 am - 9:00 pm)</option>
-            <option value="Turno Fin de Semana">Turno Fin de Semana</option>
+            <option value="Turno Mañana (6:00 am - 2:00 pm)">🌅 Turno Mañana (6:00 am - 2:00 pm)</option>
+            <option value="Turno Tarde / Noche (2:00 pm - 9:30 pm)">🌇 Turno Tarde / Noche (2:00 pm - 9:30 pm)</option>
+            <option value="Turno Único / Día Completo (Atención directa del Dueño)">👑 Turno Único / Día Completo (Atención directa del Dueño)</option>
+            <option value="Turno Especial / Fin de Semana">📅 Turno Especial / Fin de Semana</option>
           </select>
         </label>
         <label class="field">
@@ -1477,7 +1480,7 @@
           <textarea name="notes" rows="2" placeholder="Ej. Se reciben 50 soles en sencillo: monedas de 1, 2 y billetes de 10..."></textarea>
         </label>
         <div class="tip small mt mb">
-          <b>Control de Arqueo:</b> Este dinero inicial no cuenta como ganancia; es la base para asegurar que al cerrar el turno el efectivo físico coincida sin faltantes ni confusiones.
+          <b>Control de Arqueo:</b> Este dinero inicial no cuenta como ganancia; es la base para asegurar que al cerrar el turno el efectivo físico y los cobros por Yape / Plin cuadren al centavo.
         </div>
         <button class="btn ok block">${RD.icon('check')} Iniciar y Abrir Turno</button>
       </form>
@@ -4404,51 +4407,105 @@ function verEstado() {
   function renderPlansSettings(el, plans) {
     el.innerHTML = `
     <div class="card">
-      <div class="row between mb">
-        <h3>Planes de Membresía</h3>
-        <button class="btn sm primary" id="addplan">＋ Nuevo Plan</button>
+      <div class="row between wrap gap mb">
+        <div>
+          <h3>Planes, Tarifas Dinámicas y Promociones Temporales</h3>
+          <p class="muted small">Crea o modifica planes, lanza ofertas por temporada o desactiva promociones vencidas. <b>Blindaje Histórico:</b> Cualquier cambio de precio o promoción aplica únicamente a los socios que se inscriban a partir de hoy; los socios registrados anteriormente conservan intacto el monto, plan y fechas con los que se inscribieron sin alterar jamás los cuadres de caja pasados.</p>
+        </div>
+        <div class="row gap">
+          <button class="btn sm ok" id="addpromoplan">🔥 Nueva Promo / Oferta Temporal</button>
+          <button class="btn sm primary" id="addplan">＋ Nuevo Plan Estándar</button>
+        </div>
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Nombre</th><th>Duración</th><th>Precio</th><th>Estado</th><th></th></tr></thead>
+          <thead><tr><th>Nombre del Plan / Promo</th><th>Tipo</th><th>Duración</th><th>Precio</th><th>Estado</th><th>Acciones</th></tr></thead>
           <tbody>
             ${plans.map(p => `
             <tr>
-              <td><b>${esc(p.name)}</b></td>
+              <td>
+                <b>${esc(p.name)}</b>
+                ${p.promo_label ? `<div class="tiny" style="color:#f59e0b;font-weight:700">🏷️ ${esc(p.promo_label)}</div>` : ''}
+              </td>
+              <td>${p.is_promo ? '<span class="badge warn">🔥 Promo / Temporal</span>' : '<span class="badge info">Estándar</span>'}</td>
               <td>${p.months ? `${p.months} mes(es)` : `${p.days} día(s)`}</td>
               <td class="gold" style="font-weight:700">${money(p.price)}</td>
-              <td><span class="badge ${p.active ? 'ok' : 'bad'}">${p.active ? 'Activo' : 'Inactivo'}</span></td>
-              <td><button class="btn sm" data-editplan="${p.id}">Editar</button></td>
+              <td><span class="badge ${p.active ? 'ok' : 'bad'}">${p.active ? 'Activo en Recepción' : 'Pausado / Oculto'}</span></td>
+              <td class="row gap">
+                <button class="btn sm" data-editplan="${p.id}">Editar</button>
+                <button class="btn sm ghost" data-toggleplan="${p.id}">${p.active ? 'Pausar' : 'Activar'}</button>
+                <button class="btn sm bad" data-delplan="${p.id}" title="Eliminar o archivar plan">✕</button>
+              </td>
             </tr>`).join('')}
           </tbody>
         </table>
       </div>
     </div>`;
 
-    el.querySelector('#addplan').onclick = () => planEditorModal(null, () => RD.go('settings'));
-    el.onclick = e => {
+    el.querySelector('#addplan').onclick = () => planEditorModal(null, () => RD.go('settings'), false);
+    el.querySelector('#addpromoplan').onclick = () => planEditorModal(null, () => RD.go('settings'), true);
+    el.onclick = async e => {
       const ep = e.target.closest('[data-editplan]');
       if (ep) {
         const p = plans.find(x => x.id === +ep.dataset.editplan);
         planEditorModal(p, () => RD.go('settings'));
+        return;
+      }
+      const tp = e.target.closest('[data-toggleplan]');
+      if (tp) {
+        const p = plans.find(x => x.id === +tp.dataset.toggleplan);
+        if (!p) return;
+        try {
+          await RD.api.put('/plans/' + p.id, { ...p, active: p.active ? 0 : 1 });
+          RD.toast(p.active ? 'Plan pausado (los socios actuales mantienen su vigencia)' : 'Plan activado para nuevas inscripciones');
+          RD.go('settings');
+        } catch (err) { RD.toast(err.message, 'err'); }
+        return;
+      }
+      const dp = e.target.closest('[data-delplan]');
+      if (dp) {
+        const p = plans.find(x => x.id === +dp.dataset.delplan);
+        if (!p) return;
+        const ok = await RD.confirm('Eliminar o Archivar Plan', `¿Deseas retirar "${p.name}" de la lista activa? Si tiene historial de pagos se archivará de forma segura sin alterar ningún cuadre de caja pasado.`);
+        if (!ok) return;
+        try {
+          const r = await RD.api.del('/plans/' + p.id);
+          RD.toast(r.archived ? 'Plan archivado con resguardo histórico' : 'Plan eliminado');
+          RD.go('settings');
+        } catch (err) { RD.toast(err.message, 'err'); }
       }
     };
   }
 
-  function planEditorModal(p, done) {
-    const d = RD.openModal(p ? 'Editar Plan' : 'Nuevo Plan', `
+  function planEditorModal(p, done, defaultPromo = false) {
+    const isPromo = p ? !!p.is_promo : defaultPromo;
+    const d = RD.openModal(p ? 'Editar Plan o Promoción' : (isPromo ? '🔥 Nueva Promoción / Oferta Temporal' : 'Nuevo Plan de Membresía'), `
       <form id="pf">
-        <label class="field"><span>Nombre del plan *</span><input name="name" value="${esc(p?.name || '')}" required placeholder="Ej. 1 mes, 3 meses"></label>
+        <div class="tip small mb" style="border-left:3px solid var(--gold)">
+          <b>Protección de Historial:</b> Modificar el precio o duración de un plan solo se aplica a las <b>nuevas inscripciones</b>. Los socios ya inscritos mantienen su fecha de vencimiento y el monto exacto que pagaron en su momento.
+        </div>
+        <label class="field"><span>Nombre del Plan o Promoción *</span><input name="name" value="${esc(p?.name || '')}" required placeholder="Ej. 1 Mes, Promo Dúo 2x1, Campaña Verano"></label>
+        <div class="grid g2 keep">
+          <label class="field"><span>Tipo de Tarifa</span>
+            <select name="is_promo">
+              <option value="0" ${!isPromo ? 'selected' : ''}>Plan Estándar Permanente</option>
+              <option value="1" ${isPromo ? 'selected' : ''}>🔥 Promoción Temporal / Oferta Ocasional</option>
+            </select>
+          </label>
+          <label class="field"><span>Etiqueta Promocional (Opcional)</span>
+            <input name="promo_label" value="${esc(p?.promo_label || '')}" placeholder="Ej. Solo por este mes / 20% Dscto">
+          </label>
+        </div>
         <div class="grid g2 keep">
           <label class="field"><span>Duración en meses</span><input name="months" type="number" min="0" value="${p?.months ?? 1}"></label>
-          <label class="field"><span>O en días (ej. pase diario)</span><input name="days" type="number" min="0" value="${p?.days ?? 0}"></label>
+          <label class="field"><span>O en días (ej. pase diario o quincena)</span><input name="days" type="number" min="0" value="${p?.days ?? 0}"></label>
         </div>
         <div class="grid g2 keep">
-          <label class="field"><span>Precio (S/) *</span><input name="price" type="number" step="0.5" min="0" value="${p?.price ?? 60}" required></label>
-          <label class="field"><span>Orden</span><input name="sort" type="number" value="${p?.sort ?? 1}"></label>
+          <label class="field"><span>Precio de Venta (S/) *</span><input name="price" type="number" step="0.5" min="0" value="${p?.price ?? 60}" required></label>
+          <label class="field"><span>Orden de aparición</span><input name="sort" type="number" value="${p?.sort ?? 1}"></label>
         </div>
-        <label class="check"><input type="checkbox" name="active" ${p ? (p.active ? 'checked' : '') : 'checked'}> <span>Plan activo para la venta</span></label>
-        <button class="btn primary block mt">Guardar Plan</button>
+        <label class="check"><input type="checkbox" name="active" ${p ? (p.active ? 'checked' : '') : 'checked'}> <span>Plan activo para nuevas inscripciones en recepción</span></label>
+        <button class="btn primary block mt">Guardar Plan / Tarifa</button>
       </form>
     `);
 
@@ -4462,12 +4519,14 @@ function verEstado() {
           days: +f.days.value || 0,
           price: +f.price.value,
           sort: +f.sort.value || 1,
-          active: f.active.checked ? 1 : 0
+          active: f.active.checked ? 1 : 0,
+          is_promo: +f.is_promo.value ? 1 : 0,
+          promo_label: f.promo_label.value.trim()
         };
         if (p) await RD.api.put('/plans/' + p.id, body);
         else await RD.api.post('/plans', body);
         d.close();
-        RD.toast('Plan guardado');
+        RD.toast('Plan guardado correctamente');
         done && done();
       } catch (err) {
         RD.toast(err.message, 'err');
@@ -4769,15 +4828,15 @@ function verEstado() {
         </div>
       </div>
 
-      <!-- TARJETA: HERRAMIENTAS ADICIONALES, DOSSIERS COMERCIALES, SMART TV CCTV Y ANATOMÍA 3D -->
+      <!-- TARJETA: HERRAMIENTAS ADICIONALES, DOSSIERS COMERCIALES, PANTALLA DE RECEPCIÓN Y ANATOMÍA 3D -->
       <div class="card">
-        <h3 style="margin-bottom:0.5rem;">${RD.icon('printer')} Herramientas de Recepción, Dossiers Ejecutivos, Smart TV CCTV y Arquitectura 3D</h3>
+        <h3 style="margin-bottom:0.5rem;">${RD.icon('printer')} Herramientas de Recepción, Dossiers Ejecutivos, Pantalla Monitor/Tablet y Arquitectura 3D</h3>
         <p class="small muted" style="margin-bottom:0.85rem;">
-          Accede en 1 clic a la pantalla para la Smart TV del gimnasio (Cámaras CCTV 24/7 + Bienvenidas QR), a los Dossiers de Propuesta Comercial e Ingeniería (Web y PDF Oficial), a las Máquinas Interactivas 3D (Anatomy3D Estándar y Pro), al Plano Técnico BOM y al Estudio de Tarjetas PVC.
+          Accede en 1 clic a la pantalla de recepción y bienvenida QR para monitor de escritorio o tablet, a los Dossiers de Propuesta Comercial e Ingeniería (Web y PDF Oficial), a las Máquinas Interactivas 3D (Anatomy3D Estándar y Pro), al Plano Técnico BOM y al Estudio de Tarjetas PVC.
         </p>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <a class="btn primary" href="/display.html" target="_blank" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
-            ${RD.icon('qr')} Smart TV + Cámaras CCTV (/display.html)
+            ${RD.icon('qr')} Pantalla de Recepción y Bienvenida (/display.html)
           </a>
           <a class="btn" href="/admin/cards.html" target="_blank" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
             ${RD.icon('idcard')} Estudio e Impresor PDF de Tarjetas PVC

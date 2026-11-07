@@ -1,4 +1,4 @@
-/* RD Fitness Club - Módulo de Gestión de Avisos y Notificaciones (Panel Admin / Recepción) */
+/* RED GYM Club - Módulo de Gestión de Avisos y Notificaciones (Panel Admin / Recepción) */
 (function () {
   const RD = window.RD = window.RD || {};
   const { esc } = RD;
@@ -30,27 +30,27 @@
       view.innerHTML = `
         <div class="row between wrap gap mb">
           <div>
-            <h2 style="margin:0;display:flex;align-items:center;gap:8px">${RD.icon('megaphone', '', 22)} Avisos, Novedades y Notificaciones</h2>
+            <h2 style="margin:0;display:flex;align-items:center;gap:8px">${RD.icon('megaphone', '', 22)} Avisos para Socios (App) y Publicidad Web</h2>
             <p class="muted small" style="margin:.2rem 0 0">
-              Publica comunicados oficiales, avisos de mantenimiento, horarios especiales y promociones. Se reflejan en tiempo real en la app del socio.
+              Administra desde un solo lugar las notificaciones preferenciales para <b>Socios en la App</b> (sin invadirlos con publicidad) y las campañas comerciales, carruseles y anuncios destacados para el <b>Público General en la Web</b>.
             </p>
           </div>
-          <button class="btn primary" id="btnnewann">＋ Nuevo Comunicado</button>
+          <button class="btn primary" id="btnnewann">＋ Nuevo Aviso / Anuncio</button>
         </div>
 
         <div class="grid g4 gap mb" id="annkpis">
-          <div class="stat"><div class="v" id="kpiactive">—</div><div class="l">Avisos activos</div></div>
-          <div class="stat"><div class="v" id="kpibanner">—</div><div class="l">Franjas de atención</div></div>
-          <div class="stat"><div class="v" id="kpireads">—</div><div class="l">Lecturas en app</div></div>
+          <div class="stat"><div class="v" id="kpiactive">—</div><div class="l">Publicaciones activas</div></div>
+          <div class="stat"><div class="v" id="kpibanner">—</div><div class="l">Destacados / Lightbox</div></div>
+          <div class="stat"><div class="v" id="kpireads">—</div><div class="l">Lecturas en App</div></div>
           <div class="stat"><div class="v" id="kpipush">—</div><div class="l">Con aviso Push</div></div>
         </div>
 
         <div class="chips mb" id="anntabs">
           <span class="chip on" data-t="all">Todos</span>
-          <span class="chip" data-t="active">Activos</span>
-          <span class="chip" data-t="scheduled">Programados</span>
-          <span class="chip" data-t="maintenance">Cierres / Mantenimiento</span>
-          <span class="chip" data-t="promos">Promociones</span>
+          <span class="chip" data-t="app_only">🔒 Exclusivo Socios (App)</span>
+          <span class="chip" data-t="web_only">🌐 Publicidad Sitio Web</span>
+          <span class="chip" data-t="both_ch">📢 Ambos (App + Web)</span>
+          <span class="chip" data-t="promos">🔥 Promociones</span>
           <span class="chip" data-t="archived">Archivados</span>
         </div>
 
@@ -101,24 +101,36 @@
     if (!host) return;
 
     let items = listCache.slice();
-    if (currentTab === 'active') items = items.filter(a => a.status === 'activo');
-    else if (currentTab === 'scheduled') items = items.filter(a => a.status === 'programado');
-    else if (currentTab === 'maintenance') items = items.filter(a => ['mantenimiento', 'cierre'].includes(a.kind) && !a.archived);
+    if (currentTab === 'app_only') items = items.filter(a => a.channel === 'app' && !a.archived);
+    else if (currentTab === 'web_only') items = items.filter(a => a.channel === 'web' && !a.archived);
+    else if (currentTab === 'both_ch') items = items.filter(a => (!a.channel || a.channel === 'both') && !a.archived);
     else if (currentTab === 'promos') items = items.filter(a => a.kind === 'promo' && !a.archived);
     else if (currentTab === 'archived') items = items.filter(a => a.archived);
     else items = items.filter(a => !a.archived);
 
     if (!items.length) {
-      host.innerHTML = `<div class="empty">No hay comunicados en esta sección.<br><span class="small muted">Haz clic en <b>＋ Nuevo Comunicado</b> para redactar uno.</span></div>`;
+      host.innerHTML = `<div class="empty">No hay comunicados en esta sección.<br><span class="small muted">Haz clic en <b>＋ Nuevo Aviso / Anuncio</b> para redactar uno.</span></div>`;
       return;
     }
+
+    const CH_BADGE = {
+      app: '<span class="badge info">🔒 Exclusivo Socios (App)</span>',
+      web: '<span class="badge warn">🌐 Exclusivo Público Web</span>',
+      both: '<span class="badge ok">📢 Socios App + Público Web</span>'
+    };
+    const SPOT_BADGE = {
+      normal: '<span class="badge ghost">📌 Panel Izquierdo (Avisos)</span>',
+      carousel: '<span class="badge info">🎠 Carrusel Publicitario (Derecha)</span>',
+      lightbox: '<span class="badge bad">✨ Lightbox Destacado al Ingresar</span>'
+    };
 
     host.innerHTML = `
       <div class="list">
         ${items.map(a => {
           const kindLbl = (KINDS.find(k => k[0] === a.kind) || [])[1] || a.kind;
-          const audLbl = (AUDIENCES.find(k => k[0] === a.audience) || [])[1] || a.audience;
-          const isBanner = a.priority === 'importante' && ['mantenimiento', 'cierre'].includes(a.kind);
+          const audLbl = a.channel === 'web' ? 'Visitantes del Sitio Web Público' : ((AUDIENCES.find(k => k[0] === a.audience) || [])[1] || a.audience);
+          const ch = a.channel || 'both';
+          const spot = a.web_spot || 'normal';
           return `
           <div class="card mb item" style="padding:1rem;align-items:flex-start">
             <div style="margin-right:.6rem;color:var(--gold);display:flex;align-items:center">${RD.icon(KIND_ICON[a.kind] || 'megaphone', '', 26)}</div>
@@ -128,14 +140,15 @@
                   <h3 style="margin:0 0 .2rem">${esc(a.title)}</h3>
                   <div class="row gap wrap">
                     <span class="badge ${a.status === 'activo' ? 'ok' : a.status === 'programado' ? 'warn' : 'ghost'}">${esc(a.status.toUpperCase())}</span>
+                    ${CH_BADGE[ch] || CH_BADGE.both}
+                    ${ch !== 'app' ? (SPOT_BADGE[spot] || SPOT_BADGE.normal) : ''}
                     <span class="badge">${esc(kindLbl)}</span>
-                    <span class="badge ${isBanner ? 'bad' : 'ghost'}">${isBanner ? 'Franja Destacada' : 'Normal'}</span>
                     ${a.pinned ? '<span class="badge ok">Fijado</span>' : ''}
-                    ${a.push ? '<span class="badge info">Push ' + (a.push_sent ? 'enviado' : 'programado') + '</span>' : ''}
+                    ${a.push && ch !== 'web' ? '<span class="badge info">Push ' + (a.push_sent ? 'enviado' : 'programado') + '</span>' : ''}
                   </div>
                 </div>
                 <div class="row gap">
-                  ${!a.archived ? `<button class="btn sm" data-send-push="${a.id}" title="Enviar o reenviar notificación push al celular de los socios">${RD.icon('smartphone', '', 14)} Enviar Push</button>` : ''}
+                  ${!a.archived && ch !== 'web' ? `<button class="btn sm" data-send-push="${a.id}" title="Enviar o reenviar notificación push al celular de los socios">${RD.icon('smartphone', '', 14)} Enviar Push</button>` : ''}
                   ${!a.archived ? `<button class="btn sm" data-edit="${a.id}">${RD.icon('edit', '', 14)} Editar</button>` : ''}
                   <button class="btn sm ${a.archived ? 'ok' : 'danger'}" data-archive="${a.id}">${a.archived ? 'Desarchivar' : 'Archivar'}</button>
                 </div>
@@ -223,35 +236,61 @@
 
   function openAnnModal(item, onDone) {
     const isEdit = !!item;
-    const m = RD.openModal(isEdit ? 'Editar Comunicado' : '＋ Nuevo Comunicado / Aviso', `
+    const curChannel = item?.channel || 'both';
+    const curSpot = item?.web_spot || 'normal';
+    const m = RD.openModal(isEdit ? 'Editar Aviso o Anuncio Publicitario' : '＋ Nuevo Aviso para Socios / Publicidad Web', `
       <form id="annform">
+        <div class="card flat mb" style="background:var(--bg2);border:1px solid var(--line);padding:12px">
+          <div class="grid g2 keep gap">
+            <label class="field">
+              <span>1. Canal de Destino (Segmentación Inteligente) *</span>
+              <select name="channel" id="selchannel" required>
+                <option value="both" ${curChannel === 'both' ? 'selected' : ''}>📢 Ambos (App de Socios + Sitio Web Público)</option>
+                <option value="app" ${curChannel === 'app' ? 'selected' : ''}>🔒 Exclusivo Socios (Solo en App Móvil · Sin publicidad invasiva)</option>
+                <option value="web" ${curChannel === 'web' ? 'selected' : ''}>🌐 Exclusivo Público General (Solo Publicidad en Sitio Web)</option>
+              </select>
+            </label>
+            <label class="field" id="webspot_field">
+              <span>2. Ubicación Elegante en el Sitio Web Público *</span>
+              <select name="web_spot" id="selwebspot">
+                <option value="normal" ${curSpot === 'normal' ? 'selected' : ''}>📌 Lado Izquierdo — Muro de Avisos y Noticias</option>
+                <option value="carousel" ${curSpot === 'carousel' ? 'selected' : ''}>🎠 Lado Derecho — Carrusel / Slider Publicitario</option>
+                <option value="lightbox" ${curSpot === 'lightbox' ? 'selected' : ''}>✨ Destacado Principal al Ingresar (Lightbox con ✕ y Tiempo)</option>
+              </select>
+            </label>
+          </div>
+          <div class="tiny muted mt2">
+            💡 <b>Regla de Oro:</b> A los socios activos en su App solo se les envían avisos importantes del club (mantenimiento, feriados, recordatorios), nunca spam publicitario. La publicidad comercial se exhibe de forma elegante en el Sitio Web Público.
+          </div>
+        </div>
+
         <label class="field">
-          <span>Tipo de Comunicado *</span>
+          <span>Categoría del Comunicado / Anuncio *</span>
           <select name="kind" required>
             ${KINDS.map(k => `<option value="${k[0]}" ${item?.kind === k[0] ? 'selected' : ''}>${k[1]} — ${k[2]}</option>`).join('')}
           </select>
         </label>
 
         <label class="field">
-          <span>Título del Aviso * (hasta 80 caracteres)</span>
-          <input name="title" required maxlength="80" value="${esc(item?.title || '')}" placeholder="Ej. Hoy atención en horario especial hasta las 6:00 pm">
+          <span>Título del Aviso o Campaña * (hasta 80 caracteres)</span>
+          <input name="title" required maxlength="80" value="${esc(item?.title || '')}" placeholder="Ej. Hoy atención en horario especial / Promo Verano 2x1">
         </label>
 
         <label class="field">
           <span>Contenido / Detalle del Comunicado</span>
-          <textarea name="body" rows="4" placeholder="Escribe el mensaje claro y detallado para los socios...">${esc(item?.body || '')}</textarea>
+          <textarea name="body" rows="3" placeholder="Escribe el mensaje claro y detallado...">${esc(item?.body || '')}</textarea>
         </label>
 
-        <div class="grid g2 keep gap">
+        <div class="grid g2 keep gap" id="app_targeting_box">
           <label class="field">
-            <span>Prioridad</span>
+            <span>Prioridad en App de Socios</span>
             <select name="priority">
-              <option value="info" ${item?.priority === 'info' ? 'selected' : ''}>Normal (Solo en bandeja de avisos)</option>
-              <option value="importante" ${item?.priority === 'importante' ? 'selected' : ''}>Importante (Franja destacada en la app)</option>
+              <option value="info" ${item?.priority === 'info' ? 'selected' : ''}>Normal (Bandeja de avisos)</option>
+              <option value="importante" ${item?.priority === 'importante' ? 'selected' : ''}>Importante (Franja destacada superior)</option>
             </select>
           </label>
           <label class="field">
-            <span>Destinatarios</span>
+            <span>Filtro de Socios en App</span>
             <select name="audience" id="selaudience">
               ${AUDIENCES.map(a => `<option value="${a[0]}" ${item?.audience === a[0] ? 'selected' : ''}>${a[1]}</option>`).join('')}
             </select>
@@ -326,6 +365,19 @@
     const f = m.el.querySelector('#annform');
     const audSel = f.querySelector('#selaudience');
     const smBox = f.querySelector('#singlememberbox');
+    const chSel = f.querySelector('#selchannel');
+    const webSpotField = f.querySelector('#webspot_field');
+    const appTargetBox = f.querySelector('#app_targeting_box');
+
+    const syncChannelUI = () => {
+      const ch = chSel.value;
+      webSpotField.classList.toggle('hidden', ch === 'app');
+      appTargetBox.classList.toggle('hidden', ch === 'web');
+      if (ch === 'web') smBox.classList.add('hidden');
+      else smBox.classList.toggle('hidden', audSel.value !== 'member');
+    };
+    chSel.onchange = syncChannelUI;
+    syncChannelUI();
 
     let currentImage = item?.image_url || '';
     const imgUrlInp = f.querySelector('#ann_image_url');
@@ -376,6 +428,8 @@
       e.preventDefault();
       const payload = {
         kind: f.kind.value,
+        channel: f.channel.value,
+        web_spot: f.web_spot.value,
         title: f.title.value.trim(),
         body: f.body.value.trim(),
         priority: f.priority.value,
@@ -387,7 +441,7 @@
         cta_url: f.cta_url.value.trim(),
         image_url: currentImage || null,
         pinned: f.pinned.checked ? 1 : 0,
-        push: f.push.checked ? 1 : 0
+        push: (f.channel.value !== 'web' && f.push.checked) ? 1 : 0
       };
 
       const btn = f.querySelector('button[type=submit]');
