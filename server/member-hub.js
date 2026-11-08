@@ -1,6 +1,6 @@
 /* RD Fitness Club - Hub del socio
  * Acceso propio (alias + contraseña), sesiones por dispositivo, bandeja de avisos y notificaciones push opt-in.
- * El código RD-xxxx sigue siendo el identificador interno inmutable del socio. */
+ * El código RG-xxxx sigue siendo el identificador interno inmutable del socio. */
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -39,7 +39,7 @@ module.exports = function mountMemberHub(api, ctx) {
   }
 
   // ---------------- Credenciales propias ----------------
-  const RESERVED = new Set(['admin', 'administrador', 'rd', 'rdfitness', 'recepcion', 'soporte', 'gimnasio', 'gym', 'socio', 'usuario', 'root', 'test']);
+  const RESERVED = new Set(['admin', 'administrador', 'rg', 'redgym', 'red', 'recepcion', 'soporte', 'gimnasio', 'gym', 'socio', 'usuario', 'root', 'test']);
   const getCred = id => q.get('SELECT * FROM member_credentials WHERE member_id=?', id);
 
   function findMember(ident) {
@@ -48,8 +48,8 @@ module.exports = function mountMemberHub(api, ctx) {
     // 1. Prioridad: DNI del socio (identificador vitalicio en Perú o extranjero)
     const byDni = q.get('SELECT * FROM members WHERE dni=? COLLATE NOCASE', s);
     if (byDni) return byDni;
-    // 2. Formato código de socio: RD-0001, rd-1, etc.
-    if (/^rd-?\d+$/i.test(s)) return q.get('SELECT * FROM members WHERE code=?', memberCode(parseInt(s.replace(/\D/g, ''), 10)));
+    // 2. Formato código de socio: RG-0001, rd-1, etc.
+    if (/^(?:rg|rd)-?\d+$/i.test(s)) return q.get('SELECT * FROM members WHERE code=?', memberCode(parseInt(s.replace(/\D/g, ''), 10)));
     // 3. Código numérico corto (1 a 6 dígitos)
     if (/^\d{1,6}$/.test(s)) {
       const byCode = q.get('SELECT * FROM members WHERE code=?', memberCode(parseInt(s, 10)));
@@ -79,7 +79,7 @@ module.exports = function mountMemberHub(api, ctx) {
   }
   function aliasProblem(alias, selfId) {
     if (!/^[a-z0-9._]{3,20}$/i.test(alias)) return 'El usuario debe tener de 3 a 20 caracteres: letras, números, punto o guion bajo.';
-    if (/^\d+$/.test(alias) || /^rd-?\d+$/i.test(alias)) return 'Elige un usuario que no sea solo números ni parecido a tu código RD.';
+    if (/^\d+$/.test(alias) || /^(?:rg|rd)-?\d+$/i.test(alias)) return 'Elige un usuario que no sea solo números ni parecido a tu código RG.';
     if (RESERVED.has(alias.toLowerCase())) return 'Ese usuario no está disponible.';
     const taken = q.get('SELECT member_id FROM member_credentials WHERE alias=?', alias);
     if (taken && taken.member_id !== selfId) return 'Ese usuario ya está en uso. Prueba con otro.';
@@ -329,14 +329,23 @@ module.exports = function mountMemberHub(api, ctx) {
     const items = [];
     const push = (ref, o) => { const r = reads.get(ref); items.push({ ref, read: !!r, dismissed: !!(r && r.dismissed), ...o }); };
 
+    const hasChannel = (chStr, target) => {
+      const s = String(chStr || 'both').toLowerCase();
+      if (s === 'both') return target === 'app' || target === 'web';
+      return s.split(',').map(x => x.trim()).includes(target);
+    };
+
     for (const a of q.all('SELECT * FROM announcements WHERE archived=0 ORDER BY id DESC LIMIT 200')) {
-      if (a.channel === 'web') continue; // Exclusivo público web: no invadir la App del socio con publicidad externa
+      if (!hasChannel(a.channel, 'app')) continue; // Solo mostrar en App si incluye el canal 'app'
       if (!inWindow(a, now) || !matchesAudience(a, m, mp)) continue;
       if (KINDS[a.kind] === 'promos' && !pr.show_promos) continue;
       push('a:' + a.id, {
         id: a.id, source: 'gym', kind: a.kind, title: a.title, body: a.body || '', priority: a.priority, pinned: !!a.pinned,
-        channel: a.channel || 'both', web_spot: a.web_spot || 'normal',
+        channel: a.channel || 'app,web', web_spot: a.web_spot || 'normal',
         image_url: a.image_url || null,
+        video_url: a.video_url || null,
+        doc_url: a.doc_url || null,
+        doc_label: a.doc_label || null,
         cta: a.cta_label && a.cta_url ? { label: a.cta_label, url: a.cta_url } : null, created_at: asIso(a.starts_at || a.created_at)
       });
     }
@@ -358,11 +367,11 @@ module.exports = function mountMemberHub(api, ctx) {
       for (const p of q.all("SELECT id,concept,amount,method,created_at,receipt_no FROM payments WHERE member_id=? AND voided=0 AND created_at > datetime('now','-30 days') ORDER BY id DESC LIMIT 10", m.id)) {
         push('s:pay:' + p.id, {
           source: 'system', kind: 'pago',
-          title: `Boleta digital emitida (${p.receipt_no || ('BOL-' + p.id)})`,
+          title: `Constancia interna de pago (${p.receipt_no || ('REC-' + p.id)})`,
           body: `${p.concept} · S/ ${(+p.amount).toFixed(2).replace(/\.00$/, '')} · Método: ${p.method.toUpperCase()}`,
           priority: 'info', pinned: false,
           receipt_id: p.id,
-          cta: { label: '🧾 Ver Boleta Digital', url: `#receipt:${p.id}` },
+          cta: { label: '🧾 Ver Constancia de Pago', url: `#receipt:${p.id}` },
           created_at: asIso(p.created_at)
         });
       }
@@ -423,7 +432,7 @@ module.exports = function mountMemberHub(api, ctx) {
     if (!vapid || !vapid.publicKey || !vapid.privateKey) {
       try { vapid = webpush.generateVAPIDKeys(); fs.writeFileSync(f, JSON.stringify(vapid)); } catch (e) { console.error('VAPID:', e.message); vapid = null; }
     }
-    if (vapid) { try { webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'mailto:admin@rdfitness.club', vapid.publicKey, vapid.privateKey); } catch (e) { console.error('VAPID:', e.message); vapid = null; } }
+    if (vapid) { try { webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'mailto:soporte@rdfitness.pe', vapid.publicKey, vapid.privateKey); } catch (e) { console.error('VAPID:', e.message); vapid = null; } }
   }
   const pushEnabled = () => !!(webpush && vapid);
 
@@ -492,7 +501,9 @@ module.exports = function mountMemberHub(api, ctx) {
   }));
 
   function audienceMembers(a) {
-    if (a.channel === 'web') return [];
+    const ch = String(a.channel || 'both').toLowerCase();
+    const includesApp = ch === 'both' || ch.split(',').map(x => x.trim()).includes('app');
+    if (!includesApp) return [];
     if (a.audience === 'member') return a.member_id ? [a.member_id] : [];
     const rows = q.all("SELECT * FROM members WHERE status<>'inactive' AND id IN (SELECT DISTINCT member_id FROM push_subs)");
     return rows.filter(m => matchesAudience(a, m, memberPublic(m))).map(m => m.id);
@@ -522,89 +533,113 @@ module.exports = function mountMemberHub(api, ctx) {
   // Limpieza diaria: sesiones de socio inactivas > 1 año
   setInterval(() => { try { q.run("DELETE FROM sessions WHERE kind='member' AND COALESCE(last_seen,created_at) < datetime('now','-400 days')"); } catch { } }, 24 * 3600e3).unref();
 
-  // ---------------- Gestión de avisos (personal) ----------------
+  // ---------------- Gestión de avisos y centro multimedia (personal) ----------------
   function saveAnnouncementImage(raw) {
     if (!raw) return null;
     const str = String(raw).trim();
     if (!str) return null;
     if (/^https?:\/\//i.test(str) || str.startsWith('/photos/')) return str;
-    const match = /^data:image\/(jpeg|jpg|png|webp|gif);base64,(.+)$/.exec(str);
+    const match = /^data:(image\/(?:jpeg|jpg|png|webp|gif)|application\/pdf);base64,(.+)$/.exec(str);
     if (!match) return null;
     try {
       const buf = Buffer.from(match[2], 'base64');
-      if (buf.length > 3 * 1024 * 1024) return null;
-      const ext = match[1] === 'png' ? 'png' : match[1] === 'webp' ? 'webp' : 'jpg';
+      if (buf.length > 5 * 1024 * 1024) return null;
+      const mime = match[1];
+      const ext = mime === 'application/pdf' ? 'pdf' : mime.endsWith('png') ? 'png' : mime.endsWith('webp') ? 'webp' : mime.endsWith('gif') ? 'gif' : 'jpg';
       const file = `ann-${Date.now()}-${L.randomKey().slice(0, 6)}.${ext}`;
       const photosDir = path.join(DATA_DIR, 'photos');
       if (!fs.existsSync(photosDir)) fs.mkdirSync(photosDir, { recursive: true });
       fs.writeFileSync(path.join(photosDir, file), buf);
       return `/photos/${file}`;
     } catch (e) {
-      console.error('Error guardando imagen de aviso:', e.message);
+      console.error('Error guardando archivo multimedia de aviso:', e.message);
       return null;
     }
   }
 
+  const VALID_CHANNELS = ['app', 'web', 'whatsapp', 'app,web', 'app,whatsapp', 'web,whatsapp', 'app,web,whatsapp', 'both'];
   const isoOrNull = v => { if (!v) return null; const d = new Date(v); return Number.isNaN(d.getTime()) ? undefined : d.toISOString(); };
   function parseAnn(b, res) {
     const kind = String(b.kind || 'aviso');
     if (!KINDS[kind]) { bad(res, 'Tipo de aviso inválido'); return null; }
     const title = clip(b.title, 80); if (!title) { bad(res, 'Escribe un título'); return null; }
-    const channel = ['app', 'web', 'both'].includes(b.channel) ? b.channel : 'both';
+    const rawCh = String(b.channel || 'app,web').toLowerCase().trim();
+    const channel = VALID_CHANNELS.includes(rawCh) ? rawCh : 'app,web';
+    const includesApp = channel === 'both' || channel.split(',').includes('app');
     const web_spot = ['normal', 'carousel', 'lightbox'].includes(b.web_spot) ? b.web_spot : 'normal';
-    const audience = channel === 'web' ? 'all' : (AUDIENCES.includes(b.audience) ? b.audience : 'all');
+    const whatsapp_target = ['none', 'community', 'members_group', 'both_wa'].includes(b.whatsapp_target) ? b.whatsapp_target : 'none';
+    const audience = !includesApp ? 'all' : (AUDIENCES.includes(b.audience) ? b.audience : 'all');
     const member_id = audience === 'member' ? num(b.member_id) : null;
     if (audience === 'member' && !q.get('SELECT 1 x FROM members WHERE id=?', member_id)) { bad(res, 'Elige un socio válido'); return null; }
     const starts_at = isoOrNull(b.starts_at), ends_at = isoOrNull(b.ends_at);
     if (starts_at === undefined || ends_at === undefined) { bad(res, 'Fecha inválida'); return null; }
     if (starts_at && ends_at && ends_at < starts_at) { bad(res, 'La fecha de fin debe ser posterior al inicio'); return null; }
-    const cta_label = clip(b.cta_label, 30), cta_url = clip(b.cta_url, 300);
-    if (cta_url && !/^(\/|https:\/\/|tel:|mailto:)/i.test(cta_url)) { bad(res, 'El enlace debe empezar con https:// o /'); return null; }
+    const cta_label = clip(b.cta_label, 40), cta_url = clip(b.cta_url, 400);
+    if (cta_url && !/^(\/|https?:\/\/|tel:|mailto:)/i.test(cta_url)) { bad(res, 'El enlace debe empezar con https:// o /'); return null; }
     const image_url = saveAnnouncementImage(b.image_url) || (b.image_url && /^https?:\/\//i.test(b.image_url) ? String(b.image_url).trim() : null);
+    const video_url = b.video_url && /^(\/|https?:\/\/)/i.test(String(b.video_url).trim()) ? clip(b.video_url, 400) : null;
+    const doc_url = saveAnnouncementImage(b.doc_url) || (b.doc_url && /^(\/|https?:\/\/)/i.test(String(b.doc_url).trim()) ? clip(b.doc_url, 400) : null);
+    const doc_label = doc_url ? (clip(b.doc_label, 50) || '📄 Ver / Descargar Documento') : null;
     return {
-      kind, title, body: clip(b.body, 600), audience, member_id, priority: b.priority === 'importante' ? 'importante' : 'info',
-      pinned: b.pinned ? 1 : 0, starts_at, ends_at, cta_label: cta_url ? cta_label : '', cta_url,
-      image_url, push: (channel !== 'web' && b.push) ? 1 : 0, channel, web_spot
+      kind, title, body: clip(b.body, 800), audience, member_id, priority: b.priority === 'importante' ? 'importante' : 'info',
+      pinned: b.pinned ? 1 : 0, starts_at, ends_at, cta_label: cta_url ? (cta_label || 'Abrir enlace') : '', cta_url,
+      image_url, video_url, doc_url, doc_label,
+      push: (includesApp && b.push) ? 1 : 0, channel, web_spot, whatsapp_target
     };
   }
   const annStatus = (a, now) => a.archived ? 'archivado' : a.starts_at && new Date(a.starts_at).getTime() > now ? 'programado' : a.ends_at && new Date(a.ends_at).getTime() < now ? 'finalizado' : 'activo';
 
-  // Showcase público para Sitio Web Corporativo (Avisos Generales, Carrusel Publicitario, Lightbox Destacado y Planes Activos)
+  // Showcase público para Sitio Web Corporativo Multimedia (Avisos, Carrusel Multimedia, Video/PDF, Lightbox y Comunidad WhatsApp)
   api.get('/public/showcase', wrap((req, res) => {
     const now = Date.now();
-    const rawAnns = q.all("SELECT * FROM announcements WHERE archived=0 AND COALESCE(channel,'both') IN ('web','both') ORDER BY pinned DESC, id DESC LIMIT 40");
-    const activeAnns = rawAnns.filter(a => inWindow(a, now)).map(a => ({
+    const rawAnns = q.all("SELECT * FROM announcements WHERE archived=0 ORDER BY pinned DESC, id DESC LIMIT 50");
+    const webAnns = rawAnns.filter(a => {
+      const ch = String(a.channel || 'both').toLowerCase();
+      const isWeb = ch === 'both' || ch.split(',').map(x => x.trim()).includes('web');
+      return isWeb && inWindow(a, now);
+    }).map(a => ({
       id: a.id,
       kind: a.kind,
+      category: a.kind,
       title: a.title,
       body: a.body || '',
       priority: a.priority,
       pinned: !!a.pinned,
-      channel: a.channel || 'both',
+      channel: a.channel || 'app,web',
       web_spot: a.web_spot || 'normal',
       image_url: a.image_url || null,
+      video_url: a.video_url || null,
+      doc_url: a.doc_url || null,
+      doc_label: a.doc_label || null,
+      cta_label: a.cta_label || null,
+      cta_url: a.cta_url || null,
       cta: a.cta_label && a.cta_url ? { label: a.cta_label, url: a.cta_url } : null,
       created_at: asIso(a.starts_at || a.created_at)
     }));
+    const leftNotices = webAnns.filter(a => a.web_spot === 'normal');
+    const rightCarousel = webAnns.filter(a => a.web_spot === 'carousel');
+    const lightbox = webAnns.find(a => a.web_spot === 'lightbox') || null;
     const plans = q.all('SELECT id, name, months, days, price, is_promo, promo_label FROM plans WHERE active=1 ORDER BY is_promo DESC, sort, id');
-    res.json({ announcements: activeAnns, plans, now });
+    const stRows = q.all("SELECT key, value FROM settings WHERE key IN ('gym_name','address','phone','whatsapp','hours','whatsapp_community_url','whatsapp_members_group_url')");
+    const gym = Object.fromEntries(stRows.map(r => [r.key, r.value]));
+    res.json({ announcements: webAnns, leftNotices, rightCarousel, lightbox, plans, gym, now });
   }));
 
   api.get('/announcements', staff('admin', 'recepcion'), wrap((req, res) => {
     const now = Date.now();
     const rows = q.all(`SELECT a.*, (SELECT COUNT(*) FROM inbox_reads r WHERE r.ref='a:'||a.id) AS reads,
       (SELECT name FROM users u WHERE u.id=a.created_by) AS author FROM announcements a ${req.query.all ? '' : 'WHERE a.archived=0'} ORDER BY a.id DESC LIMIT 200`);
-    res.json(rows.map(a => ({ ...a, channel: a.channel || 'both', web_spot: a.web_spot || 'normal', status: annStatus(a, now), starts_at: a.starts_at, ends_at: a.ends_at, created_at: asIso(a.created_at) })));
+    res.json(rows.map(a => ({ ...a, channel: a.channel || 'app,web', web_spot: a.web_spot || 'normal', whatsapp_target: a.whatsapp_target || 'none', status: annStatus(a, now), starts_at: a.starts_at, ends_at: a.ends_at, created_at: asIso(a.created_at) })));
   }));
   api.post('/announcements', staff('admin', 'recepcion'), wrap(async (req, res) => {
     const d = parseAnn(req.body || {}, res); if (!d) return;
-    const r = q.run(`INSERT INTO announcements(kind,title,body,audience,member_id,priority,pinned,starts_at,ends_at,cta_label,cta_url,image_url,push,channel,web_spot,created_by)
-      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, d.kind, d.title, d.body, d.audience, d.member_id, d.priority, d.pinned, d.starts_at, d.ends_at, d.cta_label, d.cta_url, d.image_url, d.push, d.channel, d.web_spot, req.user.id);
+    const r = q.run(`INSERT INTO announcements(kind,title,body,audience,member_id,priority,pinned,starts_at,ends_at,cta_label,cta_url,image_url,video_url,doc_url,doc_label,push,channel,web_spot,whatsapp_target,created_by)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, d.kind, d.title, d.body, d.audience, d.member_id, d.priority, d.pinned, d.starts_at, d.ends_at, d.cta_label, d.cta_url, d.image_url, d.video_url, d.doc_url, d.doc_label, d.push, d.channel, d.web_spot, d.whatsapp_target, req.user.id);
     const id = Number(r.lastInsertRowid);
     audit(req.user.id, 'announcement.create', { id, kind: d.kind, title: d.title, audience: d.audience, channel: d.channel, web_spot: d.web_spot });
     let push = null;
     const a = q.get('SELECT * FROM announcements WHERE id=?', id);
-    if (d.push && d.channel !== 'web' && (!d.starts_at || new Date(d.starts_at).getTime() <= Date.now())) push = await dispatchPush(a);
+    if (d.push && (!d.starts_at || new Date(d.starts_at).getTime() <= Date.now())) push = await dispatchPush(a);
     try { if (typeof saveVault === 'function') saveVault(); } catch {}
     res.json({ ok: true, id, push, push_enabled: pushEnabled() });
   }));
@@ -625,8 +660,8 @@ module.exports = function mountMemberHub(api, ctx) {
     const id = num(req.params.id);
     const cur = q.get('SELECT * FROM announcements WHERE id=?', id); if (!cur) return bad(res, 'Aviso no encontrado', 404);
     const d = parseAnn(req.body || {}, res); if (!d) return;
-    q.run(`UPDATE announcements SET kind=?,title=?,body=?,audience=?,member_id=?,priority=?,pinned=?,starts_at=?,ends_at=?,cta_label=?,cta_url=?,image_url=?,push=?,channel=?,web_spot=? WHERE id=?`,
-      d.kind, d.title, d.body, d.audience, d.member_id, d.priority, d.pinned, d.starts_at, d.ends_at, d.cta_label, d.cta_url, d.image_url, cur.push_sent ? cur.push : d.push, d.channel, d.web_spot, id);
+    q.run(`UPDATE announcements SET kind=?,title=?,body=?,audience=?,member_id=?,priority=?,pinned=?,starts_at=?,ends_at=?,cta_label=?,cta_url=?,image_url=?,video_url=?,doc_url=?,doc_label=?,push=?,channel=?,web_spot=?,whatsapp_target=? WHERE id=?`,
+      d.kind, d.title, d.body, d.audience, d.member_id, d.priority, d.pinned, d.starts_at, d.ends_at, d.cta_label, d.cta_url, d.image_url, d.video_url, d.doc_url, d.doc_label, cur.push_sent ? cur.push : d.push, d.channel, d.web_spot, d.whatsapp_target, id);
     audit(req.user.id, 'announcement.update', { id, channel: d.channel, web_spot: d.web_spot });
     try { if (typeof saveVault === 'function') saveVault(); } catch {}
     res.json({ ok: true });

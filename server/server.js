@@ -133,7 +133,9 @@ api.get('/public', (req, res) => {
   res.json({
     gym_name: s.gym_name, gym_slogan: s.gym_slogan, gym_phone: s.gym_phone,
     gym_address: s.gym_address, color: s.color, opening: s.opening,
-    yape_phone: s.yape_phone || '982404043', yape_name: s.yape_name || 'RD FITNESS CLUB'
+    yape_phone: s.yape_phone || '982404043', yape_name: s.yape_name || 'RD FITNESS CLUB',
+    whatsapp_community_url: s.whatsapp_community_url || '',
+    whatsapp_members_group_url: s.whatsapp_members_group_url || ''
   });
 });
 
@@ -1935,8 +1937,8 @@ api.put('/users/:id', staff('admin'), wrap((req, res) => {
   res.json({ ok: true });
 }));
 api.get('/settings', staff(), wrap((req, res) => res.json(getSettings())));
-api.put('/settings', staff('admin'), wrap((req, res) => {
-  const allowed = ['gym_name', 'gym_slogan', 'gym_phone', 'gym_address', 'warn_days', 'grace_days', 'passback_min', 'stay_min', 'opening', 'color', 'google_sheet_url', 'yape_phone', 'yape_name'];
+api.put('/settings', staff('admin', 'recepcion'), wrap((req, res) => {
+  const allowed = ['gym_name', 'gym_slogan', 'gym_phone', 'gym_address', 'warn_days', 'grace_days', 'passback_min', 'stay_min', 'opening', 'color', 'google_sheet_url', 'yape_phone', 'yape_name', 'whatsapp_community_url', 'whatsapp_members_group_url'];
   q.tx(() => { for (const k of allowed) if (k in (req.body || {})) q.run('INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)', k, String(req.body[k])); });
   audit(req.user.id, 'settings.update', req.body);
   res.json({ ok: true });

@@ -263,10 +263,14 @@ function ensureColumns() {
   addCol('payments', 'unit_price', 'REAL');
   addCol('payments', 'unit_cost', 'REAL');
 
-  // Hub del socio: multimedia en avisos y preferencia de sonido/vibración
+  // Hub del socio: multimedia en avisos, documentos, video, multicanal (App/Web/WhatsApp) y preferencia de sonido/vibración
   addCol('announcements', 'image_url', 'TEXT');
-  addCol('announcements', 'channel', "TEXT DEFAULT 'both'");
+  addCol('announcements', 'video_url', 'TEXT');
+  addCol('announcements', 'doc_url', 'TEXT');
+  addCol('announcements', 'doc_label', 'TEXT');
+  addCol('announcements', 'channel', "TEXT DEFAULT 'app,web'");
   addCol('announcements', 'web_spot', "TEXT DEFAULT 'normal'");
+  addCol('announcements', 'whatsapp_target', "TEXT DEFAULT 'none'");
   addCol('member_prefs', 'alert_mode', "TEXT DEFAULT 'sound'");
 
   // Planes dinámicos y promociones temporales sin afectar historial

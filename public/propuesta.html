@@ -8,7 +8,7 @@
     :root {
       --bg: #090e17;
       --card: #111a2e;
-      --card-2: #16223b;
+      --card: #16223b;
       --border: rgba(255, 255, 255, 0.12);
       --gold: #f5b400;
       --gold-soft: rgba(245, 180, 0, 0.14);
@@ -460,14 +460,14 @@
 <body>
   <header class="topbar">
     <div class="brand-pill">
-      <img src="logo.svg" alt="RD FITNESS CLUB" style="height:44px;width:44px;object-fit:contain;background:transparent !important;filter:drop-shadow(0 2px 6px rgba(245,180,0,0.35))" />
-      <span class="brand-badge">RD FITNESS 360°</span>
+      <img src="logo.svg" alt="RD FITNESS CLUB" style="height:44px;width:auto;object-fit:contain;background:transparent !important;filter:drop-shadow(0 2px 6px rgba(220,38,38,0.35))" />
+      <span class="brand-badge" style="color:#fff;background:linear-gradient(135deg,#ef4444,#b45309)">RD FITNESS 360°</span>
       <span>Dossier Comercial y Contrato para <strong id="topGymName" style="color:var(--gold)">RD FITNESS CLUB</strong></span>
     </div>
     <div class="customizer">
       <label for="gymInput">Gimnasio:</label>
       <input id="gymInput" type="text" value="RD FITNESS CLUB" placeholder="Nombre del gimnasio..." style="width:170px" oninput="syncGymName(this.value)" />
-      <label for="devNameInput">Especialista:</label>
+      <label for="devNameInput">Desarrollador:</label>
       <input id="devNameInput" type="text" value="" placeholder="Tu Nombre y Apellidos..." style="width:185px" oninput="syncDevInfo()" />
       <label for="devDniInput">DNI:</label>
       <input id="devDniInput" type="text" value="" placeholder="Tu DNI..." style="width:105px" oninput="syncDevInfo()" />
@@ -482,36 +482,36 @@
   </header>
 
   <main class="container">
-    <!-- SECCIÓN 0: PORTADA EJECUTIVA Y PRESENTACIÓN DEL ESPECIALISTA ("QUIÉN SOY YO") -->
+    <!-- SECCIÓN 0: PORTADA EJECUTIVA Y PRESENTACIÓN DEL DESARROLLADOR -->
     <section class="hero">
       <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:10px">
-        <img src="logo.svg" alt="RD FITNESS CLUB" style="height:72px;width:72px;object-fit:contain;background:transparent !important;filter:drop-shadow(0 4px 12px rgba(245,180,0,0.4))" />
+        <img src="logo.svg" alt="RD FITNESS CLUB" style="height:84px;width:auto;object-fit:contain;background:transparent !important;filter:drop-shadow(0 4px 12px rgba(220,38,38,0.4))" />
         <div style="flex:1;min-width:260px">
           <div class="hero-tag">Propuesta Técnica, Comercial y Contrato de Implementación · Chivay, Arequipa</div>
           <h1 style="margin:0">Sistema Integral de Gestión, Control de Accesos QR, Caja por Turnos y App de Socios para <span class="gym-name">RD FITNESS CLUB</span></h1>
         </div>
       </div>
       <p style="margin-bottom:14px">
-        Solución tecnológica profesional diseñada a la medida de la operación real del gimnasio: agiliza la inscripción de socios nuevos y antiguos en curso, controla los cobros diarios en <strong>Efectivo, Yape y Plin</strong>, asegura el cuadre de caja en 1 o 2 turnos, entrega una App Móvil con QR a los miembros y proyecta bienvenidas en el monitor o tablet de recepción sin requerir accesorios complejos.
+        Plataforma tecnológica diseñada a medida para la gestión integral del gimnasio: automatiza el control de ingreso por código QR, registra inscripciones nuevas y membresías en curso, administra la caja diaria por turnos en <strong>Efectivo, Yape y Plin</strong>, entrega una aplicación móvil a los socios y proyecta bienvenidas en tiempo real en el monitor de recepción.
       </p>
 
-      <!-- FICHA DE PRESENTACIÓN PROFESIONAL: ¿QUIÉN SOY YO? -->
+      <!-- FICHA DE PRESENTACIÓN PROFESIONAL -->
       <div class="box" style="background:rgba(15,23,42,0.75);border:1.5px solid var(--gold);padding:14px 16px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
           <div style="flex:1;min-width:280px">
             <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:0.8px;color:var(--gold);margin-bottom:3px">
-              👨‍💻 PRESENTACIÓN DEL PROVEEDOR TECNOLÓGICO (¿QUIÉN SOY YO?)
+              👨‍💻 PRESENTACIÓN DEL RESPONSABLE DEL PROYECTO
             </div>
             <div style="font-size:14.5px;font-weight:900;color:#fff;margin-bottom:4px">
-              Desarrollador de Software y Especialista en Administración de Centros de Cómputo
+              Desarrollador de Software y Sistemas Digitales
             </div>
             <p style="font-size:12px;color:#cbd5e1;margin:0;line-height:1.45">
-              Especialista técnico con formación profesional en <strong>Administración de Centros de Cómputo</strong> y desarrollo de plataformas digitales a medida. Dedicado a la modernización de negocios locales mediante software financiero y operativo de alta fiabilidad, sincronización en la nube (Cloud Computing), seguridad de datos y provisión de equipamiento comercial listo para producir desde el primer día.
+              Desarrollador especializado en el diseño e implementación de sistemas web a medida, aplicaciones móviles instalables (PWA), automatización de accesos mediante lectura óptica QR y arquitecturas de respaldo continuo en la nube orientadas a la modernización y eficiencia operativa de negocios y centros deportivos.
             </p>
           </div>
           <div style="min-width:250px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:12px">
-            <div><strong style="color:var(--gold)">Especialista:</strong> <span class="dev-name-txt">_________________________________</span></div>
-            <div style="margin-top:4px"><strong style="color:var(--gold)">Especialidad:</strong> Adm. de Centros de Cómputo &amp; Desarrollador</div>
+            <div><strong style="color:var(--gold)">Desarrollador:</strong> <span class="dev-name-txt">_________________________________</span></div>
+            <div style="margin-top:4px"><strong style="color:var(--gold)">Cargo:</strong> Desarrollador de Software y Sistemas Digitales</div>
             <div style="margin-top:4px"><strong style="color:var(--gold)">DNI / RUC:</strong> <span class="dev-dni-txt">____________________</span> · <strong style="color:var(--gold)">Cel/WhatsApp:</strong> <span class="dev-phone-txt">____________________</span></div>
           </div>
         </div>
@@ -520,95 +520,95 @@
 
     <!-- SECCIÓN 1: ARQUITECTURA DETALLADA DEL PANEL ADMINISTRATIVO -->
     <section class="section">
-      <div class="section-title">💻 1. Panel de Control y Administración (Adaptado a la Realidad Operativa del Gimnasio)</div>
+      <div class="section-title">💻 1. Panel de Control y Administración (Módulos Operativos del Sistema)</div>
       <div class="section-sub">
-        Detalle técnico y funcional de cada módulo del sistema interno de recepción y administración:
+        Alcance funcional detallado de cada módulo integrado en el panel administrativo y de recepción:
       </div>
 
       <div class="grid-2">
         <div class="box">
-          <h3>1.1. Escáner de Acceso Instantáneo y Cobro Real (Yape, Plin y Efectivo)</h3>
+          <h3>1.1. Escáner de Acceso Instantáneo y Cobro Ágil (Pestaña /scan)</h3>
           <ul class="feature-list">
-            <li><strong>Validación QR Ultrarrápida (&lt;2 ms):</strong> Comprueba la vigencia del socio al instante con lector óptico 2D manos libres o cámara.</li>
-            <li><strong>Enfoque en los Medios de Pago Reales (Yape, Plin y Efectivo):</strong> Dado que en la práctica diaria del gimnasio los socios pagan mayoritariamente con <strong>Yape, Plin o Efectivo</strong> (siendo muy raro el uso de tarjeta/POS), toda la interfaz prioriza estos tres métodos directos sin botones innecesarios.</li>
-            <li><strong>Respuesta Sonora y Semáforo Visual:</strong> Campanilla y alerta verde para socios activos; alerta sonora y aviso rojo ante membresía vencida.</li>
+            <li><strong>Validación QR Ultrarrápida (&lt;2 ms):</strong> Verifica en milisegundos la vigencia del socio mediante lector óptico 2D manos libres o cámara.</li>
+            <li><strong>Medios de Pago Directos (Efectivo, Yape y Plin):</strong> Interfaz optimizada para registrar cobros rápidos en <strong>Efectivo, Yape y Plin</strong> con registro opcional de número de operación.</li>
+            <li><strong>Respuesta Sonora y Semáforo Visual:</strong> Confirmación auditiva y alerta verde para socios activos; timbre de aviso y alerta roja ante membresías vencidas.</li>
           </ul>
         </div>
 
         <div class="box">
           <h3>1.2. Dashboard Ejecutivo en Vivo (Pestaña /home)</h3>
           <ul class="feature-list">
-            <li><strong>Métricas Operativas del Día:</strong> Contador de socios activos, asistencias registradas hoy, pases diarios y nuevos inscritos.</li>
-            <li><strong>Resumen Financiero Directo:</strong> Total recaudado en el día separado claramente entre <strong>Efectivo en gaveta</strong> y pagos digitales por <strong>Yape / Plin</strong>.</li>
-            <li><strong>Alertas de Vencimiento Próximo:</strong> Lista automática de socios que vencen en los próximos días para asegurar su renovación.</li>
+            <li><strong>Indicadores del Día en Tiempo Real:</strong> Contador de socios activos, asistencias registradas en la jornada, pases diarios y nuevas inscripciones.</li>
+            <li><strong>Desglose Automático de Recaudación:</strong> Resumen diario separado con exactitud entre <strong>Efectivo en gaveta</strong> y cobros digitales por <strong>Yape y Plin</strong>.</li>
+            <li><strong>Control de Próximos Vencimientos:</strong> Listado automático de socios próximos a vencer para facilitar el seguimiento y renovación.</li>
           </ul>
         </div>
 
         <div class="box">
-          <h3>1.3. Registro Ágil (3 Datos) y Migración de Socios Antiguos en Curso</h3>
+          <h3>1.3. Padrón de Socios y Empadronamiento de Membresías en Curso (/members)</h3>
           <ul class="feature-list">
-            <li><strong>Inscripción Rápida sin Datos Irrelevantes:</strong> Para no demorar la atención en recepción, el registro solicita únicamente lo necesario: <strong>Nombre Completo, DNI y Teléfono / WhatsApp</strong> (más foto opcional).</li>
-            <li><strong>Tratamiento Especial para Socios que Ya Tienen Plan en Curso (Migración):</strong> Al momento de entregar e iniciar el sistema, el gimnasio cuenta con socios antiguos que ya van por la mitad o parte de su plan y que <strong>ya pagaron anteriormente</strong>. El sistema incluye el modo <strong>"🔄 Socio Antiguo en Curso / Migración"</strong>, que registra sus días restantes de vigencia <strong>sin sumar cobros falsos a la Caja de Hoy</strong>, diferenciándolos de los socios nuevos que recién se inscriben y pagan en el día.</li>
-            <li><strong>Carnés QR en PDF y PNG (Sin Impresora en el Local):</strong> Permite descargar y compartir por WhatsApp el carnet en PDF o imagen lista para imprimir externamente, además del QR dinámico en la App del socio.</li>
+            <li><strong>Registro Rápido de 3 Datos Esenciales:</strong> Ficha de inscripción directa con <strong>Nombre Completo, DNI y Teléfono / WhatsApp</strong> (más fotografía opcional).</li>
+            <li><strong>Modo de Migración para Socios con Plan en Curso:</strong> Permite incorporar al sistema a los socios antiguos que ya cuentan con una membresía vigente pagada con anterioridad, respetando sus fechas y días restantes <strong>sin alterar ni sumar cobros duplicados a la caja del día</strong>.</li>
+            <li><strong>Carnés QR Exportables en PDF y PNG:</strong> Generación de tarjetas físicas con código QR listas para descargar o compartir en formato PDF e imagen de alta resolución.</li>
           </ul>
         </div>
 
         <div class="box">
           <h3>1.4. Punto de Venta de Tienda e Hidratación (Pestaña /store)</h3>
           <ul class="feature-list">
-            <li><strong>Catálogo de Productos y Pases Diarios:</strong> Venta rápida de aguas, bebidas rehidratantes, proteínas por scoop, suplementos y rutinas del día.</li>
-            <li><strong>Control Automático de Stock:</strong> Descuenta las unidades vendidas en tiempo real y avisa cuando un producto está por agotarse.</li>
-            <li><strong>Cobro Rápido en 1 Clic:</strong> Registro directo en Efectivo, Yape o Plin integrado con la gaveta del turno actual.</li>
+            <li><strong>Catálogo de Productos y Pases Diarios:</strong> Venta ágil de bebidas, aguas, proteínas por servicio, suplementos, accesorios y pases del día.</li>
+            <li><strong>Control de Inventario en Vivo:</strong> Descuento automático de stock por cada unidad vendida y alertas visuales de reposición.</li>
+            <li><strong>Integración Directa con Caja:</strong> Cada venta se suma automáticamente al turno abierto según el medio de pago utilizado (Efectivo, Yape o Plin).</li>
           </ul>
         </div>
 
         <div class="box">
-          <h3>1.5. Caja Blindada Flexible: 2 Turnos (Mañana / Tarde) o Turno Único del Dueño</h3>
+          <h3>1.5. Control de Caja por Turnos: 2 Turnos o Jornada Completa (/cash)</h3>
           <ul class="feature-list">
-            <li><strong>Adaptable a 2 Turnos o Atención Directa del Dueño:</strong> Configurado tanto para gimnasios con <strong>2 turnos de recepción (Turno Mañana y Turno Tarde/Noche)</strong> como para los días en que <strong>el propio dueño atiende todo el día (Turno Único / Día Completo)</strong>.</li>
-            <li><strong>Apertura con Fondo de Sencillo:</strong> Registra la base de monedas y billetes para vuelto sin confundirla con las ganancias del día.</li>
-            <li><strong>Cuadre Exacto (Efectivo vs. Yape/Plin):</strong> Al cerrar el turno, el sistema indica cuánto efectivo físico exacto debe haber en el cajón (descontando gastos) y cuánto debe figurar en el celular por Yape y Plin.</li>
+            <li><strong>Modalidad Flexible de Turnos:</strong> Permite operar con <strong>2 turnos diarios (Turno Mañana y Turno Tarde/Noche)</strong> o en modalidad de <strong>Turno Único / Día Completo</strong>.</li>
+            <li><strong>Apertura con Fondo de Caja:</strong> Registro del sencillo inicial de gaveta separado de los ingresos del día.</li>
+            <li><strong>Arqueo y Cierre Exacto:</strong> Calcula al instante el efectivo físico exacto que debe existir en gaveta (descontando gastos autorizados) y el total recibido en cuentas Yape/Plin.</li>
           </ul>
         </div>
 
         <div class="box">
-          <h3>1.6. Comprobantes Internos 80mm y Envío Digital por WhatsApp</h3>
+          <h3>1.6. Constancias Internas de Inscripción (80mm y Envío Digital)</h3>
           <ul class="feature-list">
-            <li><strong>Boleta Digital Instantánea por WhatsApp:</strong> Envía el comprobante de inscripción o renovación directamente al WhatsApp del socio sin gastar papel.</li>
-            <li><strong>Impresión Térmica 80mm (Opcional):</strong> Formato de alto contraste (#000000) con código QR y corte automático si el local utiliza ticketera térmica.</li>
+            <li><strong>Constancia Digital por WhatsApp:</strong> Envío directo del recibo interno de inscripción o renovación al WhatsApp del socio con el detalle de su plan y fecha de vigencia.</li>
+            <li><strong>Formato Térmico 80mm de Alto Contraste:</strong> Diseño monocromático nítido (#000000) con código QR de control interno y corte automático para impresoras térmicas de mostrador.</li>
           </ul>
         </div>
 
         <div class="box">
           <h3>1.7. Gestión de Rutinas y Ejercicios (Pestaña /routines)</h3>
           <ul class="feature-list">
-            <li><strong>Catálogo Visual por Grupo Muscular:</strong> Ejercicios de Pecho, Espalda, Piernas, Hombros, Brazos, Core y Cardio con guía técnica.</li>
-            <li><strong>Asignación Individual a Socios:</strong> Envía planes de entrenamiento directamente a la App Móvil del socio con series y repeticiones.</li>
+            <li><strong>Biblioteca Visual por Grupo Muscular:</strong> Catálogo estructurado de ejercicios (Pecho, Espalda, Piernas, Hombros, Brazos, Core y Cardio) con indicaciones técnicas.</li>
+            <li><strong>Asignación Directa a la App del Socio:</strong> Envío de planes de entrenamiento personalizados por días, series, repeticiones y tiempos de descanso.</li>
           </ul>
         </div>
 
         <div class="box">
-          <h3>1.8. Reportes Ejecutivos y Google Sheets Automatizado (Pestaña /reports)</h3>
+          <h3>1.8. Centro de Reportes y Sincronización Google Sheets (/reports)</h3>
           <ul class="feature-list">
-            <li><strong>Reportes Ordenados en Excel (.xlsx) y PDF A4:</strong> Descarga informes financieros, de asistencias, membresías y tienda listos para archivar.</li>
-            <li><strong>Hoja Maestra Google Sheets en 1 Clic:</strong> Sincroniza automáticamente socios, ingresos, gastos y asistencias en la nube sin pasos manuales complicados.</li>
+            <li><strong>Exportación Ejecutiva en Excel (.xlsx) y PDF A4:</strong> Generación de reportes estructurados de ingresos, gastos, asistencias, membresías y movimientos de tienda.</li>
+            <li><strong>Hoja Maestra Google Sheets Automatizada:</strong> Sincronización en la nube con un clic para respaldar y consultar toda la información desde cualquier dispositivo.</li>
           </ul>
         </div>
 
         <div class="box">
-          <h3>1.9. Avisos Preferenciales (App) y Publicidad Web Integrada (/announcements)</h3>
+          <h3>1.9. Centro Omnicanal de Avisos, Multimedia y Comunidad WhatsApp (/announcements)</h3>
           <ul class="feature-list">
-            <li><strong>Administración Unificada desde el Panel Admin:</strong> Permite publicar avisos internos para socios y, al contratar el <strong>Sitio Web Público (Sección 4)</strong>, controlar también toda la publicidad web desde el mismo panel.</li>
-            <li><strong>Respeto al Socio en la App (Cero Spam Publicitario):</strong> A los miembros activos en su App no se les impone publicidad invasiva; solo reciben avisos importantes del gimnasio (horarios especiales, mantenimiento, recordatorios).</li>
-            <li><strong>Segmentación Inteligente en 3 Canales:</strong> Permite elegir si una publicación va <strong>(1) Solo a Socios en la App</strong>, <strong>(2) Solo al Público General en la Web</strong> (publicidad/ofertas), o <strong>(3) A Ambos</strong> cuando es un comunicado general importante.</li>
+            <li><strong>Soporte Multimedia Completo:</strong> Publicación de comunicados con <strong>imágenes en alta definición, videos (MP4/YouTube/Reels), documentos PDF descargables (horarios, guías, reglamentos) y enlaces de acción</strong>.</li>
+            <li><strong>Matriz Combinable de Canales desde el Panel Admin:</strong> Permite elegir con total libertad dónde difundir cada publicación: <strong>Solo App de Socios</strong>, <strong>Solo Página Web</strong>, <strong>Solo WhatsApp</strong>, <strong>App + WhatsApp</strong>, <strong>Web + WhatsApp</strong>, <strong>App + Web</strong>, o <strong>Difusión General en los 3 canales</strong>.</li>
+            <li><strong>Integración Segura con Comunidad / Grupo de WhatsApp (Cero Bloqueos):</strong> Conecta el sistema con la Comunidad General y el Grupo Oficial de Socios en WhatsApp para difundir anuncios formateados en 1 clic sin riesgo de bloqueo de línea.</li>
           </ul>
         </div>
 
         <div class="box">
-          <h3>1.10. Tarifas Dinámicas, Promociones Temporales y Protección de Historial</h3>
+          <h3>1.10. Tarifas Dinámicas, Promociones Temporales y Resguardo de Historial</h3>
           <ul class="feature-list">
-            <li><strong>Planes y Ofertas 100% Modificables:</strong> Los precios, planes y promociones no son estáticos; puedes crear ofertas ocasionales, campañas de temporada o ajustar tarifas en cualquier momento.</li>
-            <li><strong>Cero Conflictos en Caja ni en Socios Antiguos:</strong> Todo cambio de tarifa o promoción temporal aplica <strong>únicamente a quienes se inscriban recién</strong>. Los socios registrados en fechas pasadas conservan intacto el plan, monto y vencimiento del momento en que se inscribieron, sin alterar jamás los cuadres de caja anteriores.</li>
+            <li><strong>Planes y Promociones Modificables en Vivo:</strong> Creación y edición de tarifas estándar, promociones por temporada, campañas 2x1 o descuentos especiales en cualquier momento.</li>
+            <li><strong>Inalterabilidad de Socios Activos y Cajas Anteriores:</strong> Las modificaciones de precios o promociones aplican únicamente a las nuevas inscripciones; los socios registrados con anterioridad conservan intactas sus condiciones, fechas y montos originales.</li>
           </ul>
         </div>
       </div>
@@ -620,105 +620,103 @@
     <section class="section">
       <div class="section-title">📱 2. Aplicación Móvil para Socios (PWA Instalable en Android &amp; iOS)</div>
       <div class="section-sub">
-        Acceso exclusivo para miembros del gimnasio desde su propio teléfono, sin cobros de tiendas de aplicaciones ni publicidad invasiva:
+        Plataforma digital exclusiva para los miembros del gimnasio, instalable en la pantalla de inicio del celular sin cobros de tiendas de aplicaciones:
       </div>
 
       <div class="grid-3">
         <div class="box">
-          <h3>Carné Digital QR + Tarjeta Física</h3>
+          <h3>Credencial QR Dinámica + Carnet Físico</h3>
           <ul class="feature-list">
-            <li><strong>Doble Modalidad Compatible:</strong> El código QR dinámico de la App (que se renueva periódicamente por seguridad) y el código QR estático impreso en el carnet físico funcionan simultáneamente en el lector.</li>
-            <li><strong>Modo Offline:</strong> Abre el carné QR incluso si el socio no tiene datos móviles al llegar a recepción.</li>
+            <li><strong>Compatibilidad Simultánea:</strong> El código QR dinámico de la App y el código QR estático impreso en la tarjeta física operan indistintamente en el lector de recepción.</li>
+            <li><strong>Funcionamiento Offline:</strong> Muestra la credencial QR al instante incluso cuando el socio no dispone de conexión a datos móviles.</li>
           </ul>
         </div>
 
         <div class="box">
-          <h3>Semáforo de Vigencia y Renovación</h3>
+          <h3>Estado de Membresía y Bandeja Limpia</h3>
           <ul class="feature-list">
-            <li><strong>Verde / Ámbar / Rojo:</strong> Muestra los días exactos restantes de su plan actual.</li>
-            <li><strong>Bandeja Preferencial Limpia:</strong> Notificaciones exclusivas para miembros sobre sus pagos, vencimientos y avisos importantes del club.</li>
+            <li><strong>Semáforo de Vigencia (Verde / Ámbar / Rojo):</strong> Indica con precisión los días restantes del plan contratado y la fecha exacta de vencimiento.</li>
+            <li><strong>Notificaciones Preferenciales:</strong> Recepción exclusiva de avisos importantes del gimnasio, documentos PDF, horarios y constancias de pago sin publicidad intrusiva.</li>
           </ul>
         </div>
 
         <div class="box">
-          <h3>Rutinas, Cronómetro y Progreso</h3>
+          <h3>Entrenador Digital y Progreso Físico</h3>
           <ul class="feature-list">
-            <li><strong>Entrenador Digital:</strong> Consulta su rutina asignada con ilustraciones, series y pesos recomendados.</li>
-            <li><strong>Herramientas Deportivas:</strong> Cronómetro de descanso entre series, registro de medidas corporales y calculadora de IMC.</li>
+            <li><strong>Rutinas Interactivas:</strong> Visualización de los ejercicios asignados por día con guía técnica, series y cargas recomendadas.</li>
+            <li><strong>Herramientas de Entrenamiento:</strong> Cronómetro deportivo integrado para descansos entre series, historial de asistencia y registro de medidas corporales / IMC.</li>
           </ul>
         </div>
       </div>
     </section>
 
-    <!-- SECCIÓN 3: PANTALLA DE BIENVENIDA EN MONITOR O TABLET (SIN CÁMARAS COMPLICADAS) -->
+    <!-- SECCIÓN 3: VISUALIZACIÓN EN MONITOR DE RECEPCIÓN (HDMI) -->
     <section class="section">
-      <div class="section-title">🖥️ 3. Visualización de Bienvenida y Cobros en Monitor de Escritorio o Tablet</div>
+      <div class="section-title">🖥️ 3. Módulo de Visualización Interactiva en Monitor de Recepción (HDMI)</div>
       <div class="section-sub">
-        Solución práctica, limpia y sin gastos en accesorios innecesarios para mostrar ingresos y códigos de pago en recepción:
+        Interfaz visual dedicada de cara al socio en el mostrador para proyectar bienvenidas, estado de membresías y códigos de pago:
       </div>
 
       <div class="grid-2">
         <div class="box">
-          <h3>3.1. Bienvenida QR, Alertas de Vencimiento y QR Yape / Plin</h3>
+          <h3>3.1. Bienvenida Instantánea, Semáforo de Vigencia y QR de Pago</h3>
           <ul class="feature-list">
-            <li><strong>Bienvenida Instantánea al Escanear:</strong> Muestra la foto del socio, su nombre, plan vigente y días restantes con confirmación sonora.</li>
-            <li><strong>Alerta Visual y Sonora de Vencimiento:</strong> Avisa claramente cuando una membresía ha caducado para que pase por recepción.</li>
-            <li><strong>QR Yape / Plin en Pantalla:</strong> Muestra el código QR oficial del gimnasio con el monto exacto a pagar para agilizar el cobro.</li>
+            <li><strong>Tarjeta de Bienvenida en Tiempo Real:</strong> Al escanear el código QR, despliega en pantalla la fotografía del socio, su nombre, plan activo y días restantes con confirmación sonora.</li>
+            <li><strong>Aviso Visual y Auditivo de Vencimiento:</strong> Notifica de forma clara cuando una membresía ha concluido para facilitar su renovación inmediata en mostrador.</li>
+            <li><strong>Proyección de QR Yape / Plin:</strong> Muestra en pantalla el código QR oficial del gimnasio junto al importe exacto de la operación para agilizar el pago desde el celular del socio.</li>
           </ul>
         </div>
 
         <div class="box">
-          <h3>3.2. Visualización Práctica en Monitor o Tablet (Sin Cámaras CCTV)</h3>
+          <h3>3.2. Proyección Directa mediante Monitor Secundario HDMI</h3>
           <ul class="feature-list">
-            <li><strong>Sin Complicaciones ni Gastos en Accesorios de Cámaras:</strong> Dado que los propietarios verifican sus cámaras de seguridad directamente desde su teléfono celular y no requieren televisores ni capturadoras de video en el gimnasio, se descarta cualquier instalación compleja de cámaras.</li>
-            <li><strong>Uso Directo en Monitor de Escritorio o Tablet:</strong> La pantalla de bienvenida funciona directamente en una ventana del monitor de la computadora de recepción o en cualquier tablet conectada por Wi-Fi, con cero gasto adicional en cables o adaptadores.</li>
+            <li><strong>Conexión Directa por Cable HDMI:</strong> Opera conectando un monitor estándar de escritorio al puerto HDMI de la laptop o computadora de recepción en modo de pantalla extendida.</li>
+            <li><strong>Cartelera Multimedia Continua:</strong> Mientras no se registran ingresos en el lector, la pantalla exhibe de manera elegante las promociones vigentes, avisos del club, tarifas y reloj digital en tiempo real.</li>
           </ul>
         </div>
       </div>
     </section>
 
-    <!-- SECCIÓN 4: SITIO WEB PÚBLICO CORPORATIVO CON MOTOR DE PUBLICIDAD Y ANUNCIOS ELEGANTES -->
+    <!-- SECCIÓN 4: SITIO WEB PÚBLICO MULTIMEDIA Y SISTEMA PUBLICITARIO OMNICANAL -->
     <section class="section">
-      <div class="section-title">🌐 4. Módulo de Expansión: Sitio Web Público con Sistema de Publicidad, Sliders y Avisos</div>
+      <div class="section-title">🌐 4. Módulo de Expansión: Plataforma Web Multimedia, Publicidad y Comunidad WhatsApp</div>
       <div class="section-sub">
-        Incentivo comercial de alto nivel: al contratar la Página Web Pública, usted administra toda la publicidad para el público general y los avisos para socios directamente desde su mismo Panel de Administración:
+        Presencia oficial en internet con centro multimedia y motor publicitario administrable al 100% desde el mismo Panel de Control del gimnasio:
       </div>
 
       <div class="grid-2">
         <div class="box">
-          <h3>4.1. Arquitectura Visual Fina, Elegante y No Invasiva (3 Zonas + Lightbox)</h3>
+          <h3>4.1. Diseño Web Editorial de Alta Elegancia y Soporte Multimedia Completo</h3>
           <ul class="feature-list">
-            <li><strong>Columna Izquierda (Avisos y Comunicados del Club):</strong> Panel estilizado donde se exhiben horarios de atención, comunicados oficiales, feriados y noticias importantes sin saturar la vista.</li>
-            <li><strong>Zona Central (Identidad del Gimnasio, Tarifas y Portal de Socios):</strong> Presentación principal del gimnasio, catálogo actualizado de planes/ofertas en vivo, ubicación GPS y acceso directo para miembros.</li>
-            <li><strong>Columna Derecha (Carrusel / Slider Publicitario Interactivo):</strong> Carrusel moderno con transición suave para exhibir afiches de promociones, retos, venta de suplementos y campañas con botón directo a WhatsApp.</li>
-            <li><strong>Anuncio Destacado de Excepción al Ingresar (Lightbox Elegante):</strong> Exclusivamente cuando haya una campaña o comunicado sumamente importante, aparece al ingresar un anuncio central con diseño fino (efecto cristal), temporizador automático de cierre y su botón <strong>✕</strong> visible para cerrarlo al instante sin ser brusco ni molesto.</li>
+            <li><strong>Publicación de Todo Tipo de Multimedia y Documentos:</strong> A diferencia de una página estática básica, permite publicar y actualizar en vivo <strong>videos promocionales (MP4 / YouTube / Reels), afiches en alta definición, documentos PDF descargables (horarios, reglamentos, planes nutricionales), galerías y enlaces externos</strong>.</li>
+            <li><strong>Distribución Visual Fina y No Invasiva:</strong> Estructura moderna organizada en <strong>Muro de Comunicados y Documentos Descargables (Izquierda)</strong>, <strong>Portal Central de Identidad y Tarifas en Vivo</strong>, y <strong>Vitrina / Slider Multimedia Interactivo (Derecha)</strong>.</li>
+            <li><strong>Spotlight de Portada con Efecto Cristal (Excepcional):</strong> Para lanzamientos o comunicados de máxima prioridad, despliega al ingresar una ventana central estilizada (*glassmorphism*) con soporte de video/imagen, barra de autocierre temporizado y botón <strong>✕</strong> de cierre inmediato.</li>
           </ul>
         </div>
 
         <div class="box">
-          <h3>4.2. Separación Inteligente: Público Web vs. Miembros App</h3>
+          <h3>4.2. Automatización con Comunidad de WhatsApp y Matriz de Canales</h3>
           <ul class="feature-list">
-            <li><strong>Publicidad Comercial para Captar Clientes en la Web:</strong> Quienes visitan la página web buscan promociones, precios y fotos para animarse a inscribirse; allí el carrusel publicitario convierte visitantes en nuevos socios.</li>
-            <li><strong>Experiencia Preferencial para Socios en la App:</strong> Quienes ya son miembros activos no reciben publicidad invasiva en su aplicativo móvil, manteniendo su plataforma limpia y enfocada en su entrenamiento.</li>
-            <li><strong>Control Total en Tiempo Real:</strong> El administrador sube una imagen o promoción desde la pestaña <em>Avisos y Publicidad</em>, elige la fecha de inicio/fin y la web se actualiza al instante sin depender de programadores.</li>
+            <li><strong>Solución Real Anti-Bloqueo en WhatsApp (Comunidad y Grupos Oficiales):</strong> Integra enlaces directos a la <strong>Comunidad General de WhatsApp</strong> (para público y ofertas) y al <strong>Grupo Exclusivo de Socios</strong>. Al publicar desde el Panel Admin, el sistema genera el anuncio formateado con enlaces multimedia listo para difundir en la Comunidad sin riesgo de bloqueo de cuenta por spam.</li>
+            <li><strong>Control Combinable de Destinos en 1 Clic:</strong> Desde una sola pantalla en el Panel Admin se selecciona si el contenido se publica en <strong>Solo App</strong>, <strong>Solo Web</strong>, <strong>Solo WhatsApp</strong>, <strong>App + WhatsApp</strong>, <strong>Web + WhatsApp</strong>, <strong>App + Web</strong> o en <strong>los 3 canales simultáneamente</strong>.</li>
           </ul>
         </div>
       </div>
 
-      <!-- TABLA DE COSTOS DIRECTOS Y EXACTOS DEL SITIO WEB PÚBLICO -->
+      <!-- TABLA DE COSTOS DIRECTOS DE LA PLATAFORMA WEB MULTIMEDIA -->
       <table style="margin-top:12px">
         <thead>
           <tr>
-            <th>Componente del Sitio Web Público + Motor Publicitario</th>
-            <th>Funciones y Alcance Incluido</th>
+            <th>Componente de la Plataforma Web Multimedia + Motor Omnicanal</th>
+            <th>Funciones, Capacidades Multimedia y Alcance Incluido</th>
             <th style="text-align:right">Precio Directo (S/)</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong>1. Desarrollo de Interfaz Web + Motor de Publicidad y Avisos</strong></td>
-            <td>Diseño elegante de 3 zonas (Avisos Izquierda + Centro Gimnasio/Planes + Carrusel Publicitario Derecha + Lightbox Destacado con ✕ y temporizador), administrable desde el Panel Admin y conectado a WhatsApp.</td>
-            <td style="text-align:right"><strong>S/ 600.00</strong> <em>(Pago único)</em></td>
+            <td><strong>1. Desarrollo de Plataforma Web Multimedia + Motor Omnicanal</strong></td>
+            <td>Diseño web profesional de 3 zonas + Spotlight de cristal, soporte para publicación de videos, documentos PDF descargables, sliders interactivos, matriz de difusión (App/Web/WhatsApp) e integración con Comunidad Oficial de WhatsApp.</td>
+            <td style="text-align:right"><strong>S/ 750.00</strong> <em>(Pago único)</em></td>
           </tr>
           <tr>
             <td><strong>2. Dominio Oficial en Internet (.com o .pe)</strong></td>
@@ -726,19 +724,19 @@
             <td style="text-align:right"><strong>S/ 130.00</strong> <em>(Anual)</em></td>
           </tr>
           <tr>
-            <td><strong>3. Hosting Cloud de Alta Velocidad + Certificado SSL (HTTPS)</strong></td>
-            <td>Servidor web rápido con candado de seguridad SSL y disponibilidad 24/7 durante 12 meses.</td>
-            <td style="text-align:right"><strong>S/ 160.00</strong> <em>(Anual)</em></td>
+            <td><strong>3. Hosting Cloud Multimedia de Alta Velocidad + Certificado SSL (HTTPS)</strong></td>
+            <td>Servidor cloud optimizado para carga rápida de imágenes, documentos PDF y contenido multimedia con candado de seguridad SSL 24/7 por 12 meses.</td>
+            <td style="text-align:right"><strong>S/ 170.00</strong> <em>(Anual)</em></td>
           </tr>
           <tr>
-            <td><strong style="color:var(--gold)">⭐ TOTAL DIRECTO — SITIO WEB PÚBLICO COMPLETO (1er AÑO)</strong></td>
-            <td><strong>Entrega Llave en Mano: Desarrollo Web Publicitario + Dominio Oficial + Hosting SSL por 1 año.</strong></td>
-            <td style="text-align:right"><span class="badge-gold">S/ 890.00</span> <em>(Precio fijo directo)</em></td>
+            <td><strong style="color:var(--gold)">⭐ TOTAL DIRECTO — PLATAFORMA WEB MULTIMEDIA COMPLETA (1er AÑO)</strong></td>
+            <td><strong>Entrega Completa: Plataforma Web Multimedia + Motor Admin Omnicanal + Dominio + Hosting SSL por 1 año.</strong></td>
+            <td style="text-align:right"><span class="badge-gold">S/ 1,050.00</span> <em>(Precio fijo directo)</em></td>
           </tr>
         </tbody>
       </table>
       <div style="font-size:11px;color:var(--muted);margin-top:5px">
-        <em>* Nota: El desarrollo web (S/ 600.00) se paga una sola vez. A partir del segundo año, únicamente se renueva el Dominio + Hosting (S/ 290.00 anual).</em>
+        <em>* Nota: El desarrollo de la plataforma web (S/ 750.00) es un pago único. A partir del segundo año, únicamente se abona la renovación anual de Dominio + Hosting Cloud (S/ 300.00 anual).</em>
       </div>
     </section>
 
@@ -748,112 +746,117 @@
     <section class="section">
       <div class="section-title">⚡ 5. Persistencia de Datos en la Nube y Modo Local en la PC (Cero Pérdida de Información)</div>
       <div class="section-sub">
-        Doble blindaje técnico para que los datos jamás se reinicien ante actualizaciones y el gimnasio siga operando incluso si se corta el internet:
+        Arquitectura de doble respaldo para garantizar la continuidad de las operaciones y la conservación permanente de la información:
       </div>
 
       <div class="grid-3">
         <div class="box">
           <h3>Bóveda Perpetua Cloud + Google Sheets</h3>
           <p style="font-size:12px;color:#cbd5e1">
-            Cada socio, membresía, pago y asistencia se respalda automáticamente en la bóveda en la nube y en Google Sheets, garantizando que ningún cambio o actualización del servidor reinicie la base de datos.
+            Cada socio, membresía, cobro y asistencia se respalda automáticamente en la bóveda en la nube y en Google Sheets, asegurando que la información permanezca intacta en todo momento.
           </p>
         </div>
         <div class="box">
           <h3>Modo Local PC ante Cortes de Internet</h3>
           <p style="font-size:12px;color:#cbd5e1">
-            El botón <strong>⚡ Modo Local PC</strong> permite seguir validando códigos QR y registrando cobros en el disco de la computadora cuando falla el proveedor de internet local, sincronizando todo al volver la red.
+            El módulo <strong>⚡ Modo Local PC</strong> permite continuar validando accesos QR y registrando operaciones en la computadora local ante eventuales caídas del servicio de internet, sincronizando los datos automáticamente al restablecerse la red.
           </p>
         </div>
         <div class="box">
-          <h3>Acceso Directo Instalable (App Escritorio)</h3>
+          <h3>Aplicaciones Instalables con Identidad Propia</h3>
           <p style="font-size:12px;color:#cbd5e1">
-            Tanto el Panel de Administración en la computadora/laptop como la App de Socios en celulares se instalan como aplicaciones directas con el escudo oficial de <strong class="gym-name">RD FITNESS CLUB</strong>.
+            Tanto el Panel de Administración en recepción como la App Móvil de Socios se instalan con acceso directo e ícono oficial personalizado de <strong class="gym-name">RD FITNESS CLUB</strong>.
           </p>
         </div>
       </div>
     </section>
 
-    <!-- SECCIÓN 6: EQUIPOS FÍSICOS COMERCIALES EN AREQUIPA / PERÚ CON PRECIOS DIRECTOS -->
+    <!-- SECCIÓN 6: EQUIPAMIENTO FÍSICO RECOMENDADO PARA RECEPCIÓN (ADQUISICIÓN OPCIONAL POR ENCARGO) -->
     <section class="section">
-      <div class="section-title">🛠️ 6. Equipamiento Físico Comercial Disponible en Arequipa / Perú (Precios Directos)</div>
+      <div class="section-title">🛠️ 6. Equipamiento Físico Recomendado para Recepción (Compra Opcional por Encargo)</div>
       <div class="section-sub">
-        Equipos 100% comerciales y accesibles en el mercado tecnológico de Arequipa, con precios directos reales que incluyen la gestión de búsqueda, traslado/viaje de adquisición, configuración e instalación lista para operar (o puede usar su propio equipo sin costo):
+        El sistema funciona en cualquier computadora o laptop estándar. Si el gimnasio ya cuenta con equipos, los utiliza sin costo adicional; si desea que se gestione la compra e instalación de equipos en el mercado comercial de Arequipa, se detallan los costos directos instalados:
       </div>
 
       <table>
         <thead>
           <tr>
-            <th>Equipo Comercial</th>
-            <th>Marca / Modelo Comercial en Perú</th>
-            <th>Características Operativas Completas</th>
+            <th>Equipo para Mostrador</th>
+            <th>Referencia Comercial en Arequipa / Perú</th>
+            <th>Función Operativa en el Gimnasio</th>
             <th style="text-align:right">Precio Directo Instalado</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong>1. Laptop Operativa Completa (o PC de Escritorio Completa)</strong></td>
-            <td><strong>HP / Lenovo / Asus 15.6"</strong><br><em>(Intel Core i5 o Ryzen 5 · 16GB RAM · SSD 512GB)</em></td>
-            <td>Equipo completo con pantalla Full HD de 15.6", teclado numérico integrado, mouse óptico, Wi-Fi y puertos USB listos para conectar el lector QR y operar de inmediato sin comprar periféricos aparte.</td>
-            <td style="text-align:right"><span class="badge-ok">S/ 2,250.00</span></td>
+            <td><strong>1. Laptop Operativa Estándar 15.6" (o PC de Escritorio)</strong></td>
+            <td><strong>HP / Lenovo / Acer 15.6"</strong><br><em>(Procesador Core i3/i5 o Ryzen 3/5 · 8GB–16GB RAM · Unidad SSD)</em></td>
+            <td>Equipo principal para operar el Panel de Administración y la Caja. El sistema es ligero y eficiente, por lo que basta con una laptop estándar decente sin necesidad de equipos costosos de alta gama.</td>
+            <td style="text-align:right"><span class="badge-ok">S/ 1,950.00</span></td>
           </tr>
           <tr>
-            <td><strong>2. Lector Óptico QR 2D Manos Libres</strong></td>
-            <td><strong>Honeywell Youjie HF600 / Zebra / 3nStar 2D</strong></td>
-            <td>Escáner omnidireccional 2D de mostrador con base de soporte fijo. Lee códigos QR desde pantallas de celulares (con brillo bajo o mica) y carnets impresos en 0.1 segundos de forma automática.</td>
+            <td><strong>2. Monitor de Recepción 21.5" / 22" Full HD + Cable HDMI</strong></td>
+            <td><strong>LG / Samsung / Teros Full HD HDMI</strong></td>
+            <td>Pantalla secundaria fija en el mostrador (conectada por cable HDMI a la laptop) orientada hacia los socios para visualizar su bienvenida QR, días de vigencia y el código QR de pago Yape/Plin con total nitidez y seguridad.</td>
             <td style="text-align:right"><span class="badge-ok">S/ 420.00</span></td>
           </tr>
           <tr>
-            <td><strong>3. Impresora Térmica de Recibos 80mm</strong></td>
-            <td><strong>Epson TM-T20III / 3nStar RPT008 / Xprinter</strong></td>
-            <td>Impresora térmica comercial USB de 80mm con cortador automático de papel, alta velocidad de impresión y repuestos/rollos térmicos disponibles en cualquier librería o tienda de Arequipa.</td>
-            <td style="text-align:right"><span class="badge-ok">S/ 480.00</span></td>
+            <td><strong>3. Lector Óptico QR 2D Manos Libres</strong></td>
+            <td><strong>Honeywell Youjie HF600 / Zebra / 3nStar 2D</strong></td>
+            <td>Escáner omnidireccional 2D de sobremesa. Lee al instante (0.1 seg) tanto el código QR desde la pantalla del celular del socio como los carnets físicos sin presionar botones.</td>
+            <td style="text-align:right"><span class="badge-ok">S/ 420.00</span></td>
           </tr>
           <tr>
-            <td><strong>TOTAL KIT DE RECEPCIÓN (3 EQUIPOS)</strong></td>
-            <td><strong>Laptop Completa + Lector QR 2D + Impresora 80mm</strong></td>
-            <td>Incluye búsqueda y compra en Arequipa, transporte hasta el gimnasio, instalación física, configuración de drivers y pruebas en recepción.</td>
-            <td style="text-align:right"><span class="badge-gold">S/ 3,150.00</span></td>
+            <td><strong>4. Impresora Térmica de Tickets 80mm</strong></td>
+            <td><strong>3nStar RPT008 / Xprinter / Epson TM-T20III</strong></td>
+            <td>Impresora térmica USB de 80mm con autocorte para emitir constancias físicas de inscripción en mostrador (adicional al envío digital por WhatsApp).</td>
+            <td style="text-align:right"><span class="badge-ok">S/ 460.00</span></td>
+          </tr>
+          <tr>
+            <td><strong>TOTAL KIT COMPLETO DE RECEPCIÓN (4 EQUIPOS)</strong></td>
+            <td><strong>Laptop + Monitor HDMI + Lector QR 2D + Impresora 80mm</strong></td>
+            <td>Incluye gestión de compra en tienda comercial de Arequipa, traslado hasta el local, conexión física, cables e instalación completa lista para operar.</td>
+            <td style="text-align:right"><span class="badge-gold">S/ 3,250.00</span></td>
           </tr>
         </tbody>
       </table>
 
       <div class="diagram-card" style="margin-top:10px">
-        <div style="font-weight:800;font-size:12px;color:var(--gold);margin-bottom:3px">💡 Alternativas Flexibles sobre los Equipos de Cómputo:</div>
+        <div style="font-weight:800;font-size:12px;color:var(--gold);margin-bottom:3px">💡 Flexibilidad Total sobre el Equipamiento:</div>
         <p style="font-size:11.5px;color:#cbd5e1;margin:0;line-height:1.45">
-          • <strong>Uso de Equipo Propio (S/ 0.00 en Hardware):</strong> Si el gimnasio ya cuenta con una computadora o laptop en recepción, el sistema se instala directamente en su equipo sin necesidad de comprar otro.<br>
-          • <strong>Alternativa de Laptop o PC de Segunda Mano (A Tratar Verbalmente):</strong> Si el propietario desea adquirir un equipo económico de segunda mano en buen estado operativo (o adquirir únicamente el Lector QR de S/ 420.00), el presupuesto se coordina de forma directa antes de la compra.
+          • <strong>Uso de Equipos Propios del Propietario (S/ 0.00):</strong> Si el gimnasio ya dispone de laptop/PC o monitor, se utilizan sus propios equipos y solo se adquieren los periféricos que requiera (por ejemplo, únicamente el Lector QR de S/ 420.00 o el Monitor HDMI de S/ 420.00).<br>
+          • <strong>Opción de Laptop o PC de Segunda Mano (A Tratar Directamente):</strong> También es factible implementar el sistema en una laptop o computadora económica de segunda mano en buen estado operativo, coordinando el presupuesto directamente con el propietario antes de su adquisición.
         </p>
       </div>
     </section>
 
-    <!-- SECCIÓN 7: PLANES DE INVERSIÓN, PAGO ADELANTADO DE EQUIPOS Y GARANTÍA DETALLADA -->
+    <!-- SECCIÓN 7: MODALIDADES DE CONTRATACIÓN, PERMANENCIA MÍNIMA, TIEMPOS DE CARGA Y GARANTÍA DE 6 MESES -->
     <section class="section">
-      <div class="section-title">💼 7. Modalidades de Contratación, Condiciones de Pago y Garantía Técnica</div>
+      <div class="section-title">💼 7. Modalidades de Contratación, Condiciones Operativas y Garantía Técnica</div>
       <div class="section-sub">
-        Precios directos y condiciones claras para la implementación del sistema en el gimnasio:
+        Inversión directa y condiciones claras de implementación, soporte y alcance del servicio:
       </div>
 
       <div class="grid-2" style="margin-bottom:12px">
         <!-- MODALIDAD A -->
         <div class="price-box">
           <div>
-            <span class="badge-info" style="margin-bottom:6px;display:inline-block">MODALIDAD A: SOLO SOFTWARE</span>
-            <h3>Instalación en los Equipos Propios del Gimnasio</h3>
+            <span class="badge-info" style="margin-bottom:6px;display:inline-block">MODALIDAD A: IMPLEMENTACIÓN DE SOFTWARE</span>
+            <h3>Instalación en los Equipos del Gimnasio</h3>
             <p style="font-size:12px;color:#cbd5e1;margin-bottom:10px">
-              El propietario utiliza su propia laptop, PC o tablet actual. No requiere compra de hardware.
+              Implementación completa del sistema utilizando la computadora o laptop con la que ya cuenta el local.
             </p>
             <ul class="feature-list" style="margin-bottom:12px">
-              <li>Instalación completa del sistema y configuración de base de datos en la nube y modo local.</li>
-              <li>Adaptación personalizada con el nombre, logo, planes y cuentas Yape/Plin del gimnasio.</li>
-              <li>Habilitación del módulo de migración para registrar a los socios antiguos que tienen plan en curso.</li>
-              <li>Entrega en funcionamiento y demostración práctica del uso del sistema al instalar.</li>
+              <li><strong>Instalación del Sistema Inmediata:</strong> Configuración del panel administrativo, base de datos en la nube, modo local y demostración práctica de uso en el día.</li>
+              <li><strong>Tiempo de Carga y Empadronamiento de Socios Antiguos (24 a 72 h):</strong> El registro inicial de los miembros en curso, generación de sus códigos QR y activación de sus cuentas individuales se realiza de forma ordenada en un plazo de 24 a 72 horas según la cantidad de socios activos existentes.</li>
+              <li><strong>Permanencia Mínima en Plan Mensual:</strong> La modalidad de suscripción mensual requiere un <strong>compromiso mínimo de contratación de seis (6) meses</strong>.</li>
             </ul>
           </div>
           <div>
             <table style="margin-top:0">
               <tbody>
                 <tr>
-                  <td><strong>Plan Mensual:</strong></td>
+                  <td><strong>Plan Mensual (Mín. 6 meses):</strong></td>
                   <td style="text-align:right"><strong>S/ 89.00 / mes</strong> <em>(+ S/ 250.00 instalación única)</em></td>
                 </tr>
                 <tr>
@@ -872,31 +875,31 @@
         <!-- MODALIDAD B -->
         <div class="price-box featured">
           <div>
-            <span class="badge-gold" style="margin-bottom:6px;display:inline-block">⭐ MODALIDAD B: SOFTWARE + EQUIPOS FÍSICOS</span>
-            <h3>Sistema Completo + Provisión de Equipos Instalados</h3>
+            <span class="badge-gold" style="margin-bottom:6px;display:inline-block">⭐ MODALIDAD B: SOFTWARE + ENCARGO DE EQUIPOS</span>
+            <h3>Sistema + Gestión de Compra e Instalación de Equipos</h3>
             <p style="font-size:12px;color:#cbd5e1;margin-bottom:10px">
-              Incluye el sistema de software más la compra, traslado e instalación de los equipos físicos requeridos por el propietario (comerciales de tienda o alternativa acordada).
+              Implementación del software más la adquisición por encargo, traslado y conexión de los equipos físicos que el propietario solicite.
             </p>
             <ul class="feature-list" style="margin-bottom:12px">
-              <li><strong>Equipos Físicos Seleccionados:</strong> Kit completo de recepción (S/ 3,150.00) o los equipos específicos que el dueño elija adquirir (ej. solo Lector QR o Laptop acordada).</li>
-              <li><strong>Regla Obligatoria de Pago Adelantado por Equipos:</strong> El <strong>100% del monto de los equipos físicos se abona por adelantado</strong> a la firma del acuerdo para proceder con la compra y traslado; evitando cualquier riesgo de cancelación posterior a la compra.</li>
-              <li><strong>Entrega Lista en Mostrador:</strong> Se deja todo conectado, configurado y operando con demostración práctica de funcionamiento.</li>
+              <li><strong>Selección a Medida o Kit Completo:</strong> Puede encargar el Kit Completo de 4 equipos (S/ 3,250.00) o únicamente los equipos específicos que necesite para su mostrador.</li>
+              <li><strong>Adelanto del 100% para Compra de Equipos:</strong> Dado que los equipos se adquieren por encargo exclusivo del cliente, el <strong>100% del importe del hardware seleccionado se abona por adelantado</strong> a la firma del acuerdo para proceder con su compra y traslado.</li>
+              <li><strong>Conexión Física Inmediata:</strong> Los equipos se entregan conectados y funcionando en recepción desde el primer momento.</li>
             </ul>
           </div>
           <div>
             <table style="margin-top:0">
               <tbody>
                 <tr>
-                  <td><strong>Kit Completo 3 Equipos Comerciales:</strong></td>
-                  <td style="text-align:right"><strong>S/ 3,150.00</strong> <em>(Pago 100% adelantado)</em></td>
+                  <td><strong>Kit Completo 4 Equipos:</strong></td>
+                  <td style="text-align:right"><strong>S/ 3,250.00</strong> <em>(Pago 100% adelantado)</em></td>
                 </tr>
                 <tr>
-                  <td><strong>Equipos + Software Mensual:</strong></td>
-                  <td style="text-align:right"><strong>S/ 3,150.00</strong> (equipos) + <strong>S/ 89.00 / mes</strong></td>
+                  <td><strong>4 Equipos + Plan Mensual (Mín. 6m):</strong></td>
+                  <td style="text-align:right"><strong>S/ 3,250.00</strong> (equipos) + <strong>S/ 89.00 / mes</strong></td>
                 </tr>
                 <tr>
-                  <td><strong>Equipos + Licencia Vitalicia:</strong></td>
-                  <td style="text-align:right"><strong style="color:var(--gold)">S/ 4,450.00</strong> <em>(Kit 3 Equipos + Software Vitalicio)</em></td>
+                  <td><strong>4 Equipos + Licencia Vitalicia:</strong></td>
+                  <td style="text-align:right"><strong style="color:var(--gold)">S/ 4,550.00</strong> <em>(Kit 4 Equipos + Software Vitalicio)</em></td>
                 </tr>
               </tbody>
             </table>
@@ -904,69 +907,87 @@
         </div>
       </div>
 
-      <!-- GARANTÍA TÉCNICA ESPECÍFICA: PLAZO, COBERTURA Y EXCLUSIONES -->
+      <!-- CONDICIONES DE GARANTÍA DE 6 MESES Y ALCANCE DE CAMBIOS POSTERIORES -->
       <div class="diagram-card">
-        <div style="font-weight:800;font-size:12.5px;color:var(--gold);margin-bottom:4px">🛡️ Condiciones de Garantía Técnica, Plazos y Alcance (Qué se considera Garantía):</div>
+        <div style="font-weight:800;font-size:12.5px;color:var(--gold);margin-bottom:4px">🛡️ Plazo de Garantía Técnica (6 Meses), Equipos y Alcance de Nuevas Implementaciones:</div>
         <ul class="feature-list" style="font-size:11.5px">
-          <li><strong>1. Garantía del Software (12 Meses):</strong> El sistema cuenta con <strong>doce (12) meses de garantía técnica directa</strong> a partir de la fecha del Acta de Conformidad. Se considera garantía la corrección sin costo de cualquier error interno de programación, fallo en el cálculo de caja, generación de códigos QR o sincronización con la base de datos en la nube.</li>
-          <li><strong>2. Garantía de Equipos Físicos (Hardware):</strong> Los equipos adquiridos en tienda cuentan con la garantía oficial del fabricante/distribuidor comercial (6 a 12 meses contra defectos de fabricación, conservando su comprobante y empaque). Si el cliente opta verbalmente por una laptop o equipo de segunda mano, éste se prueba y valida conjuntamente al momento de la entrega mediante el Acta de Conformidad.</li>
-          <li><strong>3. Exclusiones de Garantía:</strong> No se consideran cubiertos por garantía los desperfectos causados por golpes, caídas, derrame de líquidos sobre los equipos, variaciones bruscas de voltaje o cortocircuitos eléctricos del local, manipulación o formateo de la computadora por terceras personas, ingreso de virus por descargas ajenas al gimnasio, ni interrupciones del servicio de internet o fluido eléctrico local.</li>
+          <li><strong>1. Garantía Técnica del Software (6 Meses):</strong> El software cuenta con <strong>seis (6) meses de garantía técnica</strong> a partir de la entrega operativa. La garantía cubre la corrección sin costo de cualquier desperfecto técnico o error de programación sobre las funciones descritas en el presente documento.</li>
+          <li><strong>2. Cambios Posteriores o Nuevas Funciones Tienen Costo Adicional:</strong> La contratación incluye el sistema con los módulos detallados en esta propuesta. Cualquier solicitud posterior de nuevas funciones, módulos adicionales, rediseños o modificaciones personalizadas a pedido del cliente constituye un trabajo adicional independiente y se cotiza por separado previo acuerdo.</li>
+          <li><strong>3. Garantía de Equipos Físicos (Según Tienda Comercial):</strong> La garantía de los equipos nuevos adquiridos por encargo se rige directamente por la póliza oficial de la empresa o tienda comercial proveedora (entregándose al cliente sus comprobantes de compra). En caso de equipos de segunda mano acordados con el cliente, su estado y funcionamiento se verifican y aprueban conjuntamente al momento de la entrega. No están cubiertos daños por golpes, líquidos, variaciones eléctricas, manipulación o formateo por terceros ni cortes de internet.</li>
         </ul>
       </div>
     </section>
 
     <div class="page-break"></div>
 
-    <!-- SECCIÓN 8: MARCO LEGAL, DESLINDE TRIBUTARIO (SUNAT) Y CUADRO DE 4 FIRMAS EN 2 ETAPAS -->
+    <!-- SECCIÓN 8: CLÁUSULAS CONTRACTUALES DE RESPALDO LEGAL INTEGRAL (TONO CORDIAL Y PROFESIONAL) -->
     <section class="section">
-      <div class="section-title">⚖️ 8. Marco Legal, Validez Contractual y Deslinde de Responsabilidad Tributaria (SUNAT)</div>
+      <div class="section-title">⚖️ 8. Cláusulas Contractuales de Servicio, Garantías Mutuas y Delimitación de Responsabilidades</div>
       <div class="section-sub">
-        Cláusulas de seguridad jurídica conforme al Código Civil Peruano (Art. 1351 y 1361), Código Tributario (D.S. N° 133-2013-EF) y Ley de Protección de Datos Personales (Ley N° 29733):
+        Con el propósito de mantener una relación comercial transparente, cordial y segura para ambas partes, el presente acuerdo se rige por las siguientes cláusulas conforme al Código Civil Peruano (Art. 1351°, 1361° y 1764°):
       </div>
 
       <div class="grid-2">
         <div class="box">
-          <h3>8.1. Finalidad del Software (Control Administrativo y Financiero Interno)</h3>
-          <ul class="feature-list">
-            <li><strong>Herramienta de Control Interno:</strong> El presente proyecto tiene como único fin facilitar el orden administrativo interno del gimnasio: control de accesos por QR, registro de planes, seguimiento de asistencias y cuadre interno de ingresos y gastos en recepción.</li>
-            <li><strong>No es Facturador Electrónico SUNAT (PSE / OSE):</strong> Se deja expresa constancia de que este sistema NO es un sistema de emisión electrónica homologado ante SUNAT. Las boletas o recibos emitidos por el software son constancias de control interno de membresía y no reemplazan a los Comprobantes de Pago Electrónicos (CPE) tributarios.</li>
-          </ul>
+          <h3>Cláusula Primera: Objeto y Naturaleza del Sistema</h3>
+          <p style="font-size:11.3px;color:#cbd5e1;line-height:1.45;margin:0">
+            El Desarrollador provee al Gimnasio una plataforma informática profesional destinada exclusivamente a la <strong>organización administrativa interna del local</strong>: control de asistencia mediante código QR, registro de membresías, seguimiento de rutinas deportivas y control interno de turnos de recepción. Las constancias o tickets generados por el programa son documentos de control interno para los socios y no constituyen comprobantes de pago electrónicos (CPE) ni facturación tributaria.
+          </p>
         </div>
 
         <div class="box">
-          <h3>8.2. Responsabilidad Tributaria y Fiscal Exclusiva del Dueño / Empresa</h3>
-          <ul class="feature-list">
-            <li><strong>Declaración de Impuestos y Emisión de Boletas/Facturas:</strong> Todo lo relacionado con inscripción en el RUC, elección de régimen tributario (NRUS, RER, MYPE o General), declaración mensual de ingresos, manejo contable de pagos en Efectivo/Yape/Plin y emisión de Boletas de Venta o Facturas Electrónicas oficiales ante la SUNAT (vía Portal SUNAT SOL o facturador propio) recae <strong>única y exclusivamente bajo la responsabilidad del propietario, socios y administración del gimnasio</strong>.</li>
-            <li><strong>Validez Legal Plena del Acuerdo:</strong> Conforme a los Artículos 1351°, 1361° y 1764° del Código Civil del Perú, este documento firmado por las partes tiene plena fuerza de ley y carácter vinculante como contrato privado (pudiendo además legalizarse las firmas ante Notario Público o Juez de Paz si cualquiera de las partes lo requiere).</li>
-          </ul>
+          <h3>Cláusula Segunda: Autonomía Administrativa y Tributaria del Gimnasio</h3>
+          <p style="font-size:11.3px;color:#cbd5e1;line-height:1.45;margin:0">
+            Ambas partes reconocen cordialmente que la gestión empresarial, contable, tributaria, municipal y laboral del gimnasio (incluyendo inscripción en el RUC, elección de régimen tributario, declaración de ingresos en Efectivo/Yape/Plin y emisión oficial de Boletas o Facturas Electrónicas ante la <strong>SUNAT</strong> mediante Portal SUNAT SOL o facturador autorizado) corresponde de manera exclusiva e independiente a los propietarios y administración del gimnasio.
+          </p>
+        </div>
+
+        <div class="box">
+          <h3>Cláusula Tercera: Indemnidad Legal del Desarrollador</h3>
+          <p style="font-size:11.3px;color:#cbd5e1;line-height:1.45;margin:0">
+            En virtud de que la labor del Desarrollador se circunscribe estrictamente al ámbito técnico e informático del software entregado, el Propietario y/o Socio Comercial mantienen al Desarrollador libre y exento de cualquier responsabilidad civil, tributaria, administrativa, laboral o judicial derivada del giro comercial del negocio, fiscalizaciones de <strong>SUNAT, Municipalidad / Defensa Civil (ITSE), INDECOPI o SUNAFIL</strong>, o del manejo tributario y contable propio del establecimiento.
+          </p>
+        </div>
+
+        <div class="box">
+          <h3>Cláusula Cuarta: Propiedad Intelectual y Trabajos Adicionales</h3>
+          <p style="font-size:11.3px;color:#cbd5e1;line-height:1.45;margin:0">
+            El software provisto es una obra tecnológica de autoría intelectual del Desarrollador, otorgándose al Gimnasio la licencia de uso conforme a la modalidad contratada (Mensual con permanencia mínima de 6 meses, Anual o Vitalicia). Toda solicitud futura de funciones adicionales, nuevos módulos o cambios no contemplados en el alcance inicial será evaluada y presupuestada como un servicio profesional independiente.
+          </p>
+        </div>
+
+        <div class="box">
+          <h3>Cláusula Quinta: Tiempos de Implementación y Garantía</h3>
+          <p style="font-size:11.3px;color:#cbd5e1;line-height:1.45;margin:0">
+            La instalación del sistema es inmediata, mientras que el empadronamiento y carga de socios antiguos en curso se efectúa en un plazo de 24 a 72 horas según el volumen de registros proporcionados por el gimnasio. El software goza de <strong>seis (6) meses de garantía técnica</strong> sobre su correcto funcionamiento, y los equipos adquiridos por encargo cuentan con la garantía de la tienda comercial proveedora.
+          </p>
+        </div>
+
+        <div class="box">
+          <h3>Cláusula Sexta: Protección de Datos y Validez Legal</h3>
+          <p style="font-size:11.3px;color:#cbd5e1;line-height:1.45;margin:0">
+            El Gimnasio es el titular de su padrón de clientes (Ley N° 29733), guardando el Desarrollador absoluta reserva técnica sobre la información procesada. Cualquier consulta o diferencia será resuelta de buena fe y trato directo entre las partes. El presente documento firmado constituye contrato privado con plena validez legal conforme a los Artículos 1351° y 1361° del Código Civil del Perú.
+          </p>
         </div>
       </div>
 
-      <div class="diagram-card" style="margin-top:8px">
-        <div style="font-weight:800;font-size:12px;color:var(--gold);margin-bottom:3px">8.3. Cláusula de Deslinde Total e Indemnidad ante Auditorías o Fiscalizaciones (SUNAT, Municipalidad, INDECOPI, SUNAFIL):</div>
-        <p style="font-size:11px;color:#cbd5e1;line-height:1.42;margin:0">
-          El Titular y el Co-Propietario/Socio del gimnasio declaran conocer y aceptar que el <strong>Desarrollador de Software y Especialista en Administración de Centros de Cómputo</strong> cumple exclusivamente con entregar la herramienta informática de control interno acordada, quedando <strong>total, expresa e irrevocablemente exonerado de cualquier responsabilidad civil, tributaria, administrativa, laboral o penal</strong> frente a fiscalizaciones, auditorías, intervenciones de fedatarios, multas, sanciones o cierres temporales dispuestos por la <strong>SUNAT</strong> (por no emitir comprobantes electrónicos o por declaraciones tributarias del negocio), <strong>Municipalidades / Defensa Civil (ITSE)</strong>, <strong>INDECOPI</strong> o <strong>SUNAFIL</strong>. Ninguna omisión tributaria o contable del negocio podrá ser atribuida al desarrollador ni al proyecto de software.
-        </p>
-      </div>
-
-      <!-- BLOQUE CONTRACTUAL DE 4 FIRMAS EN DOS ETAPAS (SIEMPRE VISIBLE EN PANTALLA Y EN IMPRESIÓN PDF A4) -->
-      <div class="box" style="margin-top:12px;background:var(--card-2);border:1.5px solid var(--border);padding:14px">
+      <!-- SECCIÓN 9: FORMALIZACIÓN CONTRACTUAL Y ACTA DE CONFORMIDAD INTEGRAL -->
+      <div class="box" style="margin-top:10px;background:var(--card-2);border:1.5px solid var(--border);padding:14px">
         <div style="font-weight:900;font-size:12.5px;color:var(--gold);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">
-          ✍️ 9. Suscripción del Acuerdo Comercial (Etapa 1) y Acta de Conformidad de Entrega (Etapa 2)
+          ✍️ 9. Formalización del Contrato de Implementación, Conformidad Operativa y Respaldo Legal
         </div>
-        <p style="font-size:11px;color:#cbd5e1;margin-bottom:12px;line-height:1.4">
-          • <strong>Etapa 1 (Al Contratar el Proyecto):</strong> Firman los recuadros <strong>(1)</strong>, <strong>(2)</strong> y, si el gimnasio tiene co-propietario o socio comercial, el recuadro <strong>(3)</strong> <em>(si es único dueño, el recuadro 3 se deja sin efecto)</em>.<br>
-          • <strong>Etapa 2 (Al Finalizar la Instalación y Poner en Funcionamiento):</strong> Una vez instalado el sistema y verificado su funcionamiento real en recepción, el propietario firma y/o sella el recuadro <strong>(4)</strong> validando la entrega conforme.
+        <p style="font-size:11px;color:#cbd5e1;margin-bottom:12px;line-height:1.42">
+          Con la suscripción del presente documento, las partes expresan su plena aceptación de las especificaciones técnicas, costos directos, plazos de permanencia y garantía, así como de las seis (6) cláusulas de delimitación de responsabilidades y protección legal establecidas en la Sección 8, reconociendo el estándar profesional del proyecto implementado.
         </p>
 
-        <div class="grid-2" style="gap:14px">
-          <!-- FIRMA 1: PROVEEDOR TECNOLÓGICO -->
-          <div style="border:1px solid var(--border);border-radius:8px;padding:12px;background:rgba(255,255,255,0.02)">
-            <div style="font-size:10px;font-weight:800;color:var(--cyan);text-transform:uppercase;margin-bottom:22px">
-              (1) ETAPA 1: EL PROVEEDOR TECNOLÓGICO (ACUERDO DE INICIO)
+        <div class="grid-2" style="gap:12px">
+          <!-- FIRMA 1: DESARROLLADOR -->
+          <div style="border:1px solid var(--border);border-radius:8px;padding:11px;background:rgba(255,255,255,0.02)">
+            <div style="font-size:9.8px;font-weight:800;color:var(--cyan);text-transform:uppercase;margin-bottom:20px">
+              (1) SUSCRIPCIÓN DEL RESPONSABLE TECNOLÓGICO
             </div>
-            <div style="border-top:1.5px solid #64748b;padding-top:6px;font-weight:900;font-size:11px;color:#fff">
-              DESARROLLADOR DE SOFTWARE Y ESPECIALISTA EN ADMINISTRACIÓN DE CENTROS DE CÓMPUTO
+            <div style="border-top:1.5px solid #64748b;padding-top:5px;font-weight:900;font-size:11px;color:#fff">
+              DESARROLLADOR DE SOFTWARE Y SISTEMAS DIGITALES
             </div>
             <div style="font-size:10.5px;color:#cbd5e1;margin-top:4px">
               <strong>Nombre:</strong> <span class="dev-name-txt">______________________________________</span><br>
@@ -975,11 +996,11 @@
           </div>
 
           <!-- FIRMA 2: TITULAR / PROPIETARIO PRINCIPAL -->
-          <div style="border:1px solid var(--border);border-radius:8px;padding:12px;background:rgba(255,255,255,0.02)">
-            <div style="font-size:10px;font-weight:800;color:var(--emerald);text-transform:uppercase;margin-bottom:22px">
-              (2) ETAPA 1: ACEPTACIÓN DEL TITULAR / DUEÑO DEL GIMNASIO
+          <div style="border:1px solid var(--border);border-radius:8px;padding:11px;background:rgba(255,255,255,0.02)">
+            <div style="font-size:9.8px;font-weight:800;color:var(--emerald);text-transform:uppercase;margin-bottom:20px">
+              (2) ACEPTACIÓN DE CONDICIONES Y CLÁUSULAS — TITULAR PRINCIPAL
             </div>
-            <div style="border-top:1.5px solid #64748b;padding-top:6px;font-weight:900;font-size:11px;color:#fff">
+            <div style="border-top:1.5px solid #64748b;padding-top:5px;font-weight:900;font-size:11px;color:#fff">
               TITULAR / PROPIETARIO PRINCIPAL — <span class="gym-name">RD FITNESS CLUB</span>
             </div>
             <div style="font-size:10.5px;color:#cbd5e1;margin-top:4px">
@@ -988,31 +1009,31 @@
             </div>
           </div>
 
-          <!-- FIRMA 3: CO-PROPIETARIO / SOCIO COMERCIAL (OPCIONAL) -->
-          <div style="border:1px dashed var(--border);border-radius:8px;padding:12px;background:rgba(255,255,255,0.02)">
-            <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:22px">
-              (3) ETAPA 1: CO-PROPIETARIO / SOCIO DEL GIMNASIO (OPCIONAL)
+          <!-- FIRMA 3: CO-PROPIETARIO / SOCIO COMERCIAL -->
+          <div style="border:1px dashed var(--border);border-radius:8px;padding:11px;background:rgba(255,255,255,0.02)">
+            <div style="font-size:9.8px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:20px">
+              (3) ACEPTACIÓN MANCOMUNADA — CO-PROPIETARIO / SOCIO COMERCIAL
             </div>
-            <div style="border-top:1.5px solid #64748b;padding-top:6px;font-weight:900;font-size:11px;color:#fff">
+            <div style="border-top:1.5px solid #64748b;padding-top:5px;font-weight:900;font-size:11px;color:#fff">
               CO-TITULAR / SOCIO COMERCIAL — <span class="gym-name">RD FITNESS CLUB</span>
             </div>
             <div style="font-size:10.5px;color:#cbd5e1;margin-top:4px">
               <strong>Nombre:</strong> ______________________________________<br>
-              <strong>DNI:</strong> ____________________ <em>(Se obvia si es único propietario)</em>
+              <strong>DNI:</strong> ____________________ · <strong>Fecha:</strong> ____/____/2026
             </div>
           </div>
 
-          <!-- FIRMA 4: ACTA DE CONFORMIDAD DE ENTREGA Y PUESTA EN MARCHA (ETAPA 2) -->
-          <div style="border:1.5px solid var(--gold);border-radius:8px;padding:12px;background:rgba(239,68,68,0.05)">
-            <div style="font-size:10px;font-weight:800;color:var(--gold);text-transform:uppercase;margin-bottom:22px">
-              (4) ETAPA 2: CONFORMIDAD DE INSTALACIÓN Y FUNCIONAMIENTO
+          <!-- FIRMA 4: ACTA DE CONFORMIDAD OPERATIVA Y RATIFICACIÓN CONTRACTUAL -->
+          <div style="border:1.5px solid var(--gold);border-radius:8px;padding:11px;background:rgba(239,68,68,0.05)">
+            <div style="font-size:9.8px;font-weight:800;color:var(--gold);text-transform:uppercase;margin-bottom:20px">
+              (4) ACTA DE CONFORMIDAD DE ENTREGA Y RATIFICACIÓN DE CLÁUSULAS
             </div>
-            <div style="border-top:1.5px solid #64748b;padding-top:6px;font-weight:900;font-size:11px;color:#fff">
-              FIRMA Y/O SELLO DE CONFORMIDAD OPERATIVA (SISTEMA EN MARCHA)
+            <div style="border-top:1.5px solid #64748b;padding-top:5px;font-weight:900;font-size:11px;color:#fff">
+              CONFORMIDAD DE PUESTA EN MARCHA Y VIGENCIA CONTRACTUAL
             </div>
-            <div style="font-size:10.5px;color:#cbd5e1;margin-top:4px">
-              <em>Declaro recibir el sistema instalado, probado y funcionando al 100%.</em><br>
-              <strong>Fecha de Entrega:</strong> ____/____/2026 · <strong>Modalidad:</strong> [ A ]  [ B ]  [ Web ]
+            <div style="font-size:10.2px;color:#cbd5e1;margin-top:4px;line-height:1.35">
+              <em>Se deja constancia de haber recibido el sistema operativo a satisfacción, ratificando la plena vigencia de las cláusulas de garantía, alcance y deslinde legal del Desarrollador.</em><br>
+              <strong>Fecha Entrega:</strong> ____/____/2026 · <strong>Modalidad:</strong> [ A ]  [ B ]  [ Web ]
             </div>
           </div>
         </div>

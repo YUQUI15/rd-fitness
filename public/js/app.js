@@ -263,15 +263,25 @@
         { title: 'Horario de Atención continua', body: 'Entrena de Lunes a Sábado con asesoría personalizada y control de acceso QR instantáneo.', category: 'info' },
         { title: 'Pagos Rápidos sin Filas', body: 'Aceptamos Efectivo, Yape y Plin directamente en recepción con comprobante digital.', category: 'evento' }
       ];
-      noticesEl.innerHTML = leftList.slice(0, 4).map(a => `
+      const commBtn = data.gym?.whatsapp_community_url ? `
+        <a href="${esc(data.gym.whatsapp_community_url)}" target="_blank" rel="noopener" class="btn sm ok block mb" style="display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none">
+          💬 Unirse a la Comunidad Oficial WhatsApp
+        </a>
+      ` : '';
+      noticesEl.innerHTML = commBtn + leftList.slice(0, 4).map(a => `
         <div class="pub-notice-card">
           <div class="row between mb" style="margin-bottom:4px">
             <span class="badge ${a.category === 'promo' ? 'warn' : a.category === 'urgente' ? 'bad' : 'info'}" style="font-size:.65rem">${esc((a.category || 'aviso').toUpperCase())}</span>
             ${a.pinned ? '<span class="tiny gold">📌 Destacado</span>' : ''}
           </div>
+          ${a.image_url ? `<img src="${esc(a.image_url)}" alt="${esc(a.title)}" style="width:100%;max-height:110px;object-fit:cover;border-radius:8px;margin:6px 0">` : ''}
           <div style="font-weight:700;font-size:.9rem;margin-bottom:4px">${esc(a.title)}</div>
           <div class="small muted" style="line-height:1.45">${esc(a.body)}</div>
-          ${a.cta_label ? `<a href="${esc(a.cta_url || '#')}" class="btn sm ghost mt" style="font-size:.75rem">${esc(a.cta_label)} →</a>` : ''}
+          <div class="row wrap gap mt">
+            ${a.video_url ? `<a href="${esc(a.video_url)}" target="_blank" rel="noopener" class="btn sm ghost" style="font-size:.74rem">🎬 Video</a>` : ''}
+            ${a.doc_url ? `<a href="${esc(a.doc_url)}" target="_blank" rel="noopener" download class="btn sm ghost" style="font-size:.74rem">${esc(a.doc_label || '📄 PDF')}</a>` : ''}
+            ${a.cta_label ? `<a href="${esc(a.cta_url || '#')}" target="_blank" rel="noopener" class="btn sm ghost" style="font-size:.74rem">${esc(a.cta_label)} →</a>` : ''}
+          </div>
         </div>
       `).join('');
 
@@ -286,11 +296,16 @@
         carouselEl.innerHTML = `
           <div class="pub-carousel-box">
             <div>
-              <span class="badge warn" style="font-size:.65rem;margin-bottom:8px">✨ CAMPAÑA DESTACADA</span>
+              ${s.image_url ? `<img src="${esc(s.image_url)}" alt="${esc(s.title)}" style="width:100%;height:135px;object-fit:cover;border-radius:10px;margin-bottom:8px">` : ''}
+              <span class="badge warn" style="font-size:.65rem;margin-bottom:8px">✨ VITRINA MULTIMEDIA</span>
               <h4 style="margin:6px 0;font-size:1.05rem">${esc(s.title)}</h4>
               <p class="small muted" style="margin:0;line-height:1.45">${esc(s.body)}</p>
             </div>
-            ${s.cta_label ? `<a href="${esc(s.cta_url || '#')}" target="_blank" rel="noopener" class="btn sm primary block mt">${esc(s.cta_label)}</a>` : ''}
+            <div class="row wrap gap mt">
+              ${s.video_url ? `<a href="${esc(s.video_url)}" target="_blank" rel="noopener" class="btn sm ghost">🎬 Ver Video</a>` : ''}
+              ${s.doc_url ? `<a href="${esc(s.doc_url)}" target="_blank" rel="noopener" download class="btn sm ghost">${esc(s.doc_label || '📄 Descargar PDF')}</a>` : ''}
+              ${s.cta_label ? `<a href="${esc(s.cta_url || '#')}" target="_blank" rel="noopener" class="btn sm primary block">${esc(s.cta_label)}</a>` : ''}
+            </div>
           </div>
           ${slides.length > 1 ? `<div class="pub-dots">${slides.map((_, i) => `<button type="button" class="pub-dot ${i === slideIdx ? 'active' : ''}" data-sidx="${i}"></button>`).join('')}</div>` : ''}
         `;

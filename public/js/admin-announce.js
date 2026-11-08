@@ -1,14 +1,14 @@
-/* RED GYM Club - Módulo de Gestión de Avisos y Notificaciones (Panel Admin / Recepción) */
+/* Centro Omnicanal de Avisos, Publicidad Multimedia Web y Comunidad de WhatsApp (Panel Admin / Recepción) */
 (function () {
   const RD = window.RD = window.RD || {};
   const { esc } = RD;
 
   const KINDS = [
-    ['aviso', 'Aviso General', 'Comunicado regular para los socios'],
-    ['mantenimiento', 'Mantenimiento', 'Aparece como franja de aviso en la cabecera'],
-    ['cierre', 'Cierre / Horario Especial', 'Avisos de feriado o cierre temporal'],
-    ['promo', 'Promoción o Descuento', 'Ofertas y beneficios especiales'],
-    ['evento', 'Evento o Clase Especial', 'Actividades, temáticas o retos']
+    ['aviso', 'Aviso Oficial', 'Comunicado informativo o novedad del gimnasio'],
+    ['mantenimiento', 'Mantenimiento', 'Aviso operativo o de mantenimiento de equipos'],
+    ['cierre', 'Horario Especial / Feriado', 'Avisos de horarios especiales o feriados'],
+    ['promo', 'Promoción / Campaña', 'Ofertas, descuentos o campañas comerciales'],
+    ['evento', 'Evento / Guía / Reto', 'Actividades, guías en PDF, videos o eventos especiales']
   ];
 
   const AUDIENCES = [
@@ -23,41 +23,172 @@
 
   let currentTab = 'all';
   let listCache = [];
+  let settingsCache = {};
+
+  function parseChannels(chStr) {
+    const s = String(chStr || 'app,web').toLowerCase();
+    if (s === 'both') return ['app', 'web'];
+    return s.split(',').map(x => x.trim()).filter(Boolean);
+  }
+
+  function hasCh(chStr, target) {
+    return parseChannels(chStr).includes(target);
+  }
+
+  function formatWhatsAppPost(a) {
+    const gymName = RD.pub?.gym_name || settingsCache.gym_name || 'RD FITNESS CLUB';
+    const emoji = a.kind === 'promo' ? '🔥' : a.kind === 'evento' ? '🏆' : a.kind === 'cierre' ? '⏰' : '📢';
+    let lines = [
+      `${emoji} *${String(a.title || '').toUpperCase()}* — *${gymName}*`,
+      ''
+    ];
+    if (a.body) lines.push(String(a.body).trim(), '');
+    if (a.video_url) {
+      const vUrl = a.video_url.startsWith('/') ? (location.origin + a.video_url) : a.video_url;
+      lines.push(`🎬 *Video Multimedia:* ${vUrl}`);
+    }
+    if (a.doc_url) {
+      const dUrl = a.doc_url.startsWith('/') ? (location.origin + a.doc_url) : a.doc_url;
+      lines.push(`📄 *${a.doc_label || 'Documento / PDF'}:* ${dUrl}`);
+    }
+    if (a.image_url && !a.image_url.startsWith('data:')) {
+      const iUrl = a.image_url.startsWith('/') ? (location.origin + a.image_url) : a.image_url;
+      lines.push(`🖼️ *Afiche / Imagen:* ${iUrl}`);
+    }
+    if (a.cta_url) {
+      const cUrl = a.cta_url.startsWith('/') ? (location.origin + a.cta_url) : a.cta_url;
+      lines.push(`👉 *${a.cta_label || 'Más información'}:* ${cUrl}`);
+    }
+    lines.push('', `📲 _Portal & App Oficial:_ ${location.origin}`);
+    return lines.join('\n');
+  }
+
+  async function shareToWhatsAppChannel(a) {
+    const text = formatWhatsAppPost(a);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {}
+    const target = a.whatsapp_target || 'community';
+    const commUrl = settingsCache.whatsapp_community_url || RD.pub?.whatsapp_community_url || '';
+    const grpUrl = settingsCache.whatsapp_members_group_url || RD.pub?.whatsapp_members_group_url || '';
+    const destUrl = (target === 'members_group' && grpUrl) ? grpUrl : (commUrl || grpUrl);
+
+    const d = RD.openModal('💬 Difusión Segura en Comunidad / Grupo de WhatsApp', `
+      <div class="card flat mb" style="border-left:3px solid #22c55e;background:rgba(34,197,94,0.08)">
+        <div class="bold" style="color:#4ade80;margin-bottom:4px">✔ Mensaje copiado automáticamente al portapapeles</div>
+        <div class="small muted">
+          Publicar en tu <b>Comunidad o Grupo Oficial de WhatsApp</b> envía el comunicado, video o documento a todos los miembros a la vez con <b>cero riesgo de bloqueo de cuenta</b>.
+        </div>
+      </div>
+      <label class="field">
+        <span>Vista previa del comunicado formateado para WhatsApp:</span>
+        <textarea id="wa_preview_txt" rows="7" style="font-family:monospace;font-size:.85rem">${esc(text)}</textarea>
+      </label>
+      <div class="row wrap gap mt">
+        <button type="button" class="btn ok" id="btn_copy_wa_again">📋 Copiar Texto</button>
+        ${commUrl ? `<a class="btn primary" href="${esc(commUrl)}" target="_blank" rel="noopener">🌐 Abrir Comunidad General WhatsApp</a>` : ''}
+        ${grpUrl ? `<a class="btn primary" href="${esc(grpUrl)}" target="_blank" rel="noopener">🔒 Abrir Grupo de Socios WhatsApp</a>` : ''}
+        <a class="btn ghost" href="https://api.whatsapp.com/send?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">📲 Enviar por WhatsApp Directo</a>
+      </div>
+    `);
+    d.el.querySelector('#btn_copy_wa_again').onclick = async () => {
+      const val = d.el.querySelector('#wa_preview_txt').value;
+      try { await navigator.clipboard.writeText(val); RD.toast('Texto copiado listo para pegar en WhatsApp'); } catch {}
+    };
+    if (destUrl) {
+      RD.toast('Mensaje copiado · Abriendo Comunidad/Grupo de WhatsApp', 'ok');
+    }
+  }
 
   RD.views = RD.views || {};
   RD.views.announcements = {
     async render(view) {
+      try { settingsCache = await RD.api.get('/settings'); } catch { settingsCache = {}; }
+
       view.innerHTML = `
         <div class="row between wrap gap mb">
           <div>
-            <h2 style="margin:0;display:flex;align-items:center;gap:8px">${RD.icon('megaphone', '', 22)} Avisos para Socios (App) y Publicidad Web</h2>
+            <h2 style="margin:0;display:flex;align-items:center;gap:8px">${RD.icon('megaphone', '', 22)} Centro Omnicanal: App, Web Multimedia y WhatsApp</h2>
             <p class="muted small" style="margin:.2rem 0 0">
-              Administra desde un solo lugar las notificaciones preferenciales para <b>Socios en la App</b> (sin invadirlos con publicidad) y las campañas comerciales, carruseles y anuncios destacados para el <b>Público General en la Web</b>.
+              Publica imágenes, videos, documentos PDF, enlaces y comunicados eligiendo exactamente dónde difundirlos: <b>App de Socios</b>, <b>Sitio Web Público</b>, <b>Comunidad de WhatsApp</b> o cualquier combinación.
             </p>
           </div>
-          <button class="btn primary" id="btnnewann">＋ Nuevo Aviso / Anuncio</button>
+          <div class="row gap wrap">
+            <button class="btn ghost" id="btnwaconfig">💬 Configurar Comunidad / Grupo WhatsApp</button>
+            <button class="btn primary" id="btnnewann">＋ Nueva Publicación Multimedia</button>
+          </div>
+        </div>
+
+        <!-- PANEL DE COMUNIDAD Y GRUPO OFICIAL DE WHATSAPP (ANTI-BLOQUEO) -->
+        <div class="card mb hidden" id="wa_config_box" style="border:1px solid rgba(34,197,94,0.35);background:rgba(34,197,94,0.05)">
+          <div class="row between wrap gap mb">
+            <div>
+              <h3 style="margin:0;color:#4ade80">💬 Integración con Comunidad y Grupo Oficial de WhatsApp (Cero Bloqueos)</h3>
+              <p class="small muted" style="margin:4px 0 0">
+                Configura el enlace de invitación de tu Comunidad o Grupo de WhatsApp. Así los socios y visitantes se unen con 1 clic desde la Web/App y difundes anuncios sin enviar mensajes masivos individuales.
+              </p>
+            </div>
+          </div>
+          <form id="waconfigform" class="grid g2 keep gap">
+            <label class="field">
+              <span>🌐 Enlace de Comunidad / Canal General (Público y Promociones)</span>
+              <input name="whatsapp_community_url" placeholder="https://chat.whatsapp.com/..." value="${esc(settingsCache.whatsapp_community_url || '')}">
+            </label>
+            <label class="field">
+              <span>🔒 Enlace de Grupo Exclusivo de Socios Inscritos</span>
+              <input name="whatsapp_members_group_url" placeholder="https://chat.whatsapp.com/..." value="${esc(settingsCache.whatsapp_members_group_url || '')}">
+            </label>
+            <div class="row gap" style="grid-column:1 / -1">
+              <button type="submit" class="btn ok sm">Guardar Enlaces de WhatsApp</button>
+              ${settingsCache.whatsapp_community_url ? `<a href="${esc(settingsCache.whatsapp_community_url)}" target="_blank" rel="noopener" class="btn sm ghost">↗ Abrir Comunidad</a>` : ''}
+              ${settingsCache.whatsapp_members_group_url ? `<a href="${esc(settingsCache.whatsapp_members_group_url)}" target="_blank" rel="noopener" class="btn sm ghost">↗ Abrir Grupo Socios</a>` : ''}
+            </div>
+          </form>
         </div>
 
         <div class="grid g4 gap mb" id="annkpis">
           <div class="stat"><div class="v" id="kpiactive">—</div><div class="l">Publicaciones activas</div></div>
-          <div class="stat"><div class="v" id="kpibanner">—</div><div class="l">Destacados / Lightbox</div></div>
+          <div class="stat"><div class="v" id="kpibanner">—</div><div class="l">Destacados / Multimedia</div></div>
           <div class="stat"><div class="v" id="kpireads">—</div><div class="l">Lecturas en App</div></div>
           <div class="stat"><div class="v" id="kpipush">—</div><div class="l">Con aviso Push</div></div>
         </div>
 
         <div class="chips mb" id="anntabs">
           <span class="chip on" data-t="all">Todos</span>
-          <span class="chip" data-t="app_only">🔒 Exclusivo Socios (App)</span>
-          <span class="chip" data-t="web_only">🌐 Publicidad Sitio Web</span>
-          <span class="chip" data-t="both_ch">📢 Ambos (App + Web)</span>
+          <span class="chip" data-t="app_ch">📱 En App Socios</span>
+          <span class="chip" data-t="web_ch">🌐 En Sitio Web</span>
+          <span class="chip" data-t="wa_ch">💬 En WhatsApp</span>
+          <span class="chip" data-t="media">🎬 Con Video / PDF</span>
           <span class="chip" data-t="promos">🔥 Promociones</span>
           <span class="chip" data-t="archived">Archivados</span>
         </div>
 
-        <div id="annlist"><div class="empty">Cargando comunicados…</div></div>
+        <div id="annlist"><div class="empty">Cargando publicaciones…</div></div>
       `;
 
       view.querySelector('#btnnewann').onclick = () => openAnnModal(null, () => loadData(view));
+      const waBox = view.querySelector('#wa_config_box');
+      view.querySelector('#btnwaconfig').onclick = () => waBox.classList.toggle('hidden');
+
+      const waForm = view.querySelector('#waconfigform');
+      if (waForm) {
+        waForm.onsubmit = async e => {
+          e.preventDefault();
+          try {
+            const body = {
+              whatsapp_community_url: waForm.whatsapp_community_url.value.trim(),
+              whatsapp_members_group_url: waForm.whatsapp_members_group_url.value.trim()
+            };
+            await RD.api.put('/settings', body);
+            settingsCache = { ...settingsCache, ...body };
+            RD.pub = { ...(RD.pub || {}), ...body };
+            RD.toast('Enlaces de Comunidad y Grupo de WhatsApp guardados');
+            waBox.classList.add('hidden');
+          } catch (err) {
+            RD.toast(err.message, 'err');
+          }
+        };
+      }
 
       view.querySelectorAll('#anntabs .chip').forEach(c => {
         c.onclick = () => {
@@ -86,14 +217,24 @@
 
   function updateKpis(view) {
     const active = listCache.filter(a => a.status === 'activo');
-    const banners = active.filter(a => a.priority === 'importante' && ['mantenimiento', 'cierre'].includes(a.kind));
+    const rich = active.filter(a => a.web_spot === 'lightbox' || a.video_url || a.doc_url || a.image_url);
     const reads = listCache.reduce((sum, a) => sum + (Number(a.reads) || 0), 0);
     const withPush = listCache.filter(a => a.push).length;
 
     const sA = view.querySelector('#kpiactive'); if (sA) sA.textContent = active.length;
-    const sB = view.querySelector('#kpibanner'); if (sB) sB.textContent = banners.length;
+    const sB = view.querySelector('#kpibanner'); if (sB) sB.textContent = rich.length;
     const sR = view.querySelector('#kpireads'); if (sR) sR.textContent = reads;
     const sP = view.querySelector('#kpipush'); if (sP) sP.textContent = withPush;
+  }
+
+  function renderChannelBadges(chStr) {
+    const chs = parseChannels(chStr);
+    return chs.map(c => {
+      if (c === 'app') return '<span class="badge info">📱 App Socios</span>';
+      if (c === 'web') return '<span class="badge warn">🌐 Sitio Web</span>';
+      if (c === 'whatsapp') return '<span class="badge ok">💬 WhatsApp</span>';
+      return '';
+    }).join(' ');
   }
 
   function renderList(view) {
@@ -101,35 +242,32 @@
     if (!host) return;
 
     let items = listCache.slice();
-    if (currentTab === 'app_only') items = items.filter(a => a.channel === 'app' && !a.archived);
-    else if (currentTab === 'web_only') items = items.filter(a => a.channel === 'web' && !a.archived);
-    else if (currentTab === 'both_ch') items = items.filter(a => (!a.channel || a.channel === 'both') && !a.archived);
+    if (currentTab === 'app_ch') items = items.filter(a => hasCh(a.channel, 'app') && !a.archived);
+    else if (currentTab === 'web_ch') items = items.filter(a => hasCh(a.channel, 'web') && !a.archived);
+    else if (currentTab === 'wa_ch') items = items.filter(a => hasCh(a.channel, 'whatsapp') && !a.archived);
+    else if (currentTab === 'media') items = items.filter(a => (a.video_url || a.doc_url || a.image_url) && !a.archived);
     else if (currentTab === 'promos') items = items.filter(a => a.kind === 'promo' && !a.archived);
     else if (currentTab === 'archived') items = items.filter(a => a.archived);
     else items = items.filter(a => !a.archived);
 
     if (!items.length) {
-      host.innerHTML = `<div class="empty">No hay comunicados en esta sección.<br><span class="small muted">Haz clic en <b>＋ Nuevo Aviso / Anuncio</b> para redactar uno.</span></div>`;
+      host.innerHTML = `<div class="empty">No hay publicaciones en esta vista.<br><span class="small muted">Haz clic en <b>＋ Nueva Publicación Multimedia</b> para crear una.</span></div>`;
       return;
     }
 
-    const CH_BADGE = {
-      app: '<span class="badge info">🔒 Exclusivo Socios (App)</span>',
-      web: '<span class="badge warn">🌐 Exclusivo Público Web</span>',
-      both: '<span class="badge ok">📢 Socios App + Público Web</span>'
-    };
     const SPOT_BADGE = {
-      normal: '<span class="badge ghost">📌 Panel Izquierdo (Avisos)</span>',
-      carousel: '<span class="badge info">🎠 Carrusel Publicitario (Derecha)</span>',
-      lightbox: '<span class="badge bad">✨ Lightbox Destacado al Ingresar</span>'
+      normal: '<span class="badge ghost">📌 Web: Muro de Comunicados</span>',
+      carousel: '<span class="badge info">🎠 Web: Vitrina / Slider Multimedia</span>',
+      lightbox: '<span class="badge bad">✨ Web: Spotlight Destacado al Abrir</span>'
     };
 
     host.innerHTML = `
       <div class="list">
         ${items.map(a => {
           const kindLbl = (KINDS.find(k => k[0] === a.kind) || [])[1] || a.kind;
-          const audLbl = a.channel === 'web' ? 'Visitantes del Sitio Web Público' : ((AUDIENCES.find(k => k[0] === a.audience) || [])[1] || a.audience);
-          const ch = a.channel || 'both';
+          const includesApp = hasCh(a.channel, 'app');
+          const includesWeb = hasCh(a.channel, 'web');
+          const audLbl = !includesApp ? 'Público General / Comunidad' : ((AUDIENCES.find(k => k[0] === a.audience) || [])[1] || a.audience);
           const spot = a.web_spot || 'normal';
           return `
           <div class="card mb item" style="padding:1rem;align-items:flex-start">
@@ -137,38 +275,47 @@
             <div class="grow" style="min-width:0">
               <div class="row between wrap gap">
                 <div>
-                  <h3 style="margin:0 0 .2rem">${esc(a.title)}</h3>
+                  <h3 style="margin:0 0 .25rem">${esc(a.title)}</h3>
                   <div class="row gap wrap">
                     <span class="badge ${a.status === 'activo' ? 'ok' : a.status === 'programado' ? 'warn' : 'ghost'}">${esc(a.status.toUpperCase())}</span>
-                    ${CH_BADGE[ch] || CH_BADGE.both}
-                    ${ch !== 'app' ? (SPOT_BADGE[spot] || SPOT_BADGE.normal) : ''}
+                    ${renderChannelBadges(a.channel)}
+                    ${includesWeb ? (SPOT_BADGE[spot] || SPOT_BADGE.normal) : ''}
                     <span class="badge">${esc(kindLbl)}</span>
-                    ${a.pinned ? '<span class="badge ok">Fijado</span>' : ''}
-                    ${a.push && ch !== 'web' ? '<span class="badge info">Push ' + (a.push_sent ? 'enviado' : 'programado') + '</span>' : ''}
+                    ${a.video_url ? '<span class="badge info">🎬 Video</span>' : ''}
+                    ${a.doc_url ? '<span class="badge warn">📄 Documento PDF</span>' : ''}
+                    ${a.pinned ? '<span class="badge ok">📌 Fijado</span>' : ''}
                   </div>
                 </div>
-                <div class="row gap">
-                  ${!a.archived && ch !== 'web' ? `<button class="btn sm" data-send-push="${a.id}" title="Enviar o reenviar notificación push al celular de los socios">${RD.icon('smartphone', '', 14)} Enviar Push</button>` : ''}
+                <div class="row gap wrap">
+                  <button class="btn sm ok" data-share-wa="${a.id}" title="Copiar comunicado formateado y abrir Comunidad o Grupo de WhatsApp">💬 Difundir en WhatsApp</button>
+                  ${!a.archived && includesApp ? `<button class="btn sm" data-send-push="${a.id}" title="Enviar notificación push al celular de los socios">${RD.icon('smartphone', '', 14)} Push App</button>` : ''}
                   ${!a.archived ? `<button class="btn sm" data-edit="${a.id}">${RD.icon('edit', '', 14)} Editar</button>` : ''}
-                  <button class="btn sm ${a.archived ? 'ok' : 'danger'}" data-archive="${a.id}">${a.archived ? 'Desarchivar' : 'Archivar'}</button>
+                  <button class="btn sm ${a.archived ? 'ok' : 'danger'}" data-archive="${a.id}">${a.archived ? 'Reactivar' : 'Archivar'}</button>
                 </div>
               </div>
+
               ${a.image_url ? `
-                <div style="margin:8px 0;max-height:160px;overflow:hidden;border-radius:8px;border:1px solid var(--line);cursor:pointer;background:var(--bg3)" onclick="RD.zoomImage('${esc(a.image_url)}')">
-                  <img src="${esc(a.image_url)}" style="width:100%;max-height:160px;object-fit:cover;display:block" alt="${esc(a.title)}">
+                <div style="margin:8px 0;max-height:170px;overflow:hidden;border-radius:10px;border:1px solid var(--line);cursor:pointer;background:var(--bg3)" onclick="RD.zoomImage('${esc(a.image_url)}')">
+                  <img src="${esc(a.image_url)}" style="width:100%;max-height:170px;object-fit:cover;display:block" alt="${esc(a.title)}">
                 </div>
               ` : ''}
 
               ${a.body ? `<p style="margin:.6rem 0;line-height:1.45;color:var(--text)">${esc(a.body)}</p>` : ''}
 
+              <div class="row gap wrap mt">
+                ${a.video_url ? `<a href="${esc(a.video_url)}" target="_blank" rel="noopener" class="btn sm ghost">🎬 Ver Video Multimedia</a>` : ''}
+                ${a.doc_url ? `<a href="${esc(a.doc_url)}" target="_blank" rel="noopener" download class="btn sm ghost">${esc(a.doc_label || '📄 Descargar Documento / PDF')}</a>` : ''}
+                ${a.cta_url ? `<a href="${esc(a.cta_url)}" target="_blank" rel="noopener" class="btn sm ghost">🔗 ${esc(a.cta_label || 'Abrir Enlace')}</a>` : ''}
+              </div>
+
               <div class="row between wrap gap small muted mt2">
                 <div>
-                  Destinatarios: <b>${esc(audLbl)}</b> · Publicado por: <b>${esc(a.author || 'Administración')}</b>
+                  Audiencia: <b>${esc(audLbl)}</b> · Autor: <b>${esc(a.author || 'Administración')}</b>
                   ${a.starts_at ? ` · Desde: <b>${RD.fmtDate(a.starts_at)}</b>` : ''}
                   ${a.ends_at ? ` · Hasta: <b>${RD.fmtDate(a.ends_at)}</b>` : ''}
                 </div>
                 <div style="display:flex;align-items:center;gap:5px">
-                  ${RD.icon('eye', '', 14)} <b>${a.reads || 0}</b> socios leyeron este aviso en su app
+                  ${RD.icon('eye', '', 14)} <b>${a.reads || 0}</b> lecturas en App
                 </div>
               </div>
             </div>
@@ -176,6 +323,13 @@
         }).join('')}
       </div>
     `;
+
+    host.querySelectorAll('[data-share-wa]').forEach(b => {
+      b.onclick = () => {
+        const item = listCache.find(x => String(x.id) === b.dataset.shareWa);
+        if (item) shareToWhatsAppChannel(item);
+      };
+    });
 
     host.querySelectorAll('[data-send-push]').forEach(b => {
       b.onclick = async () => {
@@ -186,7 +340,7 @@
           try {
             const res = await RD.api.post(`/announcements/${id}/send-push`);
             const p = res.push || {};
-            RD.toast(`Notificaciones enviadas: ${p.sent || 0} entregadas (${p.skipped || 0} sin dispositivo suscrito)`, 'ok', 5000);
+            RD.toast(`Notificaciones enviadas: ${p.sent || 0} entregadas`, 'ok', 4000);
             loadData(view);
           } catch (err) {
             RD.toast(err.message, 'err');
@@ -210,14 +364,14 @@
         if (item.archived) {
           try {
             await RD.api.put(`/announcements/${id}`, { ...item, archived: 0 });
-            RD.toast('Comunicado reactivado');
+            RD.toast('Publicación reactivada');
             loadData(view);
           } catch (err) { RD.toast(err.message, 'err'); }
         } else {
-          if (await RD.confirm('Archivar comunicado', `¿Deseas archivar "${item.title}"? Dejará de mostrarse en la app de los socios.`, 'Archivar', true)) {
+          if (await RD.confirm('Archivar publicación', `¿Deseas archivar "${item.title}"?`, 'Archivar', true)) {
             try {
               await RD.api.del(`/announcements/${id}`);
-              RD.toast('Comunicado archivado');
+              RD.toast('Publicación archivada');
               loadData(view);
             } catch (err) { RD.toast(err.message, 'err'); }
           }
@@ -236,51 +390,135 @@
 
   function openAnnModal(item, onDone) {
     const isEdit = !!item;
-    const curChannel = item?.channel || 'both';
-    const curSpot = item?.web_spot || 'normal';
-    const m = RD.openModal(isEdit ? 'Editar Aviso o Anuncio Publicitario' : '＋ Nuevo Aviso para Socios / Publicidad Web', `
+    const chList = parseChannels(item?.channel || 'app,web');
+    const curSpot = item?.web_spot || 'carousel';
+    const curWaTarget = item?.whatsapp_target || 'community';
+
+    const m = RD.openModal(isEdit ? 'Editar Publicación Multimedia' : '＋ Nueva Publicación Multimedia (App / Web / WhatsApp)', `
       <form id="annform">
-        <div class="card flat mb" style="background:var(--bg2);border:1px solid var(--line);padding:12px">
-          <div class="grid g2 keep gap">
-            <label class="field">
-              <span>1. Canal de Destino (Segmentación Inteligente) *</span>
-              <select name="channel" id="selchannel" required>
-                <option value="both" ${curChannel === 'both' ? 'selected' : ''}>📢 Ambos (App de Socios + Sitio Web Público)</option>
-                <option value="app" ${curChannel === 'app' ? 'selected' : ''}>🔒 Exclusivo Socios (Solo en App Móvil · Sin publicidad invasiva)</option>
-                <option value="web" ${curChannel === 'web' ? 'selected' : ''}>🌐 Exclusivo Público General (Solo Publicidad en Sitio Web)</option>
-              </select>
+        <!-- 1. MATRIZ DE CANALES COMBINABLES -->
+        <div class="card flat mb" style="background:var(--bg2);border:1px solid var(--line);padding:14px">
+          <div style="font-weight:800;font-size:.88rem;margin-bottom:8px;color:var(--gold)">
+            1. Selecciona los Canales de Difusión (Puedes marcar 1, 2 o los 3 canales):
+          </div>
+          <div class="grid g3 keep gap mb">
+            <label class="card flat" style="cursor:pointer;padding:10px;border:1px solid var(--line);display:flex;align-items:flex-start;gap:8px">
+              <input type="checkbox" id="ch_app" ${chList.includes('app') ? 'checked' : ''} style="margin-top:3px">
+              <div>
+                <div style="font-weight:700;font-size:.85rem">📱 App de Socios</div>
+                <div class="tiny muted">Bandeja interna preferencial para miembros inscritos</div>
+              </div>
             </label>
-            <label class="field" id="webspot_field">
-              <span>2. Ubicación Elegante en el Sitio Web Público *</span>
-              <select name="web_spot" id="selwebspot">
-                <option value="normal" ${curSpot === 'normal' ? 'selected' : ''}>📌 Lado Izquierdo — Muro de Avisos y Noticias</option>
-                <option value="carousel" ${curSpot === 'carousel' ? 'selected' : ''}>🎠 Lado Derecho — Carrusel / Slider Publicitario</option>
-                <option value="lightbox" ${curSpot === 'lightbox' ? 'selected' : ''}>✨ Destacado Principal al Ingresar (Lightbox con ✕ y Tiempo)</option>
-              </select>
+            <label class="card flat" style="cursor:pointer;padding:10px;border:1px solid var(--line);display:flex;align-items:flex-start;gap:8px">
+              <input type="checkbox" id="ch_web" ${chList.includes('web') ? 'checked' : ''} style="margin-top:3px">
+              <div>
+                <div style="font-weight:700;font-size:.85rem">🌐 Sitio Web Público</div>
+                <div class="tiny muted">Vitrina multimedia, carrusel de ofertas o Spotlight</div>
+              </div>
+            </label>
+            <label class="card flat" style="cursor:pointer;padding:10px;border:1px solid var(--line);display:flex;align-items:flex-start;gap:8px">
+              <input type="checkbox" id="ch_wa" ${chList.includes('whatsapp') ? 'checked' : ''} style="margin-top:3px">
+              <div>
+                <div style="font-weight:700;font-size:.85rem">💬 Comunidad WhatsApp</div>
+                <div class="tiny muted">Publicación formateada para Grupo/Comunidad sin bloqueo</div>
+              </div>
             </label>
           </div>
-          <div class="tiny muted mt2">
-            💡 <b>Regla de Oro:</b> A los socios activos en su App solo se les envían avisos importantes del club (mantenimiento, feriados, recordatorios), nunca spam publicitario. La publicidad comercial se exhibe de forma elegante en el Sitio Web Público.
+
+          <div class="grid g2 keep gap">
+            <label class="field" id="webspot_field">
+              <span>Ubicación Visual en el Sitio Web Público</span>
+              <select name="web_spot" id="selwebspot">
+                <option value="carousel" ${curSpot === 'carousel' ? 'selected' : ''}>🎠 Vitrina Multimedia / Slider Interactivo (Derecha)</option>
+                <option value="normal" ${curSpot === 'normal' ? 'selected' : ''}>📌 Muro de Comunicados y Documentos (Izquierda)</option>
+                <option value="lightbox" ${curSpot === 'lightbox' ? 'selected' : ''}>✨ Spotlight de Portada al Abrir (Ventana Cristal con ✕ y Tiempo)</option>
+              </select>
+            </label>
+            <label class="field" id="watarget_field">
+              <span>Destino en WhatsApp al Publicar</span>
+              <select name="whatsapp_target" id="selwatarget">
+                <option value="community" ${curWaTarget === 'community' ? 'selected' : ''}>🌐 Comunidad / Canal General del Gimnasio</option>
+                <option value="members_group" ${curWaTarget === 'members_group' ? 'selected' : ''}>🔒 Grupo Oficial Exclusivo de Socios</option>
+                <option value="both_wa" ${curWaTarget === 'both_wa' ? 'selected' : ''}>📣 Ambos (Comunidad General + Grupo de Socios)</option>
+              </select>
+            </label>
           </div>
         </div>
 
-        <label class="field">
-          <span>Categoría del Comunicado / Anuncio *</span>
-          <select name="kind" required>
-            ${KINDS.map(k => `<option value="${k[0]}" ${item?.kind === k[0] ? 'selected' : ''}>${k[1]} — ${k[2]}</option>`).join('')}
-          </select>
-        </label>
+        <!-- 2. CONTENIDO PRINCIPAL -->
+        <div class="grid g2 keep gap">
+          <label class="field">
+            <span>Categoría de la Publicación *</span>
+            <select name="kind" required>
+              ${KINDS.map(k => `<option value="${k[0]}" ${item?.kind === k[0] ? 'selected' : ''}>${k[1]} — ${k[2]}</option>`).join('')}
+            </select>
+          </label>
+          <label class="field">
+            <span>Título * (hasta 80 caracteres)</span>
+            <input name="title" required maxlength="80" value="${esc(item?.title || '')}" placeholder="Ej. Nuevo Horario en PDF / Promo Dúo / Guía de Entrenamiento">
+          </label>
+        </div>
 
         <label class="field">
-          <span>Título del Aviso o Campaña * (hasta 80 caracteres)</span>
-          <input name="title" required maxlength="80" value="${esc(item?.title || '')}" placeholder="Ej. Hoy atención en horario especial / Promo Verano 2x1">
+          <span>Descripción / Contenido del Comunicado</span>
+          <textarea name="body" rows="3" placeholder="Redacta los detalles de la campaña, comunicado o guía...">${esc(item?.body || '')}</textarea>
         </label>
 
-        <label class="field">
-          <span>Contenido / Detalle del Comunicado</span>
-          <textarea name="body" rows="3" placeholder="Escribe el mensaje claro y detallado...">${esc(item?.body || '')}</textarea>
-        </label>
+        <!-- 3. MULTIMEDIA RICA: IMAGEN, VIDEO, DOCUMENTO PDF Y ENLACE -->
+        <div class="card flat mt mb" style="background:var(--bg2);border:1px solid var(--line);padding:14px">
+          <div style="font-weight:800;font-size:.88rem;margin-bottom:8px;color:var(--gold)">
+            2. Recursos Multimedia y Documentación Adjunta (Imagen, Video, PDF y Enlaces):
+          </div>
 
+          <label class="field mb">
+            <span>🖼️ Imagen o Afiche en Alta Definición (Opcional)</span>
+            <div class="row gap wrap">
+              <input name="image_url" id="ann_image_url" class="grow" placeholder="https://... o sube una imagen desde tu equipo" value="${esc(item?.image_url || '')}">
+              <label class="btn sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+                ${RD.icon('camera', '', 14)} Subir Imagen
+                <input type="file" id="ann_file_inp" accept="image/*" class="hidden">
+              </label>
+              <button type="button" class="btn sm ghost ${item?.image_url ? '' : 'hidden'}" id="btn_clear_img">${RD.icon('x', '', 14)} Quitar</button>
+            </div>
+          </label>
+          <div id="ann_img_preview" class="${item?.image_url ? '' : 'hidden'}" style="text-align:center;margin-bottom:10px">
+            <img id="ann_preview_el" src="${item?.image_url ? esc(item.image_url) : ''}" style="max-height:140px;max-width:100%;border-radius:8px;object-fit:cover;border:1px solid var(--line)" alt="">
+          </div>
+
+          <div class="grid g2 keep gap">
+            <label class="field">
+              <span>🎬 Enlace de Video (MP4, YouTube, Reel o TikTok)</span>
+              <input name="video_url" placeholder="https://www.youtube.com/watch?v=... o archivo .mp4" value="${esc(item?.video_url || '')}">
+            </label>
+            <label class="field">
+              <span>📄 Documento / PDF Descargable (Horario, Guía, Reglamento)</span>
+              <div class="row gap">
+                <input name="doc_url" id="ann_doc_url" class="grow" placeholder="https://... o sube un PDF" value="${esc(item?.doc_url || '')}">
+                <label class="btn sm" style="cursor:pointer;white-space:nowrap">
+                  📎 Subir PDF
+                  <input type="file" id="ann_doc_inp" accept="application/pdf,image/*" class="hidden">
+                </label>
+              </div>
+            </label>
+          </div>
+
+          <div class="grid g3 keep gap mt">
+            <label class="field">
+              <span>Texto del Botón de Documento</span>
+              <input name="doc_label" placeholder="Ej. 📄 Descargar Horario PDF" value="${esc(item?.doc_label || '')}">
+            </label>
+            <label class="field">
+              <span>Texto del Botón de Enlace / Acción</span>
+              <input name="cta_label" placeholder="Ej. Inscribirme por WhatsApp" value="${esc(item?.cta_label || '')}">
+            </label>
+            <label class="field">
+              <span>URL del Enlace de Acción</span>
+              <input name="cta_url" placeholder="https://wa.me/... o enlace externo" value="${esc(item?.cta_url || '')}">
+            </label>
+          </div>
+        </div>
+
+        <!-- 4. SEGMENTACIÓN INTERNA EN APP Y FECHAS -->
         <div class="grid g2 keep gap" id="app_targeting_box">
           <label class="field">
             <span>Prioridad en App de Socios</span>
@@ -298,7 +536,7 @@
         </div>
 
         <div id="singlememberbox" class="field ${item?.audience === 'member' ? '' : 'hidden'}">
-          <span>ID o Código del Socio destinatario</span>
+          <span>ID del Socio destinatario</span>
           <input name="member_id" type="number" placeholder="Ej. 1" value="${item?.member_id || ''}">
         </div>
 
@@ -306,77 +544,54 @@
           <label class="field">
             <span>Mostrar desde (opcional)</span>
             <input name="starts_at" type="datetime-local" value="${toLocalInput(item?.starts_at)}">
-            <small class="tiny muted">Vacío = publicar de inmediato</small>
           </label>
           <label class="field">
             <span>Mostrar hasta (opcional)</span>
             <input name="ends_at" type="datetime-local" value="${toLocalInput(item?.ends_at)}">
-            <small class="tiny muted">Vacío = permanente hasta archivar</small>
           </label>
-        </div>
-
-        <div class="grid g2 keep gap">
-          <label class="field">
-            <span>Texto del botón de acción (opcional)</span>
-            <input name="cta_label" placeholder="Ej. Consultar por WhatsApp" value="${esc(item?.cta_label || '')}">
-          </label>
-          <label class="field">
-            <span>Enlace del botón (opcional)</span>
-            <input name="cta_url" placeholder="Ej. https://wa.me/... o /?tab=pass" value="${esc(item?.cta_url || '')}">
-          </label>
-        </div>
-
-        <div class="card flat mt mb" style="background:var(--bg2);border:1px solid var(--line);padding:12px">
-          <label class="field mb">
-            <span>Imagen / Banner Multimedia (Opcional)</span>
-            <div class="row gap wrap">
-              <input name="image_url" id="ann_image_url" class="grow" placeholder="https://... o sube una imagen de tu dispositivo" value="${esc(item?.image_url || '')}">
-              <label class="btn sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-                ${RD.icon('camera', '', 14)} Subir Imagen
-                <input type="file" id="ann_file_inp" accept="image/*" class="hidden">
-              </label>
-              <button type="button" class="btn sm ghost ${item?.image_url ? '' : 'hidden'}" id="btn_clear_img">${RD.icon('x', '', 14)} Quitar</button>
-            </div>
-            <small class="tiny muted">Ideal para banners de promociones, eventos o afiches informativos. Se muestra en la app del socio y en notificaciones push.</small>
-          </label>
-          <div id="ann_img_preview" class="${item?.image_url ? '' : 'hidden'}" style="text-align:center;margin-top:8px">
-            <img id="ann_preview_el" src="${item?.image_url ? esc(item.image_url) : ''}" style="max-height:160px;max-width:100%;border-radius:8px;object-fit:cover;border:1px solid var(--line)" alt="">
-          </div>
         </div>
 
         <div class="card flat mt mb" style="background:var(--bg3)">
           <label class="check">
             <input type="checkbox" name="pinned" ${item?.pinned ? 'checked' : ''}>
-            <span><b>Fijar al inicio de la bandeja</b> del socio</span>
+            <span><b>Destacar / Fijar</b> al inicio de la vitrina y bandeja</span>
           </label>
-          <label class="check mt2">
+          <label class="check mt2" id="push_check_wrap">
             <input type="checkbox" name="push" ${item ? (item.push ? 'checked' : '') : 'checked'}>
-            <span><b>Enviar notificación Push al celular</b> de los socios suscritos (respeta horario nocturno y preferencias)</span>
+            <span><b>Enviar notificación Push al celular</b> de los socios en la App</span>
           </label>
         </div>
 
         <div class="row end gap">
           <button type="button" class="btn ghost" data-close>Cancelar</button>
-          <button type="submit" class="btn primary">${isEdit ? 'Guardar Cambios' : 'Publicar Comunicado'}</button>
+          <button type="submit" class="btn primary">${isEdit ? 'Guardar Cambios' : 'Publicar Ahora'}</button>
         </div>
       </form>
     `, { wide: true });
 
     const f = m.el.querySelector('#annform');
+    const chApp = f.querySelector('#ch_app');
+    const chWeb = f.querySelector('#ch_web');
+    const chWa = f.querySelector('#ch_wa');
+    const webSpotField = f.querySelector('#webspot_field');
+    const waTargetField = f.querySelector('#watarget_field');
+    const appTargetBox = f.querySelector('#app_targeting_box');
+    const pushCheckWrap = f.querySelector('#push_check_wrap');
     const audSel = f.querySelector('#selaudience');
     const smBox = f.querySelector('#singlememberbox');
-    const chSel = f.querySelector('#selchannel');
-    const webSpotField = f.querySelector('#webspot_field');
-    const appTargetBox = f.querySelector('#app_targeting_box');
 
     const syncChannelUI = () => {
-      const ch = chSel.value;
-      webSpotField.classList.toggle('hidden', ch === 'app');
-      appTargetBox.classList.toggle('hidden', ch === 'web');
-      if (ch === 'web') smBox.classList.add('hidden');
+      webSpotField.classList.toggle('hidden', !chWeb.checked);
+      waTargetField.classList.toggle('hidden', !chWa.checked);
+      appTargetBox.classList.toggle('hidden', !chApp.checked);
+      pushCheckWrap.classList.toggle('hidden', !chApp.checked);
+      if (!chApp.checked) smBox.classList.add('hidden');
       else smBox.classList.toggle('hidden', audSel.value !== 'member');
     };
-    chSel.onchange = syncChannelUI;
+    chApp.onchange = syncChannelUI;
+    chWeb.onchange = syncChannelUI;
+    chWa.onchange = syncChannelUI;
+    audSel.onchange = syncChannelUI;
     syncChannelUI();
 
     let currentImage = item?.image_url || '';
@@ -400,7 +615,6 @@
     };
 
     imgUrlInp.oninput = () => updatePreview(imgUrlInp.value.trim());
-
     fileInp.onchange = async e => {
       const file = e.target.files[0];
       if (!file) return;
@@ -408,28 +622,47 @@
         const b64 = await RD.resizeImage(file, 1200, 0.85);
         imgUrlInp.value = b64;
         updatePreview(b64);
-        RD.toast('Imagen cargada con éxito');
+        RD.toast('Imagen cargada');
       } catch (err) {
         RD.toast('Error cargando imagen: ' + err.message, 'err');
       }
     };
+    clearBtn.onclick = () => { imgUrlInp.value = ''; fileInp.value = ''; updatePreview(''); };
 
-    clearBtn.onclick = () => {
-      imgUrlInp.value = '';
-      fileInp.value = '';
-      updatePreview('');
-    };
-
-    audSel.onchange = () => {
-      smBox.classList.toggle('hidden', audSel.value !== 'member');
+    const docUrlInp = f.querySelector('#ann_doc_url');
+    const docFileInp = f.querySelector('#ann_doc_inp');
+    docFileInp.onchange = e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 4.5 * 1024 * 1024) {
+        RD.toast('El archivo PDF no debe superar 4.5 MB', 'err');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        docUrlInp.value = reader.result;
+        if (!f.doc_label.value.trim()) f.doc_label.value = '📄 ' + file.name;
+        RD.toast('Documento adjuntado correctamente');
+      };
+      reader.readAsDataURL(file);
     };
 
     f.onsubmit = async e => {
       e.preventDefault();
+      const selectedChannels = [];
+      if (chApp.checked) selectedChannels.push('app');
+      if (chWeb.checked) selectedChannels.push('web');
+      if (chWa.checked) selectedChannels.push('whatsapp');
+      if (!selectedChannels.length) {
+        RD.toast('Selecciona al menos un canal de destino (App, Web o WhatsApp)', 'err');
+        return;
+      }
+
       const payload = {
         kind: f.kind.value,
-        channel: f.channel.value,
+        channel: selectedChannels.join(','),
         web_spot: f.web_spot.value,
+        whatsapp_target: chWa.checked ? f.whatsapp_target.value : 'none',
         title: f.title.value.trim(),
         body: f.body.value.trim(),
         priority: f.priority.value,
@@ -440,8 +673,11 @@
         cta_label: f.cta_label.value.trim(),
         cta_url: f.cta_url.value.trim(),
         image_url: currentImage || null,
+        video_url: f.video_url.value.trim() || null,
+        doc_url: docUrlInp.value.trim() || null,
+        doc_label: f.doc_label.value.trim() || null,
         pinned: f.pinned.checked ? 1 : 0,
-        push: (f.channel.value !== 'web' && f.push.checked) ? 1 : 0
+        push: (chApp.checked && f.push.checked) ? 1 : 0
       };
 
       const btn = f.querySelector('button[type=submit]');
@@ -449,13 +685,16 @@
         try {
           if (isEdit) {
             await RD.api.put(`/announcements/${item.id}`, payload);
-            RD.toast('Comunicado actualizado con éxito');
+            RD.toast('Publicación actualizada con éxito');
           } else {
-            const res = await RD.api.post('/announcements', payload);
-            RD.toast('Comunicado publicado' + (payload.push ? ' (notificaciones enviadas)' : ''));
+            await RD.api.post('/announcements', payload);
+            RD.toast('Publicación activa en los canales seleccionados');
           }
           m.close();
           onDone && onDone();
+          if (chWa.checked) {
+            setTimeout(() => shareToWhatsAppChannel(payload), 250);
+          }
         } catch (err) {
           RD.toast(err.message, 'err');
         }
