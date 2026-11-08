@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contrato Oficial y Configurador de Elección — RD FITNESS CLUB</title>
+  <style>
+    :root {
+      --bg: #0b0b0d;
+      --card: #141418;
+      --card-2: #1c1c22;
+      --border: rgba(255, 255, 255, 0.12);
+      --gold: #f5b400;
+      --gold-soft: rgba(245, 180, 0, 0.14);
+      --emerald: #10b981;
+      --emerald-soft: rgba(16, 185, 129, 0.14);
+      --cyan: #06b6d4;
+      --cyan-soft: rgba(6, 182, 212, 0.14);
+      --amber: #f59e0b;
+      --amber-soft: rgba(245, 158, 11, 0.14);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 15% 0%, #1a1505 0%, var(--bg) 60%);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 70px;
+    }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(9, 14, 23, 0.96);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 15px;
+    }
+    .brand-badge {
+      background: linear-gradient(135deg, var(--gold), #d97706);
+      color: #000;
+      font-weight: 900;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    .btn {
+      background: var(--card-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+    }
+    .btn:hover { border-color: var(--gold); transform: translateY(-1px); }
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold), #d97706);
+      color: #000;
+      border: none;
+    }
+    .btn-emerald {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      border: none;
+    }
+    .btn-cyan {
+      background: linear-gradient(135deg, #06b6d4, #0284c7);
+      color: #fff;
+      border: none;
+    }
+    .mode-switch-bar {
+      background: rgba(20, 20, 26, 0.95);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .mode-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .mode-tab {
+      background: var(--card-2);
+      color: var(--muted);
+      border: 1.5px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .mode-tab.active {
+      background: var(--gold-soft);
+      color: #fff;
+      border-color: var(--gold);
+      box-shadow: 0 0 18px rgba(245, 180, 0, 0.25);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 22px 20px;
+    }
+
+    /* PANEL CONFIGURADOR INTERACTIVO DE ELECCIÓN DEL CLIENTE (FUERA DE LA DOCUMENTACIÓN IMPRESA) */
+    .configurator-panel {
+      background: linear-gradient(145deg, #131824, #0d111a);
+      border: 2px solid var(--cyan);
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 26px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+    }
+    .cfg-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .cfg-step-title {
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--cyan);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cfg-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .cfg-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .cfg-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .cfg-field label {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .cfg-field input, .cfg-field select {
+      width: 100%;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 11px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .cfg-field input:focus, .cfg-field select:focus {
+      outline: none;
+      border-color: var(--cyan);
+    }
+    .cfg-card-option {
+      background: var(--card-2);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: 0.18s;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .cfg-card-option:hover { border-color: var(--cyan); }
+    .cfg-card-option.selected {
+      border-color: var(--emerald);
+      background: rgba(16, 185, 129, 0.08);
+    }
+    .cfg-card-option input[type="radio"] {
+      margin-top: 3px;
+      transform: scale(1.15);
+      accent-color: var(--emerald);
+    }
+    .cfg-hw-row {
+      display: grid;
+      grid-template-columns: 1.5fr 1.6fr 110px;
+      gap: 10px;
+      align-items: center;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 9px 12px;
+      margin-bottom: 8px;
+    }
+    @media (max-width: 760px) {
+      .cfg-hw-row { grid-template-columns: 1fr; }
+    }
+    .cfg-summary-bar {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1.5px solid var(--emerald);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(22,34,59,0.95), rgba(17,26,46,0.95));
+      border: 1px solid rgba(245, 180, 0, 0.4);
+      border-radius: 16px;
+      padding: 26px;
+      margin-bottom: 22px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+    }
+    .hero-tag {
+      display: inline-block;
+      background: var(--gold-soft);
+      color: var(--gold);
+      border: 1px solid rgba(245,180,0,0.4);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+    }
+    .hero h1 {
+      font-size: clamp(21px, 2.8vw, 31px);
+      line-height: 1.22;
+      margin-bottom: 10px;
+      font-weight: 900;
+    }
+    .hero h1 span { color: var(--gold); }
+    .hero p {
+      font-size: 14px;
+      color: #cbd5e1;
+      max-width: 980px;
+      margin-bottom: 16px;
+    }
+    .section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: 17.5px;
+      font-weight: 900;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+    }
+    .section-sub {
+      color: var(--muted);
+      font-size: 12.8px;
+      margin-bottom: 16px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 14px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+    }
+    .box {
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 15px;
+    }
+    .box h3 {
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 7px;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .feature-list {
+      list-style: none;
+      display: grid;
+      gap: 5px;
+      font-size: 12.3px;
+      color: #cbd5e1;
+    }
+    .feature-list li {
+      display: block;
+      position: relative;
+      padding-left: 17px;
+      line-height: 1.44;
+    }
+    .feature-list li::before {
+      content: "✔";
+      color: var(--emerald);
+      font-weight: 900;
+      font-size: 11px;
+      position: absolute;
+      left: 0;
+      top: 1px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 12.3px;
+    }
+    th, td {
+      padding: 9px 11px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: rgba(255,255,255,0.04);
+      color: var(--gold);
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 10.8px;
+      letter-spacing: 0.5px;
+    }
+    .badge-ok {
+      background: var(--emerald-soft);
+      color: var(--emerald);
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-weight: 800;
+      font-size: 11px;
+    }
+    .badge-info {
+      background: var(--cyan-soft);
+      color: var(--cyan);
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-weight: 800;
+      font-size: 11px;
+    }
+    .badge-gold {
+      background: var(--gold-soft);
+      color: var(--gold);
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-weight: 800;
+      font-size: 11px;
+    }
+    .badge-amber {
+      background: var(--amber-soft);
+      color: var(--amber);
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-weight: 800;
+      font-size: 11px;
+    }
+    .diagram-card {
+      background: #070b13;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+    .price-box {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      background: var(--card-2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .price-box.featured {
+      border-color: var(--gold);
+      background: linear-gradient(180deg, rgba(245,180,0,0.07), rgba(22,34,59,0.95));
+    }
+    .hidden-doc { display: none !important; }
+
+    @media print {
+      @page { size: A4 portrait; margin: 6mm 8mm; }
+      .topbar, .mode-switch-bar, .configurator-panel, .no-print { display: none !important; }
+      html, body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 8pt !important;
+        line-height: 1.22 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+      .grid-2 { display: flex !important; flex-wrap: wrap !important; gap: 5px !important; }
+      .grid-2 > * { flex: 0 0 calc(50% - 2.5px) !important; max-width: calc(50% - 2.5px) !important; box-sizing: border-box !important; margin-bottom: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+      .grid-3 { display: flex !important; flex-wrap: wrap !important; gap: 5px !important; }
+      .grid-3 > * { flex: 0 0 calc(33.333% - 3.5px) !important; max-width: calc(33.333% - 3.5px) !important; box-sizing: border-box !important; margin-bottom: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+      .hero, .section {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        margin-bottom: 5px !important;
+        padding: 6px 9px !important;
+        border-radius: 5px !important;
+      }
+      #docDossier > .section:nth-of-type(2) {
+        break-inside: auto !important;
+        page-break-inside: auto !important;
+      }
+      .box, .diagram-card, .price-box {
+        background: #f8fafc !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        margin-bottom: 0 !important;
+        padding: 4px 7px !important;
+        border-radius: 4px !important;
+      }
+      .feature-list { gap: 1.5px !important; font-size: 7.6pt !important; }
+      .feature-list li { line-height: 1.2 !important; padding-left: 12px !important; }
+      .section-sub { margin-bottom: 4px !important; font-size: 7.7pt !important; }
+      .price-box.featured {
+        background: #fef2f2 !important;
+        border: 1.5px solid #dc2626 !important;
+      }
+      p, .section-sub, .muted, li, td, span, .feature-list li, div { color: #1e293b !important; }
+      [style*="color:#fff"], [style*="color: #fff"], [style*="color:#cbd5e1"] { color: #0f172a !important; }
+      h1, h2, h3, .section-title, th { color: #0f172a !important; }
+      .hero h1 { font-size: 13pt !important; margin-bottom: 3px !important; line-height: 1.18 !important; }
+      .hero p { font-size: 8.2pt !important; margin-bottom: 4px !important; line-height: 1.22 !important; }
+      .hero-tag { font-size: 7.2pt !important; padding: 1.5px 7px !important; margin-bottom: 3px !important; background: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fca5a5 !important; }
+      .hero h1 span, .box h3, .section-title { color: #b91c1c !important; font-size: 9.5pt !important; margin-bottom: 2px !important; }
+      table { width: 100% !important; border-collapse: collapse !important; break-inside: avoid !important; margin-top: 4px !important; }
+      thead { display: table-header-group !important; }
+      tr { break-inside: avoid !important; page-break-inside: avoid !important; }
+      th { background: #f1f5f9 !important; color: #0f172a !important; font-weight: 800 !important; border: 1px solid #cbd5e1 !important; padding: 3px 6px !important; font-size: 7.6pt !important; }
+      td { border: 1px solid #cbd5e1 !important; color: #0f172a !important; padding: 3px 6px !important; font-size: 7.8pt !important; line-height: 1.2 !important; }
+      .badge-ok { background: #dcfce7 !important; color: #166534 !important; border: 1px solid #86efac !important; padding: 1.5px 5px !important; font-size: 7.2pt !important; }
+      .badge-info { background: #e0f2fe !important; color: #0369a1 !important; border: 1px solid #7dd3fc !important; padding: 1.5px 5px !important; font-size: 7.2pt !important; }
+      .badge-gold { background: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fca5a5 !important; padding: 1.5px 5px !important; font-size: 7.2pt !important; }
+      .badge-amber { background: #fef3c7 !important; color: #92400e !important; border: 1px solid #fcd34d !important; padding: 1.5px 5px !important; font-size: 7.2pt !important; }
+    }
+
+    /* MODO CLARO PROFESIONAL */
+    [data-theme="light"] {
+      --bg: #F8FAFC;
+      --card: #FFFFFF;
+      --card-2: #F1F5F9;
+      --border: #CBD5E1;
+      --gold: #DC2626;
+      --gold-soft: #FEE2E2;
+      --emerald: #15803D;
+      --emerald-soft: #DCFCE7;
+      --cyan: #0369A1;
+      --cyan-soft: #E0F2FE;
+      --amber: #B45309;
+      --amber-soft: #FEF3C7;
+      --text: #0F172A;
+      --muted: #475569;
+    }
+    [data-theme="light"] body { background: #F8FAFC; color: #0F172A; }
+    [data-theme="light"] .topbar, [data-theme="light"] .mode-switch-bar { background: rgba(255, 255, 255, 0.96); border-bottom-color: #CBD5E1; }
+    [data-theme="light"] .configurator-panel { background: #FFFFFF; border-color: #0284C7; box-shadow: 0 8px 25px rgba(15, 23, 42, 0.08); }
+    [data-theme="light"] .cfg-field input, [data-theme="light"] .cfg-field select { background: #FFFFFF; color: #0F172A; border-color: #94A3B8; }
+    [data-theme="light"] .mode-tab.active { color: #991B1B; }
+    [data-theme="light"] .hero { background: linear-gradient(135deg, #FFFFFF, #FEF2F2); border-color: #FECACA; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05); }
+    [data-theme="light"] .hero p, [data-theme="light"] .feature-list li { color: #1E293B; }
+    [data-theme="light"] .section { background: #FFFFFF; border-color: #CBD5E1; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04); }
+    [data-theme="light"] .box, [data-theme="light"] .price-box, [data-theme="light"] .diagram-card { background: #F8FAFC; border-color: #CBD5E1; }
+    [data-theme="light"] .price-box.featured { background: linear-gradient(180deg, #FEF2F2, #FFFFFF); border-color: #DC2626; }
+    [data-theme="light"] th { background: #F1F5F9; color: #0F172A; border-bottom-color: #CBD5E1; }
+    [data-theme="light"] td { color: #1E293B; border-bottom-color: #E2E8F0; }
+    [data-theme="light"] [style*="color:#fff"], [data-theme="light"] [style*="color: #fff"], [data-theme="light"] [style*="color:#cbd5e1"] { color: #0F172A !important; }
+  </style>
+  <script>
+    (function() {
+      var t = localStorage.getItem('rd_theme') || 'dark';
+      if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+      window.togglePropuestaTheme = function() {
+        var cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        var next = cur === 'light' ? 'dark' : 'light';
+        if (next === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        else document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('rd_theme', next);
+        var b = document.getElementById('btnThemeProp');
+        if (b) b.textContent = next === 'light' ? '🌙 Oscuro' : '☀️ Claro';
+      };
+      window.addEventListener('DOMContentLoaded', function() {
+        var b = document.getElementById('btnThemeProp');
+        if (b) b.textContent = document.documentElement.getAttribute('data-theme') === 'light' ? '🌙 Oscuro' : '☀️ Claro';
+      });
+    })();
+  </script>
+</head>
+<body>
+  <!-- BARRA SUPERIOR DE ACCIONES RÁPIDAS -->
+  <header class="topbar no-print">
+    <div class="brand-pill">
+      <img src="logo-rd-fitness.png?v=6.6" alt="RD FITNESS CLUB" style="height:42px;width:auto;object-fit:contain;background:transparent !important;filter:drop-shadow(0 2px 6px rgba(220,38,38,0.35))" />
+      <span class="brand-badge">RD FITNESS 360°</span>
+      <span>Propuesta Técnica y Generador de Contrato — <strong class="gym-name" style="color:var(--gold)">RD FITNESS CLUB</strong></span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <a class="btn" href="anatomy3d/index.html" target="_blank" title="Ver Arquitectura 3D Interactiva">🧬 Máquina 3D</a>
+      <a class="btn" href="display.html" target="_blank" title="Ver Monitor de Recepción HDMI">🖥️ Monitor HDMI</a>
+      <a class="btn btn-gold" href="INFORME_PROPUESTA_COMERCIAL_GIMNASIOS.pdf" download="INFORME_PROPUESTA_COMERCIAL_GIMNASIOS.pdf">📥 PDF Dossier Informativo</a>
+      <a class="btn btn-emerald" href="CONTRATO_SERVICIOS_SOFTWARE_GIMNASIOS.pdf" download="CONTRATO_SERVICIOS_SOFTWARE_GIMNASIOS.pdf">⚖️ PDF Contrato Oficial</a>
+      <button class="btn" id="btnThemeProp" onclick="togglePropuestaTheme()">☀️ Claro</button>
+    </div>
+  </header>
+
+  <!-- BARRA CONMUTADORA ENTRE DOSSIER INFORMATIVO Y CONTRATO LEGAL PERSONALIZADO -->
+  <div class="mode-switch-bar no-print">
+    <div class="mode-tabs">
+      <button type="button" class="mode-tab active" id="tabBtnDossier" onclick="switchDocMode('dossier')">
+        📘 1. Dossier Informativo (Propuesta Técnica y Comercial)
+      </button>
+      <button type="button" class="mode-tab" id="tabBtnContrato" onclick="switchDocMode('contrato')">
+        ⚖️ 2. Contrato Final Personalizado (Elección del Cliente, Pagos y Firmas)
+      </button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button type="button" class="btn btn-cyan" id="btnToggleCfg" onclick="toggleConfiguratorPanel()">
+        ⚡ Configurar Elección del Cliente y Contrato
+      </button>
+      <button type="button" class="btn btn-gold" onclick="printCurrentMode('dossier')">
+        🖨️ Imprimir / PDF Solo Dossier
+      </button>
+      <button type="button" class="btn btn-emerald" onclick="printCurrentMode('contrato')">
+        🖨️ Imprimir / PDF Solo Contrato Final
+      </button>
+    </div>
+  </div>
+
+  <main class="container">
+    <!-- ======================================================================================== -->
+    <!-- SECCIÓN SUPERIOR FUERA DE LA DOCUMENTACIÓN: CONFIGURADOR INTERACTIVO DE CONTRATO FINAL   -->
+    <!-- ======================================================================================== -->
+    <section class="configurator-panel no-print" id="cfgPanel">
+      <div class="cfg-header">
+        <div>
+          <div style="font-size:11px;font-weight:900;color:var(--cyan);text-transform:uppercase;letter-spacing:0.8px">
+            ⚡ PANEL INTERACTIVO DE TOMA DE DECISIONES (NO SE IMPRIME EN EL PDF)
+          </div>
+          <h2 style="font-size:19px;font-weight:900;color:#fff;margin-top:2px">
+            Configurador de Elección Comercial, Equipamiento y Liquidación del Contrato
+          </h2>
+          <p style="font-size:12.5px;color:var(--muted);margin-top:2px">
+            Marca aquí lo que el cliente ha elegido (Plan de Software, con o sin Página Web, qué equipos específicos ya posee y cuáles encargará comprar, y el pago realizado). El <strong>Documento de Contrato Final</strong> se actualiza automáticamente al instante.
+          </p>
+        </div>
+        <button type="button" class="btn btn-emerald" onclick="printCurrentMode('contrato')">
+          🖨️ Imprimir / Guardar Contrato Final en PDF
+        </button>
+      </div>
+
+      <!-- PASO 1: DATOS DE LAS PARTES -->
+      <div class="cfg-step-title">👤 PASO 1: Datos del Gimnasio, Propietario y Desarrollador</div>
+      <div class="cfg-grid-4">
+        <div class="cfg-field">
+          <label>Nombre Comercial del Gimnasio</label>
+          <input type="text" id="cfgGymName" value="RD FITNESS CLUB" oninput="updateContractLive()" />
+        </div>
+        <div class="cfg-field">
+          <label>Nombre Completo del Titular / Propietario</label>
+          <input type="text" id="cfgClientName" placeholder="Ej. Juan Pérez..." oninput="updateContractLive()" />
+        </div>
+        <div class="cfg-field">
+          <label>DNI / RUC del Titular</label>
+          <input type="text" id="cfgClientDni" placeholder="Ej. 29456789 / 10294567891" oninput="updateContractLive()" />
+        </div>
+        <div class="cfg-field">
+          <label>Dirección / Sede del Gimnasio</label>
+          <input type="text" id="cfgClientAddress" value="Chivay — Caylloma, Arequipa" oninput="updateContractLive()" />
+        </div>
+        <div class="cfg-field">
+          <label>Tu Nombre Completo (Desarrollador)</label>
+          <input type="text" id="cfgDevName" placeholder="Escribe tu nombre y apellidos..." oninput="updateContractLive()" />
+        </div>
+        <div class="cfg-field">
+          <label>Tu DNI / RUC (Desarrollador)</label>
+          <input type="text" id="cfgDevDni" placeholder="Tu DNI o RUC..." oninput="updateContractLive()" />
+        </div>
+        <div class="cfg-field">
+          <label>Tu Celular / WhatsApp</label>
+          <input type="text" id="cfgDevPhone" placeholder="Tu número de celular..." oninput="updateContractLive()" />
+        </div>
+        <div class="cfg-field">
+          <label>Fecha de Suscripción del Contrato</label>
+          <input type="text" id="cfgContractDate" value="" placeholder="DD/MM/2026" oninput="updateContractLive()" />
+        </div>
+      </div>
+
+      <!-- PASO 2: ELECCIÓN DEL PLAN DE SOFTWARE PRINCIPAL -->
+      <div class="cfg-step-title">💻 PASO 2: Elección del Plan de Licencia del Software Principal</div>
+      <div class="cfg-grid-3">
+        <label class="cfg-card-option" id="cardPlanMensual">
+          <input type="radio" name="cfgPlan" value="mensual" onchange="updateContractLive()" />
+          <div>
+            <div style="font-weight:800;font-size:13.5px;color:#fff">Plan Mensual (Mínimo 6 Meses)</div>
+            <div style="font-size:12px;color:var(--emerald);font-weight:800;margin:2px 0">S/ 89.00 / mes + S/ 250.00 instalación única</div>
+            <div style="font-size:11.5px;color:var(--muted)">Pago inicial hoy (Instalación + 1er mes): <strong>S/ 339.00</strong>. Compromiso mínimo obligatorio de 6 meses.</div>
+          </div>
+        </label>
+
+        <label class="cfg-card-option" id="cardPlanAnual">
+          <input type="radio" name="cfgPlan" value="anual" onchange="updateContractLive()" />
+          <div>
+            <div style="font-weight:800;font-size:13.5px;color:#fff">Plan Anual (12 Meses)</div>
+            <div style="font-size:12px;color:var(--cyan);font-weight:800;margin:2px 0">S/ 890.00 / año + S/ 150.00 instalación única</div>
+            <div style="font-size:11.5px;color:var(--muted)">Total por 1 año completo: <strong>S/ 1,040.00</strong> (Ahorro equivalente a 2 meses de suscripción).</div>
+          </div>
+        </label>
+
+        <label class="cfg-card-option selected" id="cardPlanVitalicio">
+          <input type="radio" name="cfgPlan" value="vitalicio" checked onchange="updateContractLive()" />
+          <div>
+            <div style="font-weight:800;font-size:13.5px;color:#fff">⭐ Licencia Vitalicia (Pago Único Definitivo)</div>
+            <div style="font-size:12px;color:var(--gold);font-weight:800;margin:2px 0">S/ 1,450.00 (Pago único total · Instalación incluida)</div>
+            <div style="font-size:11.5px;color:var(--muted)">Licencia perpetua sin pagos mensuales ni anuales por el sistema de gestión y control QR.</div>
+          </div>
+        </label>
+      </div>
+
+      <!-- PASO 3: ELECCIÓN DE PÁGINA WEB PÚBLICA MULTIMEDIA -->
+      <div class="cfg-step-title">🌐 PASO 3: Elección de Plataforma Web Pública Multimedia y Dominio</div>
+      <div class="cfg-grid-3">
+        <label class="cfg-card-option selected" id="cardWebNo">
+          <input type="radio" name="cfgWeb" value="no_web" checked onchange="updateContractLive()" />
+          <div>
+            <div style="font-weight:800;font-size:13px;color:#fff">Sin Página Web Pública por ahora (S/ 0.00)</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:3px">Opera con el Panel Administrativo, Control QR, Caja, App de Socios e integración con WhatsApp.</div>
+          </div>
+        </label>
+
+        <label class="cfg-card-option" id="cardWebFull">
+          <input type="radio" name="cfgWeb" value="web_full" onchange="updateContractLive()" />
+          <div>
+            <div style="font-weight:800;font-size:13px;color:#fff">Con Plataforma Web Multimedia Completa (S/ 1,050.00)</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:3px">Incluye Desarrollo Web Multimedia (S/ 750) + Dominio .com/.pe (S/ 130) + Hosting Cloud SSL 1 año (S/ 170).</div>
+          </div>
+        </label>
+
+        <label class="cfg-card-option" id="cardWebDevOnly">
+          <input type="radio" name="cfgWeb" value="web_dev" onchange="updateContractLive()" />
+          <div>
+            <div style="font-weight:800;font-size:13px;color:#fff">Solo Desarrollo Web Multimedia (S/ 750.00)</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:3px">El cliente asume por su cuenta su propio dominio y servidor de alojamiento.</div>
+          </div>
+        </label>
+      </div>
+
+      <!-- PASO 4: SELECCIÓN INDIVIDUAL DE EQUIPOS FÍSICOS DE RECEPCIÓN -->
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+        <div class="cfg-step-title" style="margin-bottom:0">🛠️ PASO 4: Situación Exacta de los 4 Equipos Físicos de Recepción</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button type="button" class="btn" style="padding:5px 10px;font-size:11.5px" onclick="setAllHardware('own')">💻 Cliente ya tiene todos sus equipos (S/ 0.00)</button>
+          <button type="button" class="btn" style="padding:5px 10px;font-size:11.5px" onclick="setAllHardware('buy')">🛒 Encargar los 4 equipos al Desarrollador (S/ 3,250.00)</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div class="cfg-hw-row">
+          <div>
+            <strong style="color:#fff;font-size:13px">1. Laptop Operativa Estándar 15.6" (o PC de Recepción)</strong>
+            <div style="font-size:11.5px;color:var(--muted)">HP / Lenovo / Acer — Core i3/i5 o Ryzen 3/5, 8–16GB RAM, SSD</div>
+          </div>
+          <div class="cfg-field">
+            <select id="hwStatusLaptop" onchange="updateContractLive()">
+              <option value="own">✔ El Gimnasio ya cuenta con equipo propio (No suministrado por el Desarrollador — S/ 0.00)</option>
+              <option value="buy">🛒 Encarga compra e instalación al Desarrollador (Pago 100% adelantado)</option>
+              <option value="none">➖ No requerido / Lo adquirirá el cliente por su cuenta (S/ 0.00)</option>
+            </select>
+          </div>
+          <div class="cfg-field">
+            <input type="number" id="hwPriceLaptop" value="1950" min="0" step="10" oninput="updateContractLive()" title="Precio en Soles si se encarga al Desarrollador" />
+          </div>
+        </div>
+
+        <div class="cfg-hw-row">
+          <div>
+            <strong style="color:#fff;font-size:13px">2. Monitor de Recepción 21.5" / 22" Full HD + Cable HDMI</strong>
+            <div style="font-size:11.5px;color:var(--muted)">Pantalla secundaria de mostrador orientada al socio para bienvenidas y QR</div>
+          </div>
+          <div class="cfg-field">
+            <select id="hwStatusMonitor" onchange="updateContractLive()">
+              <option value="own">✔ El Gimnasio ya cuenta con monitor propio (No suministrado por el Desarrollador — S/ 0.00)</option>
+              <option value="buy">🛒 Encarga compra e instalación al Desarrollador (Pago 100% adelantado)</option>
+              <option value="none">➖ No requerido / Lo adquirirá el cliente por su cuenta (S/ 0.00)</option>
+            </select>
+          </div>
+          <div class="cfg-field">
+            <input type="number" id="hwPriceMonitor" value="420" min="0" step="10" oninput="updateContractLive()" />
+          </div>
+        </div>
+
+        <div class="cfg-hw-row">
+          <div>
+            <strong style="color:#fff;font-size:13px">3. Lector Óptico QR 2D Manos Libres</strong>
+            <div style="font-size:11.5px;color:var(--muted)">Escáner omnidireccional 2D de sobremesa (lee pantallas de celular y carnés físicos)</div>
+          </div>
+          <div class="cfg-field">
+            <select id="hwStatusScanner" onchange="updateContractLive()">
+              <option value="own">✔ El Gimnasio ya cuenta con lector propio (No suministrado por el Desarrollador — S/ 0.00)</option>
+              <option value="buy">🛒 Encarga compra e instalación al Desarrollador (Pago 100% adelantado)</option>
+              <option value="none">➖ No requerido / Lo adquirirá el cliente por su cuenta (S/ 0.00)</option>
+            </select>
+          </div>
+          <div class="cfg-field">
+            <input type="number" id="hwPriceScanner" value="420" min="0" step="10" oninput="updateContractLive()" />
+          </div>
+        </div>
+
+        <div class="cfg-hw-row">
+          <div>
+            <strong style="color:#fff;font-size:13px">4. Impresora Térmica de Tickets 80mm con Autocorte</strong>
+            <div style="font-size:11.5px;color:var(--muted)">Emisión de constancias físicas internas de inscripción en mostrador</div>
+          </div>
+          <div class="cfg-field">
+            <select id="hwStatusPrinter" onchange="updateContractLive()">
+              <option value="own">✔ El Gimnasio ya cuenta con impresora propia (No suministrado por el Desarrollador — S/ 0.00)</option>
+              <option value="buy">🛒 Encarga compra e instalación al Desarrollador (Pago 100% adelantado)</option>
+              <option value="none">➖ No requerido / Lo adquirirá el cliente por su cuenta (S/ 0.00)</option>
+            </select>
+          </div>
+          <div class="cfg-field">
+            <input type="number" id="hwPricePrinter" value="460" min="0" step="10" oninput="updateContractLive()" />
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 5: REGISTRO DE PAGO EFECTUADO Y SALDO -->
+      <div class="cfg-step-title">💳 PASO 5: Estado del Pago Efectuado a la Firma y Medio de Pago</div>
+      <div class="cfg-grid-4">
+        <div class="cfg-field">
+          <label>Estado del Pago a la Firma</label>
+          <select id="cfgPayState" onchange="onPayStateChange()">
+            <option value="total">✔ Cancelado al 100% a la firma del contrato</option>
+            <option value="parcial">⏳ Adelanto / Pago Parcial (Con saldo pendiente)</option>
+            <option value="pendiente">📌 Pendiente de abono contra entrega inmediata</option>
+          </select>
+        </div>
+        <div class="cfg-field">
+          <label>Monto Abonado a la Firma (S/)</label>
+          <input type="number" id="cfgPaidAmount" value="1450" min="0" step="10" oninput="updateContractLive(true)" />
+        </div>
+        <div class="cfg-field">
+          <label>Medio de Pago Utilizado</label>
+          <select id="cfgPayMethod" onchange="updateContractLive()">
+            <option value="Efectivo">Efectivo</option>
+            <option value="Yape / Plin">Yape / Plin</option>
+            <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+            <option value="Pago Mixto (Efectivo + Yape/Plin)">Pago Mixto (Efectivo + Yape/Plin)</option>
+          </select>
+        </div>
+        <div class="cfg-field">
+          <label>N° Operación / Observación Adicional</label>
+          <input type="text" id="cfgPayNote" placeholder="Ej. Cancelado conforme / Op. Yape..." oninput="updateContractLive()" />
+        </div>
+      </div>
+
+      <div class="cfg-summary-bar">
+        <div>
+          <div style="font-size:11.5px;color:#cbd5e1">RESUMEN AUTOMÁTICO DE LA ELECCIÓN DEL CLIENTE:</div>
+          <div style="font-size:15px;font-weight:900;color:#fff;margin-top:2px" id="cfgLiveSummaryTxt">
+            Licencia Vitalicia (S/ 1,450.00) · Sin Web (S/ 0.00) · Equipos Propios del Cliente (S/ 0.00)
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--emerald);font-weight:800">TOTAL ACORDADO EN CONTRATO</div>
+          <div style="font-size:22px;font-weight:900;color:#fff" id="cfgLiveTotalTxt">S/ 1,450.00</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================================== -->
+    <!-- DOCUMENTO 1: DOSSIER INFORMATIVO Y PROPUESTA TÉCNICA-COMERCIAL (ESTRICTO FIN INFORMATIVO) -->
+    <!-- ======================================================================================== -->
+    <div id="docDossier" class="hidden-doc">
+      <!-- SECCIÓN 0: PORTADA EJECUTIVA Y PRESENTACIÓN DEL DESARROLLADOR -->
+      <section class="hero">
+        <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:10px">
+          <img src="logo-rd-fitness.png?v=6.6" alt="RD FITNESS CLUB" style="height:82px;width:auto;object-fit:contain;background:transparent !important;filter:drop-shadow(0 4px 12px rgba(220,38,38,0.4))" />
+          <div style="flex:1;min-width:260px">
+            <div class="hero-tag">Dossier Informativo de Propuesta Técnica y Comercial · Chivay, Arequipa</div>
+            <h1 style="margin:0">Sistema Integral de Gestión, Control de Accesos QR, Caja por Turnos y App de Socios para <span class="gym-name">RD FITNESS CLUB</span></h1>
+          </div>
+        </div>
+        <p style="margin-bottom:14px">
+          Plataforma tecnológica diseñada a medida para la gestión integral del gimnasio: automatiza el control de ingreso por código QR, registra inscripciones nuevas y membresías en curso, administra la caja diaria por turnos en <strong>Efectivo, Yape y Plin</strong>, entrega una aplicación móvil a los socios y proyecta bienvenidas en tiempo real en el monitor de recepción.
+        </p>
+
+        <!-- FICHA DE PRESENTACIÓN PROFESIONAL -->
+        <div class="box" style="background:rgba(15,23,42,0.75);border:1.5px solid var(--gold);padding:14px 16px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+            <div style="flex:1;min-width:280px">
+              <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:0.8px;color:var(--gold);margin-bottom:3px">
+                👨‍💻 PRESENTACIÓN DEL RESPONSABLE DEL PROYECTO
+              </div>
+              <div style="font-size:14.5px;font-weight:900;color:#fff;margin-bottom:4px">
+                Desarrollador de Software y Sistemas Digitales
+              </div>
+              <p style="font-size:12px;color:#cbd5e1;margin:0;line-height:1.45">
+                Desarrollador especializado en el diseño e implementación de sistemas web a medida, aplicaciones móviles instalables (PWA), automatización de accesos mediante lectura óptica QR y arquitecturas de respaldo continuo en la nube orientadas a la modernización y eficiencia operativa de negocios.
+              </p>
+            </div>
+            <div style="min-width:250px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:12px">
+              <div><strong style="color:var(--gold)">Desarrollador:</strong> <span class="dev-name-txt">_________________________________</span></div>
+              <div style="margin-top:4px"><strong style="color:var(--gold)">Cargo:</strong> Desarrollador de Software y Sistemas Digitales</div>
+              <div style="margin-top:4px"><strong style="color:var(--gold)">DNI / RUC:</strong> <span class="dev-dni-txt">____________________</span> · <strong style="color:var(--gold)">Cel/WhatsApp:</strong> <span class="dev-phone-txt">____________________</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 1: ARQUITECTURA DETALLADA DEL PANEL ADMINISTRATIVO -->
+      <section class="section">
+        <div class="section-title">💻 1. Panel de Control y Administración (Módulos Operativos del Sistema)</div>
+        <div class="section-sub">
+          Alcance funcional detallado de cada módulo integrado en el panel administrativo y de recepción:
+        </div>
+
+        <div class="grid-2">
+          <div class="box">
+            <h3>1.1. Escáner de Acceso Instantáneo y Cobro Ágil (Pestaña /scan)</h3>
+            <ul class="feature-list">
+              <li><strong>Validación QR Ultrarrápida (&lt;2 ms):</strong> Verifica en milisegundos la vigencia del socio mediante lector óptico 2D manos libres o cámara.</li>
+              <li><strong>Medios de Pago Directos (Efectivo, Yape y Plin):</strong> Interfaz optimizada para registrar cobros rápidos en <strong>Efectivo, Yape y Plin</strong> con registro opcional de número de operación.</li>
+              <li><strong>Respuesta Sonora y Semáforo Visual:</strong> Confirmación auditiva y alerta verde para socios activos; timbre de aviso y alerta roja ante membresías vencidas.</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>1.2. Dashboard Ejecutivo en Vivo (Pestaña /home)</h3>
+            <ul class="feature-list">
+              <li><strong>Indicadores del Día en Tiempo Real:</strong> Contador de socios activos, asistencias registradas en la jornada, pases diarios y nuevas inscripciones.</li>
+              <li><strong>Desglose Automático de Recaudación:</strong> Resumen diario separado con exactitud entre <strong>Efectivo en gaveta</strong> y cobros digitales por <strong>Yape y Plin</strong>.</li>
+              <li><strong>Control de Próximos Vencimientos:</strong> Listado automático de socios próximos a vencer para facilitar el seguimiento y renovación.</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>1.3. Padrón de Socios y Empadronamiento de Membresías en Curso (/members)</h3>
+            <ul class="feature-list">
+              <li><strong>Registro Rápido de 3 Datos Esenciales:</strong> Ficha de inscripción directa con <strong>Nombre Completo, DNI y Teléfono / WhatsApp</strong> (más fotografía opcional).</li>
+              <li><strong>Modo de Migración para Socios con Plan en Curso:</strong> Permite incorporar al sistema a los socios antiguos que ya cuentan con una membresía vigente pagada con anterioridad, respetando sus fechas y días restantes <strong>sin alterar ni sumar cobros duplicados a la caja del día</strong>.</li>
+              <li><strong>Carnés QR Exportables en PDF y PNG:</strong> Generación de tarjetas físicas con código QR listas para descargar o compartir en formato PDF e imagen de alta resolución.</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>1.4. Punto de Venta de Tienda (Pestaña /store)</h3>
+            <ul class="feature-list">
+              <li><strong>Catálogo de Productos y Pases Diarios:</strong> Venta ágil de bebidas, aguas, proteínas por servicio, suplementos, accesorios y pases del día.</li>
+              <li><strong>Control de Inventario en Vivo:</strong> Descuento automático de stock por cada unidad vendida y alertas visuales de reposición.</li>
+              <li><strong>Integración Directa con Caja:</strong> Cada venta se suma automáticamente al turno abierto según el medio de pago utilizado (Efectivo, Yape o Plin).</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>1.5. Control de Caja por Turnos: 2 Turnos o Jornada Completa (/cash)</h3>
+            <ul class="feature-list">
+              <li><strong>Modalidad Flexible de Turnos:</strong> Permite operar con <strong>2 turnos diarios (Turno Mañana y Turno Tarde/Noche)</strong> o en modalidad de <strong>Turno Único / Día Completo</strong>.</li>
+              <li><strong>Apertura con Fondo de Caja:</strong> Registro del sencillo inicial de gaveta separado de los ingresos del día.</li>
+              <li><strong>Arqueo y Cierre Exacto:</strong> Calcula al instante el efectivo físico exacto que debe existir en gaveta (descontando gastos autorizados) y el total recibido en cuentas Yape/Plin.</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>1.6. Constancias Internas de Inscripción (80mm y Envío Digital)</h3>
+            <ul class="feature-list">
+              <li><strong>Constancia Digital por WhatsApp:</strong> Envío directo del recibo interno de inscripción o renovación al WhatsApp del socio con el detalle de su plan y fecha de vigencia.</li>
+              <li><strong>Formato Térmico 80mm de Alto Contraste:</strong> Diseño monocromático nítido (#000000) con código QR de control interno y corte automático para impresoras térmicas de mostrador.</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>1.7. Gestión de Rutinas y Ejercicios (Pestaña /routines)</h3>
+            <ul class="feature-list">
+              <li><strong>Biblioteca Visual por Grupo Muscular:</strong> Catálogo estructurado de ejercicios (Pecho, Espalda, Piernas, Hombros, Brazos, Core y Cardio) con indicaciones técnicas.</li>
+              <li><strong>Asignación Directa a la App del Socio:</strong> Envío de planes de entrenamiento personalizados por días, series, repeticiones y tiempos de descanso.</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>1.8. Centro de Reportes y Sincronización Google Sheets (/reports)</h3>
+            <ul class="feature-list">
+              <li><strong>Exportación Ejecutiva en Excel (.xlsx) y PDF A4:</strong> Generación de reportes estructurados de ingresos, gastos, asistencias, membresías y movimientos de tienda.</li>
+              <li><strong>Hoja Maestra Google Sheets Automatizada:</strong> Sincronización en la nube con un clic para respaldar y consultar toda la información desde cualquier dispositivo.</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>1.9. Sistema Entrelazado de Avisos y Publicaciones: App + Web + WhatsApp (/announcements)</h3>
+            <ul class="feature-list">
+              <li><strong>Soporte Multimedia y Documentos:</strong> Publicación de comunicados, avisos y promociones con <strong>imágenes en alta definición, videos (MP4/YouTube/Reels), documentos PDF descargables (horarios, guías, reglamentos) y enlaces externos</strong>.</li>
+              <li><strong>Selección Individual, Combinada o General desde el Panel Admin:</strong> Permite elegir con exactitud dónde difundir cada publicación: <strong>Solo en App de Socios</strong>, <strong>Solo en Página Web</strong>, <strong>Solo en WhatsApp</strong>, <strong>App + Web</strong>, <strong>App + WhatsApp</strong>, <strong>Web + WhatsApp</strong>, o <strong>General en los 3 canales a la vez</strong>.</li>
+              <li><strong>Integración al Grupo / Comunidad de WhatsApp del Gimnasio:</strong> El proyecto se integra al grupo o comunidad de WhatsApp del gimnasio para difundir las publicaciones directamente desde el sistema sin riesgo de bloqueo por spam.</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>1.10. Tarifas Dinámicas, Promociones Temporales y Resguardo de Historial</h3>
+            <ul class="feature-list">
+              <li><strong>Planes y Promociones Modificables en Vivo:</strong> Creación y edición de tarifas estándar, promociones por temporada, campañas 2x1 o descuentos especiales en cualquier momento.</li>
+              <li><strong>Inalterabilidad de Socios Activos y Cajas Anteriores:</strong> Las modificaciones de precios o promociones aplican únicamente a las nuevas inscripciones; los socios registrados con anterioridad conservan intactas sus condiciones, fechas y montos originales.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 2: APLICACIÓN MÓVIL PARA SOCIOS (PWA) -->
+      <section class="section">
+        <div class="section-title">📱 2. Aplicación Móvil para Socios (PWA Instalable en Android &amp; iOS)</div>
+        <div class="section-sub">
+          Plataforma digital exclusiva para los miembros del gimnasio, instalable en la pantalla de inicio del celular sin cobros de tiendas de aplicaciones:
+        </div>
+
+        <div class="grid-3">
+          <div class="box">
+            <h3>Credencial QR Dinámica + Carnet Físico</h3>
+            <ul class="feature-list">
+              <li><strong>Compatibilidad Simultánea:</strong> El código QR dinámico de la App y el código QR estático impreso en la tarjeta física operan indistintamente en el lector de recepción.</li>
+              <li><strong>Funcionamiento Offline:</strong> Muestra la credencial QR al instante incluso cuando el socio no dispone de conexión a datos móviles.</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>Estado de Membresía y Bandeja Limpia</h3>
+            <ul class="feature-list">
+              <li><strong>Semáforo de Vigencia (Verde / Ámbar / Rojo):</strong> Indica con precisión los días restantes del plan contratado y la fecha exacta de vencimiento.</li>
+              <li><strong>Notificaciones Preferenciales:</strong> Recepción exclusiva de avisos importantes del gimnasio, documentos PDF, horarios y constancias de pago sin publicidad intrusiva.</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>Entrenador Digital y Progreso Físico</h3>
+            <ul class="feature-list">
+              <li><strong>Rutinas Interactivas:</strong> Visualización de los ejercicios asignados por día con guía técnica, series y cargas recomendadas.</li>
+              <li><strong>Herramientas de Entrenamiento:</strong> Cronómetro deportivo integrado para descansos entre series, historial de asistencia y registro de medidas corporales / IMC.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 3: VISUALIZACIÓN EN MONITOR DE RECEPCIÓN (HDMI) -->
+      <section class="section">
+        <div class="section-title">🖥️ 3. Módulo de Visualización Interactiva en Monitor de Recepción (HDMI)</div>
+        <div class="section-sub">
+          Interfaz visual dedicada de cara al socio en el mostrador para proyectar bienvenidas, estado de membresías y códigos de pago:
+        </div>
+
+        <div class="grid-2">
+          <div class="box">
+            <h3>3.1. Bienvenida Instantánea, Semáforo de Vigencia y QR de Pago</h3>
+            <ul class="feature-list">
+              <li><strong>Tarjeta de Bienvenida en Tiempo Real:</strong> Al escanear el código QR, despliega en pantalla la fotografía del socio, su nombre, plan activo y días restantes con confirmación sonora.</li>
+              <li><strong>Aviso Visual y Auditivo de Vencimiento:</strong> Notifica de forma clara cuando una membresía ha concluido para facilitar su renovación inmediata en mostrador.</li>
+              <li><strong>Proyección de QR Yape / Plin:</strong> Muestra en pantalla el código QR oficial del gimnasio junto al importe exacto de la operación para agilizar el pago desde el celular del socio.</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>3.2. Proyección Directa mediante Monitor Secundario HDMI</h3>
+            <ul class="feature-list">
+              <li><strong>Conexión Directa por Cable HDMI:</strong> Opera conectando un monitor estándar de escritorio al puerto HDMI de la laptop o computadora de recepción en modo de pantalla extendida.</li>
+              <li><strong>Cartelera Multimedia Continua:</strong> Mientras no se registran ingresos en el lector, la pantalla exhibe de manera elegante las promociones vigentes, avisos del club, tarifas y reloj digital en tiempo real.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 4: SITIO WEB PÚBLICO MULTIMEDIA Y SISTEMA ENTRELAZADO OMNICANAL -->
+      <section class="section">
+        <div class="section-title">🌐 4. Módulo de Expansión: Plataforma Web Multimedia y Sistema Entrelazado (App + Web + WhatsApp)</div>
+        <div class="section-sub">
+          Presencia oficial en internet con centro multimedia y difusión entrelazada administrable al 100% desde el mismo Panel de Control del gimnasio:
+        </div>
+
+        <div class="grid-2">
+          <div class="box">
+            <h3>4.1. Diseño Web Editorial de Alta Elegancia y Soporte Multimedia Completo</h3>
+            <ul class="feature-list">
+              <li><strong>Publicación de Todo Tipo de Multimedia y Documentos:</strong> Permite publicar y actualizar en vivo <strong>videos promocionales (MP4 / YouTube / Reels), afiches en alta definición, documentos PDF descargables (horarios, reglamentos, planes nutricionales), galerías y enlaces externos</strong>.</li>
+              <li><strong>Distribución Visual Fina y No Invasiva:</strong> Estructura moderna organizada en <strong>Muro de Comunicados y Documentos Descargables (Izquierda)</strong>, <strong>Portal Central de Identidad y Tarifas en Vivo</strong>, y <strong>Vitrina / Slider Multimedia Interactivo (Derecha)</strong>.</li>
+              <li><strong>Spotlight de Portada con Efecto Cristal (Excepcional):</strong> Para lanzamientos o comunicados de máxima prioridad, despliega al ingresar una ventana central estilizada (*glassmorphism*) con soporte de video/imagen, barra de autocierre temporizado y botón <strong>✕</strong> de cierre inmediato.</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>4.2. Entrelazado Automatizado entre Página Web, App de Socios y WhatsApp</h3>
+            <ul class="feature-list">
+              <li><strong>Integración al WhatsApp del Gimnasio (Cero Bloqueos):</strong> El sistema se vincula directamente con el grupo o comunidad de WhatsApp del gimnasio (creado y administrado por el propietario), permitiendo difundir comunicados, promociones, videos y documentos desde el Panel Administrativo sin complicaciones ni riesgo de bloqueo de cuenta por spam.</li>
+              <li><strong>Control de Destinos Individual, Combinado o General en 1 Clic:</strong> Desde el Panel Admin se selecciona si la publicación se realiza en <strong>Solo App de Socios</strong>, <strong>Solo Página Web</strong>, <strong>Solo WhatsApp</strong>, <strong>App + Web</strong>, <strong>App + WhatsApp</strong>, <strong>Web + WhatsApp</strong> o de forma <strong>General en los 3 canales simultáneamente</strong>.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- TABLA DE COSTOS DIRECTOS DE LA PLATAFORMA WEB MULTIMEDIA -->
+        <table style="margin-top:12px">
+          <thead>
+            <tr>
+              <th>Componente de la Plataforma Web Multimedia + Entrelazado Omnicanal</th>
+              <th>Funciones, Capacidades Multimedia y Alcance Incluido</th>
+              <th style="text-align:right">Precio Directo (S/)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1. Desarrollo de Plataforma Web Multimedia + Entrelazado Omnicanal</strong></td>
+              <td>Diseño web profesional de 3 zonas + Spotlight de cristal, soporte para publicación de videos, documentos PDF descargables, sliders interactivos y selector entrelazado de difusión (App / Web / WhatsApp).</td>
+              <td style="text-align:right"><strong>S/ 750.00</strong> <em>(Pago único)</em></td>
+            </tr>
+            <tr>
+              <td><strong>2. Dominio Oficial en Internet (.com o .pe)</strong></td>
+              <td>Registro anual del nombre oficial del gimnasio en internet (ej. <code>www.rdfitnesschivay.com</code>) por 12 meses.</td>
+              <td style="text-align:right"><strong>S/ 130.00</strong> <em>(Anual)</em></td>
+            </tr>
+            <tr>
+              <td><strong>3. Hosting Cloud Multimedia de Alta Velocidad + Certificado SSL (HTTPS)</strong></td>
+              <td>Servidor cloud optimizado para carga rápida de imágenes, documentos PDF y contenido multimedia con candado de seguridad SSL 24/7 por 12 meses.</td>
+              <td style="text-align:right"><strong>S/ 170.00</strong> <em>(Anual)</em></td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--gold)">⭐ TOTAL DIRECTO — PLATAFORMA WEB MULTIMEDIA COMPLETA (1er AÑO)</strong></td>
+              <td><strong>Entrega Completa: Plataforma Web Multimedia + Motor Admin Omnicanal + Dominio + Hosting SSL por 1 año.</strong></td>
+              <td style="text-align:right"><span class="badge-gold">S/ 1,050.00</span> <em>(Precio fijo directo)</em></td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="font-size:11px;color:var(--muted);margin-top:5px">
+          <em>* Nota: El desarrollo de la plataforma web (S/ 750.00) es un pago único. A partir del segundo año, únicamente se abona la renovación anual de Dominio + Hosting Cloud (S/ 300.00 anual).</em>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 5: FIABILIDAD OPERATIVA Y RESPALDO EN LA NUBE + PC -->
+      <section class="section">
+        <div class="section-title">⚡ 5. Persistencia de Datos en la Nube y Modo Local en la PC (Cero Pérdida de Información)</div>
+        <div class="section-sub">
+          Arquitectura de doble respaldo para garantizar la continuidad de las operaciones y la conservación permanente de la información:
+        </div>
+
+        <div class="grid-3">
+          <div class="box">
+            <h3>Bóveda Perpetua Cloud + Google Sheets</h3>
+            <p style="font-size:12px;color:#cbd5e1">
+              Cada socio, membresía, cobro y asistencia se respalda automáticamente en la bóveda en la nube y en Google Sheets, asegurando que la información permanezca intacta en todo momento.
+            </p>
+          </div>
+          <div class="box">
+            <h3>Modo Local PC ante Cortes de Internet</h3>
+            <p style="font-size:12px;color:#cbd5e1">
+              El módulo <strong>⚡ Modo Local PC</strong> permite continuar validando accesos QR y registrando operaciones en la computadora local ante eventuales caídas del servicio de internet, sincronizando los datos automáticamente al restablecerse la red.
+            </p>
+          </div>
+          <div class="box">
+            <h3>Aplicaciones Instalables con Identidad Propia</h3>
+            <p style="font-size:12px;color:#cbd5e1">
+              Tanto el Panel de Administración en recepción como la App Móvil de Socios se instalan con acceso directo e ícono oficial personalizado de <strong class="gym-name">RD FITNESS CLUB</strong>.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 6: EQUIPAMIENTO FÍSICO RECOMENDADO PARA RECEPCIÓN (ADQUISICIÓN OPCIONAL POR ENCARGO) -->
+      <section class="section">
+        <div class="section-title">🛠️ 6. Equipamiento Físico Recomendado para Recepción (Compra Opcional por Encargo)</div>
+        <div class="section-sub">
+          El precio del software no incluye equipos físicos. Si el gimnasio ya dispone de todos o algunos de estos equipos, los utiliza con inversión S/ 0.00 en hardware; si desea encargar la compra e instalación de todos o algunos de ellos en el mercado comercial de Arequipa, se detallan sus precios directos instalados:
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Equipo para Mostrador</th>
+              <th>Referencia Comercial en Arequipa / Perú</th>
+              <th>Función Operativa en el Gimnasio</th>
+              <th style="text-align:right">Precio Directo Instalado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1. Laptop Operativa Estándar 15.6" (o PC de Escritorio)</strong></td>
+              <td><strong>HP / Lenovo / Acer 15.6"</strong><br><em>(Procesador Core i3/i5 o Ryzen 3/5 · 8GB–16GB RAM · Unidad SSD)</em></td>
+              <td>Equipo principal para operar el Panel de Administración y la Caja. El sistema es ligero y eficiente, por lo que basta con una laptop estándar decente sin necesidad de equipos costosos de alta gama.</td>
+              <td style="text-align:right"><span class="badge-ok">S/ 1,950.00</span></td>
+            </tr>
+            <tr>
+              <td><strong>2. Monitor de Recepción 21.5" / 22" Full HD + Cable HDMI</strong></td>
+              <td><strong>LG / Samsung / Teros Full HD HDMI</strong></td>
+              <td>Pantalla secundaria fija en el mostrador (conectada por cable HDMI a la laptop) orientada hacia los socios para visualizar su bienvenida QR, días de vigencia y el código QR de pago Yape/Plin con total nitidez y seguridad.</td>
+              <td style="text-align:right"><span class="badge-ok">S/ 420.00</span></td>
+            </tr>
+            <tr>
+              <td><strong>3. Lector Óptico QR 2D Manos Libres</strong></td>
+              <td><strong>Honeywell Youjie HF600 / Zebra / 3nStar 2D</strong></td>
+              <td>Escáner omnidireccional 2D de sobremesa. Lee al instante (0.1 seg) tanto el código QR desde la pantalla del celular del socio como los carnets físicos sin presionar botones.</td>
+              <td style="text-align:right"><span class="badge-ok">S/ 420.00</span></td>
+            </tr>
+            <tr>
+              <td><strong>4. Impresora Térmica de Tickets 80mm</strong></td>
+              <td><strong>3nStar RPT008 / Xprinter / Epson TM-T20III</strong></td>
+              <td>Impresora térmica USB de 80mm con autocorte para emitir constancias físicas de inscripción en mostrador (adicional al envío digital por WhatsApp).</td>
+              <td style="text-align:right"><span class="badge-ok">S/ 460.00</span></td>
+            </tr>
+            <tr>
+              <td><strong>TOTAL KIT COMPLETO DE RECEPCIÓN (LOS 4 EQUIPOS)</strong></td>
+              <td><strong>Laptop + Monitor HDMI + Lector QR 2D + Impresora 80mm</strong></td>
+              <td>Incluye gestión de compra en tienda comercial de Arequipa, traslado hasta el local, conexión física, cables e instalación completa lista para operar.</td>
+              <td style="text-align:right"><span class="badge-gold">S/ 3,250.00</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="diagram-card" style="margin-top:10px">
+          <div style="font-weight:800;font-size:12px;color:var(--gold);margin-bottom:3px">💡 Libertad de Elección sobre los 4 Equipos de Recepción:</div>
+          <p style="font-size:11.5px;color:#cbd5e1;margin:0;line-height:1.45">
+            • <strong>Uso de Equipos Propios del Gimnasio (S/ 0.00):</strong> Si el propietario ya cuenta con todos sus equipos (Laptop/PC, Monitor HDMI, Lector QR e Impresora Térmica) o decide adquirirlos por su cuenta, solo contrata el software.<br>
+            • <strong>Encargo Parcial o Completo y Opción de Segunda Mano:</strong> El cliente puede encargar únicamente los periféricos específicos que le falten (según los precios unitarios de la tabla superior) o acordar la implementación en una laptop o PC económica de segunda mano en buen estado operativo.
+          </p>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 7: MODALIDADES DE CONTRATACIÓN, PERMANENCIA MÍNIMA, TIEMPOS DE CARGA Y GARANTÍA DE 6 MESES -->
+      <section class="section">
+        <div class="section-title">💼 7. Modalidades de Contratación, Condiciones Operativas y Garantía Técnica (6 Meses)</div>
+        <div class="section-sub">
+          Planes de inversión del software y condiciones operativas de implementación y garantía:
+        </div>
+
+        <div class="grid-2" style="margin-bottom:12px">
+          <!-- MODALIDAD A: SOLO SOFTWARE (EL CLIENTE ASUME TODOS SUS EQUIPOS) -->
+          <div class="price-box">
+            <div>
+              <span class="badge-info" style="margin-bottom:6px;display:inline-block">MODALIDAD A: SOLO SISTEMA DE SOFTWARE (S/ 0.00 EN EQUIPOS)</span>
+              <h3>Implementación Exclusiva del Software (El Gimnasio Asume Todos sus Equipos)</h3>
+              <p style="font-size:12px;color:#cbd5e1;margin-bottom:10px">
+                Aplica cuando el gimnasio ya dispone de <strong>todos sus equipos propios</strong> o los adquiere por su cuenta (<strong>Laptop/PC, Monitor HDMI, Lector QR 2D e Impresora Térmica 80mm</strong>). Esta modalidad cubre únicamente el software y no incluye la entrega de ningún equipo físico.
+              </p>
+              <ul class="feature-list" style="margin-bottom:12px">
+                <li><strong>Exclusivamente Software (Sin Hardware Incluido):</strong> Todos los equipos físicos de recepción (computadora/laptop, monitor HDMI, lector QR e impresora térmica) corren íntegra y exclusivamente por cuenta del gimnasio.</li>
+                <li><strong>Instalación Inmediata y Carga de Socios en Curso (24 a 72 h):</strong> Configuración inmediata del sistema; el registro de los miembros antiguos en curso y activación de sus cuentas se completa en un plazo de 24 a 72 horas según el volumen de socios activos.</li>
+                <li><strong>Permanencia Mínima en Plan Mensual:</strong> La modalidad de suscripción mensual requiere un <strong>compromiso mínimo de contratación de seis (6) meses</strong>.</li>
+              </ul>
+            </div>
+            <div>
+              <table style="margin-top:0">
+                <tbody>
+                  <tr>
+                    <td><strong>Plan Mensual (Mín. 6 meses):</strong></td>
+                    <td style="text-align:right"><strong>S/ 89.00 / mes</strong> <em>(+ S/ 250.00 instalación única)</em></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Plan Anual (Ahorro 2 meses):</strong></td>
+                    <td style="text-align:right"><strong>S/ 890.00 / año</strong> <em>(+ S/ 150.00 instalación única)</em></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Licencia Vitalicia del Sistema:</strong></td>
+                    <td style="text-align:right"><strong style="color:var(--cyan)">S/ 1,450.00 pago único</strong> <em>(Sin mensualidades)</em></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- MODALIDAD B: SOFTWARE + ENCARGO DE EQUIPOS ESPECÍFICOS O KIT COMPLETO -->
+          <div class="price-box featured">
+            <div>
+              <span class="badge-gold" style="margin-bottom:6px;display:inline-block">⭐ MODALIDAD B: SOFTWARE + ENCARGO DE EQUIPOS</span>
+              <h3>Sistema + Gestión de Compra e Instalación de los Equipos Seleccionados</h3>
+              <p style="font-size:12px;color:#cbd5e1;margin-bottom:10px">
+                Implementación del software más la adquisición por encargo, traslado y conexión de los equipos físicos específicos que el propietario solicite comprar.
+              </p>
+              <ul class="feature-list" style="margin-bottom:12px">
+                <li><strong>Selección por Equipo o Kit Completo:</strong> El propietario elige en el Contrato Final si encarga el Kit Completo de 4 equipos (S/ 3,250.00) o únicamente los equipos específicos que requiera de la Sección 6.</li>
+                <li><strong>Adelanto del 100% para Compra de Equipos:</strong> Todo equipo físico encargado al Desarrollador requiere el <strong>abono del 100% de su valor por adelantado</strong> a la firma del contrato para proceder con su compra e instalación.</li>
+                <li><strong>Entrega Conectada y Operativa:</strong> Los equipos encargados se entregan instalados y configurados en el mostrador del gimnasio.</li>
+              </ul>
+            </div>
+            <div>
+              <table style="margin-top:0">
+                <tbody>
+                  <tr>
+                    <td><strong>Kit Completo 4 Equipos:</strong></td>
+                    <td style="text-align:right"><strong>S/ 3,250.00</strong> <em>(Pago 100% adelantado)</em></td>
+                  </tr>
+                  <tr>
+                    <td><strong>4 Equipos + Plan Mensual (Mín. 6m):</strong></td>
+                    <td style="text-align:right"><strong>S/ 3,250.00</strong> (equipos) + <strong>S/ 89.00 / mes</strong></td>
+                  </tr>
+                  <tr>
+                    <td><strong>4 Equipos + Licencia Vitalicia:</strong></td>
+                    <td style="text-align:right"><strong style="color:var(--gold)">S/ 4,550.00</strong> <em>(Kit 4 Equipos + Software Vitalicio)</em></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONDICIONES DE GARANTÍA DE 6 MESES Y ALCANCE DE CAMBIOS POSTERIORES -->
+        <div class="diagram-card">
+          <div style="font-weight:800;font-size:12.5px;color:var(--gold);margin-bottom:4px">🛡️ Condiciones de Garantía Técnica (6 Meses), Equipos y Solicitudes Adicionales:</div>
+          <ul class="feature-list" style="font-size:11.5px">
+            <li><strong>1. Garantía Técnica del Software (6 Meses):</strong> El software cuenta con <strong>seis (6) meses de garantía técnica</strong> desde su entrega operativa, cubriendo sin costo la corrección de cualquier desperfecto técnico sobre los módulos detallados en este dossier.</li>
+            <li><strong>2. Cambios Posteriores o Nuevas Funciones Tienen Costo Adicional:</strong> Cualquier requerimiento posterior de nuevas funciones, módulos adicionales, rediseños o modificaciones personalizadas fuera del alcance entregado constituye un servicio adicional independiente y se cotiza por separado.</li>
+            <li><strong>3. Garantía de Equipos Físicos (Según Tienda Comercial):</strong> La garantía de los equipos nuevos adquiridos por encargo se rige directamente por la póliza oficial de la tienda comercial proveedora (entregándose al cliente sus comprobantes de compra). No cubre daños físicos por golpes, líquidos, variaciones eléctricas, manipulación por terceros ni cortes de internet.</li>
+            <li><strong>4. Formalización Mediante Contrato Oficial Independiente:</strong> El presente Dossier cumple fines estrictamente informativos sobre el alcance del proyecto. La contratación formal, el detalle exacto de los planes y equipos elegidos, la liquidación de pagos y las cláusulas legales se suscriben en el <strong>Documento Oficial de Contrato de Implementación y Conformidad</strong>.</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <!-- ======================================================================================== -->
+    <!-- DOCUMENTO 2: CONTRATO OFICIAL PERSONALIZADO DE SERVICIOS, ELECCIÓN, PAGOS Y FIRMAS       -->
+    <!-- ======================================================================================== -->
+    <div id="docContrato">
+      <!-- ENCABEZADO OFICIAL DEL CONTRATO -->
+      <section class="hero" style="padding:20px 24px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <img src="logo-rd-fitness.png?v=6.6" alt="RD FITNESS CLUB" style="height:66px;width:auto;object-fit:contain;background:transparent !important" />
+            <div>
+              <div class="hero-tag" style="margin-bottom:4px">Documento Legal Vinculante · Código Civil Peruano (Arts. 1351°, 1361° y 1764°)</div>
+              <h1 style="font-size:21px;margin:0">CONTRATO DE IMPLEMENTACIÓN DE SOFTWARE, LIQUIDACIÓN DE ELECCIÓN Y CONFORMIDAD LEGAL</h1>
+            </div>
+          </div>
+          <div style="text-align:right;font-size:12px;background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:8px 12px;border-radius:8px">
+            <div><strong style="color:var(--gold)">FECHA DE ACUERDO:</strong> <span class="ctr-date-txt">____/____/2026</span></div>
+            <div><strong style="color:var(--gold)">SEDE:</strong> <span class="ctr-address-txt">Chivay — Caylloma, Arequipa</span></div>
+          </div>
+        </div>
+        <p style="font-size:12px;margin-bottom:0;line-height:1.45">
+          Conste por el presente documento el <strong>Contrato Privado de Implementación de Sistema de Software, Liquidación de Equipamiento y Conformidad Operativa</strong> que celebran, de una parte, en calidad de <strong>EL DESARROLLADOR</strong>: <strong class="dev-name-txt" style="color:#fff">_________________________________</strong>, identificado con DNI/RUC N° <strong class="dev-dni-txt" style="color:#fff">____________________</strong> y Celular/WhatsApp <strong class="dev-phone-txt" style="color:#fff">____________________</strong>; y de la otra parte, en calidad de <strong>EL CLIENTE / PROPIETARIO DEL GIMNASIO</strong> (<strong class="gym-name" style="color:var(--gold)">RD FITNESS CLUB</strong>): <strong class="ctr-client-name" style="color:#fff">______________________________________</strong>, identificado con DNI/RUC N° <strong class="ctr-client-dni" style="color:#fff">____________________</strong>, con domicilio comercial en <span class="ctr-address-txt">Chivay — Caylloma, Arequipa</span>; en los términos, elecciones específicas y cláusulas siguientes:
+        </p>
+      </section>
+
+      <!-- SECCIÓN I DEL CONTRATO: DETALLE EXACTO DE LA ELECCIÓN DEL CLIENTE (SOFTWARE + WEB) -->
+      <section class="section" style="padding:16px 20px;margin-bottom:14px">
+        <div class="section-title" style="font-size:15.5px">📋 I. Determinación Exacta de los Servicios de Software Contratados</div>
+        <div class="section-sub" style="margin-bottom:8px;font-size:11.8px">
+          El Cliente declara haber revisado el Dossier Informativo del proyecto y selecciona expresamente la siguiente configuración de software para su establecimiento:
+        </div>
+
+        <table style="margin-top:4px">
+          <thead>
+            <tr>
+              <th style="width:28%">Rubro / Componente</th>
+              <th style="width:54%">Modalidad y Alcance Específico Elegido por el Cliente</th>
+              <th style="text-align:right;width:18%">Importe Acordado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1. Licencia del Sistema Principal</strong><br><span style="font-size:11px;color:var(--muted)">(Panel Admin, Control QR, Caja por Turnos, Tienda, App de Socios, Monitor HDMI, Reportes y Nube)</span></td>
+              <td id="ctrPlanDescCell">
+                <strong>⭐ LICENCIA VITALICIA DEL SISTEMA (Pago Único Definitivo)</strong><br>
+                <span>Incluye instalación inmediata del sistema, configuración integral, migración de socios activos en curso (24 a 72 h) y 6 meses de garantía técnica de software, sin pagos mensuales ni anuales por el sistema.</span>
+              </td>
+              <td style="text-align:right;font-weight:900;font-size:13.5px" id="ctrPlanPriceCell">S/ 1,450.00</td>
+            </tr>
+            <tr>
+              <td><strong>2. Plataforma Web Pública Multimedia y Dominio</strong><br><span style="font-size:11px;color:var(--muted)">(Sección 4 del Dossier Informativo)</span></td>
+              <td id="ctrWebDescCell">
+                <strong>NO INCLUYE PÁGINA WEB PÚBLICA EN ESTA ETAPA (S/ 0.00)</strong><br>
+                <span>El Cliente contrata únicamente el sistema administrativo interno, App de Socios e integración con el grupo/comunidad de WhatsApp del gimnasio. La plataforma web pública podrá ser contratada posteriormente si el Cliente lo solicita.</span>
+              </td>
+              <td style="text-align:right;font-weight:900;font-size:13.5px" id="ctrWebPriceCell">S/ 0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- SECCIÓN II DEL CONTRATO: INVENTARIO Y DESLINDE EXACTO DE LOS 4 EQUIPOS DE RECEPCIÓN -->
+      <section class="section" style="padding:16px 20px;margin-bottom:14px">
+        <div class="section-title" style="font-size:15.5px">🛠️ II. Situación Exacta del Equipamiento Físico de Recepción (Deslinde de Equipos)</div>
+        <div class="section-sub" style="margin-bottom:8px;font-size:11.8px">
+          Ambas partes dejan constancia expresa de qué equipos físicos ya posee el Gimnasio por cuenta propia (los cuales <strong>NO</strong> son suministrados ni entregados por el Desarrollador) y cuáles han sido encargados comprar e instalar:
+        </div>
+
+        <table style="margin-top:4px">
+          <thead>
+            <tr>
+              <th style="width:32%">Equipo Físico de Recepción</th>
+              <th style="width:48%">Condición Acordada y Responsabilidad sobre el Equipo</th>
+              <th style="text-align:right;width:20%">Costo Encargado</th>
+            </tr>
+          </thead>
+          <tbody id="ctrHardwareTableBody">
+            <!-- Se llena dinámicamente por JS -->
+          </tbody>
+        </table>
+      </section>
+
+      <!-- SECCIÓN III DEL CONTRATO: LIQUIDACIÓN ECONÓMICA TOTAL, PAGOS EFECTUADOS Y SALDO -->
+      <section class="section" style="padding:16px 20px;margin-bottom:14px">
+        <div class="section-title" style="font-size:15.5px">💳 III. Liquidación Económica Total, Pago Efectuado a la Firma y Saldo</div>
+        <div class="section-sub" style="margin-bottom:8px;font-size:11.8px">
+          Resumen económico vinculante de la contratación, abonos recibidos a la suscripción del presente contrato y saldos:
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Concepto de Liquidación</th>
+              <th>Detalle de la Operación</th>
+              <th style="text-align:right">Monto (S/)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Subtotal Sistema de Software + Plataforma Web Elegida</strong></td>
+              <td id="ctrSubSoftDetail">Licencia Vitalicia del Sistema (S/ 1,450.00) + Sin Web Pública (S/ 0.00)</td>
+              <td style="text-align:right;font-weight:800" id="ctrSubSoftAmount">S/ 1,450.00</td>
+            </tr>
+            <tr>
+              <td><strong>Subtotal Equipos Físicos Encargados al Desarrollador</strong></td>
+              <td id="ctrSubHwDetail">Ningún equipo físico encargado (El Gimnasio opera con todos sus equipos propios)</td>
+              <td style="text-align:right;font-weight:800" id="ctrSubHwAmount">S/ 0.00</td>
+            </tr>
+            <tr style="background:rgba(255,255,255,0.03)">
+              <td><strong style="color:var(--gold)">MONTO TOTAL ACORDADO DEL CONTRATO</strong></td>
+              <td><strong>Suma total de los servicios y equipos seleccionados por el Cliente</strong></td>
+              <td style="text-align:right;font-weight:900;font-size:14px;color:var(--gold)" id="ctrTotalContractAmount">S/ 1,450.00</td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--emerald)">MONTO PAGADO / ABONADO A LA FIRMA</strong></td>
+              <td id="ctrPaidDetailCell"><strong>Estado:</strong> Cancelado al 100% a la firma · <strong>Medio de Pago:</strong> Efectivo</td>
+              <td style="text-align:right;font-weight:900;font-size:13.5px;color:var(--emerald)" id="ctrPaidAmountCell">S/ 1,450.00</td>
+            </tr>
+            <tr>
+              <td><strong>SALDO PENDIENTE DE PAGO</strong></td>
+              <td id="ctrBalanceDetailCell">Sin saldo pendiente por la implementación contratada (S/ 0.00)</td>
+              <td style="text-align:right;font-weight:900;font-size:13.5px" id="ctrBalanceAmountCell">S/ 0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- SECCIÓN IV DEL CONTRATO: LAS 6 CLÁUSULAS CONTRACTUALES DE RESPALDO LEGAL INTEGRAL -->
+      <section class="section" style="padding:16px 20px;margin-bottom:14px">
+        <div class="section-title" style="font-size:15.5px">⚖️ IV. Cláusulas Contractuales de Garantía, Permanencia y Delimitación de Responsabilidades</div>
+        <div class="section-sub" style="margin-bottom:10px;font-size:11.8px">
+          El presente contrato se rige por las siguientes seis (6) cláusulas obligatorias conforme al Código Civil Peruano (Arts. 1351°, 1361° y 1764°):
+        </div>
+
+        <div class="grid-2">
+          <div class="box">
+            <h3>Cláusula Primera: Objeto y Naturaleza Interna del Sistema</h3>
+            <p style="font-size:11px;color:#cbd5e1;line-height:1.42;margin:0">
+              El Desarrollador provee al Gimnasio una plataforma informática destinada exclusivamente a la <strong>organización administrativa interna del local</strong>: control de asistencia mediante código QR, registro de membresías, seguimiento de rutinas y control interno de turnos de recepción. Las constancias o tickets generados por el programa son documentos de control interno para los socios y no constituyen comprobantes de pago electrónicos (CPE) ni facturación tributaria.
+            </p>
+          </div>
+
+          <div class="box">
+            <h3>Cláusula Segunda: Autonomía Administrativa y Tributaria del Gimnasio</h3>
+            <p style="font-size:11px;color:#cbd5e1;line-height:1.42;margin:0">
+              Ambas partes reconocen que la gestión empresarial, contable, tributaria, municipal y laboral del gimnasio (incluyendo inscripción en el RUC, elección de régimen tributario, declaración de ingresos en Efectivo/Yape/Plin y emisión oficial de Boletas o Facturas Electrónicas ante la <strong>SUNAT</strong> mediante Portal SUNAT SOL o facturador autorizado) corresponde de manera exclusiva e independiente a los propietarios y administración del gimnasio.
+            </p>
+          </div>
+
+          <div class="box">
+            <h3>Cláusula Tercera: Indemnidad Legal del Desarrollador</h3>
+            <p style="font-size:11px;color:#cbd5e1;line-height:1.42;margin:0">
+              En virtud de que la labor del Desarrollador se circunscribe estrictamente al ámbito técnico e informático del software entregado, el Propietario y/o Socio Comercial mantienen al Desarrollador libre y exento de cualquier responsabilidad civil, tributaria, administrativa, laboral o judicial derivada del giro comercial del negocio, fiscalizaciones de <strong>SUNAT, Municipalidad / Defensa Civil (ITSE), INDECOPI o SUNAFIL</strong>, o del manejo tributario y contable propio del establecimiento.
+            </p>
+          </div>
+
+          <div class="box">
+            <h3>Cláusula Cuarta: Propiedad Intelectual, Permanencia (6 Meses) y Nuevas Funciones</h3>
+            <p style="font-size:11px;color:#cbd5e1;line-height:1.42;margin:0">
+              El software provisto es de autoría intelectual del Desarrollador, otorgándose al Gimnasio la licencia de uso conforme a la modalidad elegida en la Sección I (en caso de Plan Mensual, rige una <strong>permanencia mínima obligatoria de 6 meses</strong>). Toda solicitud posterior de nuevas funciones, módulos adicionales o cambios fuera del alcance entregado constituye un servicio adicional independiente y se cotiza por separado.
+            </p>
+          </div>
+
+          <div class="box">
+            <h3>Cláusula Quinta: Tiempos de Carga (24–72 h), Equipos y Garantía de 6 Meses</h3>
+            <p style="font-size:11px;color:#cbd5e1;line-height:1.42;margin:0">
+              La instalación del sistema es inmediata, mientras que el empadronamiento inicial de socios antiguos en curso se efectúa en un plazo de <strong>24 a 72 horas</strong> según el volumen de registros entregados por el gimnasio. El software cuenta con <strong>seis (6) meses de garantía técnica</strong> sobre su correcto funcionamiento. El Desarrollador no suministra equipos físicos marcados como propios o no requeridos en la Sección II; los equipos adquiridos por encargo se rigen por la garantía de la tienda comercial proveedora.
+            </p>
+          </div>
+
+          <div class="box">
+            <h3>Cláusula Sexta: Protección de Datos y Plena Validez Contractual</h3>
+            <p style="font-size:11px;color:#cbd5e1;line-height:1.42;margin:0">
+              El Gimnasio es el titular de su padrón de clientes (Ley N° 29733), guardando el Desarrollador absoluta reserva técnica sobre la información procesada. Cualquier consulta o diferencia será resuelta de buena fe y trato directo entre las partes. El presente documento firmado constituye contrato privado con plena validez legal conforme a los Artículos 1351° y 1361° del Código Civil del Perú.
+            </p>
+          </div>
+        </div>
+
+        <!-- SECCIÓN V DEL CONTRATO: DECLARACIÓN FORMAL DE CONFORMIDAD Y 4 BLOQUES DE FIRMA -->
+        <div class="box" style="margin-top:10px;background:var(--card-2);border:1.5px solid var(--border);padding:13px">
+          <div style="font-weight:900;font-size:12px;color:var(--gold);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">
+            ✍️ V. Declaración Expresa de Conformidad Comercial, Operativa y Suscripción de las Partes
+          </div>
+          <p style="font-size:10.8px;color:#cbd5e1;margin-bottom:10px;line-height:1.4">
+            Al suscribir el presente contrato, las partes ratifican su total conformidad con la elección de software detallada en la Sección I, el deslinde de equipamiento físico de la Sección II, la liquidación de pagos de la Sección III y las seis (6) cláusulas legales de la Sección IV, reconociendo la calidad profesional del sistema implementado.
+          </p>
+
+          <div class="grid-2" style="gap:10px">
+            <!-- FIRMA 1: DESARROLLADOR -->
+            <div style="border:1px solid var(--border);border-radius:8px;padding:10px;background:rgba(255,255,255,0.02)">
+              <div style="font-size:9.5px;font-weight:800;color:var(--cyan);text-transform:uppercase;margin-bottom:22px">
+                (1) FIRMA DEL RESPONSABLE TECNOLÓGICO
+              </div>
+              <div style="border-top:1.5px solid #64748b;padding-top:4px;font-weight:900;font-size:10.8px;color:#fff">
+                DESARROLLADOR DE SOFTWARE Y SISTEMAS DIGITALES
+              </div>
+              <div style="font-size:10.2px;color:#cbd5e1;margin-top:3px">
+                <strong>Nombre:</strong> <span class="dev-name-txt">______________________________________</span><br>
+                <strong>DNI / RUC:</strong> <span class="dev-dni-txt">____________________</span> · <strong>Cel:</strong> <span class="dev-phone-txt">_________________</span>
+              </div>
+            </div>
+
+            <!-- FIRMA 2: TITULAR / PROPIETARIO PRINCIPAL -->
+            <div style="border:1px solid var(--border);border-radius:8px;padding:10px;background:rgba(255,255,255,0.02)">
+              <div style="font-size:9.5px;font-weight:800;color:var(--emerald);text-transform:uppercase;margin-bottom:22px">
+                (2) ACEPTACIÓN Y CONFORMIDAD — TITULAR / PROPIETARIO PRINCIPAL
+              </div>
+              <div style="border-top:1.5px solid #64748b;padding-top:4px;font-weight:900;font-size:10.8px;color:#fff">
+                PROPIETARIO PRINCIPAL — <span class="gym-name">RD FITNESS CLUB</span>
+              </div>
+              <div style="font-size:10.2px;color:#cbd5e1;margin-top:3px">
+                <strong>Nombre:</strong> <span class="ctr-client-name">______________________________________</span><br>
+                <strong>DNI / RUC:</strong> <span class="ctr-client-dni">____________________</span> · <strong>Fecha:</strong> <span class="ctr-date-txt">____/____/2026</span>
+              </div>
+            </div>
+
+            <!-- FIRMA 3: CO-PROPIETARIO / SOCIO COMERCIAL -->
+            <div style="border:1px dashed var(--border);border-radius:8px;padding:10px;background:rgba(255,255,255,0.02)">
+              <div style="font-size:9.5px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:22px">
+                (3) ACEPTACIÓN MANCOMUNADA — CO-PROPIETARIO / SOCIO COMERCIAL
+              </div>
+              <div style="border-top:1.5px solid #64748b;padding-top:4px;font-weight:900;font-size:10.8px;color:#fff">
+                CO-TITULAR / SOCIO COMERCIAL — <span class="gym-name">RD FITNESS CLUB</span>
+              </div>
+              <div style="font-size:10.2px;color:#cbd5e1;margin-top:3px">
+                <strong>Nombre:</strong> ______________________________________<br>
+                <strong>DNI:</strong> ____________________ · <strong>Fecha:</strong> <span class="ctr-date-txt">____/____/2026</span>
+              </div>
+            </div>
+
+            <!-- FIRMA 4: CONSTANCIA DE RECEPCIÓN Y PUESTA EN MARCHA -->
+            <div style="border:1.5px solid var(--gold);border-radius:8px;padding:10px;background:rgba(245,180,0,0.05)">
+              <div style="font-size:9.5px;font-weight:800;color:var(--gold);text-transform:uppercase;margin-bottom:22px">
+                (4) ACTA DE RECEPCIÓN OPERATIVA Y RATIFICACIÓN CONTRACTUAL
+              </div>
+              <div style="border-top:1.5px solid #64748b;padding-top:4px;font-weight:900;font-size:10.8px;color:#fff">
+                CONFORMIDAD DE INSTALACIÓN Y VIGENCIA DE CLÁUSULAS
+              </div>
+              <div style="font-size:10px;color:#cbd5e1;margin-top:3px;line-height:1.35">
+                <em>Se deja constancia de haber recibido el sistema operativo conforme a la elección detallada en las Secciones I, II y III, ratificando la plena vigencia de las seis (6) cláusulas legales.</em><br>
+                <strong>Resumen Elegido:</strong> <span id="ctrSignSummaryBadge" style="font-weight:800;color:#fff">Licencia Vitalicia · Equipos Propios</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const DEFAULT_GYM_NAME = 'RD FITNESS CLUB';
+
+    function fmtMoney(n) {
+      return 'S/ ' + Number(n || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function switchDocMode(mode) {
+      const doss = document.getElementById('docDossier');
+      const ctr = document.getElementById('docContrato');
+      const cfg = document.getElementById('cfgPanel');
+      const tabD = document.getElementById('tabBtnDossier');
+      const tabC = document.getElementById('tabBtnContrato');
+
+      if (mode === 'contrato') {
+        doss.classList.add('hidden-doc');
+        ctr.classList.remove('hidden-doc');
+        cfg.classList.remove('hidden-doc');
+        tabD.classList.remove('active');
+        tabC.classList.add('active');
+      } else {
+        ctr.classList.add('hidden-doc');
+        doss.classList.remove('hidden-doc');
+        tabC.classList.remove('active');
+        tabD.classList.add('active');
+      }
+    }
+
+    function toggleConfiguratorPanel() {
+      const cfg = document.getElementById('cfgPanel');
+      cfg.classList.toggle('hidden-doc');
+      if (!cfg.classList.contains('hidden-doc')) {
+        switchDocMode('contrato');
+        cfg.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function printCurrentMode(mode) {
+      switchDocMode(mode);
+      setTimeout(() => window.print(), 120);
+    }
+
+    function setAllHardware(status) {
+      ['hwStatusLaptop', 'hwStatusMonitor', 'hwStatusScanner', 'hwStatusPrinter'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = status;
+      });
+      updateContractLive();
+    }
+
+    function onPayStateChange() {
+      updateContractLive(false);
+    }
+
+    function updateContractLive(manualPaidEdit) {
+      const gymName = (document.getElementById('cfgGymName')?.value || '').trim() || DEFAULT_GYM_NAME;
+      const clientName = (document.getElementById('cfgClientName')?.value || '').trim() || '______________________________________';
+      const clientDni = (document.getElementById('cfgClientDni')?.value || '').trim() || '____________________';
+      const clientAddr = (document.getElementById('cfgClientAddress')?.value || '').trim() || 'Chivay — Caylloma, Arequipa';
+      const devName = (document.getElementById('cfgDevName')?.value || '').trim() || '_________________________________';
+      const devDni = (document.getElementById('cfgDevDni')?.value || '').trim() || '____________________';
+      const devPhone = (document.getElementById('cfgDevPhone')?.value || '').trim() || '____________________';
+      const contractDate = (document.getElementById('cfgContractDate')?.value || '').trim() || '____/____/2026';
+
+      document.querySelectorAll('.gym-name').forEach(el => { el.textContent = gymName; });
+      document.querySelectorAll('.ctr-client-name').forEach(el => { el.textContent = clientName; });
+      document.querySelectorAll('.ctr-client-dni').forEach(el => { el.textContent = clientDni; });
+      document.querySelectorAll('.ctr-address-txt').forEach(el => { el.textContent = clientAddr; });
+      document.querySelectorAll('.dev-name-txt').forEach(el => { el.textContent = devName; });
+      document.querySelectorAll('.dev-dni-txt').forEach(el => { el.textContent = devDni; });
+      document.querySelectorAll('.dev-phone-txt').forEach(el => { el.textContent = devPhone; });
+      document.querySelectorAll('.ctr-date-txt').forEach(el => { el.textContent = contractDate; });
+
+      // Plan de software
+      const planVal = document.querySelector('input[name="cfgPlan"]:checked')?.value || 'vitalicio';
+      document.getElementById('cardPlanMensual')?.classList.toggle('selected', planVal === 'mensual');
+      document.getElementById('cardPlanAnual')?.classList.toggle('selected', planVal === 'anual');
+      document.getElementById('cardPlanVitalicio')?.classList.toggle('selected', planVal === 'vitalicio');
+
+      let planTitle = '';
+      let planDescHtml = '';
+      let planInitialCost = 0;
+      let planShort = '';
+
+      if (planVal === 'mensual') {
+        planTitle = 'PLAN MENSUAL (S/ 89.00 / mes + S/ 250.00 de instalación única)';
+        planDescHtml = `<strong>${planTitle}</strong><br><span>Incluye instalación inmediata del sistema (S/ 250.00 pago único) más el primer mes de servicio (S/ 89.00). El Cliente acepta el <strong>compromiso mínimo obligatorio de seis (6) meses de contratación</strong>, abonando S/ 89.00 mensuales a partir del segundo mes. Incluye carga de socios en curso (24 a 72 h) y 6 meses de garantía técnica.</span>`;
+        planInitialCost = 339;
+        planShort = 'Plan Mensual (Mín. 6m)';
+      } else if (planVal === 'anual') {
+        planTitle = 'PLAN ANUAL CORPORATIVO — 12 MESES (S/ 890.00 / año + S/ 150.00 de instalación única)';
+        planDescHtml = `<strong>${planTitle}</strong><br><span>Cubre doce (12) meses completos de licencia operativa del sistema más instalación única, carga de socios antiguos en curso (24 a 72 h) y 6 meses de garantía técnica de software.</span>`;
+        planInitialCost = 1040;
+        planShort = 'Plan Anual (12m)';
+      } else {
+        planTitle = '⭐ LICENCIA VITALICIA DEL SISTEMA (Pago Único Definitivo — S/ 1,450.00)';
+        planDescHtml = `<strong>${planTitle}</strong><br><span>Licencia perpetua de uso del sistema sin pagos mensuales ni anuales. Incluye instalación inmediata, carga de socios activos en curso (24 a 72 h) y 6 meses de garantía técnica de software.</span>`;
+        planInitialCost = 1450;
+        planShort = 'Licencia Vitalicia';
+      }
+
+      document.getElementById('ctrPlanDescCell').innerHTML = planDescHtml;
+      document.getElementById('ctrPlanPriceCell').textContent = fmtMoney(planInitialCost);
+
+      // Plataforma Web
+      const webVal = document.querySelector('input[name="cfgWeb"]:checked')?.value || 'no_web';
+      document.getElementById('cardWebNo')?.classList.toggle('selected', webVal === 'no_web');
+      document.getElementById('cardWebFull')?.classList.toggle('selected', webVal === 'web_full');
+      document.getElementById('cardWebDevOnly')?.classList.toggle('selected', webVal === 'web_dev');
+
+      let webDescHtml = '';
+      let webCost = 0;
+      let webShort = '';
+
+      if (webVal === 'web_full') {
+        webDescHtml = `<strong>SÍ INCLUYE PLATAFORMA WEB MULTIMEDIA COMPLETA + DOMINIO + HOSTING SSL (1er AÑO)</strong><br><span>Incluye desarrollo de Página Web Multimedia de 3 zonas + Spotlight (S/ 750.00 pago único), registro de Dominio oficial .com/.pe por 1 año (S/ 130.00), Hosting Cloud Multimedia + SSL por 1 año (S/ 170.00) y entrelazado completo entre App de Socios, Página Web y WhatsApp del gimnasio. (Renovación desde el 2.° año: S/ 300.00/año).</span>`;
+        webCost = 1050;
+        webShort = 'Con Web Completa';
+      } else if (webVal === 'web_dev') {
+        webDescHtml = `<strong>SÍ INCLUYE DESARROLLO DE PLATAFORMA WEB MULTIMEDIA (Sin Dominio/Hosting — S/ 750.00)</strong><br><span>Incluye el desarrollo de la Página Web Multimedia y el entrelazado con App de Socios y WhatsApp. El Cliente proporciona por su cuenta su propio dominio y servidor de hosting.</span>`;
+        webCost = 750;
+        webShort = 'Con Desarrollo Web';
+      } else {
+        webDescHtml = `<strong>NO INCLUYE PÁGINA WEB PÚBLICA EN ESTA ETAPA (S/ 0.00)</strong><br><span>El Cliente contrata el sistema administrativo interno, App de Socios e integración con el grupo/comunidad de WhatsApp del gimnasio, sin página web pública por el momento.</span>`;
+        webCost = 0;
+        webShort = 'Sin Web Pública';
+      }
+
+      document.getElementById('ctrWebDescCell').innerHTML = webDescHtml;
+      document.getElementById('ctrWebPriceCell').textContent = fmtMoney(webCost);
+
+      // Equipos físicos
+      const hwItems = [
+        {
+          name: '1. Laptop Operativa Estándar 15.6" (o PC de Recepción)',
+          status: document.getElementById('hwStatusLaptop')?.value || 'own',
+          price: Number(document.getElementById('hwPriceLaptop')?.value || 0)
+        },
+        {
+          name: '2. Monitor de Recepción 21.5" / 22" Full HD + Cable HDMI',
+          status: document.getElementById('hwStatusMonitor')?.value || 'own',
+          price: Number(document.getElementById('hwPriceMonitor')?.value || 0)
+        },
+        {
+          name: '3. Lector Óptico QR 2D Manos Libres de Sobremesa',
+          status: document.getElementById('hwStatusScanner')?.value || 'own',
+          price: Number(document.getElementById('hwPriceScanner')?.value || 0)
+        },
+        {
+          name: '4. Impresora Térmica de Tickets 80mm con Autocorte',
+          status: document.getElementById('hwStatusPrinter')?.value || 'own',
+          price: Number(document.getElementById('hwPricePrinter')?.value || 0)
+        }
+      ];
+
+      let hwTotal = 0;
+      let boughtCount = 0;
+      const boughtNames = [];
+
+      const hwRowsHtml = hwItems.map(item => {
+        if (item.status === 'buy') {
+          hwTotal += item.price;
+          boughtCount++;
+          boughtNames.push(item.name.replace(/^\d+\.\s*/, ''));
+          return `
+            <tr>
+              <td><strong>${item.name}</strong></td>
+              <td><span class="badge-gold">ENCARGADO AL DESARROLLADOR</span> — El Cliente encarga la compra e instalación de este equipo (Pago 100% adelantado). Garantía sujeta a la tienda comercial proveedora.</td>
+              <td style="text-align:right;font-weight:900">${fmtMoney(item.price)}</td>
+            </tr>
+          `;
+        } else if (item.status === 'own') {
+          return `
+            <tr>
+              <td><strong>${item.name}</strong></td>
+              <td><span class="badge-info">EQUIPO PROPIO DEL GIMNASIO (NO INCLUIDO)</span> — El Gimnasio ya cuenta con este equipo por cuenta propia. <strong>El Desarrollador NO suministra ni debe entregar este equipo.</strong></td>
+              <td style="text-align:right;font-weight:700">S/ 0.00</td>
+            </tr>
+          `;
+        } else {
+          return `
+            <tr>
+              <td><strong>${item.name}</strong></td>
+              <td><span class="badge-amber">NO REQUERIDO POR EL CLIENTE (NO INCLUIDO)</span> — El Cliente decide no adquirir este periférico en el presente acuerdo. <strong>El Desarrollador NO suministra ni debe entregar este equipo.</strong></td>
+              <td style="text-align:right;font-weight:700">S/ 0.00</td>
+            </tr>
+          `;
+        }
+      }).join('');
+
+      document.getElementById('ctrHardwareTableBody').innerHTML = hwRowsHtml;
+
+      const subSoft = planInitialCost + webCost;
+      const grandTotal = subSoft + hwTotal;
+
+      document.getElementById('ctrSubSoftDetail').textContent = `${planShort} (${fmtMoney(planInitialCost)}) + ${webShort} (${fmtMoney(webCost)})`;
+      document.getElementById('ctrSubSoftAmount').textContent = fmtMoney(subSoft);
+
+      if (boughtCount === 0) {
+        document.getElementById('ctrSubHwDetail').textContent = 'Ningún equipo físico encargado al Desarrollador (Todos los equipos corren por cuenta del Gimnasio)';
+      } else if (boughtCount === 4) {
+        document.getElementById('ctrSubHwDetail').textContent = 'Kit Completo de 4 Equipos encargados al Desarrollador (Pago 100% adelantado)';
+      } else {
+        document.getElementById('ctrSubHwDetail').textContent = `${boughtCount} equipo(s) encargado(s): ${boughtNames.join(' + ')}`;
+      }
+      document.getElementById('ctrSubHwAmount').textContent = fmtMoney(hwTotal);
+      document.getElementById('ctrTotalContractAmount').textContent = fmtMoney(grandTotal);
+
+      // Pagos
+      const payState = document.getElementById('cfgPayState')?.value || 'total';
+      const paidInp = document.getElementById('cfgPaidAmount');
+      if (!manualPaidEdit && paidInp) {
+        if (payState === 'total') paidInp.value = grandTotal;
+        else if (payState === 'pendiente') paidInp.value = 0;
+      }
+      const paidAmount = Number(paidInp?.value || 0);
+      const balance = Math.max(0, grandTotal - paidAmount);
+      const payMethod = document.getElementById('cfgPayMethod')?.value || 'Efectivo';
+      const payNote = (document.getElementById('cfgPayNote')?.value || '').trim();
+
+      const stateLabel = payState === 'total'
+        ? 'Cancelado al 100% a la firma del contrato'
+        : (payState === 'parcial' ? 'Adelanto / Pago Parcial recibido a la firma' : 'Pendiente de abono contra entrega operativa');
+
+      document.getElementById('ctrPaidDetailCell').innerHTML = `<strong>Estado:</strong> ${stateLabel} · <strong>Medio de Pago:</strong> ${payMethod}${payNote ? ` · <strong>Detalle:</strong> ${payNote}` : ''}`;
+      document.getElementById('ctrPaidAmountCell').textContent = fmtMoney(paidAmount);
+
+      if (balance <= 0) {
+        document.getElementById('ctrBalanceDetailCell').textContent = 'Sin saldo pendiente por la liquidación actual (Cancelado al 100%)';
+      } else {
+        document.getElementById('ctrBalanceDetailCell').textContent = `Saldo pendiente a cancelar por el Cliente según lo acordado`;
+      }
+      document.getElementById('ctrBalanceAmountCell').textContent = fmtMoney(balance);
+
+      const hwSummaryShort = boughtCount === 0 ? 'Equipos Propios del Cliente (S/ 0.00)' : `${boughtCount} Equipo(s) Encargado(s) (${fmtMoney(hwTotal)})`;
+      document.getElementById('cfgLiveSummaryTxt').textContent = `${planShort} (${fmtMoney(planInitialCost)}) · ${webShort} (${fmtMoney(webCost)}) · ${hwSummaryShort}`;
+      document.getElementById('cfgLiveTotalTxt').textContent = fmtMoney(grandTotal);
+      document.getElementById('ctrSignSummaryBadge').textContent = `${planShort} · ${webShort} · ${hwSummaryShort} · Total: ${fmtMoney(grandTotal)}`;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const now = new Date();
+      const dd = String(now.getDate()).padStart(2, '0');
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const yyyy = now.getFullYear();
+      const dateInp = document.getElementById('cfgContractDate');
+      if (dateInp && !dateInp.value) dateInp.value = `${dd}/${mm}/${yyyy}`;
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('modo') !== 'dossier') {
+        switchDocMode('contrato');
+      }
+      updateContractLive(false);
+    });
+  </script>
+</body>
+</html>

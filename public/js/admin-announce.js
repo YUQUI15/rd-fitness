@@ -36,7 +36,7 @@
   }
 
   function formatWhatsAppPost(a) {
-    const gymName = RD.pub?.gym_name || settingsCache.gym_name || 'RD FITNESS CLUB';
+    const gymName = RD.pub?.gym_name || settingsCache.gym_name || 'GIMNASIO';
     const emoji = a.kind === 'promo' ? '🔥' : a.kind === 'evento' ? '🏆' : a.kind === 'cierre' ? '⏰' : '📢';
     let lines = [
       `${emoji} *${String(a.title || '').toUpperCase()}* — *${gymName}*`,
@@ -68,35 +68,31 @@
     try {
       await navigator.clipboard.writeText(text);
     } catch {}
-    const target = a.whatsapp_target || 'community';
-    const commUrl = settingsCache.whatsapp_community_url || RD.pub?.whatsapp_community_url || '';
-    const grpUrl = settingsCache.whatsapp_members_group_url || RD.pub?.whatsapp_members_group_url || '';
-    const destUrl = (target === 'members_group' && grpUrl) ? grpUrl : (commUrl || grpUrl);
+    const waGroupUrl = settingsCache.whatsapp_community_url || RD.pub?.whatsapp_community_url || '';
 
-    const d = RD.openModal('💬 Difusión Segura en Comunidad / Grupo de WhatsApp', `
+    const d = RD.openModal('💬 Publicación Entrelazada con WhatsApp del Gimnasio', `
       <div class="card flat mb" style="border-left:3px solid #22c55e;background:rgba(34,197,94,0.08)">
-        <div class="bold" style="color:#4ade80;margin-bottom:4px">✔ Mensaje copiado automáticamente al portapapeles</div>
+        <div class="bold" style="color:#4ade80;margin-bottom:4px">✔ Publicación copiada y lista para el WhatsApp del Gimnasio</div>
         <div class="small muted">
-          Publicar en tu <b>Comunidad o Grupo Oficial de WhatsApp</b> envía el comunicado, video o documento a todos los miembros a la vez con <b>cero riesgo de bloqueo de cuenta</b>.
+          El comunicado con sus enlaces multimedia, documentos o promociones ya está formateado para enviarse directamente en el grupo o comunidad de WhatsApp del gimnasio.
         </div>
       </div>
       <label class="field">
-        <span>Vista previa del comunicado formateado para WhatsApp:</span>
+        <span>Vista previa del comunicado para WhatsApp:</span>
         <textarea id="wa_preview_txt" rows="7" style="font-family:monospace;font-size:.85rem">${esc(text)}</textarea>
       </label>
       <div class="row wrap gap mt">
         <button type="button" class="btn ok" id="btn_copy_wa_again">📋 Copiar Texto</button>
-        ${commUrl ? `<a class="btn primary" href="${esc(commUrl)}" target="_blank" rel="noopener">🌐 Abrir Comunidad General WhatsApp</a>` : ''}
-        ${grpUrl ? `<a class="btn primary" href="${esc(grpUrl)}" target="_blank" rel="noopener">🔒 Abrir Grupo de Socios WhatsApp</a>` : ''}
-        <a class="btn ghost" href="https://api.whatsapp.com/send?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">📲 Enviar por WhatsApp Directo</a>
+        ${waGroupUrl ? `<a class="btn primary" href="${esc(waGroupUrl)}" target="_blank" rel="noopener">💬 Abrir Grupo / Comunidad de WhatsApp</a>` : ''}
+        <a class="btn ghost" href="https://api.whatsapp.com/send?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">📲 Enviar en WhatsApp</a>
       </div>
     `);
     d.el.querySelector('#btn_copy_wa_again').onclick = async () => {
       const val = d.el.querySelector('#wa_preview_txt').value;
       try { await navigator.clipboard.writeText(val); RD.toast('Texto copiado listo para pegar en WhatsApp'); } catch {}
     };
-    if (destUrl) {
-      RD.toast('Mensaje copiado · Abriendo Comunidad/Grupo de WhatsApp', 'ok');
+    if (waGroupUrl) {
+      RD.toast('Comunicado copiado · Listo para publicar en WhatsApp', 'ok');
     }
   }
 
@@ -108,40 +104,35 @@
       view.innerHTML = `
         <div class="row between wrap gap mb">
           <div>
-            <h2 style="margin:0;display:flex;align-items:center;gap:8px">${RD.icon('megaphone', '', 22)} Centro Omnicanal: App, Web Multimedia y WhatsApp</h2>
+            <h2 style="margin:0;display:flex;align-items:center;gap:8px">${RD.icon('megaphone', '', 22)} Sistema Entrelazado: App de Socios, Página Web y WhatsApp</h2>
             <p class="muted small" style="margin:.2rem 0 0">
-              Publica imágenes, videos, documentos PDF, enlaces y comunicados eligiendo exactamente dónde difundirlos: <b>App de Socios</b>, <b>Sitio Web Público</b>, <b>Comunidad de WhatsApp</b> o cualquier combinación.
+              Publica imágenes, videos, documentos PDF, enlaces y comunicados seleccionando un canal individual (<b>App</b>, <b>Web</b> o <b>WhatsApp</b>), combinados (<b>App + Web</b>, <b>App + WhatsApp</b>, <b>Web + WhatsApp</b>) o <b>General en los 3 canales</b>.
             </p>
           </div>
           <div class="row gap wrap">
-            <button class="btn ghost" id="btnwaconfig">💬 Configurar Comunidad / Grupo WhatsApp</button>
-            <button class="btn primary" id="btnnewann">＋ Nueva Publicación Multimedia</button>
+            <button class="btn ghost" id="btnwaconfig">💬 Vincular WhatsApp del Gimnasio</button>
+            <button class="btn primary" id="btnnewann">＋ Nueva Publicación</button>
           </div>
         </div>
 
-        <!-- PANEL DE COMUNIDAD Y GRUPO OFICIAL DE WHATSAPP (ANTI-BLOQUEO) -->
+        <!-- PANEL DE VINCULACIÓN CON EL WHATSAPP DEL GIMNASIO -->
         <div class="card mb hidden" id="wa_config_box" style="border:1px solid rgba(34,197,94,0.35);background:rgba(34,197,94,0.05)">
           <div class="row between wrap gap mb">
             <div>
-              <h3 style="margin:0;color:#4ade80">💬 Integración con Comunidad y Grupo Oficial de WhatsApp (Cero Bloqueos)</h3>
+              <h3 style="margin:0;color:#4ade80">💬 Integración con el Grupo / Comunidad de WhatsApp del Gimnasio</h3>
               <p class="small muted" style="margin:4px 0 0">
-                Configura el enlace de invitación de tu Comunidad o Grupo de WhatsApp. Así los socios y visitantes se unen con 1 clic desde la Web/App y difundes anuncios sin enviar mensajes masivos individuales.
+                Ingresa el enlace del grupo o comunidad de WhatsApp del gimnasio para entrelazarlo con el sistema y difundir las publicaciones directamente desde el Panel Admin.
               </p>
             </div>
           </div>
-          <form id="waconfigform" class="grid g2 keep gap">
-            <label class="field">
-              <span>🌐 Enlace de Comunidad / Canal General (Público y Promociones)</span>
+          <form id="waconfigform" class="row wrap gap" style="align-items:flex-end">
+            <label class="field grow" style="margin:0">
+              <span>💬 Enlace del Grupo / Comunidad de WhatsApp del Gimnasio</span>
               <input name="whatsapp_community_url" placeholder="https://chat.whatsapp.com/..." value="${esc(settingsCache.whatsapp_community_url || '')}">
             </label>
-            <label class="field">
-              <span>🔒 Enlace de Grupo Exclusivo de Socios Inscritos</span>
-              <input name="whatsapp_members_group_url" placeholder="https://chat.whatsapp.com/..." value="${esc(settingsCache.whatsapp_members_group_url || '')}">
-            </label>
-            <div class="row gap" style="grid-column:1 / -1">
-              <button type="submit" class="btn ok sm">Guardar Enlaces de WhatsApp</button>
-              ${settingsCache.whatsapp_community_url ? `<a href="${esc(settingsCache.whatsapp_community_url)}" target="_blank" rel="noopener" class="btn sm ghost">↗ Abrir Comunidad</a>` : ''}
-              ${settingsCache.whatsapp_members_group_url ? `<a href="${esc(settingsCache.whatsapp_members_group_url)}" target="_blank" rel="noopener" class="btn sm ghost">↗ Abrir Grupo Socios</a>` : ''}
+            <div class="row gap">
+              <button type="submit" class="btn ok">Guardar Enlace WhatsApp</button>
+              ${settingsCache.whatsapp_community_url ? `<a href="${esc(settingsCache.whatsapp_community_url)}" target="_blank" rel="noopener" class="btn ghost">↗ Abrir WhatsApp</a>` : ''}
             </div>
           </form>
         </div>
@@ -176,13 +167,12 @@
           e.preventDefault();
           try {
             const body = {
-              whatsapp_community_url: waForm.whatsapp_community_url.value.trim(),
-              whatsapp_members_group_url: waForm.whatsapp_members_group_url.value.trim()
+              whatsapp_community_url: waForm.whatsapp_community_url.value.trim()
             };
             await RD.api.put('/settings', body);
             settingsCache = { ...settingsCache, ...body };
             RD.pub = { ...(RD.pub || {}), ...body };
-            RD.toast('Enlaces de Comunidad y Grupo de WhatsApp guardados');
+            RD.toast('Enlace de WhatsApp del gimnasio guardado');
             waBox.classList.add('hidden');
           } catch (err) {
             RD.toast(err.message, 'err');
@@ -390,16 +380,24 @@
 
   function openAnnModal(item, onDone) {
     const isEdit = !!item;
-    const chList = parseChannels(item?.channel || 'app,web');
+    const chList = parseChannels(item?.channel || 'app,web,whatsapp');
     const curSpot = item?.web_spot || 'carousel';
-    const curWaTarget = item?.whatsapp_target || 'community';
 
-    const m = RD.openModal(isEdit ? 'Editar Publicación Multimedia' : '＋ Nueva Publicación Multimedia (App / Web / WhatsApp)', `
+    const m = RD.openModal(isEdit ? 'Editar Publicación Multimedia' : '＋ Nueva Publicación (App / Página Web / WhatsApp)', `
       <form id="annform">
-        <!-- 1. MATRIZ DE CANALES COMBINABLES -->
+        <!-- 1. ENTRELAZADO DE CANALES: INDIVIDUAL, COMBINADO O GENERAL -->
         <div class="card flat mb" style="background:var(--bg2);border:1px solid var(--line);padding:14px">
           <div style="font-weight:800;font-size:.88rem;margin-bottom:8px;color:var(--gold)">
-            1. Selecciona los Canales de Difusión (Puedes marcar 1, 2 o los 3 canales):
+            1. Entrelazado de Canales de Difusión (Individual, Combinado o General):
+          </div>
+          <div class="chips mb" id="ch_preset_chips" style="gap:6px">
+            <span class="chip" data-preset="app,web,whatsapp">🌐📱💬 General (Los 3 Canales)</span>
+            <span class="chip" data-preset="app">📱 Solo App de Socios</span>
+            <span class="chip" data-preset="web">🌐 Solo Página Web</span>
+            <span class="chip" data-preset="whatsapp">💬 Solo WhatsApp</span>
+            <span class="chip" data-preset="app,web">📱+🌐 App + Web</span>
+            <span class="chip" data-preset="app,whatsapp">📱+💬 App + WhatsApp</span>
+            <span class="chip" data-preset="web,whatsapp">🌐+💬 Web + WhatsApp</span>
           </div>
           <div class="grid g3 keep gap mb">
             <label class="card flat" style="cursor:pointer;padding:10px;border:1px solid var(--line);display:flex;align-items:flex-start;gap:8px">
@@ -412,37 +410,27 @@
             <label class="card flat" style="cursor:pointer;padding:10px;border:1px solid var(--line);display:flex;align-items:flex-start;gap:8px">
               <input type="checkbox" id="ch_web" ${chList.includes('web') ? 'checked' : ''} style="margin-top:3px">
               <div>
-                <div style="font-weight:700;font-size:.85rem">🌐 Sitio Web Público</div>
-                <div class="tiny muted">Vitrina multimedia, carrusel de ofertas o Spotlight</div>
+                <div style="font-weight:700;font-size:.85rem">🌐 Página Web del Gimnasio</div>
+                <div class="tiny muted">Vitrina multimedia, muro de avisos o Spotlight</div>
               </div>
             </label>
             <label class="card flat" style="cursor:pointer;padding:10px;border:1px solid var(--line);display:flex;align-items:flex-start;gap:8px">
               <input type="checkbox" id="ch_wa" ${chList.includes('whatsapp') ? 'checked' : ''} style="margin-top:3px">
               <div>
-                <div style="font-weight:700;font-size:.85rem">💬 Comunidad WhatsApp</div>
-                <div class="tiny muted">Publicación formateada para Grupo/Comunidad sin bloqueo</div>
+                <div style="font-weight:700;font-size:.85rem">💬 WhatsApp del Gimnasio</div>
+                <div class="tiny muted">Publicación directa en el grupo/comunidad del gimnasio</div>
               </div>
             </label>
           </div>
 
-          <div class="grid g2 keep gap">
-            <label class="field" id="webspot_field">
-              <span>Ubicación Visual en el Sitio Web Público</span>
-              <select name="web_spot" id="selwebspot">
-                <option value="carousel" ${curSpot === 'carousel' ? 'selected' : ''}>🎠 Vitrina Multimedia / Slider Interactivo (Derecha)</option>
-                <option value="normal" ${curSpot === 'normal' ? 'selected' : ''}>📌 Muro de Comunicados y Documentos (Izquierda)</option>
-                <option value="lightbox" ${curSpot === 'lightbox' ? 'selected' : ''}>✨ Spotlight de Portada al Abrir (Ventana Cristal con ✕ y Tiempo)</option>
-              </select>
-            </label>
-            <label class="field" id="watarget_field">
-              <span>Destino en WhatsApp al Publicar</span>
-              <select name="whatsapp_target" id="selwatarget">
-                <option value="community" ${curWaTarget === 'community' ? 'selected' : ''}>🌐 Comunidad / Canal General del Gimnasio</option>
-                <option value="members_group" ${curWaTarget === 'members_group' ? 'selected' : ''}>🔒 Grupo Oficial Exclusivo de Socios</option>
-                <option value="both_wa" ${curWaTarget === 'both_wa' ? 'selected' : ''}>📣 Ambos (Comunidad General + Grupo de Socios)</option>
-              </select>
-            </label>
-          </div>
+          <label class="field" id="webspot_field">
+            <span>Ubicación Visual en la Página Web del Gimnasio</span>
+            <select name="web_spot" id="selwebspot">
+              <option value="carousel" ${curSpot === 'carousel' ? 'selected' : ''}>🎠 Vitrina Multimedia / Slider Interactivo (Derecha)</option>
+              <option value="normal" ${curSpot === 'normal' ? 'selected' : ''}>📌 Muro de Comunicados y Documentos (Izquierda)</option>
+              <option value="lightbox" ${curSpot === 'lightbox' ? 'selected' : ''}>✨ Spotlight de Portada al Abrir (Ventana Cristal con ✕ y Tiempo)</option>
+            </select>
+          </label>
         </div>
 
         <!-- 2. CONTENIDO PRINCIPAL -->
@@ -574,20 +562,39 @@
     const chWeb = f.querySelector('#ch_web');
     const chWa = f.querySelector('#ch_wa');
     const webSpotField = f.querySelector('#webspot_field');
-    const waTargetField = f.querySelector('#watarget_field');
     const appTargetBox = f.querySelector('#app_targeting_box');
     const pushCheckWrap = f.querySelector('#push_check_wrap');
     const audSel = f.querySelector('#selaudience');
     const smBox = f.querySelector('#singlememberbox');
+    const presetChips = f.querySelectorAll('#ch_preset_chips .chip');
 
     const syncChannelUI = () => {
       webSpotField.classList.toggle('hidden', !chWeb.checked);
-      waTargetField.classList.toggle('hidden', !chWa.checked);
       appTargetBox.classList.toggle('hidden', !chApp.checked);
       pushCheckWrap.classList.toggle('hidden', !chApp.checked);
       if (!chApp.checked) smBox.classList.add('hidden');
       else smBox.classList.toggle('hidden', audSel.value !== 'member');
+
+      const curCombo = [
+        chApp.checked ? 'app' : '',
+        chWeb.checked ? 'web' : '',
+        chWa.checked ? 'whatsapp' : ''
+      ].filter(Boolean).join(',');
+      presetChips.forEach(chip => {
+        chip.classList.toggle('on', chip.dataset.preset === curCombo);
+      });
     };
+
+    presetChips.forEach(chip => {
+      chip.onclick = () => {
+        const parts = (chip.dataset.preset || '').split(',');
+        chApp.checked = parts.includes('app');
+        chWeb.checked = parts.includes('web');
+        chWa.checked = parts.includes('whatsapp');
+        syncChannelUI();
+      };
+    });
+
     chApp.onchange = syncChannelUI;
     chWeb.onchange = syncChannelUI;
     chWa.onchange = syncChannelUI;
@@ -662,7 +669,7 @@
         kind: f.kind.value,
         channel: selectedChannels.join(','),
         web_spot: f.web_spot.value,
-        whatsapp_target: chWa.checked ? f.whatsapp_target.value : 'none',
+        whatsapp_target: chWa.checked ? 'community' : 'none',
         title: f.title.value.trim(),
         body: f.body.value.trim(),
         priority: f.priority.value,
