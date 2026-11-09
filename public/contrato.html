@@ -292,15 +292,10 @@
       white-space: nowrap;
     }
     .bilateral-bar {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 12px;
-      padding-top: 12px;
+      display: block;
+      margin-top: 10px;
+      padding-top: 10px;
       border-top: 1px solid var(--border);
-    }
-    @media (max-width: 760px) {
-      .bilateral-bar { grid-template-columns: 1fr; }
     }
     .party-card {
       background: rgba(15, 23, 42, 0.65);
@@ -309,10 +304,50 @@
       padding: 10px 14px;
       display: flex;
       align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
       gap: 12px;
     }
     .party-card.dev-party { border-left: 3.5px solid var(--cyan); }
-    .party-card.gym-party { border-left: 3.5px solid var(--gold); }
+    .dev-corner-signature {
+      position: fixed;
+      bottom: 14px;
+      left: 18px;
+      z-index: 90;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.72);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 10.5px;
+      color: rgba(203, 213, 225, 0.62);
+      letter-spacing: 0.3px;
+      transition: opacity 0.2s, color 0.2s, border-color 0.2s;
+      pointer-events: auto;
+    }
+    .dev-corner-signature:hover {
+      color: #f8fafc;
+      border-color: rgba(6, 182, 212, 0.4);
+    }
+    [data-theme="light"] .dev-corner-signature {
+      background: rgba(255, 255, 255, 0.85);
+      border-color: rgba(15, 23, 42, 0.1);
+      color: rgba(71, 85, 105, 0.72);
+    }
+    .doc-footer-brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 6px;
+      padding-top: 4px;
+      border-top: 1px solid rgba(148, 163, 184, 0.2);
+      font-size: 9.5px;
+      color: var(--muted);
+      letter-spacing: 0.3px;
+    }
 
     /* CAMPOS EDITABLES DIRECTAMENTE EN EL DOCUMENTO */
     [contenteditable="true"] {
@@ -526,8 +561,8 @@
     .pdf-export-sheet .grid-2 > * { flex: 0 0 calc(50% - 2.5px) !important; max-width: calc(50% - 2.5px) !important; box-sizing: border-box !important; margin-bottom: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
     .pdf-export-sheet .grid-3 { display: flex !important; flex-wrap: wrap !important; gap: 5px !important; }
     .pdf-export-sheet .grid-3 > * { flex: 0 0 calc(33.333% - 3.5px) !important; max-width: calc(33.333% - 3.5px) !important; box-sizing: border-box !important; margin-bottom: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
-    .pdf-export-sheet .bilateral-bar { display: flex !important; gap: 6px !important; margin-top: 5px !important; padding-top: 5px !important; border-top: 1px solid #cbd5e1 !important; }
-    .pdf-export-sheet .bilateral-bar > * { flex: 1 1 50% !important; background: #f8fafc !important; border: 1px solid #cbd5e1 !important; padding: 5px 8px !important; }
+    .pdf-export-sheet .bilateral-bar { display: block !important; margin-top: 5px !important; padding-top: 5px !important; border-top: 1px solid #cbd5e1 !important; }
+    .pdf-export-sheet .bilateral-bar > * { width: 100% !important; background: #f8fafc !important; border: 1px solid #cbd5e1 !important; padding: 5px 8px !important; }
     .pdf-export-sheet .dev-emblem-box { background: #0f172a !important; border-color: #0284c7 !important; width: 44px !important; height: 44px !important; padding: 3px !important; box-shadow: none !important; }
     .pdf-export-sheet .dev-emblem-box svg { width: 22px !important; height: 22px !important; }
     .pdf-export-sheet .dev-emblem-sub { color: #38bdf8 !important; font-size: 5.5pt !important; white-space: nowrap !important; }
@@ -565,7 +600,7 @@
 
     @media print {
       @page { size: A4 portrait; margin: 5mm 7mm; }
-      .topbar, .mode-switch-bar, .configurator-panel, .no-print { display: none !important; }
+      .topbar, .mode-switch-bar, .configurator-panel, .dev-corner-signature, .no-print { display: none !important; }
       [contenteditable="true"] { border-bottom: none !important; padding: 0 !important; }
       html, body {
         background: #ffffff !important;
@@ -582,10 +617,9 @@
       .grid-2 > * { flex: 0 0 calc(50% - 2px) !important; max-width: calc(50% - 2px) !important; box-sizing: border-box !important; margin-bottom: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
       .grid-3 { display: flex !important; flex-wrap: wrap !important; gap: 4px !important; }
       .grid-3 > * { flex: 0 0 calc(33.333% - 3px) !important; max-width: calc(33.333% - 3px) !important; box-sizing: border-box !important; margin-bottom: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
-      .bilateral-bar { display: flex !important; gap: 5px !important; margin-top: 4px !important; padding-top: 4px !important; border-top: 1px solid #cbd5e1 !important; }
-      .bilateral-bar > * { flex: 1 1 50% !important; background: #f8fafc !important; border: 1px solid #cbd5e1 !important; padding: 4px 7px !important; }
+      .bilateral-bar { display: block !important; margin-top: 4px !important; padding-top: 4px !important; border-top: 1px solid #cbd5e1 !important; }
+      .bilateral-bar > * { width: 100% !important; background: #f8fafc !important; border: 1px solid #cbd5e1 !important; padding: 4px 8px !important; }
       .party-card.dev-party { border-left: 3px solid #0284c7 !important; }
-      .party-card.gym-party { border-left: 3px solid #dc2626 !important; }
       .dev-emblem-box { background: #0f172a !important; border: 1.5px solid #0284c7 !important; width: 42px !important; height: 42px !important; padding: 3px !important; box-shadow: none !important; }
       .dev-emblem-box svg { width: 22px !important; height: 22px !important; }
       .dev-emblem-sub { color: #38bdf8 !important; font-size: 5.5pt !important; white-space: nowrap !important; }
@@ -1000,7 +1034,7 @@
     <!-- DOCUMENTO 1: DOSSIER INFORMATIVO Y PROPUESTA TÉCNICA-COMERCIAL                           -->
     <!-- ======================================================================================== -->
     <div id="docDossier">
-      <!-- SECCIÓN 0: PORTADA EJECUTIVA BILATERAL (EMBLEMA DEL DESARROLLADOR + LOGO DEL GIMNASIO) -->
+      <!-- SECCIÓN 0: PORTADA EJECUTIVA Y TARJETA DEL DESARROLLADOR -->
       <section class="hero">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:8px">
           <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:280px">
@@ -1025,50 +1059,35 @@
           </div>
         </div>
         <p style="margin-bottom:10px">
-          Plataforma tecnológica diseñada a medida para la gestión integral del gimnasio: automatiza el control de ingreso por código QR, registra inscripciones nuevas y membresías en curso, administra la caja diaria por turnos en <strong>Efectivo, Yape y Plin</strong>, entrega una aplicación móvil a los socios y proyecta bienvenidas en tiempo real en el monitor de recepción.
+          Plataforma tecnológica diseñada a medida para la gestión integral del gimnasio: automatiza el control de ingreso por código QR, registra inscripciones nuevas y membresías en curso, administra la caja diaria por turnos, entrega una aplicación móvil a los socios y proyecta bienvenidas en tiempo real en el monitor de recepción.
         </p>
 
-        <!-- ENCABEZADO BILATERAL: AUTOR DE LA PROPUESTA (DESARROLLADOR) Y ESTABLECIMIENTO DESTINATARIO -->
+        <!-- TARJETA DE PRESENTACIÓN PROFESIONAL DEL DESARROLLADOR (SOLO NOMBRE Y CELULAR) -->
         <div class="bilateral-bar">
           <div class="party-card dev-party">
-            <div class="dev-emblem-box" style="width:46px;height:46px">
-              <div class="dev-logo-slot">
-                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <polygon points="32,4 58,18 58,46 32,60 6,46 6,18" stroke="#06b6d4" stroke-width="3.2" fill="rgba(6,182,212,0.15)" />
-                  <path d="M23 24L14 32L23 40" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M41 24L50 32L41 40" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M35 20L29 44" stroke="#ef4444" stroke-width="3.8" stroke-linecap="round"/>
-                </svg>
+            <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:280px">
+              <div class="dev-emblem-box" style="width:46px;height:46px">
+                <div class="dev-logo-slot">
+                  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="32,4 58,18 58,46 32,60 6,46 6,18" stroke="#06b6d4" stroke-width="3.2" fill="rgba(6,182,212,0.15)" />
+                    <path d="M23 24L14 32L23 40" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M41 24L50 32L41 40" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M35 20L29 44" stroke="#ef4444" stroke-width="3.8" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <div class="dev-emblem-sub">ING · SW</div>
               </div>
-              <div class="dev-emblem-sub">ING · SW</div>
-            </div>
-            <div style="font-size:11.5px;line-height:1.38;flex:1">
-              <div style="font-size:10px;font-weight:900;color:var(--cyan);text-transform:uppercase;letter-spacing:0.6px">👨‍💻 AUTOR Y PROVEEDOR TECNOLÓGICO (EL DESARROLLADOR)</div>
-              <div style="font-weight:900;color:#fff;font-size:12.5px">Desarrollador de Software y Sistemas Digitales</div>
-              <div style="color:#cbd5e1;font-size:11px;margin-top:2px">
-                <strong>Nombre:</strong> <span class="dev-name-txt" contenteditable="true" data-sync="cfgDevName">_________________________________</span> ·
-                <strong>DNI/RUC:</strong> <span class="dev-dni-txt" contenteditable="true" data-sync="cfgDevDni">____________________</span> ·
-                <strong>Cel/WhatsApp:</strong> <span class="dev-phone-txt" contenteditable="true" data-sync="cfgDevPhone">____________________</span>
-              </div>
-              <div style="color:var(--muted);font-size:10.5px;margin-top:2px">
-                Especialista en desarrollo de sistemas web a medida, aplicaciones móviles instalables (PWA), control óptico QR y arquitecturas de respaldo en la nube para negocios.
+              <div style="font-size:11.5px;line-height:1.38;flex:1">
+                <div style="font-size:10px;font-weight:900;color:var(--cyan);text-transform:uppercase;letter-spacing:0.6px">👨‍💻 PRESENTACIÓN DEL RESPONSABLE DEL PROYECTO</div>
+                <div style="font-weight:900;color:#fff;font-size:13px">Desarrollador de Software y Sistemas Digitales</div>
+                <div style="color:var(--muted);font-size:10.8px;margin-top:1px">
+                  Especialista en diseño e implementación de sistemas web a medida, aplicaciones móviles instalables (PWA), automatización de accesos QR y arquitecturas de respaldo continuo en la nube para negocios.
+                </div>
               </div>
             </div>
-          </div>
-
-          <div class="party-card gym-party">
-            <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:44px;width:auto;object-fit:contain;flex-shrink:0" />
-            <div style="font-size:11.5px;line-height:1.38;flex:1">
-              <div style="font-size:10px;font-weight:900;color:var(--gold);text-transform:uppercase;letter-spacing:0.6px">🏋️ ESTABLECIMIENTO DESTINATARIO (EL CLIENTE)</div>
-              <div style="font-weight:900;color:#fff;font-size:12.5px" class="gym-name">RD FITNESS CLUB</div>
-              <div style="color:#cbd5e1;font-size:11px;margin-top:2px">
-                <strong>Titular / Propietario:</strong> <span class="ctr-client-name" contenteditable="true" data-sync="cfgClientName">______________________________________</span> ·
-                <strong>DNI/RUC:</strong> <span class="ctr-client-dni" contenteditable="true" data-sync="cfgClientDni">____________________</span>
-              </div>
-              <div style="color:var(--muted);font-size:10.5px;margin-top:2px">
-                <strong>Sede Comercial:</strong> <span class="ctr-address-txt" contenteditable="true" data-sync="cfgClientAddress">Chivay — Caylloma, Arequipa</span> ·
-                <strong>Fecha de Propuesta:</strong> <span class="ctr-date-txt" contenteditable="true" data-sync="cfgContractDate">09/11/2026</span>
-              </div>
+            <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:11.5px;min-width:250px">
+              <div><strong style="color:var(--cyan)">Desarrollador:</strong> <span class="dev-name-txt" contenteditable="true" data-sync="cfgDevName">_________________________________</span></div>
+              <div style="margin-top:3px"><strong style="color:var(--cyan)">Celular / WhatsApp:</strong> <span class="dev-phone-txt" contenteditable="true" data-sync="cfgDevPhone">____________________</span></div>
             </div>
           </div>
         </div>
@@ -1086,7 +1105,7 @@
             <h3>1.1. Escáner de Acceso Instantáneo y Cobro Ágil (Pestaña /scan)</h3>
             <ul class="feature-list">
               <li><strong>Validación QR Ultrarrápida (&lt;2 ms):</strong> Verifica en milisegundos la vigencia del socio mediante lector óptico 2D manos libres o cámara.</li>
-              <li><strong>Medios de Pago Directos (Efectivo, Yape y Plin):</strong> Interfaz optimizada para registrar cobros rápidos en <strong>Efectivo, Yape y Plin</strong> con registro opcional de número de operación.</li>
+              <li><strong>Registro Ágil de Pagos:</strong> Permite registrar cobros directos en efectivo o billeteras digitales (Yape/Plin) con anotación opcional de número de operación.</li>
               <li><strong>Respuesta Sonora y Semáforo Visual:</strong> Confirmación auditiva y alerta verde para socios activos; timbre de aviso y alerta roja ante membresías vencidas.</li>
             </ul>
           </div>
@@ -1095,7 +1114,7 @@
             <h3>1.2. Dashboard Ejecutivo en Vivo (Pestaña /home)</h3>
             <ul class="feature-list">
               <li><strong>Indicadores del Día en Tiempo Real:</strong> Contador de socios activos, asistencias registradas en la jornada, pases diarios y nuevas inscripciones.</li>
-              <li><strong>Desglose Automático de Recaudación:</strong> Resumen diario separado con exactitud entre <strong>Efectivo en gaveta</strong> y cobros digitales por <strong>Yape y Plin</strong>.</li>
+              <li><strong>Desglose Automático de Recaudación:</strong> Resumen diario separado con exactitud entre el efectivo físico en gaveta y los ingresos digitales del turno.</li>
               <li><strong>Control de Próximos Vencimientos:</strong> Listado automático de socios próximos a vencer para facilitar el seguimiento y renovación.</li>
             </ul>
           </div>
@@ -1114,7 +1133,7 @@
             <ul class="feature-list">
               <li><strong>Catálogo de Productos y Pases Diarios:</strong> Venta ágil de bebidas, aguas, proteínas por servicio, suplementos, accesorios y pases del día.</li>
               <li><strong>Control de Inventario en Vivo:</strong> Descuento automático de stock por cada unidad vendida y alertas visuales de reposición.</li>
-              <li><strong>Integración Directa con Caja:</strong> Cada venta se suma automáticamente al turno abierto según el medio de pago utilizado (Efectivo, Yape o Plin).</li>
+              <li><strong>Integración Directa con Caja:</strong> Cada venta se incorpora automáticamente al balance del turno activo según la modalidad de cobro registrada.</li>
             </ul>
           </div>
 
@@ -1123,7 +1142,7 @@
             <ul class="feature-list">
               <li><strong>Modalidad Flexible de Turnos:</strong> Permite operar con <strong>2 turnos diarios (Turno Mañana y Turno Tarde/Noche)</strong> o en modalidad de <strong>Turno Único / Día Completo</strong>.</li>
               <li><strong>Apertura con Fondo de Caja:</strong> Registro del sencillo inicial de gaveta separado de los ingresos del día.</li>
-              <li><strong>Arqueo y Cierre Exacto:</strong> Calcula al instante el efectivo físico exacto que debe existir en gaveta (descontando gastos autorizados) y el total recibido en cuentas Yape/Plin.</li>
+              <li><strong>Arqueo y Cierre Exacto:</strong> Calcula al instante el efectivo físico exacto que debe existir en gaveta (descontando gastos autorizados) y el total de transferencias digitales.</li>
             </ul>
           </div>
 
@@ -1216,7 +1235,7 @@
             <ul class="feature-list">
               <li><strong>Tarjeta de Bienvenida en Tiempo Real:</strong> Al escanear el código QR, despliega en pantalla la fotografía del socio, su nombre, plan activo y días restantes con confirmación sonora.</li>
               <li><strong>Aviso Visual y Auditivo de Vencimiento:</strong> Notifica de forma clara cuando una membresía ha concluido para facilitar su renovación inmediata en mostrador.</li>
-              <li><strong>Proyección de QR Yape / Plin:</strong> Muestra en pantalla el código QR oficial del gimnasio junto al importe exacto de la operación para agilizar el pago desde el celular del socio.</li>
+              <li><strong>Proyección de QR de Pago en Mostrador:</strong> Muestra en pantalla el código QR oficial del establecimiento junto al importe exacto de la operación para agilizar la renovación desde el celular del socio.</li>
             </ul>
           </div>
 
@@ -1361,7 +1380,7 @@
             <tr>
               <td><strong>2. Monitor de Recepción 21.5" / 22" Full HD + Cable HDMI</strong></td>
               <td><strong>LG / Samsung / Teros Full HD HDMI</strong></td>
-              <td>Pantalla secundaria fija en el mostrador (conectada por cable HDMI a la laptop) orientada hacia los socios para visualizar su bienvenida QR, días de vigencia y el código QR de pago Yape/Plin con total nitidez y seguridad.</td>
+              <td>Pantalla secundaria fija en el mostrador (conectada por cable HDMI a la laptop) orientada hacia los socios para visualizar su bienvenida QR, días de vigencia y el código QR de pago del establecimiento con total nitidez y seguridad.</td>
               <td style="text-align:right"><span class="badge-ok">S/ 420.00</span></td>
             </tr>
             <tr>
@@ -1481,6 +1500,10 @@
             <li><strong>4. Formalización en Contrato Oficial:</strong> El presente Dossier es informativo; la elección específica de planes, equipos, pagos y firmas se suscribe en el <strong>Contrato Oficial de Implementación</strong>.</li>
           </ul>
         </div>
+        <div class="doc-footer-brand">
+          <span><strong>&lt;/&gt;</strong> Desarrollado por <strong>Ingeniería de Software y Sistemas Digitales</strong> · <span class="dev-name-txt">_________________________________</span></span>
+          <span>Propuesta Técnica y Comercial · <span class="gym-name">RD FITNESS CLUB</span></span>
+        </div>
       </section>
     </div>
 
@@ -1488,7 +1511,7 @@
     <!-- DOCUMENTO 2: CONTRATO OFICIAL PERSONALIZADO DE SERVICIOS, ELECCIÓN, PAGOS Y FIRMAS       -->
     <!-- ======================================================================================== -->
     <div id="docContrato" class="hidden-doc">
-      <!-- ENCABEZADO OFICIAL BILATERAL DEL CONTRATO (SELLO DEL DESARROLLADOR + LOGO DEL GIMNASIO) -->
+      <!-- ENCABEZADO OFICIAL DEL CONTRATO (CON TARJETA DEL DESARROLLADOR: SOLO NOMBRE Y CELULAR) -->
       <section class="hero" style="padding:18px 22px;margin-bottom:12px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:8px">
           <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:280px">
@@ -1507,7 +1530,7 @@
             <!-- LOGO DEL GIMNASIO CLIENTE -->
             <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:58px;width:auto;object-fit:contain;background:transparent !important" />
             <div>
-              <div class="hero-tag" style="margin-bottom:3px">Documento Legal Bilateral Vinculante · Código Civil Peruano (Arts. 1351°, 1361° y 1764°)</div>
+              <div class="hero-tag" style="margin-bottom:3px">Documento Legal Vinculante · Código Civil Peruano (Arts. 1351°, 1361° y 1764°)</div>
               <h1 style="font-size:19.5px;margin:0">CONTRATO DE IMPLEMENTACIÓN DE SOFTWARE, LIQUIDACIÓN DE ELECCIÓN Y CONFORMIDAD LEGAL</h1>
             </div>
           </div>
@@ -1517,39 +1540,29 @@
           </div>
         </div>
 
-        <!-- IDENTIFICACIÓN BILATERAL DE LAS PARTES CONTRATANTES -->
+        <!-- TARJETA DEL DESARROLLADOR (SOLO NOMBRE Y CELULAR; LOS DATOS DE FIRMA VAN EN LA SECCIÓN V) -->
         <div class="bilateral-bar" style="margin-top:6px;padding-top:8px">
           <div class="party-card dev-party">
-            <div class="dev-emblem-box" style="width:42px;height:42px">
-              <div class="dev-logo-slot">
-                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <polygon points="32,4 58,18 58,46 32,60 6,46 6,18" stroke="#06b6d4" stroke-width="3.2" fill="rgba(6,182,212,0.15)" />
-                  <path d="M23 24L14 32L23 40" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M41 24L50 32L41 40" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M35 20L29 44" stroke="#ef4444" stroke-width="3.8" stroke-linecap="round"/>
-                </svg>
+            <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:260px">
+              <div class="dev-emblem-box" style="width:42px;height:42px">
+                <div class="dev-logo-slot">
+                  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="32,4 58,18 58,46 32,60 6,46 6,18" stroke="#06b6d4" stroke-width="3.2" fill="rgba(6,182,212,0.15)" />
+                    <path d="M23 24L14 32L23 40" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M41 24L50 32L41 40" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M35 20L29 44" stroke="#ef4444" stroke-width="3.8" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <div class="dev-emblem-sub">ING · SW</div>
               </div>
-              <div class="dev-emblem-sub">ING · SW</div>
-            </div>
-            <div style="font-size:11px;line-height:1.35;flex:1">
-              <div style="font-size:9.5px;font-weight:900;color:var(--cyan);text-transform:uppercase">PARTE 1: EL DESARROLLADOR (PROVEEDOR TECNOLÓGICO)</div>
-              <div style="font-weight:800;color:#fff">Nombre: <span class="dev-name-txt" contenteditable="true" data-sync="cfgDevName">_________________________________</span></div>
-              <div style="color:#cbd5e1">
-                <strong>DNI / RUC:</strong> <span class="dev-dni-txt" contenteditable="true" data-sync="cfgDevDni">____________________</span> ·
-                <strong>Cel/WhatsApp:</strong> <span class="dev-phone-txt" contenteditable="true" data-sync="cfgDevPhone">____________________</span>
+              <div style="font-size:11px;line-height:1.35;flex:1">
+                <div style="font-size:9.5px;font-weight:900;color:var(--cyan);text-transform:uppercase">👨‍💻 RESPONSABLE TECNOLÓGICO DEL PROYECTO (EL DESARROLLADOR)</div>
+                <div style="font-weight:900;color:#fff;font-size:12px">Desarrollador de Software y Sistemas Digitales</div>
               </div>
             </div>
-          </div>
-
-          <div class="party-card gym-party">
-            <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:40px;width:auto;object-fit:contain;flex-shrink:0" />
-            <div style="font-size:11px;line-height:1.35;flex:1">
-              <div style="font-size:9.5px;font-weight:900;color:var(--gold);text-transform:uppercase">PARTE 2: EL CLIENTE (<span class="gym-name">RD FITNESS CLUB</span>)</div>
-              <div style="font-weight:800;color:#fff">Titular: <span class="ctr-client-name" contenteditable="true" data-sync="cfgClientName">______________________________________</span></div>
-              <div style="color:#cbd5e1">
-                <strong>DNI / RUC:</strong> <span class="ctr-client-dni" contenteditable="true" data-sync="cfgClientDni">____________________</span> ·
-                <strong>Sede:</strong> <span class="ctr-address-txt" contenteditable="true" data-sync="cfgClientAddress">Chivay — Caylloma, Arequipa</span>
-              </div>
+            <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11px">
+              <strong>Nombre:</strong> <span class="dev-name-txt" contenteditable="true" data-sync="cfgDevName">_________________________________</span> ·
+              <strong>Celular / WhatsApp:</strong> <span class="dev-phone-txt" contenteditable="true" data-sync="cfgDevPhone">____________________</span>
             </div>
           </div>
         </div>
@@ -1675,7 +1688,7 @@
           <div class="box">
             <h3>Cláusula Segunda: Autonomía Administrativa y Tributaria del Gimnasio</h3>
             <p style="font-size:10.8px;color:#cbd5e1;line-height:1.4;margin:0">
-              La gestión empresarial, contable, tributaria, municipal y laboral del gimnasio (inscripción en el RUC, régimen tributario, declaración de ingresos en Efectivo/Yape/Plin y emisión oficial de Boletas o Facturas Electrónicas ante la <strong>SUNAT</strong> mediante Portal SUNAT SOL o facturador autorizado) corresponde de manera exclusiva e independiente a los propietarios del gimnasio.
+              La gestión empresarial, contable, tributaria, municipal y laboral del gimnasio (inscripción en el RUC, régimen tributario, declaración de ingresos recaudados y emisión oficial de Boletas o Facturas Electrónicas ante la <strong>SUNAT</strong> mediante Portal SUNAT SOL o facturador autorizado) corresponde de manera exclusiva e independiente a los propietarios del gimnasio.
             </p>
           </div>
 
@@ -1775,9 +1788,19 @@
             </div>
           </div>
         </div>
+        <div class="doc-footer-brand">
+          <span><strong>&lt;/&gt;</strong> Desarrollado por <strong>Ingeniería de Software y Sistemas Digitales</strong> · <span class="dev-name-txt">_________________________________</span></span>
+          <span>Contrato Oficial de Implementación · <span class="gym-name">RD FITNESS CLUB</span></span>
+        </div>
       </section>
     </div>
   </main>
+
+  <!-- MICRO-SELLO DISCRETO Y ELEGANTE EN ESQUINA INFERIOR IZQUIERDA (MARCA DEL DESARROLLADOR) -->
+  <div class="dev-corner-signature no-print" title="Sello de Autoría Tecnológica — Desarrollador de Software y Sistemas Digitales">
+    <span style="color:var(--cyan);font-weight:900;font-family:monospace">&lt;/&gt;</span>
+    <span>Desarrollado por <strong style="color:#e2e8f0;font-weight:700" class="dev-name-txt">Ingeniería de Software</strong></span>
+  </div>
 
   <script>
     const DEFAULT_GYM_NAME = 'RD FITNESS CLUB';
