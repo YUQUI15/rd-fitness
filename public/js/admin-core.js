@@ -381,21 +381,32 @@
           RD.toast(err.message, 'err');
         }
       };
-      m.el.querySelector('#btn_export_json').onclick = () => {
-        const backup = {
-          gym: RD.pub.gym_name || 'Gym',
-          exported_at: new Date().toISOString(),
-          snapshot: RD.snap(),
-          local_tx: RD.localEngine.getTxQueue(),
-          scans: RD.queue(),
-          plans: JSON.parse(localStorage.getItem('rd_plans') || '[]')
-        };
-        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `Respaldo_Local_Gym_${new Date().toISOString().slice(0, 10)}.json`;
-        a.click();
-        RD.toast('Copia de seguridad descargada en esta PC', 'ok');
+      m.el.querySelector('#btn_export_json').onclick = async () => {
+        try {
+          if (RD.security && RD.security.requirePin) {
+            await RD.security.requirePin('Descargar respaldo local de base de datos (.JSON)');
+          }
+          const backup = {
+            gym: RD.pub.gym_name || 'Gym',
+            exported_at: new Date().toISOString(),
+            snapshot: RD.snap(),
+            local_tx: RD.localEngine.getTxQueue(),
+            scans: RD.queue(),
+            plans: JSON.parse(localStorage.getItem('rd_plans') || '[]')
+          };
+          const filename = `Respaldo_Local_Gym_${new Date().toISOString().slice(0, 10)}.json`;
+          const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = filename;
+          a.click();
+          if (RD.security && RD.security.notifyDownload) {
+            RD.security.notifyDownload(filename, 'Respaldo Local de Contingencia (.JSON)');
+          }
+          RD.toast('Copia de seguridad descargada en esta PC', 'ok');
+        } catch (err) {
+          if (err && err.message) RD.toast(err.message, 'warn');
+        }
       };
       m.el.querySelector('#btn_download_bat').onclick = () => {
         const batContent = `@echo off
@@ -451,6 +462,9 @@ pause`;
         <button class="top-btn" id="btn_google_sheets" title="Abrir Google Sheets Oficial del Gimnasio">
           ${RD.icon('sheet', '', 15)} <span>Sheets</span>
         </button>
+        <button class="top-btn" id="btn_privacy_pin" title="Cifrado Visual de Datos Sensibles, PIN Especial del Propietario y Alertas de Descarga">
+          ${RD.icon(RD.security?.isUnlocked() ? 'unlock' : 'lock', '', 15)} <span id="lbl_privacy_pin">${RD.security?.isUnlocked() ? 'Datos Visibles' : 'Privacidad / PIN'}</span>
+        </button>
         <button class="top-btn" id="btn_refresh_system" title="Actualizar aplicación a la última versión y recargar datos en vivo">
           ${RD.icon('refresh', '', 15)} <span>Actualizar</span>
         </button>
@@ -469,7 +483,19 @@ pause`;
     $('#btn_local_mode').onclick = RD.openLocalModeModal;
     $('#btn_customer_screen').onclick = RD.openCustomerDisplayWindow;
     $('#btn_google_sheets').onclick = RD.openGoogleSheetsDirect;
+    $('#btn_privacy_pin').onclick = () => RD.security && RD.security.openPrivacyModal();
     $('#btn_refresh_system').onclick = RD.forceAppUpdate;
+    if (RD.security && RD.security.mountWatermark) RD.security.mountWatermark();
+    window.addEventListener('rd:privacy-change', () => {
+      const btn = $('#btn_privacy_pin');
+      if (btn && RD.security) {
+        const un = RD.security.isUnlocked();
+        btn.innerHTML = `${RD.icon(un ? 'unlock' : 'lock', '', 15)} <span id="lbl_privacy_pin">${un ? 'Datos Visibles' : 'Privacidad / PIN'}</span>`;
+      }
+      if (RD.currentView === 'members' || RD.currentView === 'reports') {
+        go(RD.currentView);
+      }
+    });
     updateNet();
   }
   function userMenu() {

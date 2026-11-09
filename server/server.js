@@ -1728,6 +1728,15 @@ api.get('/reports/export/excel', staff('admin', 'recepcion'), wrap(async (req, r
   const ds = buildDataset({ from, to, q, settings });
   const buf = await buildXlsx(ds, { publicDir: path.join(__dirname, '..', 'public') });
   const filename = `Reporte_RD_Fitness_${from}_al_${to}.xlsx`;
+  audit(req.user.id, 'ALERTA_DESCARGA_DATOS', {
+    file: filename,
+    type: 'Libro Excel Maestro (.xlsx)',
+    from,
+    to,
+    user: req.user.name,
+    role: req.user.role,
+    ip: req.ip
+  });
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.send(buf);
@@ -1743,6 +1752,15 @@ api.get('/reports/export/csv', staff('admin', 'recepcion'), wrap((req, res) => {
   const table = ds.tables[tableKey] || ds.tables.daily;
   const csv = tableToCsv(table, req.query.sep || ',');
   const filename = `Reporte_${table.name.replace(/\s+/g, '_')}_${from}_al_${to}.csv`;
+  audit(req.user.id, 'ALERTA_DESCARGA_DATOS', {
+    file: filename,
+    type: `Tabla CSV (${table.name})`,
+    from,
+    to,
+    user: req.user.name,
+    role: req.user.role,
+    ip: req.ip
+  });
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.send(csv);
@@ -1936,13 +1954,110 @@ api.put('/users/:id', staff('admin'), wrap((req, res) => {
   audit(req.user.id, 'user.update', { id: u.id });
   res.json({ ok: true });
 }));
-api.get('/settings', staff(), wrap((req, res) => res.json(getSettings())));
+api.get('/settings', staff(), wrap((req, res) => {
+  const s = getSettings();
+  if (req.user.role !== 'admin') {
+    s.owner_data_pin = '****';
+  }
+  res.json(s);
+}));
 api.put('/settings', staff('admin', 'recepcion'), wrap((req, res) => {
-  const allowed = ['gym_name', 'gym_slogan', 'gym_phone', 'gym_address', 'warn_days', 'grace_days', 'passback_min', 'stay_min', 'opening', 'color', 'google_sheet_url', 'yape_phone', 'yape_name', 'whatsapp_community_url', 'whatsapp_members_group_url'];
-  q.tx(() => { for (const k of allowed) if (k in (req.body || {})) q.run('INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)', k, String(req.body[k])); });
-  audit(req.user.id, 'settings.update', req.body);
+  const allowed = ['gym_name', 'gym_slogan', 'gym_phone', 'gym_address', 'warn_days', 'grace_days', 'passback_min', 'stay_min', 'opening', 'color', 'google_sheet_url', 'yape_phone', 'yape_name', 'whatsapp_community_url', 'whatsapp_members_group_url', 'owner_alert_phone', 'privacy_mask_default'];
+  if (req.user.role === 'admin') allowed.push('owner_data_pin');
+  q.tx(() => {
+    for (const k of allowed) {
+      if (k in (req.body || {})) {
+        if (k === 'owner_data_pin' && (!req.body[k] || req.body[k] === '****')) continue;
+        q.run('INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)', k, String(req.body[k]));
+      }
+    }
+  });
+  audit(req.user.id, 'settings.update', { ...req.body, owner_data_pin: req.body?.owner_data_pin ? '***' : undefined });
   res.json({ ok: true });
 }));
+
+// ---------------- Seguridad de Datos, PIN Especial del Propietario y Auditoría de Descargas ----------------
+api.post('/security/verify-pin', staff(), wrap((req, res) => {
+  if (!limited('pin:' + req.ip, 10, 60_000)) {
+    return bad(res, 'Demasiados intentos de PIN. Espera un minuto por seguridad.', 429);
+  }
+  const s = getSettings();
+  const expected = String(s.owner_data_pin || '2026').trim();
+  const provided = String(req.body?.pin || '').trim();
+  const reason = String(req.body?.reason || 'Visualización de datos confidenciales').slice(0, 120);
+  if (!provided || provided !== expected) {
+    audit(req.user.id, 'INTENTO_PIN_FALLIDO', {
+      user: req.user.name,
+      username: req.user.username,
+      role: req.user.role,
+      reason,
+      ip: req.ip
+    });
+    return bad(res, 'PIN Especial del Propietario incorrecto. El intento fallido ha quedado registrado en la bitácora de seguridad.', 403);
+  }
+  audit(req.user.id, 'DESBLOQUEO_PIN_DATOS', {
+    user: req.user.name,
+    username: req.user.username,
+    role: req.user.role,
+    reason,
+    ip: req.ip
+  });
+  res.json({
+    ok: true,
+    unlocked_until: Date.now() + 15 * 60 * 1000,
+    owner_alert_phone: s.owner_alert_phone || s.gym_phone || '982404043',
+    gym_name: s.gym_name || 'RD Fitness Club'
+  });
+}));
+
+api.post('/security/log-export', staff(), wrap((req, res) => {
+  const s = getSettings();
+  const file = String(req.body?.file || 'Documento Confidencial').slice(0, 140);
+  const type = String(req.body?.type || 'Exportación de Datos').slice(0, 100);
+  const detail = {
+    file,
+    type,
+    user: req.user.name,
+    username: req.user.username,
+    role: req.user.role,
+    ip: req.ip
+  };
+  audit(req.user.id, 'ALERTA_DESCARGA_DATOS', detail);
+  res.json({
+    ok: true,
+    owner_alert_phone: s.owner_alert_phone || s.gym_phone || '982404043',
+    gym_name: s.gym_name || 'RD Fitness Club',
+    detail
+  });
+}));
+
+api.get('/security/download-alerts', staff(), wrap((req, res) => {
+  const s = getSettings();
+  const today = L.limaDay();
+  const rows = q.all(`
+    SELECT a.id, a.action, a.detail, a.ts, u.name AS user_name, u.username, u.role
+    FROM audit a
+    LEFT JOIN users u ON u.id = a.user_id
+    WHERE a.action IN ('ALERTA_DESCARGA_DATOS', 'DESBLOQUEO_PIN_DATOS', 'INTENTO_PIN_FALLIDO', 'backup.import_json', 'backup.restore_db')
+    ORDER BY a.id DESC
+    LIMIT 60
+  `);
+  const parsed = rows.map(r => {
+    let d = {};
+    try { d = JSON.parse(r.detail || '{}'); } catch { d = { raw: r.detail }; }
+    return { ...r, parsed: d };
+  });
+  const downloadsToday = parsed.filter(r => r.action === 'ALERTA_DESCARGA_DATOS' && String(r.ts || '').slice(0, 10) === today).length;
+  const failedPinsToday = parsed.filter(r => r.action === 'INTENTO_PIN_FALLIDO' && String(r.ts || '').slice(0, 10) === today).length;
+  res.json({
+    owner_alert_phone: s.owner_alert_phone || s.gym_phone || '982404043',
+    privacy_mask_default: s.privacy_mask_default !== '0',
+    downloads_today: downloadsToday,
+    failed_pins_today: failedPinsToday,
+    alerts: parsed
+  });
+}));
+
 api.get('/audit', staff('admin'), wrap((req, res) => res.json(q.all('SELECT a.*, u.name user_name FROM audit a LEFT JOIN users u ON u.id=a.user_id ORDER BY a.id DESC LIMIT 200'))));
 api.get('/backup', staff('admin'), wrap((req, res) => {
   const dir = path.join(DATA_DIR, 'backups');
@@ -1951,6 +2066,13 @@ api.get('/backup', staff('admin'), wrap((req, res) => {
   const safePath = f.split(path.sep).join('/');
   db.exec(`VACUUM INTO '${safePath}'`);
   const filename = `rdfitness-${L.limaDay()}.db`;
+  audit(req.user.id, 'ALERTA_DESCARGA_DATOS', {
+    file: filename,
+    type: 'Base de Datos Completa SQLite (.db)',
+    user: req.user.name,
+    role: req.user.role,
+    ip: req.ip
+  });
   res.setHeader('Content-Type', 'application/x-sqlite3');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   const stream = fs.createReadStream(f);
@@ -1983,6 +2105,13 @@ api.get('/backup/export-json', staff('admin'), wrap((req, res) => {
     cash_shifts: q.all('SELECT * FROM cash_shifts')
   };
   const filename = `rdfitness-data-${L.limaDay()}.json`;
+  audit(req.user.id, 'ALERTA_DESCARGA_DATOS', {
+    file: filename,
+    type: 'Respaldo Portátil Completo (.json)',
+    user: req.user.name,
+    role: req.user.role,
+    ip: req.ip
+  });
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.send(JSON.stringify(data, null, 2));

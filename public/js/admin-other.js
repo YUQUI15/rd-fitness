@@ -1,4 +1,4 @@
-/* RD Fitness Club - Panel: Rutinas, Caja, Reportes y Ajustes */
+/* RD FITNESS CLUB - Panel: Rutinas, Caja, Reportes y Ajustes */
 (function () {
   const RD = window.RD;
   const { esc, money } = RD;
@@ -466,7 +466,7 @@
             <button class="btn sm" id="todaybtn">Hoy</button>
           </div>
           <div class="row gap wrap">
-            <button class="btn sm ok" id="dpbtn">${RD.icon('ticket')} Pase Diario (S/ 5)</button>
+            <button class="btn sm ok" id="dpbtn">${RD.icon('ticket')} Pase Diario</button>
             <button class="btn sm primary" id="posbtn">${RD.icon('store')} Venta rápida tienda</button>
             <button class="btn sm danger" id="expbtn">${RD.icon('expense')} Registrar Gasto</button>
           </div>
@@ -479,7 +479,7 @@
             <div class="l">Total Ingresos del Día</div>
           </div>
           <div class="stat">
-            <div class="v" style="color:#f5b400">${money(cash.gym_income || 0)}</div>
+            <div class="v" style="color:#ef4444">${money(cash.gym_income || 0)}</div>
             <div class="l">${RD.icon('dumbbell')} Ingresos Gimnasio (Membresías + Pases)</div>
           </div>
           <div class="stat">
@@ -509,15 +509,14 @@
 
         <div class="card mb">
           <h3>Resumen de Arqueo de Caja del Día (Efectivo, Yape y Plin)</h3>
-          <div class="grid g5 mt2" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:10px">
+          <div class="grid g4 mt2" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:10px">
             <div class="small">${RD.icon('cash')} Efectivo cobrado: <b>${money(cash.byMethod.efectivo || 0)}</b></div>
             <div class="small">${RD.icon('expense')} Gastos en efectivo: <b class="bad">-${money(cash.expenses.filter(e => e.method === 'efectivo').reduce((a, e) => a + e.amount, 0))}</b></div>
             <div class="small">${RD.icon('qr')} Yape: <b>${money(cash.byMethod.yape || 0)}</b></div>
             <div class="small">${RD.icon('qr')} Plin: <b>${money(cash.byMethod.plin || 0)}</b></div>
-            ${(cash.byMethod.tarjeta || 0) > 0 ? `<div class="small">${RD.icon('card')} Otros / Tarjeta: <b>${money(cash.byMethod.tarjeta || 0)}</b></div>` : ''}
           </div>
           <div class="tip small mt">
-            <b>Regla de Arqueo para el Dueño:</b> Al cerrar el turno o el día, debe haber exactamente <b>${money(cash.cash_in_drawer)}</b> en monedas y billetes dentro del cajón físico, y en tu celular debes tener <b>${money((cash.byMethod.yape || 0) + (cash.byMethod.plin || 0))}</b> sumando tus cobros de Yape y Plin.
+            <b>Regla de Arqueo para el Dueño:</b> Al cerrar caja, debe haber exactamente <b>${money(cash.cash_in_drawer)}</b> en monedas y billetes dentro del cajón físico, y en tu aplicativo móvil debes tener <b>${money((cash.byMethod.yape || 0) + (cash.byMethod.plin || 0))}</b> entre Yape y Plin.
           </div>
         </div>
 
@@ -1459,16 +1458,13 @@
   function openShiftModal(onDone) {
     const d = RD.openModal(`${RD.icon('unlock')} Apertura de Turno de Caja`, `
       <form id="shiftopenf">
-        <div class="tip small mb" style="border-left:3px solid var(--gold);background:rgba(245,180,0,0.08)">
-          <b>Modalidad de Atención:</b> Elige <b>Turno Mañana</b> o <b>Turno Tarde</b> cuando trabajan 2 recepcionistas/encargados en el día, o elige <b>Turno Único / Día Completo (Atención del Dueño)</b> cuando una sola persona o el propietario atiende toda la jornada.
-        </div>
         <label class="field">
-          <span>Modalidad / Horario del Turno *</span>
+          <span>Modalidad de Turno del Día *</span>
           <select name="shift_name" required>
             <option value="Turno Mañana (6:00 am - 2:00 pm)">🌅 Turno Mañana (6:00 am - 2:00 pm)</option>
-            <option value="Turno Tarde / Noche (2:00 pm - 9:30 pm)">🌇 Turno Tarde / Noche (2:00 pm - 9:30 pm)</option>
-            <option value="Turno Único / Día Completo (Atención directa del Dueño)">👑 Turno Único / Día Completo (Atención directa del Dueño)</option>
-            <option value="Turno Especial / Fin de Semana">📅 Turno Especial / Fin de Semana</option>
+            <option value="Turno Tarde / Noche (2:00 pm - 9:00 pm)">🌇 Turno Tarde / Noche (2:00 pm - 9:00 pm)</option>
+            <option value="Turno Único / Día Completo — Atención del Dueño">👑 Turno Único / Día Completo (Atención del Dueño)</option>
+            <option value="Turno Fin de Semana">📅 Turno Fin de Semana</option>
           </select>
         </label>
         <label class="field">
@@ -1480,7 +1476,7 @@
           <textarea name="notes" rows="2" placeholder="Ej. Se reciben 50 soles en sencillo: monedas de 1, 2 y billetes de 10..."></textarea>
         </label>
         <div class="tip small mt mb">
-          <b>Control de Arqueo:</b> Este dinero inicial no cuenta como ganancia; es la base para asegurar que al cerrar el turno el efectivo físico y los cobros por Yape / Plin cuadren al centavo.
+          <b>Adaptable a 2 Turnos o Turno Único del Dueño:</b> Si trabajan 2 turnos (Mañana y Tarde), cada encargado abre y cuadra su propio turno. Si el propio dueño atiende todo el día, elige <b>Turno Único / Día Completo</b> para llevar una sola caja corrida.
         </div>
         <button class="btn ok block">${RD.icon('check')} Iniciar y Abrir Turno</button>
       </form>
@@ -1611,31 +1607,7 @@
   }
 
   RD.LOGO_SVG = function (size = 54) {
-    return `<svg viewBox="0 0 100 100" style="width:${size}px;height:${size}px;display:inline-block;vertical-align:middle">
-      <defs>
-        <linearGradient id="rdGold" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#fbbf24"/>
-          <stop offset="50%" stop-color="#f59e0b"/>
-          <stop offset="100%" stop-color="#b45309"/>
-        </linearGradient>
-        <linearGradient id="rdDark" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#1e293b"/>
-          <stop offset="100%" stop-color="#0f172a"/>
-        </linearGradient>
-      </defs>
-      <polygon points="50,4 92,20 84,72 50,96 16,72 8,20" fill="url(#rdDark)" stroke="url(#rdGold)" stroke-width="3.5" stroke-linejoin="round"/>
-      <polygon points="50,11 85,25 78,68 50,88 22,68 15,25" fill="none" stroke="url(#rdGold)" stroke-width="1.2" opacity="0.6"/>
-      <rect x="26" y="32" width="48" height="3.5" rx="1.5" fill="url(#rdGold)"/>
-      <rect x="22" y="27" width="5" height="13.5" rx="1.5" fill="url(#rdGold)"/>
-      <rect x="73" y="27" width="5" height="13.5" rx="1.5" fill="url(#rdGold)"/>
-      <rect x="18" y="29.5" width="3" height="8.5" rx="1" fill="#fbbf24"/>
-      <rect x="79" y="29.5" width="3" height="8.5" rx="1" fill="#fbbf24"/>
-      <text x="50" y="62" font-family="'Impact', 'Arial Black', sans-serif" font-weight="900" font-size="25" fill="url(#rdGold)" text-anchor="middle" letter-spacing="1.5">RD</text>
-      <text x="50" y="74" font-family="'Arial Black', sans-serif" font-weight="800" font-size="6" fill="#f8fafc" text-anchor="middle" letter-spacing="2">FITNESS CLUB</text>
-      <polygon points="50,78 51.5,82 55.5,82 52.5,84 53.5,88 50,85.5 46.5,88 47.5,84 44.5,82 48.5,82" fill="url(#rdGold)"/>
-      <polygon points="41,79 42,81.5 44.5,81.5 42.5,83 43.2,85.5 41,84 38.8,85.5 39.5,83 37.5,81.5 40,81.5" fill="url(#rdGold)" opacity="0.8"/>
-      <polygon points="59,79 60,81.5 62.5,81.5 60.5,83 61.2,85.5 59,84 56.8,85.5 57.5,83 55.5,81.5 58,81.5" fill="url(#rdGold)" opacity="0.8"/>
-    </svg>`;
+    return `<img src="/logo.svg?v=6.0" alt="RD FITNESS CLUB" style="width:${size}px;height:${size}px;object-fit:contain;display:inline-block;vertical-align:middle;border-radius:10px">`;
   };
 
   RD.memberAttendanceSheetModal = async function (memberId, fromDate, toDate) {
@@ -1667,8 +1639,8 @@
             </div>
             <div class="grow">
               <h2 style="color:var(--gold);font-weight:900;letter-spacing:1px">${esc(set.gym_name || 'RD FITNESS CLUB')} - CHIVAY</h2>
-              <div class="small muted">${esc(set.gym_slogan || 'Disciplina · Constancia · Resultados · Valle del Colca')}</div>
-              <div class="tiny muted">RUC: ${esc(set.gym_ruc || '10702548911')} · ${esc(RD.cleanAddress(set.gym_address))} · Tel: ${esc(set.gym_phone || '982404043')}</div>
+              <div class="small muted">${esc(set.gym_slogan || 'Fuerza · Pasión · Resultados · Valle del Colca')}</div>
+              <div class="tiny muted">${set.gym_ruc ? 'RUC: ' + esc(set.gym_ruc) + ' · ' : ''}${esc(RD.cleanAddress(set.gym_address))} · Tel: ${esc(set.gym_phone || '982404043')}</div>
             </div>
             <div class="text-right no-print">
               <button class="btn primary sm" id="btnprintsheet">${RD.icon('printer')} Imprimir / Guardar PDF</button>
@@ -1808,76 +1780,134 @@
       `, { wide: true });
 
       d.el.querySelector('#btnprintsheet')?.addEventListener('click', () => {
-        const rowsHtml = recs.length ? recs.map((r, i) => {
-          const enterTime = r.ts ? new Date(r.ts).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : '—';
-          const exitTime = r.exit_ts ? new Date(r.exit_ts).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : (r.status === 'inside' ? 'En Sala' : '—');
-          const duration = r.duration_min ? `${Math.floor(r.duration_min / 60) > 0 ? Math.floor(r.duration_min / 60) + 'h ' : ''}${r.duration_min % 60}m` : (r.status === 'inside' ? 'Entrenando' : '—');
-          return `<tr>
-            <td class="num">${i + 1}</td>
-            <td class="mono"><b>${esc(r.day)}</b></td>
-            <td class="mono">${esc(enterTime)}</td>
-            <td class="mono">${esc(exitTime)}</td>
-            <td class="mono"><b>${esc(duration)}</b></td>
-            <td>${esc(r.staff_name || 'Recepción')}</td>
-            <td><span class="badge ${r.result === 'ok' ? 'ok' : r.result === 'warn' ? 'warn' : 'danger'}">${r.result === 'ok' ? 'Autorizado' : r.result === 'warn' ? 'Alerta' : 'Denegado'}</span></td>
-          </tr>`;
-        }).join('') : `<tr><td colspan="7" style="text-align:center; padding:14px; color:#64748b;">No se registran asistencias en el período seleccionado (${esc(f)} al ${esc(t)}).</td></tr>`;
-
-        const bodyHtml = `
-          <div class="doc-section">
-            <div class="doc-section-title">I. Identificación Oficial y Estado de Membresía del Socio</div>
-            <div class="meta-grid">
-              <div class="meta-item"><span class="lbl">Socio Titular:</span><span class="val">${esc(m.name)}</span></div>
-              <div class="meta-item"><span class="lbl">DNI / CE:</span><span class="val">${esc(m.dni || '—')}</span></div>
-              <div class="meta-item"><span class="lbl">Código de Socio:</span><span class="val">${esc(m.code)}</span></div>
-              <div class="meta-item"><span class="lbl">Teléfono / Celular:</span><span class="val">${esc(m.phone || '—')}</span></div>
-              <div class="meta-item"><span class="lbl">Plan Suscrito:</span><span class="val">${esc(m.current_plan || 'Sin plan activo')}</span></div>
-              <div class="meta-item"><span class="lbl">Vigencia del Plan:</span><span class="val">${m.start_date ? RD.fmtDate(m.start_date) : '—'} al ${m.end_date ? RD.fmtDate(m.end_date) : '—'}</span></div>
-              <div class="meta-item"><span class="lbl">Estado Operativo:</span><span class="val">${m.status === 'active' ? 'SOCIO ACTIVO HABILITADO' : 'INACTIVO / VENCIDO'}</span></div>
-              <div class="meta-item"><span class="lbl">Horario Habitual:</span><span class="val">${esc(s.preferredSchedule || 'Por definir')}</span></div>
-            </div>
-          </div>
-
-          <div class="doc-section">
-            <div class="doc-section-title">II. Indicadores de Disciplina, Asistencia y Rendimiento Físico</div>
-            <div class="kpi-grid kpi-4">
-              <div class="kpi-box"><div class="kpi-val accent">${s.daysAttended || 0} días</div><div class="kpi-lbl">Días Asistidos (${s.totalSessions || 0} sesiones)</div></div>
-              <div class="kpi-box"><div class="kpi-val info">${s.totalHours || 0} hrs</div><div class="kpi-lbl">Tiempo Total en Sala</div></div>
-              <div class="kpi-box"><div class="kpi-val ok">${s.avgDaysPerWeek || 0} d/sem</div><div class="kpi-lbl">Frecuencia (${s.consistencyRate || 0}% constancia)</div></div>
-              <div class="kpi-box"><div class="kpi-val">${Number(s.volumeMoved || 0).toLocaleString('es-PE')} kg</div><div class="kpi-lbl">Volumen (${s.workoutsLogged || 0} rutinas)</div></div>
-            </div>
-            <div class="meta-grid">
-              <div class="meta-item"><span class="lbl">Rutina Asignada:</span><span class="val">${routine ? `${esc(routine.name)} (${esc(routine.goal || 'General')})` : 'Entrenamiento Libre'}</span></div>
-              <div class="meta-item"><span class="lbl">Último Control Corporal:</span><span class="val">${meas ? `Peso: ${meas.weight_kg || '—'} kg | Cintura: ${meas.waist_cm || '—'} cm | Grasa: ${meas.body_fat_pct ? meas.body_fat_pct + '%' : '—'}` : 'Sin mediciones registradas'}</span></div>
-            </div>
-          </div>
-
-          <div class="doc-section">
-            <div class="doc-section-title">III. Registro Cronológico Auditable de Sesiones (${recs.length} Ingresos)</div>
-            <table>
-              <thead>
-                <tr>
-                  <th class="num" style="width:36px;">#</th>
-                  <th>Fecha</th>
-                  <th>Hora Entrada</th>
-                  <th>Hora Salida</th>
-                  <th>Permanencia</th>
-                  <th>Registrado Por</th>
-                  <th>Estado Acceso</th>
-                </tr>
-              </thead>
-              <tbody>${rowsHtml}</tbody>
-            </table>
-          </div>
-        `;
-
         RD.printExecutiveDocument({
-          docType: 'EXPEDIENTE INDIVIDUAL DE ASISTENCIA Y RENDIMIENTO FÍSICO',
-          docCode: `FICHA-${m.code || m.id}`,
-          period: `${f} al ${t}`,
-          subtitle: `Socio: ${m.name} (${m.code}) · DNI: ${m.dni || '—'} · Plan: ${m.current_plan || 'General'}`,
-          bodyHtml,
-          signatures: [`Firma del Socio — ${m.name} (DNI: ${m.dni || '—'})`, 'Administración y Control — RD Fitness Club']
+          gym: { name: set.gym_name || 'RD FITNESS CLUB', slogan: set.gym_slogan, address: RD.cleanAddress(set.gym_address), phone: set.gym_phone, ruc: set.gym_ruc },
+          docType: 'FICHA OFICIAL DE SOCIO Y ASISTENCIA',
+          docCode: `${m.code || 'SOC'}-${to.replace(/-/g, '')}`,
+          title: `Ficha Integral de Socio: ${m.name}`,
+          subtitle: 'Auditoría correlacionada de membresía, asistencias, horarios, rutina deportiva y récords personales',
+          period: `${from} al ${to}`,
+          fileName: `Ficha_Socio_${(m.code || m.name || 'Socio').replace(/\s+/g, '_')}_${to}`,
+          bodyHtml: `
+            <div class="doc-section">
+              <div class="doc-sec-title">I. Datos Filiatorios y Estado de Membresía</div>
+              <div class="doc-grid-2">
+                <div class="doc-box">
+                  <h4>Identificación del Atleta / Socio</h4>
+                  <table class="doc-table" style="margin:0">
+                    <tbody>
+                      <tr><td><b>Nombre Completo:</b></td><td><b>${esc(m.name)}</b></td></tr>
+                      <tr><td><b>DNI / Código:</b></td><td class="t-mono">${esc(m.dni || '—')} · <b>${esc(m.code)}</b></td></tr>
+                      <tr><td><b>Teléfono / Celular:</b></td><td>${esc(m.phone || '—')}</td></tr>
+                      <tr><td><b>Fecha de Inscripción:</b></td><td>${RD.fmtDate(m.created_at)} · Horario pref.: <b>${esc(s.preferredSchedule || 'Variable')}</b></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="doc-box">
+                  <h4>Situación Contractual y Plan</h4>
+                  <table class="doc-table" style="margin:0">
+                    <tbody>
+                      <tr><td><b>Plan Contratado:</b></td><td><b>${esc(m.current_plan || 'Sin plan activo')}</b></td></tr>
+                      <tr><td><b>Vigencia del Plan:</b></td><td>${m.start_date ? RD.fmtDate(m.start_date) : '—'} al ${m.end_date ? RD.fmtDate(m.end_date) : '—'}</td></tr>
+                      <tr><td><b>Estado Operativo:</b></td><td><span class="doc-badge ${m.status === 'active' ? 'ok' : 'bad'}">${m.status === 'active' ? 'SOCIO ACTIVO' : 'INACTIVO / VENCIDO'}</span></td></tr>
+                      <tr><td><b>Rutina Asignada:</b></td><td>${esc(routine ? `${routine.name} (${routine.days_per_week || 4} d/sem)` : 'Entrenamiento libre')}</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="doc-section">
+              <div class="doc-sec-title">II. Indicadores de Disciplina, Constancia y Rendimiento Físico</div>
+              <div class="doc-kpis">
+                <div class="doc-kpi accent">
+                  <div class="k-lbl">Días Asistidos</div>
+                  <div class="k-val">${s.daysAttended || 0} días</div>
+                  <div class="k-sub">${s.totalSessions || 0} sesiones en el período</div>
+                </div>
+                <div class="doc-kpi">
+                  <div class="k-lbl">Tiempo Total en Sala</div>
+                  <div class="k-val">${s.totalHours || 0} hrs</div>
+                  <div class="k-sub">Permanencia acumulada</div>
+                </div>
+                <div class="doc-kpi">
+                  <div class="k-lbl">Frecuencia Semanal</div>
+                  <div class="k-val">${s.avgDaysPerWeek || 0} d/sem</div>
+                  <div class="k-sub">${s.consistencyRate || 0}% índice de constancia</div>
+                </div>
+                <div class="doc-kpi">
+                  <div class="k-lbl">Volumen Deportivo</div>
+                  <div class="k-val">${Number(s.volumeMoved || 0).toLocaleString('es-PE')} kg</div>
+                  <div class="k-sub">${s.workoutsLogged || 0} entrenamientos reg.</div>
+                </div>
+              </div>
+
+              ${(topPrs.length || meas) ? `
+              <div class="doc-grid-2">
+                <div class="doc-box">
+                  <h4>Top Récords Personales (PRs)</h4>
+                  ${topPrs.length ? `
+                    <table class="doc-table" style="margin:0">
+                      <thead><tr><th>Ejercicio</th><th class="t-right">Marca Máxima</th></tr></thead>
+                      <tbody>
+                        ${topPrs.slice(0, 4).map(pr => `<tr><td>${esc(pr.exercise)}</td><td class="t-right"><b>${pr.weight_kg} kg × ${pr.reps} reps</b></td></tr>`).join('')}
+                      </tbody>
+                    </table>
+                  ` : `<div style="font-size:8pt;color:#64748b">Sin récords personales registrados en este período.</div>`}
+                </div>
+                <div class="doc-box">
+                  <h4>Último Control Antropométrico</h4>
+                  ${meas ? `
+                    <table class="doc-table" style="margin:0">
+                      <tbody>
+                        <tr><td><b>Peso Corporal:</b></td><td class="t-right"><b>${meas.weight_kg || '—'} kg</b></td></tr>
+                        <tr><td><b>Perímetro Cintura:</b></td><td class="t-right">${meas.waist_cm || '—'} cm</td></tr>
+                        <tr><td><b>Porcentaje Grasa:</b></td><td class="t-right">${meas.body_fat_pct ? meas.body_fat_pct + '%' : '—'} (Fecha: ${meas.day})</td></tr>
+                      </tbody>
+                    </table>
+                  ` : `<div style="font-size:8pt;color:#64748b">Sin mediciones antropométricas registradas.</div>`}
+                </div>
+              </div>` : ''}
+            </div>
+
+            <div class="doc-section">
+              <div class="doc-sec-title">III. Registro Cronológico de Sesiones (Entradas, Salidas y Permanencia)</div>
+              <table class="doc-table">
+                <thead>
+                  <tr>
+                    <th style="width:32px" class="t-center">#</th>
+                    <th>Fecha</th>
+                    <th>Hora Entrada</th>
+                    <th>Hora Salida</th>
+                    <th>Permanencia</th>
+                    <th>Registrado Por</th>
+                    <th class="t-center">Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${recs.length ? recs.map((r, i) => {
+                    const enterTime = r.ts ? new Date(r.ts).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : '—';
+                    const exitTime = r.exit_ts ? new Date(r.exit_ts).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) : (r.status === 'inside' ? 'En Sala' : '—');
+                    const duration = r.duration_min ? `${Math.floor(r.duration_min / 60) > 0 ? Math.floor(r.duration_min / 60) + 'h ' : ''}${r.duration_min % 60}m` : (r.status === 'inside' ? 'Entrenando' : '—');
+                    return `
+                      <tr>
+                        <td class="t-center">${i + 1}</td>
+                        <td><b>${esc(r.day)}</b></td>
+                        <td class="t-mono">${esc(enterTime)}</td>
+                        <td class="t-mono">${esc(exitTime)}</td>
+                        <td><b>${esc(duration)}</b></td>
+                        <td>${esc(r.staff_name || 'Recepción')}</td>
+                        <td class="t-center"><span class="doc-badge ${r.result === 'ok' ? 'ok' : r.result === 'warn' ? 'warn' : 'bad'}">${r.result === 'ok' ? 'VÁLIDO' : r.result === 'warn' ? 'AVISO' : 'RECHAZADO'}</span></td>
+                      </tr>`;
+                  }).join('') : `<tr><td colspan="7" class="t-center" style="padding:14px;color:#64748b">No se registran asistencias en el período seleccionado (${from} al ${to}).</td></tr>`}
+                </tbody>
+              </table>
+            </div>
+          `,
+          signatures: [
+            { title: 'CONFORMIDAD DEL SOCIO / ATLETA', name: m.name, sub: `DNI: ${m.dni || '—'} · Cód: ${m.code || ''}` },
+            { title: 'CERTIFICACIÓN ADMINISTRATIVA', name: 'Administración y Control de Accesos', sub: set.gym_name || 'RD FITNESS CLUB' }
+          ]
         });
       });
     } catch (err) {
@@ -1888,9 +1918,9 @@
   RD.openGoogleSheetsSyncModal = googleSheetsSyncModal;
   function googleSheetsSyncModal(settings = {}) {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const prodHost = 'https://rd-fitness.onrender.com';
+    const prodHost = 'https://red-gym.onrender.com';
     const effectiveOrigin = isLocal ? prodHost : window.location.origin;
-    const key = settings.google_sheets_key || 'RD-CHIVAY-2026';
+    const key = settings.google_sheets_key || '';
     let currentSep = 'semicolon';
     let currentFeed = 'daily';
 
@@ -1934,7 +1964,7 @@ var CONFIG = {
 
 function onOpen() {
   SpreadsheetApp.getUi()
-    .createMenu('RD Fitness')
+    .createMenu('RD FITNESS CLUB')
     .addItem('Actualizar Todo en Vivo', 'actualizarTodo')
     .addSeparator()
     .addItem('Activar Auto-Actualización (Cada 10 min)', 'activarAutoActualizacion')
@@ -1946,7 +1976,7 @@ function onOpen() {
 
 function actualizarTodo() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  ss.toast('Conectando con RD Fitness...', 'Sincronizador', 5);
+  ss.toast('Conectando con RD FITNESS CLUB...', 'Sincronizador', 5);
   
   var url = CONFIG.ENDPOINT + '?key=' + encodeURIComponent(CONFIG.KEY) + '&_t=' + new Date().getTime();
   var options = {
@@ -1972,7 +2002,7 @@ function actualizarTodo() {
   
   if (!response || response.getResponseCode() !== 200) {
     var code = response ? response.getResponseCode() : 'Sin respuesta';
-    SpreadsheetApp.getUi().alert('Error al conectar con RD Fitness (Código: ' + code + '). Verifique su conexión y que la clave sea correcta.');
+    SpreadsheetApp.getUi().alert('Error al conectar con RD FITNESS CLUB (Código: ' + code + '). Verifique su conexión y que la clave sea correcta.');
     return;
   }
   
@@ -2001,7 +2031,7 @@ function actualizarTodo() {
     ss.moveActiveSheet(1);
   }
   
-  ss.toast('¡Todas las hojas y gráficos actualizados en vivo!', 'RD Fitness Club', 5);
+  ss.toast('¡Todas las hojas y gráficos actualizados en vivo!', 'RD FITNESS CLUB', 5);
 }
 
 function poblarHoja(ss, name, headers, rows, types) {
@@ -2027,7 +2057,7 @@ function poblarHoja(ss, name, headers, rows, types) {
   var headerRange = sheet.getRange(1, 1, 1, numCols);
   headerRange.setFontWeight('bold')
     .setBackground('#111827')
-    .setFontColor('#f59e0b')
+    .setFontColor('#ef4444')
     .setHorizontalAlignment('center');
   sheet.setFrozenRows(1);
   
@@ -2073,7 +2103,7 @@ function poblarDashboard(ss, ds) {
   // Banner principal
   sheet.getRange('A1:L1').merge()
     .setValue('RD FITNESS CLUB - CHIVAY  |  DASHBOARD EJECUTIVO EN TIEMPO REAL')
-    .setFontWeight('bold').setFontSize(14).setBackground('#111827').setFontColor('#f59e0b')
+    .setFontWeight('bold').setFontSize(14).setBackground('#111827').setFontColor('#ef4444')
     .setHorizontalAlignment('center');
     
   sheet.getRange('A2:L2').merge()
@@ -2084,9 +2114,9 @@ function poblarDashboard(ss, ds) {
   // Tarjetas KPI fila 4 a 5
   var kpis = [
     ['INGRESO TOTAL', 'S/ ' + (k.ingresos || 0).toFixed(2), '#10b981'],
-    ['GIMNASIO', 'S/ ' + (k.gimnasio || 0).toFixed(2), '#f59e0b'],
+    ['GIMNASIO', 'S/ ' + (k.gimnasio || 0).toFixed(2), '#ef4444'],
     ['TIENDITA', 'S/ ' + (k.tienda || 0).toFixed(2), '#3b82f6'],
-    ['GASTOS OPERATIVOS', 'S/ ' + (k.gastos || 0).toFixed(2), '#ef4444'],
+    ['GASTOS OPERATIVOS', 'S/ ' + (k.gastos || 0).toFixed(2), '#f97316'],
     ['UTILIDAD NETA', 'S/ ' + (k.utilidad || 0).toFixed(2), '#10b981'],
     ['EFECTIVO EN GAVETA', 'S/ ' + (k.efectivo || 0).toFixed(2), '#6366f1']
   ];
@@ -2101,7 +2131,7 @@ function poblarDashboard(ss, ds) {
 
   // Tarjetas KPI fila 7 a 8 (Asistencias y Socios)
   var kpis2 = [
-    ['ENTRADAS TOTALES', (k.visitas || 0) + ' visitas', '#f59e0b'],
+    ['ENTRADAS TOTALES', (k.visitas || 0) + ' visitas', '#ef4444'],
     ['SALIDAS REGISTRADAS', ((k.visitas || 0) - (k.sin_salida || 0)) + ' salidas', '#10b981'],
     ['SIN SALIDA REGISTRADA', (k.sin_salida || 0) + ' (' + (k.pct_sin_salida || 0) + '%)', '#f97316'],
     ['SOCIOS VIGENTES', (k.socios_vigentes || 0) + ' activos', '#3b82f6'],
@@ -2131,7 +2161,7 @@ function poblarDashboard(ss, ds) {
         .setOption('width', 580)
         .setOption('height', 300)
         .setOption('isStacked', true)
-        .setOption('colors', ['#f59e0b', '#3b82f6'])
+        .setOption('colors', ['#ef4444', '#3b82f6'])
         .build();
       sheet.insertChart(chart1);
     }
@@ -2147,7 +2177,7 @@ function poblarDashboard(ss, ds) {
         .setOption('title', 'Afluencia por Hora: Entradas vs Salidas')
         .setOption('width', 580)
         .setOption('height', 300)
-        .setOption('colors', ['#f59e0b', '#10b981'])
+        .setOption('colors', ['#ef4444', '#10b981'])
         .build();
       sheet.insertChart(chart2);
     }
@@ -2257,8 +2287,8 @@ function verEstado() {
             2. En el menú superior ve a: <b>Extensiones &gt; Apps Script</b>.<br>
             3. Borra todo el código que aparece por defecto y pega este código con <b>Ctrl + V</b>.<br>
             4. Haz clic en el icono <b>Guardar</b>.<br>
-            5. Vuelve a tu hoja de cálculo y presiona <b>F5</b>: aparecerá un nuevo menú arriba llamado <b>RD Fitness</b>.<br>
-            6. Haz clic en <b>"RD Fitness" &gt; "Actualizar Todo en Vivo"</b> (la primera vez Google te pedirá autorizar la ejecución del script).<br>
+            5. Vuelve a tu hoja de cálculo y presiona <b>F5</b>: aparecerá un nuevo menú arriba llamado <b>RD FITNESS CLUB</b>.<br>
+            6. Haz clic en <b>"RD FITNESS CLUB" &gt; "Actualizar Todo en Vivo"</b> (la primera vez Google te pedirá autorizar la ejecución del script).<br>
             <i>¡Listo! Todas las 19 hojas se generarán solas con sus datos, formatos y gráficos.</i>
           </div>
         `;
@@ -2388,7 +2418,7 @@ function verEstado() {
             ${RD.LOGO_SVG(46)}
             <div>
               <h2 style="margin:0">${esc(settings.gym_name || 'RD FITNESS CLUB')} - CHIVAY</h2>
-              <p class="small muted" style="margin:0">RUC: ${esc(settings.gym_ruc || '10702548911')} · ${esc(RD.cleanAddress(settings.gym_address))} · Tel: ${esc(settings.gym_phone || '982404043')}</p>
+              <p class="small muted" style="margin:0">${settings.gym_ruc ? 'RUC: ' + esc(settings.gym_ruc) + ' · ' : ''}${esc(RD.cleanAddress(settings.gym_address))} · Tel: ${esc(settings.gym_phone || '982404043')}</p>
             </div>
           </div>
           <h3>REPORTE: ${channel === 'consolidated' ? 'CONSOLIDADO GENERAL EJECUTIVO' : channel === 'gym' ? 'INGRESOS Y RETENCIÓN DEL GIMNASIO' : channel === 'store' ? 'VENTAS, INVENTARIO Y RENTABILIDAD DE TIENDITA' : channel === 'attendance' ? 'CONTROL DE ASISTENCIAS, HORARIOS Y RENDIMIENTO' : channel === 'security' ? 'VERIFICACIÓN DE PRESENCIA Y AUDITORÍA DE ACCESOS' : 'HISTORIAL Y AUDITORÍA DE TURNOS'}</h3>
@@ -2433,7 +2463,23 @@ function verEstado() {
         };
 
         // Handlers de botones de exportación
-        view.querySelector('#btnprint').onclick = () => printCurrentReport(d, channel, from, to, settings);
+        view.querySelector('#btnprint').onclick = () => {
+          const doPrint = async () => {
+            try {
+              await RD.api.post('/security/log-export', {
+                file: `Reporte_${channel}_${from}_al_${to}.pdf`,
+                type: `Impresión / Exportación PDF (${channel})`
+              });
+            } catch {}
+            printCurrentReport(d, channel, from, to, settings);
+            if (RD.security) RD.security.notifyDownload(`Reporte_${channel}_${from}_al_${to}.pdf`, 'Reporte Ejecutivo PDF');
+          };
+          if (RD.security && !RD.security.isUnlocked()) {
+            RD.security.requirePin(`Imprimir o exportar Reporte PDF (${channel})`, doPrint);
+          } else {
+            doPrint();
+          }
+        };
         view.querySelector('#btngsheets').onclick = () => RD.openGoogleSheetsDirect();
         view.querySelector('#btngsheets_guide').onclick = () => googleSheetsSyncModal(settings);
         view.querySelector('#btnexcel').onclick = async () => {
@@ -2442,7 +2488,7 @@ function verEstado() {
           btn.disabled = true;
           btn.innerHTML = `${RD.icon('hourglass')} Generando Excel...`;
           try {
-            const fn = await RD.downloadAuth(`/reports/export/excel?from=${from}&to=${to}`, `Reporte_RD_Fitness_${from}_al_${to}.xlsx`);
+            const fn = await RD.downloadAuth(`/reports/export/excel?from=${from}&to=${to}`, `Reporte_RED_GYM_${from}_al_${to}.xlsx`);
             RD.toast('Excel descargado con éxito: ' + fn, 'ok');
           } catch (err) {
             RD.toast(err.message || 'Error al descargar Excel', 'err');
@@ -2484,7 +2530,7 @@ function verEstado() {
               <div class="kpi-grid kpi-4">
                 <div class="kpi-box"><div class="kpi-val accent">${money(c.totalIncome || 0)}</div><div class="kpi-lbl">Ingresos Brutos Totales</div></div>
                 <div class="kpi-box"><div class="kpi-val ok">${money(c.netProfit || 0)}</div><div class="kpi-lbl">Utilidad Operativa Neta</div></div>
-                <div class="kpi-box"><div class="kpi-val">${money(c.cashOnHand || c.cashInDrawer || 0)}</div><div class="kpi-lbl">Efectivo Físico Neto</div></div>
+                <div class="kpi-box"><div class="kpi-val">${money(c.cashOnHand || 0)}</div><div class="kpi-lbl">Efectivo Físico Neto</div></div>
                 <div class="kpi-box"><div class="kpi-val">${money(c.digitalTotal || 0)}</div><div class="kpi-lbl">Recaudación Digital (Yape/Plin/POS)</div></div>
               </div>
               <div class="meta-grid">
@@ -2628,7 +2674,7 @@ function verEstado() {
                     <td class="num">${g.income > 0 ? Math.round(((p.total || 0) / g.income) * 100) : 0}%</td>
                   </tr>`).join('')}
                   <tr>
-                    <td><b>Pase Diario / Visita Libre</b></td>
+                    <td><b>Pase Diario / Rutina Libre</b></td>
                     <td class="num">${dailyPasses.length} pases</td>
                     <td class="num"><b>${money(dailyPassTotal)}</b></td>
                     <td class="num">${g.income > 0 ? Math.round((dailyPassTotal / g.income) * 100) : 0}%</td>
@@ -2880,6 +2926,7 @@ function verEstado() {
 
         if (ch === 'attendance') {
           const rows = att.rows || [];
+          const insideNow = att.insideNow || [];
           const topMembers = att.topMembers || [];
           const shifts = att.byShiftBlock || { morning: 0, afternoon: 0, evening: 0 };
 
@@ -3005,13 +3052,13 @@ function verEstado() {
         <!-- KPI EJECUTIVOS DE ALTA VISIBILIDAD -->
         <div class="grid g4 mb">
           <div class="stat gold watermark-container">
-            <div class="watermark-bg" style="font-size:2.4rem">RD</div>
+            <div class="watermark-bg" style="font-size:2.4rem">RED GYM</div>
             <div class="v">${money(c.totalIncome || 0)}</div>
             <div class="l">${RD.icon('chart')} Ingresos Consolidados (${c.txCount || 0} cobros)</div>
             <div class="tiny muted mt2">Promedio diario: <b class="gold">${money(c.avgDailyIncome || 0)}/día</b></div>
           </div>
           <div class="stat">
-            <div class="v" style="color:#f5b400">${money(c.totalGymIncome || 0)}</div>
+            <div class="v" style="color:#ef4444">${money(c.totalGymIncome || 0)}</div>
             <div class="l">${RD.icon('dumbbell')} Caja Gimnasio (${gymPct}% del total)</div>
             <div class="tiny muted mt2">${d.newMembers || 0} nuevos · ${d.renewals || 0} renovaciones</div>
           </div>
@@ -3029,7 +3076,7 @@ function verEstado() {
 
         <!-- ARQUEO GLOBAL Y AUDITORÍA ANTIFRAUDE DIGITAL -->
         <div class="card mb watermark-container">
-          <div class="watermark-bg">AUDITORIA RD</div>
+          <div class="watermark-bg">AUDITORIA RED GYM</div>
           <div class="row between wrap gap" style="position:relative;z-index:1">
             <div>
               <h3>${RD.icon('shield')} Arqueo Financiero y Separación de Fondos</h3>
@@ -3058,7 +3105,7 @@ function verEstado() {
               <div style="font-size:1.3rem;font-weight:900;color:#f87171;margin-top:2px">-${money(c.totalExpense || 0)}</div>
               <div class="tiny muted">${(c.expensesList || []).length} egresos documentados</div>
             </div>
-            <div style="background:rgba(245,180,0,0.08);border:1px solid rgba(245,180,0,0.25);padding:.75rem;border-radius:10px">
+            <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);padding:.75rem;border-radius:10px">
               <div class="tiny muted">${RD.icon('clock', '', 13)} TURNOS DE CAJA AUDITADOS</div>
               <div style="font-size:1.3rem;font-weight:900;color:var(--gold);margin-top:2px">${(c.shifts || []).length} turnos</div>
               <div class="tiny muted">${c.activeDaysCount || 0} días con movimiento comercial</div>
@@ -3071,7 +3118,7 @@ function verEstado() {
           <div class="row between wrap gap mb">
             <div>
               <h3>${RD.icon('chart')} Evolución Visual de Ingresos Diarios (Gimnasio + Tiendita)</h3>
-              <p class="muted small">Barras apiladas proporcionales por fecha: <span style="color:#f5b400;font-weight:700">■ Gimnasio</span> · <span style="color:#60a5fa;font-weight:700">■ Tiendita</span> · <span style="color:#4ade80;font-weight:700">● Utilidad Neta</span></p>
+              <p class="muted small">Barras apiladas proporcionales por fecha: <span style="color:#ef4444;font-weight:700">■ Gimnasio</span> · <span style="color:#60a5fa;font-weight:700">■ Tiendita</span> · <span style="color:#4ade80;font-weight:700">● Utilidad Neta</span></p>
             </div>
           </div>
           ${daily.length ? `
@@ -3116,7 +3163,7 @@ function verEstado() {
                   ${matrixRows.map(r => `
                     <tr>
                       <td><b>${esc(r.label)}</b></td>
-                      <td style="color:#f5b400">${money(r.gymAmt)}</td>
+                      <td style="color:#ef4444">${money(r.gymAmt)}</td>
                       <td style="color:#60a5fa">${money(r.storeAmt)}</td>
                       <td class="muted small">${r.txCount}</td>
                       <td style="font-weight:800;color:#4ade80">${money(r.totalAmt)}</td>
@@ -3172,14 +3219,14 @@ function verEstado() {
                   return `
                   <tr>
                     <td><b>${row.day}</b></td>
-                    <td style="color:#f5b400;font-weight:700">${money(row.gym)}</td>
+                    <td style="color:#ef4444;font-weight:700">${money(row.gym)}</td>
                     <td style="color:#60a5fa;font-weight:700">${money(row.store)}</td>
                     <td style="font-weight:800">${money(row.total)}</td>
                     <td class="bad">${row.expense > 0 ? '-' + money(row.expense) : 'S/ 0.00'}</td>
                     <td style="font-weight:800;color:${row.net >= 0 ? '#4ade80' : '#f87171'}">${money(row.net)}</td>
                     <td class="no-print">
                       <div style="display:flex;height:8px;border-radius:99px;overflow:hidden;background:rgba(255,255,255,0.08)">
-                        <div style="width:${gW}%;background:#f5b400" title="Gimnasio ${gW}%"></div>
+                        <div style="width:${gW}%;background:#ef4444" title="Gimnasio ${gW}%"></div>
                         <div style="width:${sW}%;background:#60a5fa" title="Tiendita ${sW}%"></div>
                       </div>
                     </td>
@@ -3188,9 +3235,9 @@ function verEstado() {
               </tbody>
               ${daily.length ? `
               <tfoot>
-                <tr style="background:rgba(245,180,0,0.1);font-weight:900;border-top:2px solid var(--gold)">
+                <tr style="background:rgba(239,68,68,0.1);font-weight:900;border-top:2px solid var(--gold)">
                   <td>TOTAL PERÍODO (${daily.length} días)</td>
-                  <td style="color:#f5b400">${money(c.totalGymIncome || 0)}</td>
+                  <td style="color:#ef4444">${money(c.totalGymIncome || 0)}</td>
                   <td style="color:#60a5fa">${money(c.totalStoreIncome || 0)}</td>
                   <td>${money(c.totalIncome || 0)}</td>
                   <td class="bad">-${money(c.totalExpense || 0)}</td>
@@ -3222,7 +3269,7 @@ function verEstado() {
             <div class="tiny muted mt2">${payments.length} cobros registrados</div>
           </div>
           <div class="stat">
-            <div class="v" style="color:#f5b400">${dailyPasses.length} pases (${money(dailyPassTotal)})</div>
+            <div class="v" style="color:#ef4444">${dailyPasses.length} pases (${money(dailyPassTotal)})</div>
             <div class="l">${RD.icon('ticket')} Pases Diarios Emitidos</div>
             <div class="tiny muted mt2">Ingreso rápido de visitantes</div>
           </div>
@@ -3265,7 +3312,7 @@ function verEstado() {
                       </td>
                     </tr>`;
                   }).join('') || '<tr><td colspan="4" class="empty">Sin membresías vendidas en este rango</td></tr>'}
-                  <tr style="background:rgba(245,180,0,.07)">
+                  <tr style="background:rgba(239,68,68,.07)">
                     <td><b>${RD.icon('ticket')} Pase Diario / Visita Libre</b></td>
                     <td>${dailyPasses.length} pases</td>
                     <td class="gold" style="font-weight:800">${money(dailyPassTotal)}</td>
@@ -3297,7 +3344,7 @@ function verEstado() {
                     <div class="tiny muted">${esc(m.plan_name)} · Vence: ${m.end_date}</div>
                   </div>
                   <div class="row gap no-print">
-                    ${m.phone ? `<a class="btn sm ok" target="_blank" href="${RD.waLink(m.phone, `Hola ${m.name}, te saludamos de RD Fitness Club. Tu membresía (${m.plan_name}) vence el ${m.end_date}. ¡Te esperamos para renovarla y seguir entrenando con todo!`)}">${RD.icon('whatsapp')} Avisar</a>` : ''}
+                    ${m.phone ? `<a class="btn sm ok" target="_blank" href="${RD.waLink(m.phone, `Hola ${m.name}, te saludamos de RD FITNESS CLUB. Tu membresía (${m.plan_name}) vence el ${m.end_date}. ¡Te esperamos para renovarla y seguir entrenando con todo!`)}">${RD.icon('whatsapp')} Avisar</a>` : ''}
                     <button class="btn sm ghost" data-membersheet="${m.id}">${RD.icon('reports')}</button>
                   </div>
                 </div>
@@ -3313,7 +3360,7 @@ function verEstado() {
                     <div class="tiny muted">Última visita: ${m.last_visit_day || 'Nunca'} · Vence: ${m.end_date}</div>
                   </div>
                   <div class="row gap no-print">
-                    ${m.phone ? `<a class="btn sm" target="_blank" href="${RD.waLink(m.phone, `¡Hola ${m.name}! Te extrañamos en RD Fitness Club. Notamos que llevas unos días sin venir a entrenar. ¡Retoma tu rutina esta semana, la constancia hace al campeón!`)}">${RD.icon('whatsapp')} Motivar</a>` : ''}
+                    ${m.phone ? `<a class="btn sm" target="_blank" href="${RD.waLink(m.phone, `¡Hola ${m.name}! Te extrañamos en RD FITNESS CLUB. Notamos que llevas unos días sin venir a entrenar. ¡Retoma tu rutina esta semana, la constancia hace al campeón!`)}">${RD.icon('whatsapp')} Motivar</a>` : ''}
                     <button class="btn sm ghost" data-membersheet="${m.id}">${RD.icon('reports')}</button>
                   </div>
                 </div>
@@ -3363,7 +3410,7 @@ function verEstado() {
                     <td class="small">${esc(p.concept)}</td>
                     <td><span class="badge ${p.method === 'yape' ? 'warn' : p.method === 'plin' ? 'info' : 'ok'}">${esc(p.method)}</span></td>
                     <td>${verBadge}</td>
-                    <td style="font-weight:800;color:#f5b400">${money(p.amount)}</td>
+                    <td style="font-weight:800;color:#ef4444">${money(p.amount)}</td>
                     <td class="no-print"><button class="icon-btn" data-receipt="${p.id}" title="Ver e Imprimir Boleta">${RD.icon('receipt')}</button></td>
                   </tr>`;
                 }).join('') || '<tr><td colspan="8" class="empty">Sin cobros de membresías o pases</td></tr>'}
@@ -3606,7 +3653,7 @@ function verEstado() {
                     <td>${s.day}</td>
                     <td class="small muted">${s.opened_at ? RD.fmtTime(s.opened_at) : '—'}</td>
                     <td class="small muted">${s.closed_at ? RD.fmtTime(s.closed_at) : '—'}</td>
-                    <td style="color:#f5b400">${money(s.initial_cash || 0)}</td>
+                    <td style="color:#ef4444">${money(s.initial_cash || 0)}</td>
                     <td style="font-weight:700">${money(s.expected_cash || 0)}</td>
                     <td style="font-weight:700;color:#2563eb">${money(s.actual_cash || 0)}</td>
                     <td>${diffBadge}</td>
@@ -3673,7 +3720,7 @@ function verEstado() {
             <div class="l">${RD.icon('users')} Total Asistencias Registradas</div>
           </div>
           <div class="stat">
-            <div class="v" style="color:#f5b400">${att.memberVisits || 0} socios / ${att.dailyVisits || 0} pases</div>
+            <div class="v" style="color:#ef4444">${att.memberVisits || 0} socios / ${att.dailyVisits || 0} pases</div>
             <div class="l">${RD.icon('dumbbell')} Socios vs ${RD.icon('ticket')} Pases Diarios</div>
           </div>
           <div class="stat">
@@ -3796,7 +3843,7 @@ function verEstado() {
             <p class="muted small mb">Distribución por bloques horarios y horas pico en sala de máquinas.</p>
 
             <div class="grid g3 gap mb">
-              <div style="background:rgba(245,180,0,0.08);border:1px solid rgba(245,180,0,0.22);border-radius:8px;padding:.55rem;text-align:center">
+              <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.22);border-radius:8px;padding:.55rem;text-align:center">
                 <div class="tiny muted">MAÑANA (05h-12h)</div>
                 <div style="font-size:1.15rem;font-weight:900;color:var(--gold)">${shifts.morning || 0} <span class="tiny">(${Math.round(((shifts.morning || 0) / totShift) * 100)}%)</span></div>
               </div>
@@ -4139,7 +4186,7 @@ function verEstado() {
           vContainer.innerHTML = `
           <!-- CONSTANCIA OFICIAL / DICTAMEN -->
           <div class="card mb watermark-container" style="border: 2px solid ${isPresent ? '#22c55e' : '#ef4444'};background:#0b0f19;position:relative">
-            <div class="watermark-bg">RD FITNESS</div>
+            <div class="watermark-bg">RED GYM</div>
 
             <div class="row between wrap gap mb">
               <div class="row gap">
@@ -4230,7 +4277,7 @@ function verEstado() {
               <div style="text-align:center;width:240px">
                 <div style="border-top:1px solid #94a3b8;margin-bottom:4px"></div>
                 <div class="small"><b>Firma Administración / Recepción</b></div>
-                <div class="tiny muted">RD Fitness Club - Chivay</div>
+                <div class="tiny muted">RD FITNESS CLUB - Chivay</div>
               </div>
               <div style="text-align:center;width:240px">
                 <div style="border-top:1px solid #94a3b8;margin-bottom:4px"></div>
@@ -4359,7 +4406,7 @@ function verEstado() {
         <label class="field"><span>Eslogan</span><input name="gym_slogan" value="${esc(s.gym_slogan)}"></label>
         <div class="grid g2 keep">
           <label class="field"><span>Teléfono / WhatsApp *</span><input name="gym_phone" value="${esc(s.gym_phone)}" required></label>
-          <label class="field"><span>Color de marca</span><input name="color" type="color" value="${esc(s.color || '#f5b400')}"></label>
+          <label class="field"><span>Color de marca</span><input name="color" type="color" value="${esc(s.color || '#ef4444')}"></label>
         </div>
         <label class="field"><span>Dirección física</span><input name="gym_address" value="${esc(s.gym_address)}"></label>
         <label class="field"><span>Horario de atención</span><input name="opening" value="${esc(s.opening)}"></label>
@@ -4385,6 +4432,22 @@ function verEstado() {
           </label>
         </div>
 
+        <h3 class="mt">🔐 Seguridad de Datos, PIN Especial del Propietario y WhatsApp Corporativo</h3>
+        <div class="banner mb small" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.35);line-height:1.45">
+          📱 <b>Uso Exclusivo de WhatsApp Business del Gimnasio en Recepción:</b> Dado que la computadora de recepción es utilizada tanto por el dueño como por los trabajadores de turno (para atender consultas, enviar recibos y publicar avisos), <b>la cuenta de WhatsApp vinculada en el equipo debe ser exclusiva del negocio</b> y nunca el WhatsApp personal del propietario, garantizando total privacidad.
+        </div>
+        <div class="grid g2 keep">
+          <label class="field"><span>PIN Especial del Propietario (Ver DNI/Celular y Descargas) *</span>
+            <input name="owner_data_pin" type="password" inputmode="numeric" maxlength="12" value="${esc(s.owner_data_pin || '2026')}" placeholder="Ej. 2026" required>
+          </label>
+          <label class="field"><span>WhatsApp del Dueño para Alertas de Descarga *</span>
+            <input name="owner_alert_phone" value="${esc(s.owner_alert_phone || s.gym_phone || '')}" placeholder="9XXXXXXXX" required>
+          </label>
+        </div>
+        <p class="tiny muted" style="margin-top:4px">
+          El sistema cifra por defecto los DNI (<code>•••458</code>) y celulares (<code>954•••867</code>) en pantalla y solicita este PIN antes de permitir cualquier descarga de archivos Excel, CSV, PDF o Base de Datos, registrando quién descargó qué archivo y a qué hora.
+        </p>
+
         <button class="btn primary block mt">Guardar Ajustes</button>
       </form>
     </div>`;
@@ -4409,17 +4472,20 @@ function verEstado() {
     <div class="card">
       <div class="row between wrap gap mb">
         <div>
-          <h3>Planes, Tarifas Dinámicas y Promociones Temporales</h3>
-          <p class="muted small">Crea o modifica planes, lanza ofertas por temporada o desactiva promociones vencidas. <b>Blindaje Histórico:</b> Cualquier cambio de precio o promoción aplica únicamente a los socios que se inscriban a partir de hoy; los socios registrados anteriormente conservan intacto el monto, plan y fechas con los que se inscribieron sin alterar jamás los cuadres de caja pasados.</p>
+          <h3>Planes de Membresía, Tarifas Dinámicas y Promociones Temporales</h3>
+          <p class="muted small">Crea planes permanentes u ofertas ocasionales. Modificar o desactivar un plan aplica solo a los nuevos inscritos sin alterar jamás a los socios ya registrados ni a los cuadres de caja pasados.</p>
         </div>
         <div class="row gap">
-          <button class="btn sm ok" id="addpromoplan">🔥 Nueva Promo / Oferta Temporal</button>
-          <button class="btn sm primary" id="addplan">＋ Nuevo Plan Estándar</button>
+          <button class="btn sm ghost" id="addpromoplan">🔥 Nueva Promo Temporal</button>
+          <button class="btn sm primary" id="addplan">＋ Nuevo Plan</button>
         </div>
+      </div>
+      <div class="banner mb small" style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3)">
+        🛡️ <b>Protección de Historial y Caja:</b> Cada socio inscrito guarda una copia congelada del precio y duración del momento en que se registró. Si cambias precios o finalizas una promoción temporal hoy, tus cierres de caja anteriores y las membresías vigentes de socios antiguos permanecen 100% intactos.
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Nombre del Plan / Promo</th><th>Tipo</th><th>Duración</th><th>Precio</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>Nombre del Plan / Oferta</th><th>Tipo</th><th>Duración</th><th>Precio</th><th>Estado</th><th>Acciones</th></tr></thead>
           <tbody>
             ${plans.map(p => `
             <tr>
@@ -4427,14 +4493,14 @@ function verEstado() {
                 <b>${esc(p.name)}</b>
                 ${p.promo_label ? `<div class="tiny" style="color:#f59e0b;font-weight:700">🏷️ ${esc(p.promo_label)}</div>` : ''}
               </td>
-              <td>${p.is_promo ? '<span class="badge warn">🔥 Promo / Temporal</span>' : '<span class="badge info">Estándar</span>'}</td>
+              <td>${p.is_promo ? '<span class="badge warn">🔥 Promo Temporal</span>' : '<span class="badge">Plan Regular</span>'}</td>
               <td>${p.months ? `${p.months} mes(es)` : `${p.days} día(s)`}</td>
               <td class="gold" style="font-weight:700">${money(p.price)}</td>
-              <td><span class="badge ${p.active ? 'ok' : 'bad'}">${p.active ? 'Activo en Recepción' : 'Pausado / Oculto'}</span></td>
+              <td><span class="badge ${p.active ? 'ok' : 'bad'}">${p.active ? 'Activo (En venta)' : 'Finalizado / Archivado'}</span></td>
               <td class="row gap">
                 <button class="btn sm" data-editplan="${p.id}">Editar</button>
-                <button class="btn sm ghost" data-toggleplan="${p.id}">${p.active ? 'Pausar' : 'Activar'}</button>
-                <button class="btn sm bad" data-delplan="${p.id}" title="Eliminar o archivar plan">✕</button>
+                <button class="btn sm ghost" data-toggleplan="${p.id}" title="${p.active ? 'Pausar oferta para nuevas ventas' : 'Reactivar plan'}">${p.active ? 'Pausar' : 'Activar'}</button>
+                <button class="btn sm danger" data-delplan="${p.id}" title="Archivar o eliminar">✕</button>
               </td>
             </tr>`).join('')}
           </tbody>
@@ -4442,8 +4508,8 @@ function verEstado() {
       </div>
     </div>`;
 
-    el.querySelector('#addplan').onclick = () => planEditorModal(null, () => RD.go('settings'), false);
-    el.querySelector('#addpromoplan').onclick = () => planEditorModal(null, () => RD.go('settings'), true);
+    el.querySelector('#addplan').onclick = () => planEditorModal(null, () => RD.go('settings'));
+    el.querySelector('#addpromoplan').onclick = () => planEditorModal({ is_promo: 1, months: 1, days: 0, price: 60, active: 1, sort: 1 }, () => RD.go('settings'), true);
     el.onclick = async e => {
       const ep = e.target.closest('[data-editplan]');
       if (ep) {
@@ -4456,8 +4522,8 @@ function verEstado() {
         const p = plans.find(x => x.id === +tp.dataset.toggleplan);
         if (!p) return;
         try {
-          await RD.api.put('/plans/' + p.id, { ...p, active: p.active ? 0 : 1 });
-          RD.toast(p.active ? 'Plan pausado (los socios actuales mantienen su vigencia)' : 'Plan activado para nuevas inscripciones');
+          await RD.api.put('/plans/' + p.id, { active: p.active ? 0 : 1 });
+          RD.toast(p.active ? 'Plan pausado para nuevas inscripciones (socios antiguos mantienen su plan)' : 'Plan activado para nuevas ventas');
           RD.go('settings');
         } catch (err) { RD.toast(err.message, 'err'); }
         return;
@@ -4466,46 +4532,36 @@ function verEstado() {
       if (dp) {
         const p = plans.find(x => x.id === +dp.dataset.delplan);
         if (!p) return;
-        const ok = await RD.confirm('Eliminar o Archivar Plan', `¿Deseas retirar "${p.name}" de la lista activa? Si tiene historial de pagos se archivará de forma segura sin alterar ningún cuadre de caja pasado.`);
-        if (!ok) return;
+        if (!await RD.confirm('Archivar o Eliminar Plan', `¿Deseas retirar el plan "${p.name}"? Si tiene socios históricos, se archivará de forma segura sin alterar ningún registro ni cuadre de caja pasado.`, 'Confirmar')) return;
         try {
           const r = await RD.api.del('/plans/' + p.id);
-          RD.toast(r.archived ? 'Plan archivado con resguardo histórico' : 'Plan eliminado');
+          RD.toast(r.message || 'Plan eliminado');
           RD.go('settings');
         } catch (err) { RD.toast(err.message, 'err'); }
       }
     };
   }
 
-  function planEditorModal(p, done, defaultPromo = false) {
-    const isPromo = p ? !!p.is_promo : defaultPromo;
-    const d = RD.openModal(p ? 'Editar Plan o Promoción' : (isPromo ? '🔥 Nueva Promoción / Oferta Temporal' : 'Nuevo Plan de Membresía'), `
+  function planEditorModal(p, done, isNewPromo) {
+    const isEdit = p && p.id;
+    const d = RD.openModal(isEdit ? 'Editar Plan o Promoción' : (isNewPromo ? '🔥 Nueva Promoción u Oferta Temporal' : 'Nuevo Plan de Membresía'), `
       <form id="pf">
-        <div class="tip small mb" style="border-left:3px solid var(--gold)">
-          <b>Protección de Historial:</b> Modificar el precio o duración de un plan solo se aplica a las <b>nuevas inscripciones</b>. Los socios ya inscritos mantienen su fecha de vencimiento y el monto exacto que pagaron en su momento.
-        </div>
-        <label class="field"><span>Nombre del Plan o Promoción *</span><input name="name" value="${esc(p?.name || '')}" required placeholder="Ej. 1 Mes, Promo Dúo 2x1, Campaña Verano"></label>
-        <div class="grid g2 keep">
-          <label class="field"><span>Tipo de Tarifa</span>
-            <select name="is_promo">
-              <option value="0" ${!isPromo ? 'selected' : ''}>Plan Estándar Permanente</option>
-              <option value="1" ${isPromo ? 'selected' : ''}>🔥 Promoción Temporal / Oferta Ocasional</option>
-            </select>
-          </label>
-          <label class="field"><span>Etiqueta Promocional (Opcional)</span>
-            <input name="promo_label" value="${esc(p?.promo_label || '')}" placeholder="Ej. Solo por este mes / 20% Dscto">
-          </label>
-        </div>
+        <label class="field"><span>Nombre del plan u oferta *</span><input name="name" value="${esc(p?.name || '')}" required placeholder="Ej. 1 Mes Regular, Promo 2x1 Amigos, Campaña Verano"></label>
         <div class="grid g2 keep">
           <label class="field"><span>Duración en meses</span><input name="months" type="number" min="0" value="${p?.months ?? 1}"></label>
-          <label class="field"><span>O en días (ej. pase diario o quincena)</span><input name="days" type="number" min="0" value="${p?.days ?? 0}"></label>
+          <label class="field"><span>O en días exactos (ej. 15 días, pase)</span><input name="days" type="number" min="0" value="${p?.days ?? 0}"></label>
         </div>
         <div class="grid g2 keep">
-          <label class="field"><span>Precio de Venta (S/) *</span><input name="price" type="number" step="0.5" min="0" value="${p?.price ?? 60}" required></label>
+          <label class="field"><span>Precio de venta (S/) *</span><input name="price" type="number" step="0.5" min="0" value="${p?.price ?? 60}" required></label>
           <label class="field"><span>Orden de aparición</span><input name="sort" type="number" value="${p?.sort ?? 1}"></label>
         </div>
-        <label class="check"><input type="checkbox" name="active" ${p ? (p.active ? 'checked' : '') : 'checked'}> <span>Plan activo para nuevas inscripciones en recepción</span></label>
-        <button class="btn primary block mt">Guardar Plan / Tarifa</button>
+        <div class="card mb" style="background:var(--bg2);border:1px solid var(--line);padding:10px">
+          <label class="check"><input type="checkbox" name="is_promo" ${p?.is_promo ? 'checked' : ''}> <span>🔥 <b>Es una Promoción u Oferta Temporal</b> (puedes pausarla cuando termine la campaña)</span></label>
+          <label class="field mt2"><span>Etiqueta promocional (opcional)</span><input name="promo_label" value="${esc(p?.promo_label || '')}" placeholder="Ej. Solo por esta semana / Oferta Universitaria"></label>
+        </div>
+        <label class="check"><input type="checkbox" name="active" ${p ? (p.active ? 'checked' : '') : 'checked'}> <span>Disponible actualmente para nuevas inscripciones</span></label>
+        <div class="tiny muted mt">Nota: Cambiar este precio solo aplica a los socios que se inscriban a partir de ahora. Los socios antiguos conservan su tarifa original.</div>
+        <button class="btn primary block mt">Guardar Plan</button>
       </form>
     `);
 
@@ -4519,11 +4575,11 @@ function verEstado() {
           days: +f.days.value || 0,
           price: +f.price.value,
           sort: +f.sort.value || 1,
-          active: f.active.checked ? 1 : 0,
-          is_promo: +f.is_promo.value ? 1 : 0,
-          promo_label: f.promo_label.value.trim()
+          is_promo: f.is_promo.checked ? 1 : 0,
+          promo_label: f.promo_label.value.trim() || null,
+          active: f.active.checked ? 1 : 0
         };
-        if (p) await RD.api.put('/plans/' + p.id, body);
+        if (isEdit) await RD.api.put('/plans/' + p.id, body);
         else await RD.api.post('/plans', body);
         d.close();
         RD.toast('Plan guardado correctamente');
@@ -4744,7 +4800,7 @@ function verEstado() {
           <strong>Base de Datos SQLite (.db)</strong>, <strong>Volcado Portátil JSON</strong> y <strong>Sincronización en la Nube con Google Sheets</strong>.
         </p>
         <div style="background:var(--bg-subtle, rgba(0,0,0,0.03)); border-radius:8px; padding:0.75rem 1rem; font-size:0.85rem; line-height:1.5;">
-          <strong>¿Cómo funciona en Render?</strong> El plan gratuito de Render dispone de <strong>512 MB de memoria RAM</strong> (el sistema RD Fitness solo consume ~50 MB, apenas el 10%). Sin embargo, el almacenamiento en disco de Render Free es efímero cuando se duerme o se hace deploy. Con la sincronización a Google Sheets y los botones de respaldo abajo, tus datos jamás se perderán.
+          <strong>¿Cómo funciona en Render?</strong> El plan gratuito de Render dispone de <strong>512 MB de memoria RAM</strong> (el sistema RD FITNESS CLUB solo consume ~50 MB, apenas el 10%). Sin embargo, el almacenamiento en disco de Render Free es efímero cuando se duerme o se hace deploy. Con la sincronización a Google Sheets y los botones de respaldo abajo, tus datos jamás se perderán.
         </div>
       </div>
 
@@ -4830,13 +4886,13 @@ function verEstado() {
 
       <!-- TARJETA: HERRAMIENTAS ADICIONALES, DOSSIERS COMERCIALES, PANTALLA DE RECEPCIÓN Y ANATOMÍA 3D -->
       <div class="card">
-        <h3 style="margin-bottom:0.5rem;">${RD.icon('printer')} Herramientas de Recepción, Dossiers Ejecutivos, Pantalla Monitor/Tablet y Arquitectura 3D</h3>
+        <h3 style="margin-bottom:0.5rem;">${RD.icon('printer')} Herramientas de Recepción, Dossiers Ejecutivos, Monitor/Tablet de Bienvenida y Arquitectura 3D</h3>
         <p class="small muted" style="margin-bottom:0.85rem;">
-          Accede en 1 clic a la pantalla de recepción y bienvenida QR para monitor de escritorio o tablet, a los Dossiers de Propuesta Comercial e Ingeniería (Web y PDF Oficial), a las Máquinas Interactivas 3D (Anatomy3D Estándar y Pro), al Plano Técnico BOM y al Estudio de Tarjetas PVC.
+          Accede en 1 clic a la pantalla de bienvenida para monitor de escritorio o tablet en recepción (Bienvenidas QR + Cobro Yape/Plin), a los Dossiers de Propuesta Comercial e Ingeniería (Web y PDF Oficial), a las Máquinas Interactivas 3D (Anatomy3D Estándar y Pro), al Plano Técnico BOM y al Estudio de Tarjetas PVC.
         </p>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <a class="btn primary" href="/display.html" target="_blank" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
-            ${RD.icon('qr')} Pantalla de Recepción y Bienvenida (/display.html)
+            ${RD.icon('qr')} Pantalla Recepción Monitor / Tablet (/display.html)
           </a>
           <a class="btn" href="/admin/cards.html" target="_blank" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
             ${RD.icon('idcard')} Estudio e Impresor PDF de Tarjetas PVC
@@ -4844,10 +4900,10 @@ function verEstado() {
           <a class="btn" href="/admin/sheets.html" target="_blank" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
             ${RD.icon('sheet')} Hoja Maestra en Vivo (Sheets Local)
           </a>
-          <a class="btn" href="/propuesta.html" target="_blank" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; border-color:rgba(245,180,0,0.45); color:#f5b400;">
+          <a class="btn" href="/propuesta.html" target="_blank" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; border-color:rgba(239,68,68,0.45); color:#ef4444;">
             ${RD.icon('file-text')} Dossier Propuesta Comercial (Web)
           </a>
-          <a class="btn" href="/INFORME_PROPUESTA_COMERCIAL_GIMNASIOS.pdf" target="_blank" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+          <a class="btn" href="/INFORME_PROPUESTA_COMERCIAL_RED_GYM.pdf" target="_blank" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
             ${RD.icon('cloud-download')} Dossier Ejecutivo Oficial (PDF A4)
           </a>
           <a class="btn" href="/anatomy/index.html" target="_blank" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; border-color:rgba(39,230,255,0.45); color:#27e6ff;">
@@ -4876,6 +4932,9 @@ function verEstado() {
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <button class="btn primary" id="btn-security-audit" style="display:inline-flex; align-items:center; gap:6px;">
             ${RD.icon('shield')} Ver Auditoría de Ciberseguridad y Bitácora
+          </button>
+          <button class="btn ok" id="btn-privacy-alerts" style="display:inline-flex; align-items:center; gap:6px;">
+            ${RD.icon('lock')} Alertas de Descargas y PIN de Datos
           </button>
           <button class="btn" id="btn-admin-legal" style="display:inline-flex; align-items:center; gap:6px;">
             ${RD.icon('file-text')} Reglamento, Privacidad (Ley 29733) y Derechos
@@ -4955,7 +5014,7 @@ function verEstado() {
     el.querySelector('#btn-backup-db').onclick = async () => {
       try {
         RD.toast('Generando copia SQLite...', 'info');
-        const fn = await RD.downloadAuth('/backup', 'rdfitness_backup.db');
+        const fn = await RD.downloadAuth('/backup', 'redgym_backup.db');
         RD.toast('Copia descargada con éxito: ' + fn, 'ok');
       } catch (err) {
         RD.toast(err.message || 'Error al descargar respaldo', 'err');
@@ -4994,7 +5053,7 @@ function verEstado() {
       try {
         RD.toast('Exportando datos a JSON...', 'info');
         const d = new Date().toISOString().slice(0, 10);
-        const fn = await RD.downloadAuth('/backup/export-json', `rdfitness_export_${d}.json`);
+        const fn = await RD.downloadAuth('/backup/export-json', `redgym_export_${d}.json`);
         RD.toast('Exportación completada: ' + fn, 'ok');
       } catch (err) {
         RD.toast(err.message || 'Error al exportar JSON', 'err');
@@ -5055,6 +5114,8 @@ function verEstado() {
     // 6. Auditoría de Ciberseguridad y Centro Legal
     const btnLegal = el.querySelector('#btn-admin-legal');
     if (btnLegal) btnLegal.onclick = () => RD.openLegalModal('normas');
+    const btnPrivAlerts = el.querySelector('#btn-privacy-alerts');
+    if (btnPrivAlerts) btnPrivAlerts.onclick = () => RD.security && RD.security.openPrivacyModal();
     const btnSunatLegal = el.querySelector('#btn-sunat-legal');
     if (btnSunatLegal) btnSunatLegal.onclick = () => RD.openLegalModal('sunat');
 

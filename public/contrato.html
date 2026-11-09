@@ -52,7 +52,7 @@
     }
     .brand-badge {
       background: linear-gradient(135deg, var(--gold), #d97706);
-      color: #000;
+      color: #fff;
       font-weight: 900;
       padding: 4px 10px;
       border-radius: 6px;
@@ -77,7 +77,7 @@
     .btn:hover { border-color: var(--gold); transform: translateY(-1px); }
     .btn-gold {
       background: linear-gradient(135deg, var(--gold), #d97706);
-      color: #000;
+      color: #fff;
       border: none;
     }
     .btn-emerald {
@@ -257,7 +257,7 @@
       display: inline-block;
       background: var(--gold-soft);
       color: var(--gold);
-      border: 1px solid rgba(245,180,0,0.4);
+      border: 1px solid rgba(245, 180, 0,0.4);
       padding: 4px 12px;
       border-radius: 999px;
       font-size: 11px;
@@ -416,7 +416,7 @@
     }
     .price-box.featured {
       border-color: var(--gold);
-      background: linear-gradient(180deg, rgba(245,180,0,0.07), rgba(22,34,59,0.95));
+      background: linear-gradient(180deg, rgba(245, 180, 0,0.07), rgba(22,34,59,0.95));
     }
     .hidden-doc { display: none !important; }
 
@@ -449,9 +449,13 @@
         padding: 6px 9px !important;
         border-radius: 5px !important;
       }
-      #docDossier > .section:nth-of-type(2) {
+      #docDossier > .section {
         break-inside: auto !important;
         page-break-inside: auto !important;
+      }
+      .section-title, .section-sub {
+        break-after: avoid !important;
+        page-break-after: avoid !important;
       }
       .box, .diagram-card, .price-box {
         background: #f8fafc !important;
@@ -477,7 +481,7 @@
       .hero h1 { font-size: 13pt !important; margin-bottom: 3px !important; line-height: 1.18 !important; }
       .hero p { font-size: 8.2pt !important; margin-bottom: 4px !important; line-height: 1.22 !important; }
       .hero-tag { font-size: 7.2pt !important; padding: 1.5px 7px !important; margin-bottom: 3px !important; background: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fca5a5 !important; }
-      .hero h1 span, .box h3, .section-title { color: #b91c1c !important; font-size: 9.5pt !important; margin-bottom: 2px !important; }
+      .hero h1 span, .box h3, .section-title { color: #d97706 !important; font-size: 9.5pt !important; margin-bottom: 2px !important; }
       table { width: 100% !important; border-collapse: collapse !important; break-inside: avoid !important; margin-top: 4px !important; }
       thead { display: table-header-group !important; }
       tr { break-inside: avoid !important; page-break-inside: avoid !important; }
@@ -544,15 +548,15 @@
   <!-- BARRA SUPERIOR DE ACCIONES RÁPIDAS -->
   <header class="topbar no-print">
     <div class="brand-pill">
-      <img src="logo-rd-fitness.png?v=6.6" alt="RD FITNESS CLUB" style="height:42px;width:auto;object-fit:contain;background:transparent !important;filter:drop-shadow(0 2px 6px rgba(220,38,38,0.35))" />
+      <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:42px;width:auto;object-fit:contain;background:transparent !important;filter:drop-shadow(0 2px 6px rgba(220,38,38,0.35))" />
       <span class="brand-badge">RD FITNESS 360°</span>
       <span>Propuesta Técnica y Generador de Contrato — <strong class="gym-name" style="color:var(--gold)">RD FITNESS CLUB</strong></span>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
       <a class="btn" href="anatomy3d/index.html" target="_blank" title="Ver Arquitectura 3D Interactiva">🧬 Máquina 3D</a>
       <a class="btn" href="display.html" target="_blank" title="Ver Monitor de Recepción HDMI">🖥️ Monitor HDMI</a>
-      <a class="btn btn-gold" href="INFORME_PROPUESTA_COMERCIAL_GIMNASIOS.pdf" download="INFORME_PROPUESTA_COMERCIAL_GIMNASIOS.pdf">📥 PDF Dossier Informativo</a>
-      <a class="btn btn-emerald" href="CONTRATO_SERVICIOS_SOFTWARE_GIMNASIOS.pdf" download="CONTRATO_SERVICIOS_SOFTWARE_GIMNASIOS.pdf">⚖️ PDF Contrato Oficial</a>
+      <a class="btn btn-gold" href="INFORME_PROPUESTA_COMERCIAL_RED_GYM.pdf" download="INFORME_PROPUESTA_COMERCIAL_RED_GYM.pdf">📥 PDF Dossier Informativo</a>
+      <a class="btn btn-emerald" href="CONTRATO_SERVICIOS_SOFTWARE_RED_GYM.pdf" download="CONTRATO_SERVICIOS_SOFTWARE_RED_GYM.pdf">⚖️ PDF Contrato Oficial</a>
       <button class="btn" id="btnThemeProp" onclick="togglePropuestaTheme()">☀️ Claro</button>
     </div>
   </header>
@@ -584,7 +588,7 @@
     <!-- ======================================================================================== -->
     <!-- SECCIÓN SUPERIOR FUERA DE LA DOCUMENTACIÓN: CONFIGURADOR INTERACTIVO DE CONTRATO FINAL   -->
     <!-- ======================================================================================== -->
-    <section class="configurator-panel no-print" id="cfgPanel">
+    <section class="configurator-panel no-print hidden-doc" id="cfgPanel">
       <div class="cfg-header">
         <div>
           <div style="font-size:11px;font-weight:900;color:var(--cyan);text-transform:uppercase;letter-spacing:0.8px">
@@ -824,11 +828,11 @@
     <!-- ======================================================================================== -->
     <!-- DOCUMENTO 1: DOSSIER INFORMATIVO Y PROPUESTA TÉCNICA-COMERCIAL (ESTRICTO FIN INFORMATIVO) -->
     <!-- ======================================================================================== -->
-    <div id="docDossier" class="hidden-doc">
+    <div id="docDossier">
       <!-- SECCIÓN 0: PORTADA EJECUTIVA Y PRESENTACIÓN DEL DESARROLLADOR -->
       <section class="hero">
         <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:10px">
-          <img src="logo-rd-fitness.png?v=6.6" alt="RD FITNESS CLUB" style="height:82px;width:auto;object-fit:contain;background:transparent !important;filter:drop-shadow(0 4px 12px rgba(220,38,38,0.4))" />
+          <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:82px;width:auto;object-fit:contain;background:transparent !important;filter:drop-shadow(0 4px 12px rgba(220,38,38,0.4))" />
           <div style="flex:1;min-width:260px">
             <div class="hero-tag">Dossier Informativo de Propuesta Técnica y Comercial · Chivay, Arequipa</div>
             <h1 style="margin:0">Sistema Integral de Gestión, Control de Accesos QR, Caja por Turnos y App de Socios para <span class="gym-name">RD FITNESS CLUB</span></h1>
@@ -888,11 +892,11 @@
           </div>
 
           <div class="box">
-            <h3>1.3. Padrón de Socios y Empadronamiento de Membresías en Curso (/members)</h3>
+            <h3>1.3. Padrón de Socios, Uso Estricto de Datos y Membresías en Curso (/members)</h3>
             <ul class="feature-list">
-              <li><strong>Registro Rápido de 3 Datos Esenciales:</strong> Ficha de inscripción directa con <strong>Nombre Completo, DNI y Teléfono / WhatsApp</strong> (más fotografía opcional).</li>
-              <li><strong>Modo de Migración para Socios con Plan en Curso:</strong> Permite incorporar al sistema a los socios antiguos que ya cuentan con una membresía vigente pagada con anterioridad, respetando sus fechas y días restantes <strong>sin alterar ni sumar cobros duplicados a la caja del día</strong>.</li>
-              <li><strong>Carnés QR Exportables en PDF y PNG:</strong> Generación de tarjetas físicas con código QR listas para descargar o compartir en formato PDF e imagen de alta resolución.</li>
+              <li><strong>Uso Estricto de los 3 Datos Esenciales (Nombre, DNI y Teléfono):</strong> Se solicita únicamente <strong>Nombre Completo, DNI y Teléfono / WhatsApp</strong>, destinados <strong>exclusivamente a la generación de su cuenta de usuario, código QR único, control de vigencia y avisos internos</strong>, sin implicar jamás un mal uso de su información.</li>
+              <li><strong>Cifrado Visual en Pantalla y PIN del Propietario:</strong> Visualización normal con DNI y teléfonos parcialmente cifrados (<code>•••458</code>) contra capturas en recepción, con opción de visualización completa mediante el <strong>PIN Especial del Propietario</strong>.</li>
+              <li><strong>Modo de Migración para Socios con Plan en Curso:</strong> Incorpora a los socios antiguos que ya tienen una membresía vigente pagada con anterioridad, respetando sus días restantes <strong>sin sumar cobros duplicados a la caja del día</strong>.</li>
             </ul>
           </div>
 
@@ -933,8 +937,8 @@
           <div class="box">
             <h3>1.8. Centro de Reportes y Sincronización Google Sheets (/reports)</h3>
             <ul class="feature-list">
-              <li><strong>Exportación Ejecutiva en Excel (.xlsx) y PDF A4:</strong> Generación de reportes estructurados de ingresos, gastos, asistencias, membresías y movimientos de tienda.</li>
-              <li><strong>Hoja Maestra Google Sheets Automatizada:</strong> Sincronización en la nube con un clic para respaldar y consultar toda la información desde cualquier dispositivo.</li>
+              <li><strong>Exportación Ejecutiva Protegida con PIN (.xlsx, CSV y PDF A4):</strong> Generación de reportes estructurados de ingresos, gastos, asistencias y socios, protegida con el <strong>PIN Especial del Propietario</strong> y notificación automática de descarga.</li>
+              <li><strong>Hoja Maestra Cloud Sheets (19 Hojas) con Cifrado Visual:</strong> Sincronización en vivo con enmascaramiento por defecto de DNI/teléfonos, marca de agua anti-capturas y desbloqueo completo mediante PIN.</li>
             </ul>
           </div>
 
@@ -942,8 +946,8 @@
             <h3>1.9. Sistema Entrelazado de Avisos y Publicaciones: App + Web + WhatsApp (/announcements)</h3>
             <ul class="feature-list">
               <li><strong>Soporte Multimedia y Documentos:</strong> Publicación de comunicados, avisos y promociones con <strong>imágenes en alta definición, videos (MP4/YouTube/Reels), documentos PDF descargables (horarios, guías, reglamentos) y enlaces externos</strong>.</li>
-              <li><strong>Selección Individual, Combinada o General desde el Panel Admin:</strong> Permite elegir con exactitud dónde difundir cada publicación: <strong>Solo en App de Socios</strong>, <strong>Solo en Página Web</strong>, <strong>Solo en WhatsApp</strong>, <strong>App + Web</strong>, <strong>App + WhatsApp</strong>, <strong>Web + WhatsApp</strong>, o <strong>General en los 3 canales a la vez</strong>.</li>
-              <li><strong>Integración al Grupo / Comunidad de WhatsApp del Gimnasio:</strong> El proyecto se integra al grupo o comunidad de WhatsApp del gimnasio para difundir las publicaciones directamente desde el sistema sin riesgo de bloqueo por spam.</li>
+              <li><strong>Selección Individual, Combinada o General desde el Panel Admin:</strong> Permite elegir dónde difundir cada publicación: <strong>Solo en App de Socios</strong>, <strong>Solo en Página Web</strong>, <strong>Solo en WhatsApp</strong>, combinaciones dobles o <strong>General en los 3 canales a la vez</strong>.</li>
+              <li><strong>Uso Obligatorio de WhatsApp Exclusivo del Negocio en Recepción:</strong> Dado que la PC/laptop del gimnasio es operada tanto por el dueño como por sus trabajadores (quienes atienden consultas, leen mensajes y publican avisos), el WhatsApp vinculado en recepción debe ser una <strong>cuenta exclusiva del negocio</strong> y nunca el WhatsApp personal del propietario.</li>
             </ul>
           </div>
 
@@ -1036,10 +1040,11 @@
           </div>
 
           <div class="box">
-            <h3>4.2. Entrelazado Automatizado entre Página Web, App de Socios y WhatsApp</h3>
+            <h3>4.2. Entrelazado Automatizado (Web + App + WhatsApp Corporativo del Negocio)</h3>
             <ul class="feature-list">
-              <li><strong>Integración al WhatsApp del Gimnasio (Cero Bloqueos):</strong> El sistema se vincula directamente con el grupo o comunidad de WhatsApp del gimnasio (creado y administrado por el propietario), permitiendo difundir comunicados, promociones, videos y documentos desde el Panel Administrativo sin complicaciones ni riesgo de bloqueo de cuenta por spam.</li>
-              <li><strong>Control de Destinos Individual, Combinado o General en 1 Clic:</strong> Desde el Panel Admin se selecciona si la publicación se realiza en <strong>Solo App de Socios</strong>, <strong>Solo Página Web</strong>, <strong>Solo WhatsApp</strong>, <strong>App + Web</strong>, <strong>App + WhatsApp</strong>, <strong>Web + WhatsApp</strong> o de forma <strong>General en los 3 canales simultáneamente</strong>.</li>
+              <li><strong>Integración al WhatsApp del Gimnasio (Cero Bloqueos):</strong> El sistema se vincula directamente con el grupo o comunidad de WhatsApp del gimnasio (creado y administrado por el propietario), permitiendo difundir comunicados, promociones, videos y documentos desde el Panel Administrativo sin riesgo de bloqueo por spam.</li>
+              <li><strong>Privacidad del Propietario (Cuenta de WhatsApp Exclusiva del Gimnasio):</strong> Debido a que los trabajadores de recepción también utilizan la computadora del gimnasio para atender consultas por mensajes y enviar notificaciones laborales, se debe vincular una <strong>cuenta de WhatsApp exclusiva del negocio</strong> y no la cuenta personal del dueño, resguardando su privacidad.</li>
+              <li><strong>Control de Destinos Individual, Combinado o General en 1 Clic:</strong> Selección directa en el Panel Admin para difundir en <strong>Solo App</strong>, <strong>Solo Web</strong>, <strong>Solo WhatsApp</strong>, combinaciones o <strong>General en los 3 canales</strong>.</li>
             </ul>
           </div>
         </div>
@@ -1081,31 +1086,45 @@
         </div>
       </section>
 
-      <!-- SECCIÓN 5: FIABILIDAD OPERATIVA Y RESPALDO EN LA NUBE + PC -->
+      <!-- SECCIÓN 5: CIBERSEGURIDAD, PROTECCIÓN DE DATOS CON PIN, RESPALDO QUÍNTUPLE Y DESLINDE OPERATIVO -->
       <section class="section">
-        <div class="section-title">⚡ 5. Persistencia de Datos en la Nube y Modo Local en la PC (Cero Pérdida de Información)</div>
+        <div class="section-title">🛡️ 5. Arquitectura de Ciberseguridad, Copias de Seguridad, PIN de Datos y Responsabilidad Operativa</div>
         <div class="section-sub">
-          Arquitectura de doble respaldo para garantizar la continuidad de las operaciones y la conservación permanente de la información:
+          Detalle integral de los sistemas de defensa anti-hacks, respaldos automáticos contra caídas, cifrado visual contra extracción de datos y delimitación de responsabilidades ante manipulación en recepción:
         </div>
 
-        <div class="grid-3">
+        <div class="grid-2">
           <div class="box">
-            <h3>Bóveda Perpetua Cloud + Google Sheets</h3>
-            <p style="font-size:12px;color:#cbd5e1">
-              Cada socio, membresía, cobro y asistencia se respalda automáticamente en la bóveda en la nube y en Google Sheets, asegurando que la información permanezca intacta en todo momento.
-            </p>
+            <h3>5.1. Defensa Anti-Hacks, Anti-Fuerza Bruta, Anti-Virus y Criptografía</h3>
+            <ul class="feature-list">
+              <li><strong>Blindaje Anti-Inyección SQL (SQLi) y Anti-XSS:</strong> 100% de consultas parametrizadas (<em>Prepared Statements</em>) sobre motor SQLite WAL y sanitización estricta contra inyección de código malicioso.</li>
+              <li><strong>Escudo Anti-Fuerza Bruta y Anti-Caídas por Saturación (DDoS):</strong> Bloqueo automático temporal ante intentos fallidos de contraseñas o PIN (máx. 10–12 intentos/min) y limitador de peticiones (300 req/min).</li>
+              <li><strong>Filtro Antivirus / Anti-Ejecutables y Cifrado Bcrypt + HMAC-SHA256:</strong> Bloqueo binario de archivos ejecutables o scripts maliciosos en subidas, contraseñas cifradas con <strong>Bcrypt (Factor 10)</strong> y tokens QR dinámicos con firma criptográfica <code>HMAC-SHA256</code>.</li>
+            </ul>
           </div>
+
           <div class="box">
-            <h3>Modo Local PC ante Cortes de Internet</h3>
-            <p style="font-size:12px;color:#cbd5e1">
-              El módulo <strong>⚡ Modo Local PC</strong> permite continuar validando accesos QR y registrando operaciones en la computadora local ante eventuales caídas del servicio de internet, sincronizando los datos automáticamente al restablecerse la red.
-            </p>
+            <h3>5.2. Respaldo Quíntuple Automático y Continuidad Anti-Caídas</h3>
+            <ul class="feature-list">
+              <li><strong>5 Capas de Copia de Seguridad Simultáneas:</strong> (1) Base de datos transaccional <strong>SQLite WAL</strong> con respaldos automáticos cada 6 h; (2) <strong>Bóveda Local JSON</strong> cada 2 min; (3) <strong>Bóveda Cloud Cifrada (Upstash Redis)</strong> en tiempo real; (4) <strong>Cloud Sheets de 19 Hojas</strong>; y (5) Exportación manual en <code>.xlsx</code>, <code>.csv</code>, <code>.db</code> y <code>.json</code>.</li>
+              <li><strong>Módulo ⚡ Modo Local PC e Interceptor Anti-Crash:</strong> Permite seguir validando códigos QR y registrando cobros en la PC del local ante cortes de internet, sincronizando todo al restablecerse la conexión.</li>
+            </ul>
           </div>
+
           <div class="box">
-            <h3>Aplicaciones Instalables con Identidad Propia</h3>
-            <p style="font-size:12px;color:#cbd5e1">
-              Tanto el Panel de Administración en recepción como la App Móvil de Socios se instalan con acceso directo e ícono oficial personalizado de <strong class="gym-name">RD FITNESS CLUB</strong>.
-            </p>
+            <h3>5.3. Cifrado Visual, PIN Especial del Dueño y Alerta de Descargas</h3>
+            <ul class="feature-list">
+              <li><strong>Visualización Normal Cifrada y Desbloqueo con PIN:</strong> En recepción y en Cloud Sheets, los DNI (<code>•••458</code>) y teléfonos (<code>982•••043</code>) se muestran cifrados por defecto. Su visualización completa y la descarga de cualquier archivo confidencial exigen el <strong>PIN Especial del Propietario</strong>.</li>
+              <li><strong>Marca de Agua Anti-Capturas y Notificación de Descargas al Dueño:</strong> Sello forense diagonal en pantalla con el nombre del operador, rol y fecha/hora contra capturas o fotos de celular, más registro inmutable y alerta directa al WhatsApp del propietario cada vez que se descarga un archivo o reporte.</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>5.4. Uso Estricto de Datos y Exclusión por Mala Manipulación de Trabajadores</h3>
+            <ul class="feature-list">
+              <li><strong>Uso Exclusivo de Datos (Nombre, DNI y Teléfono):</strong> Los datos de los socios se emplean <strong>únicamente para generar sus cuentas, códigos QR y control de vigencia</strong>, sin implicar jamás un mal uso de los mismos.</li>
+              <li><strong>Deslinde por Mala Manipulación o Sabotaje de Trabajadores:</strong> Si el sistema sufre caídas, alteraciones o fallos ocasionados por <strong>manipulación indebida, negligente o malintencionada por parte de un trabajador o tercero en el gimnasio</strong>, ello compete exclusivamente al propietario del negocio y <strong>no está cubierto por la garantía ni bajo responsabilidad del Desarrollador</strong>.</li>
+            </ul>
           </div>
         </div>
       </section>
@@ -1250,7 +1269,7 @@
         <div class="diagram-card">
           <div style="font-weight:800;font-size:12.5px;color:var(--gold);margin-bottom:4px">🛡️ Condiciones de Garantía Técnica (6 Meses), Equipos y Solicitudes Adicionales:</div>
           <ul class="feature-list" style="font-size:11.5px">
-            <li><strong>1. Garantía Técnica del Software (6 Meses):</strong> El software cuenta con <strong>seis (6) meses de garantía técnica</strong> desde su entrega operativa, cubriendo sin costo la corrección de cualquier desperfecto técnico sobre los módulos detallados en este dossier.</li>
+            <li><strong>1. Garantía Técnica del Software (6 Meses) y Exclusión por Mala Manipulación:</strong> El software cuenta con <strong>seis (6) meses de garantía técnica</strong> sobre el correcto funcionamiento de sus módulos. Quedan expresamente excluidos de garantía los fallos, desconfiguraciones, caídas o alteraciones provocados por <strong>mala manipulación, negligencia o actos malintencionados de trabajadores o terceros en el gimnasio</strong>, cuya supervisión compete exclusivamente al propietario.</li>
             <li><strong>2. Cambios Posteriores o Nuevas Funciones Tienen Costo Adicional:</strong> Cualquier requerimiento posterior de nuevas funciones, módulos adicionales, rediseños o modificaciones personalizadas fuera del alcance entregado constituye un servicio adicional independiente y se cotiza por separado.</li>
             <li><strong>3. Garantía de Equipos Físicos (Según Tienda Comercial):</strong> La garantía de los equipos nuevos adquiridos por encargo se rige directamente por la póliza oficial de la tienda comercial proveedora (entregándose al cliente sus comprobantes de compra). No cubre daños físicos por golpes, líquidos, variaciones eléctricas, manipulación por terceros ni cortes de internet.</li>
             <li><strong>4. Formalización Mediante Contrato Oficial Independiente:</strong> El presente Dossier cumple fines estrictamente informativos sobre el alcance del proyecto. La contratación formal, el detalle exacto de los planes y equipos elegidos, la liquidación de pagos y las cláusulas legales se suscriben en el <strong>Documento Oficial de Contrato de Implementación y Conformidad</strong>.</li>
@@ -1262,12 +1281,12 @@
     <!-- ======================================================================================== -->
     <!-- DOCUMENTO 2: CONTRATO OFICIAL PERSONALIZADO DE SERVICIOS, ELECCIÓN, PAGOS Y FIRMAS       -->
     <!-- ======================================================================================== -->
-    <div id="docContrato">
+    <div id="docContrato" class="hidden-doc">
       <!-- ENCABEZADO OFICIAL DEL CONTRATO -->
       <section class="hero" style="padding:20px 24px;margin-bottom:14px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:8px">
           <div style="display:flex;align-items:center;gap:14px">
-            <img src="logo-rd-fitness.png?v=6.6" alt="RD FITNESS CLUB" style="height:66px;width:auto;object-fit:contain;background:transparent !important" />
+            <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:66px;width:auto;object-fit:contain;background:transparent !important" />
             <div>
               <div class="hero-tag" style="margin-bottom:4px">Documento Legal Vinculante · Código Civil Peruano (Arts. 1351°, 1361° y 1764°)</div>
               <h1 style="font-size:21px;margin:0">CONTRATO DE IMPLEMENTACIÓN DE SOFTWARE, LIQUIDACIÓN DE ELECCIÓN Y CONFORMIDAD LEGAL</h1>
@@ -1422,16 +1441,16 @@
           </div>
 
           <div class="box">
-            <h3>Cláusula Quinta: Tiempos de Carga (24–72 h), Equipos y Garantía de 6 Meses</h3>
+            <h3>Cláusula Quinta: Carga (24–72 h), Ciberseguridad, Garantía (6m) y Exclusiones</h3>
             <p style="font-size:11px;color:#cbd5e1;line-height:1.42;margin:0">
-              La instalación del sistema es inmediata, mientras que el empadronamiento inicial de socios antiguos en curso se efectúa en un plazo de <strong>24 a 72 horas</strong> según el volumen de registros entregados por el gimnasio. El software cuenta con <strong>seis (6) meses de garantía técnica</strong> sobre su correcto funcionamiento. El Desarrollador no suministra equipos físicos marcados como propios o no requeridos en la Sección II; los equipos adquiridos por encargo se rigen por la garantía de la tienda comercial proveedora.
+              La instalación es inmediata y el empadronamiento inicial de socios en curso se realiza en <strong>24 a 72 horas</strong>. El sistema incluye blindaje anti-SQLi, anti-fuerza bruta, filtro anti-ejecutables, cifrado Bcrypt/HMAC-SHA256 y respaldo quíntuple (SQLite WAL, JSON, Cloud Vault, Cloud Sheets y Modo Local PC), con <strong>6 meses de garantía técnica</strong>. <strong>Exclusión expresa:</strong> Las caídas, errores o daños causados por <strong>mala manipulación, negligencia o actos malintencionados de trabajadores o terceros</strong> son de exclusiva responsabilidad de EL CLIENTE y no están cubiertos por la garantía ni generan responsabilidad para EL DESARROLLADOR.
             </p>
           </div>
 
           <div class="box">
-            <h3>Cláusula Sexta: Protección de Datos y Plena Validez Contractual</h3>
+            <h3>Cláusula Sexta: Uso Estricto de Datos, PIN del Dueño, WhatsApp Corporativo y Validez</h3>
             <p style="font-size:11px;color:#cbd5e1;line-height:1.42;margin:0">
-              El Gimnasio es el titular de su padrón de clientes (Ley N° 29733), guardando el Desarrollador absoluta reserva técnica sobre la información procesada. Cualquier consulta o diferencia será resuelta de buena fe y trato directo entre las partes. El presente documento firmado constituye contrato privado con plena validez legal conforme a los Artículos 1351° y 1361° del Código Civil del Perú.
+              Los datos de los socios (<strong>Nombre, DNI y Teléfono</strong>) se utilizan <strong>estrictamente para generar sus cuentas, códigos QR y control de vigencia</strong>. El sistema protege esta información mediante cifrado visual en pantalla, marca de agua anti-capturas, <strong>PIN Especial del Propietario</strong> para visualización completa y descargas, y alertas de exportación. Asimismo, EL CLIENTE se compromete a vincular en la PC de recepción una <strong>cuenta de WhatsApp exclusiva del negocio</strong> (y no su cuenta personal), dado que sus trabajadores operan dicho equipo. El presente contrato tiene plena validez legal conforme a los Arts. 1351° y 1361° del Código Civil Peruano.
             </p>
           </div>
         </div>
@@ -1489,7 +1508,7 @@
             </div>
 
             <!-- FIRMA 4: CONSTANCIA DE RECEPCIÓN Y PUESTA EN MARCHA -->
-            <div style="border:1.5px solid var(--gold);border-radius:8px;padding:10px;background:rgba(245,180,0,0.05)">
+            <div style="border:1.5px solid var(--gold);border-radius:8px;padding:10px;background:rgba(245, 180, 0,0.05)">
               <div style="font-size:9.5px;font-weight:800;color:var(--gold);text-transform:uppercase;margin-bottom:22px">
                 (4) ACTA DE RECEPCIÓN OPERATIVA Y RATIFICACIÓN CONTRACTUAL
               </div>

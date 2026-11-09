@@ -347,7 +347,10 @@ const DEFAULT_SETTINGS = {
   google_sheets_key: require('crypto').randomBytes(12).toString('hex'),
   google_sheet_url: '',
   yape_phone: '982404043',
-  yape_name: 'RD FITNESS CLUB'
+  yape_name: 'RD FITNESS CLUB',
+  owner_data_pin: '2026',
+  owner_alert_phone: '982404043',
+  privacy_mask_default: '1'
 };
 for (const [k, v] of Object.entries(DEFAULT_SETTINGS)) {
   q.run('INSERT OR IGNORE INTO settings(key,value) VALUES(?,?)', k, v);

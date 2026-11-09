@@ -123,6 +123,9 @@
               <p class="small muted" style="margin:4px 0 0">
                 Ingresa el enlace del grupo o comunidad de WhatsApp del gimnasio para entrelazarlo con el sistema y difundir las publicaciones directamente desde el Panel Admin.
               </p>
+              <div class="tiny" style="margin-top:6px;padding:6px 10px;border-radius:6px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.35);color:var(--fg)">
+                🔒 <b>Privacidad Operativa en Recepción:</b> El WhatsApp abierto en la computadora o laptop del gimnasio debe ser una <b>cuenta exclusiva del negocio (WhatsApp Business)</b> y nunca el WhatsApp personal del propietario, ya que el personal de recepción también utiliza el equipo para atender consultas de socios y difundir comunicados.
+              </div>
             </div>
           </div>
           <form id="waconfigform" class="row wrap gap" style="align-items:flex-end">
