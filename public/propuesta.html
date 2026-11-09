@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dossier Informativo y Generador de Contrato — RD FITNESS CLUB</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
   <style>
     :root {
       --bg: #0b0b0d;
@@ -75,6 +76,7 @@
       transition: 0.2s;
     }
     .btn:hover { border-color: var(--gold); transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.65; cursor: wait; transform: none; }
     .btn-gold {
       background: linear-gradient(135deg, var(--gold), #d97706);
       color: #fff;
@@ -125,16 +127,16 @@
     .container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 22px 20px;
+      padding: 20px;
     }
 
-    /* PANEL CONFIGURADOR INTERACTIVO DE ELECCIÓN DEL CLIENTE (FUERA DE LA DOCUMENTACIÓN IMPRESA) */
+    /* PANEL INTERACTIVO DE DATOS Y ELECCIÓN (SIEMPRE ACCESIBLE ARRIBA, NO SE IMPRIME EN EL PDF) */
     .configurator-panel {
       background: linear-gradient(145deg, #131824, #0d111a);
       border: 2px solid var(--cyan);
       border-radius: 16px;
-      padding: 22px;
-      margin-bottom: 26px;
+      padding: 20px 22px;
+      margin-bottom: 24px;
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
     }
     .cfg-header {
@@ -143,12 +145,12 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 12px;
-      padding-bottom: 14px;
+      padding-bottom: 12px;
       border-bottom: 1px solid var(--border);
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
     .cfg-step-title {
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 900;
       text-transform: uppercase;
       letter-spacing: 0.6px;
@@ -162,19 +164,13 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 12px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
     .cfg-grid-3 {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 12px;
-      margin-bottom: 16px;
-    }
-    .cfg-grid-2 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
     .cfg-field label {
       display: block;
@@ -196,6 +192,7 @@
     .cfg-field input:focus, .cfg-field select:focus {
       outline: none;
       border-color: var(--cyan);
+      box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
     }
     .cfg-card-option {
       background: var(--card-2);
@@ -245,12 +242,102 @@
       margin-top: 10px;
     }
 
+    /* EMBLEMA / SELLO OFICIAL DEL DESARROLLADOR Y ENCABEZADO BILATERAL */
+    .dev-emblem-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dev-emblem-box {
+      width: 58px;
+      height: 58px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      border: 2px solid var(--cyan);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 4px 14px rgba(6, 182, 212, 0.25);
+      flex-shrink: 0;
+      overflow: hidden;
+      padding: 3px;
+    }
+    .dev-emblem-box .dev-logo-slot {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 0;
+    }
+    .dev-emblem-box svg {
+      width: 30px;
+      height: 30px;
+      display: block;
+    }
+    .dev-emblem-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 2px;
+    }
+    .dev-emblem-sub {
+      font-size: 6.5px;
+      font-weight: 900;
+      letter-spacing: 0.3px;
+      color: #38bdf8;
+      text-transform: uppercase;
+      margin-top: 2px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .bilateral-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    @media (max-width: 760px) {
+      .bilateral-bar { grid-template-columns: 1fr; }
+    }
+    .party-card {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .party-card.dev-party { border-left: 3.5px solid var(--cyan); }
+    .party-card.gym-party { border-left: 3.5px solid var(--gold); }
+
+    /* CAMPOS EDITABLES DIRECTAMENTE EN EL DOCUMENTO */
+    [contenteditable="true"] {
+      border-bottom: 1px dashed rgba(6, 182, 212, 0.55);
+      padding: 0 3px;
+      border-radius: 3px;
+      transition: background 0.15s, border-color 0.15s;
+      cursor: text;
+    }
+    [contenteditable="true"]:hover {
+      background: rgba(6, 182, 212, 0.12);
+      border-bottom-color: var(--cyan);
+    }
+    [contenteditable="true"]:focus {
+      outline: none;
+      background: rgba(6, 182, 212, 0.18);
+      border-bottom: 1.5px solid var(--cyan);
+    }
+
     .hero {
       background: linear-gradient(135deg, rgba(22,34,59,0.95), rgba(17,26,46,0.95));
       border: 1px solid rgba(245, 180, 0, 0.4);
       border-radius: 16px;
-      padding: 26px;
-      margin-bottom: 22px;
+      padding: 24px;
+      margin-bottom: 20px;
       box-shadow: 0 16px 40px rgba(0,0,0,0.45);
     }
     .hero-tag {
@@ -264,30 +351,30 @@
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.8px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .hero h1 {
-      font-size: clamp(21px, 2.8vw, 31px);
+      font-size: clamp(20px, 2.6vw, 29px);
       line-height: 1.22;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       font-weight: 900;
     }
     .hero h1 span { color: var(--gold); }
     .hero p {
-      font-size: 14px;
+      font-size: 13.5px;
       color: #cbd5e1;
       max-width: 980px;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
     .section {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 22px;
-      margin-bottom: 20px;
+      padding: 20px;
+      margin-bottom: 18px;
     }
     .section-title {
-      font-size: 17.5px;
+      font-size: 17px;
       font-weight: 900;
       margin-bottom: 4px;
       display: flex;
@@ -297,29 +384,29 @@
     }
     .section-sub {
       color: var(--muted);
-      font-size: 12.8px;
-      margin-bottom: 16px;
+      font-size: 12.6px;
+      margin-bottom: 14px;
     }
     .grid-2 {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-      gap: 14px;
+      gap: 12px;
     }
     .grid-3 {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 14px;
+      gap: 12px;
     }
     .box {
       background: var(--card-2);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 15px;
+      padding: 14px;
     }
     .box h3 {
-      font-size: 14px;
+      font-size: 13.8px;
       font-weight: 800;
-      margin-bottom: 7px;
+      margin-bottom: 6px;
       color: var(--gold);
       display: flex;
       align-items: center;
@@ -329,14 +416,14 @@
       list-style: none;
       display: grid;
       gap: 5px;
-      font-size: 12.3px;
+      font-size: 12.2px;
       color: #cbd5e1;
     }
     .feature-list li {
       display: block;
       position: relative;
       padding-left: 17px;
-      line-height: 1.44;
+      line-height: 1.42;
     }
     .feature-list li::before {
       content: "✔";
@@ -351,10 +438,10 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 8px;
-      font-size: 12.3px;
+      font-size: 12.2px;
     }
     th, td {
-      padding: 9px 11px;
+      padding: 8px 10px;
       text-align: left;
       border-bottom: 1px solid var(--border);
     }
@@ -402,13 +489,13 @@
       background: #070b13;
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 14px;
-      margin-top: 12px;
+      padding: 13px;
+      margin-top: 10px;
     }
     .price-box {
       border: 2px solid var(--border);
       border-radius: 12px;
-      padding: 16px;
+      padding: 15px;
       background: var(--card-2);
       display: flex;
       flex-direction: column;
@@ -420,24 +507,88 @@
     }
     .hidden-doc { display: none !important; }
 
+    /* ESTILOS DE EXPORTACIÓN DIRECTA A PDF (html2pdf) Y @media print */
+    .pdf-export-sheet {
+      background: #ffffff !important;
+      color: #0f172a !important;
+      padding: 4mm 6mm !important;
+      font-size: 8pt !important;
+      line-height: 1.22 !important;
+      width: 196mm !important;
+      max-width: 196mm !important;
+      margin: 0 auto !important;
+    }
+    .pdf-export-sheet [contenteditable="true"] {
+      border-bottom: none !important;
+      padding: 0 !important;
+    }
+    .pdf-export-sheet .grid-2 { display: flex !important; flex-wrap: wrap !important; gap: 5px !important; }
+    .pdf-export-sheet .grid-2 > * { flex: 0 0 calc(50% - 2.5px) !important; max-width: calc(50% - 2.5px) !important; box-sizing: border-box !important; margin-bottom: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+    .pdf-export-sheet .grid-3 { display: flex !important; flex-wrap: wrap !important; gap: 5px !important; }
+    .pdf-export-sheet .grid-3 > * { flex: 0 0 calc(33.333% - 3.5px) !important; max-width: calc(33.333% - 3.5px) !important; box-sizing: border-box !important; margin-bottom: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+    .pdf-export-sheet .bilateral-bar { display: flex !important; gap: 6px !important; margin-top: 5px !important; padding-top: 5px !important; border-top: 1px solid #cbd5e1 !important; }
+    .pdf-export-sheet .bilateral-bar > * { flex: 1 1 50% !important; background: #f8fafc !important; border: 1px solid #cbd5e1 !important; padding: 5px 8px !important; }
+    .pdf-export-sheet .dev-emblem-box { background: #0f172a !important; border-color: #0284c7 !important; width: 44px !important; height: 44px !important; padding: 3px !important; box-shadow: none !important; }
+    .pdf-export-sheet .dev-emblem-box svg { width: 22px !important; height: 22px !important; }
+    .pdf-export-sheet .dev-emblem-sub { color: #38bdf8 !important; font-size: 5.5pt !important; white-space: nowrap !important; }
+    .pdf-export-sheet .hero, .pdf-export-sheet .section {
+      background: #ffffff !important;
+      color: #0f172a !important;
+      border: 1px solid #cbd5e1 !important;
+      box-shadow: none !important;
+      margin-bottom: 4px !important;
+      padding: 5px 8px !important;
+      border-radius: 5px !important;
+    }
+    .pdf-export-sheet .box, .pdf-export-sheet .diagram-card, .pdf-export-sheet .price-box {
+      background: #f8fafc !important;
+      color: #0f172a !important;
+      border: 1px solid #cbd5e1 !important;
+      box-shadow: none !important;
+      break-inside: avoid !important;
+      page-break-inside: avoid !important;
+      margin-bottom: 0 !important;
+      padding: 3.5px 6px !important;
+      border-radius: 4px !important;
+    }
+    .pdf-export-sheet .price-box.featured { background: #fef2f2 !important; border: 1.5px solid #dc2626 !important; }
+    .pdf-export-sheet p, .pdf-export-sheet .section-sub, .pdf-export-sheet li, .pdf-export-sheet td, .pdf-export-sheet span, .pdf-export-sheet div { color: #1e293b !important; }
+    .pdf-export-sheet h1, .pdf-export-sheet h2, .pdf-export-sheet h3, .pdf-export-sheet .section-title, .pdf-export-sheet th { color: #0f172a !important; }
+    .pdf-export-sheet .hero h1 { font-size: 12pt !important; margin-bottom: 2px !important; line-height: 1.16 !important; }
+    .pdf-export-sheet .hero p { font-size: 7.6pt !important; margin-bottom: 3px !important; line-height: 1.18 !important; }
+    .pdf-export-sheet .hero-tag { font-size: 6.8pt !important; padding: 1.5px 6px !important; margin-bottom: 2px !important; background: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fca5a5 !important; }
+    .pdf-export-sheet .hero h1 span, .pdf-export-sheet .box h3, .pdf-export-sheet .section-title { color: #d97706 !important; font-size: 8.8pt !important; margin-bottom: 2px !important; }
+    .pdf-export-sheet .feature-list { gap: 1px !important; font-size: 7.2pt !important; }
+    .pdf-export-sheet .feature-list li { line-height: 1.15 !important; padding-left: 11px !important; }
+    .pdf-export-sheet th { background: #f1f5f9 !important; color: #0f172a !important; font-weight: 800 !important; border: 1px solid #cbd5e1 !important; padding: 2.5px 5px !important; font-size: 7.2pt !important; }
+    .pdf-export-sheet td { border: 1px solid #cbd5e1 !important; color: #0f172a !important; padding: 2.5px 5px !important; font-size: 7.3pt !important; line-height: 1.15 !important; }
+
     @media print {
-      @page { size: A4 portrait; margin: 6mm 8mm; }
+      @page { size: A4 portrait; margin: 5mm 7mm; }
       .topbar, .mode-switch-bar, .configurator-panel, .no-print { display: none !important; }
+      [contenteditable="true"] { border-bottom: none !important; padding: 0 !important; }
       html, body {
         background: #ffffff !important;
         color: #0f172a !important;
         padding: 0 !important;
         margin: 0 !important;
-        font-size: 8pt !important;
-        line-height: 1.22 !important;
+        font-size: 7.6pt !important;
+        line-height: 1.16 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
       .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
-      .grid-2 { display: flex !important; flex-wrap: wrap !important; gap: 5px !important; }
-      .grid-2 > * { flex: 0 0 calc(50% - 2.5px) !important; max-width: calc(50% - 2.5px) !important; box-sizing: border-box !important; margin-bottom: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
-      .grid-3 { display: flex !important; flex-wrap: wrap !important; gap: 5px !important; }
-      .grid-3 > * { flex: 0 0 calc(33.333% - 3.5px) !important; max-width: calc(33.333% - 3.5px) !important; box-sizing: border-box !important; margin-bottom: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+      .grid-2 { display: flex !important; flex-wrap: wrap !important; gap: 4px !important; }
+      .grid-2 > * { flex: 0 0 calc(50% - 2px) !important; max-width: calc(50% - 2px) !important; box-sizing: border-box !important; margin-bottom: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+      .grid-3 { display: flex !important; flex-wrap: wrap !important; gap: 4px !important; }
+      .grid-3 > * { flex: 0 0 calc(33.333% - 3px) !important; max-width: calc(33.333% - 3px) !important; box-sizing: border-box !important; margin-bottom: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+      .bilateral-bar { display: flex !important; gap: 5px !important; margin-top: 4px !important; padding-top: 4px !important; border-top: 1px solid #cbd5e1 !important; }
+      .bilateral-bar > * { flex: 1 1 50% !important; background: #f8fafc !important; border: 1px solid #cbd5e1 !important; padding: 4px 7px !important; }
+      .party-card.dev-party { border-left: 3px solid #0284c7 !important; }
+      .party-card.gym-party { border-left: 3px solid #dc2626 !important; }
+      .dev-emblem-box { background: #0f172a !important; border: 1.5px solid #0284c7 !important; width: 42px !important; height: 42px !important; padding: 3px !important; box-shadow: none !important; }
+      .dev-emblem-box svg { width: 22px !important; height: 22px !important; }
+      .dev-emblem-sub { color: #38bdf8 !important; font-size: 5.5pt !important; white-space: nowrap !important; }
       .hero, .section {
         background: #ffffff !important;
         color: #0f172a !important;
@@ -445,8 +596,8 @@
         box-shadow: none !important;
         break-inside: avoid !important;
         page-break-inside: avoid !important;
-        margin-bottom: 5px !important;
-        padding: 6px 9px !important;
+        margin-bottom: 4px !important;
+        padding: 4.5px 8px !important;
         border-radius: 5px !important;
       }
       #docDossier > .section {
@@ -465,12 +616,12 @@
         break-inside: avoid !important;
         page-break-inside: avoid !important;
         margin-bottom: 0 !important;
-        padding: 4px 7px !important;
+        padding: 3.5px 6px !important;
         border-radius: 4px !important;
       }
-      .feature-list { gap: 1.5px !important; font-size: 7.6pt !important; }
-      .feature-list li { line-height: 1.2 !important; padding-left: 12px !important; }
-      .section-sub { margin-bottom: 4px !important; font-size: 7.7pt !important; }
+      .feature-list { gap: 1px !important; font-size: 7.2pt !important; }
+      .feature-list li { line-height: 1.15 !important; padding-left: 11px !important; }
+      .section-sub { margin-bottom: 3px !important; font-size: 7.3pt !important; }
       .price-box.featured {
         background: #fef2f2 !important;
         border: 1.5px solid #dc2626 !important;
@@ -478,19 +629,19 @@
       p, .section-sub, .muted, li, td, span, .feature-list li, div { color: #1e293b !important; }
       [style*="color:#fff"], [style*="color: #fff"], [style*="color:#cbd5e1"] { color: #0f172a !important; }
       h1, h2, h3, .section-title, th { color: #0f172a !important; }
-      .hero h1 { font-size: 13pt !important; margin-bottom: 3px !important; line-height: 1.18 !important; }
-      .hero p { font-size: 8.2pt !important; margin-bottom: 4px !important; line-height: 1.22 !important; }
-      .hero-tag { font-size: 7.2pt !important; padding: 1.5px 7px !important; margin-bottom: 3px !important; background: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fca5a5 !important; }
-      .hero h1 span, .box h3, .section-title { color: #d97706 !important; font-size: 9.5pt !important; margin-bottom: 2px !important; }
-      table { width: 100% !important; border-collapse: collapse !important; break-inside: avoid !important; margin-top: 4px !important; }
+      .hero h1 { font-size: 11.8pt !important; margin-bottom: 2px !important; line-height: 1.15 !important; }
+      .hero p { font-size: 7.6pt !important; margin-bottom: 3px !important; line-height: 1.16 !important; }
+      .hero-tag { font-size: 6.8pt !important; padding: 1px 6px !important; margin-bottom: 2px !important; background: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fca5a5 !important; }
+      .hero h1 span, .box h3, .section-title { color: #d97706 !important; font-size: 8.8pt !important; margin-bottom: 1.5px !important; }
+      table { width: 100% !important; border-collapse: collapse !important; break-inside: avoid !important; margin-top: 3px !important; }
       thead { display: table-header-group !important; }
       tr { break-inside: avoid !important; page-break-inside: avoid !important; }
-      th { background: #f1f5f9 !important; color: #0f172a !important; font-weight: 800 !important; border: 1px solid #cbd5e1 !important; padding: 3px 6px !important; font-size: 7.6pt !important; }
-      td { border: 1px solid #cbd5e1 !important; color: #0f172a !important; padding: 3px 6px !important; font-size: 7.8pt !important; line-height: 1.2 !important; }
-      .badge-ok { background: #dcfce7 !important; color: #166534 !important; border: 1px solid #86efac !important; padding: 1.5px 5px !important; font-size: 7.2pt !important; }
-      .badge-info { background: #e0f2fe !important; color: #0369a1 !important; border: 1px solid #7dd3fc !important; padding: 1.5px 5px !important; font-size: 7.2pt !important; }
-      .badge-gold { background: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fca5a5 !important; padding: 1.5px 5px !important; font-size: 7.2pt !important; }
-      .badge-amber { background: #fef3c7 !important; color: #92400e !important; border: 1px solid #fcd34d !important; padding: 1.5px 5px !important; font-size: 7.2pt !important; }
+      th { background: #f1f5f9 !important; color: #0f172a !important; font-weight: 800 !important; border: 1px solid #cbd5e1 !important; padding: 2.5px 5px !important; font-size: 7.2pt !important; }
+      td { border: 1px solid #cbd5e1 !important; color: #0f172a !important; padding: 2.5px 5px !important; font-size: 7.3pt !important; line-height: 1.15 !important; }
+      .badge-ok { background: #dcfce7 !important; color: #166534 !important; border: 1px solid #86efac !important; padding: 1px 4px !important; font-size: 6.8pt !important; }
+      .badge-info { background: #e0f2fe !important; color: #0369a1 !important; border: 1px solid #7dd3fc !important; padding: 1px 4px !important; font-size: 6.8pt !important; }
+      .badge-gold { background: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fca5a5 !important; padding: 1px 4px !important; font-size: 6.8pt !important; }
+      .badge-amber { background: #fef3c7 !important; color: #92400e !important; border: 1px solid #fcd34d !important; padding: 1px 4px !important; font-size: 6.8pt !important; }
     }
 
     /* MODO CLARO PROFESIONAL */
@@ -517,6 +668,7 @@
     [data-theme="light"] .mode-tab.active { color: #991B1B; }
     [data-theme="light"] .hero { background: linear-gradient(135deg, #FFFFFF, #FEF2F2); border-color: #FECACA; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05); }
     [data-theme="light"] .hero p, [data-theme="light"] .feature-list li { color: #1E293B; }
+    [data-theme="light"] .party-card { background: #F8FAFC; border-color: #CBD5E1; }
     [data-theme="light"] .section { background: #FFFFFF; border-color: #CBD5E1; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04); }
     [data-theme="light"] .box, [data-theme="light"] .price-box, [data-theme="light"] .diagram-card { background: #F8FAFC; border-color: #CBD5E1; }
     [data-theme="light"] .price-box.featured { background: linear-gradient(180deg, #FEF2F2, #FFFFFF); border-color: #DC2626; }
@@ -545,19 +697,23 @@
   </script>
 </head>
 <body>
-  <!-- BARRA SUPERIOR DE ACCIONES RÁPIDAS -->
+  <!-- BARRA SUPERIOR DE ACCIONES RÁPIDAS Y DESCARGA PDF EN VIVO -->
   <header class="topbar no-print">
     <div class="brand-pill">
-      <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:42px;width:auto;object-fit:contain;background:transparent !important;filter:drop-shadow(0 2px 6px rgba(220,38,38,0.35))" />
+      <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:40px;width:auto;object-fit:contain;background:transparent !important;filter:drop-shadow(0 2px 6px rgba(220,38,38,0.35))" />
       <span class="brand-badge">RD FITNESS 360°</span>
-      <span>Propuesta Técnica y Generador de Contrato — <strong class="gym-name" style="color:var(--gold)">RD FITNESS CLUB</strong></span>
+      <span>Dossier y Contrato Oficial — <strong class="gym-name" style="color:var(--gold)">RD FITNESS CLUB</strong></span>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
       <a class="btn" href="anatomy3d/index.html" target="_blank" title="Ver Arquitectura 3D Interactiva">🧬 Máquina 3D</a>
       <a class="btn" href="display.html" target="_blank" title="Ver Monitor de Recepción HDMI">🖥️ Monitor HDMI</a>
-      <a class="btn btn-gold" href="INFORME_PROPUESTA_COMERCIAL_RED_GYM.pdf" download="INFORME_PROPUESTA_COMERCIAL_RED_GYM.pdf">📥 PDF Dossier Informativo</a>
-      <a class="btn btn-emerald" href="CONTRATO_SERVICIOS_SOFTWARE_RED_GYM.pdf" download="CONTRATO_SERVICIOS_SOFTWARE_RED_GYM.pdf">⚖️ PDF Contrato Oficial</a>
-      <button class="btn" id="btnThemeProp" onclick="togglePropuestaTheme()">☀️ Claro</button>
+      <button type="button" class="btn btn-gold" id="btnDlDossierPdf" onclick="downloadLivePdf('dossier')" title="Descarga el PDF del Dossier con tus datos actuales">
+        📥 Descargar PDF Dossier
+      </button>
+      <button type="button" class="btn btn-emerald" id="btnDlContratoPdf" onclick="downloadLivePdf('contrato')" title="Descarga el PDF del Contrato Oficial con tus datos y elección actual">
+        ⚖️ Descargar PDF Contrato
+      </button>
+      <button type="button" class="btn" id="btnThemeProp" onclick="togglePropuestaTheme()">☀️ Claro</button>
     </div>
   </header>
 
@@ -572,294 +728,347 @@
       </button>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button type="button" class="btn btn-cyan" id="btnToggleCfg" onclick="toggleConfiguratorPanel()">
-        ⚡ Configurar Elección del Cliente y Contrato
+      <button type="button" class="btn btn-cyan" id="btnToggleCfg" onclick="toggleConfiguratorSteps()">
+        🎛️ Mostrar / Ocultar Pasos 2–5 de Elección
       </button>
-      <button type="button" class="btn btn-gold" onclick="printCurrentMode('dossier')">
-        🖨️ Imprimir / PDF Solo Dossier
+      <button type="button" class="btn" onclick="printCurrentMode('dossier')" title="Abrir diálogo de impresión A4 nítida para el Dossier">
+        🖨️ Imprimir Dossier (A4)
       </button>
-      <button type="button" class="btn btn-emerald" onclick="printCurrentMode('contrato')">
-        🖨️ Imprimir / PDF Solo Contrato Final
+      <button type="button" class="btn" onclick="printCurrentMode('contrato')" title="Abrir diálogo de impresión A4 nítida para el Contrato">
+        🖨️ Imprimir Contrato (A4)
       </button>
     </div>
   </div>
 
   <main class="container">
     <!-- ======================================================================================== -->
-    <!-- SECCIÓN SUPERIOR FUERA DE LA DOCUMENTACIÓN: CONFIGURADOR INTERACTIVO DE CONTRATO FINAL   -->
+    <!-- PANEL INTERACTIVO SIEMPRE VISIBLE ARRIBA: DATOS DEL DESARROLLADOR, FECHA, SELLO Y PLANES -->
     <!-- ======================================================================================== -->
-    <section class="configurator-panel no-print hidden-doc" id="cfgPanel">
+    <section class="configurator-panel no-print" id="cfgPanel">
       <div class="cfg-header">
         <div>
           <div style="font-size:11px;font-weight:900;color:var(--cyan);text-transform:uppercase;letter-spacing:0.8px">
-            ⚡ PANEL INTERACTIVO DE TOMA DE DECISIONES (NO SE IMPRIME EN EL PDF)
+            ⚡ PANEL DE PERSONALIZACIÓN EN VIVO (NO APARECE EN LA HOJA IMPRESA, PERO ACTUALIZA AMBOS DOCUMENTOS AL INSTANTE)
           </div>
-          <h2 style="font-size:19px;font-weight:900;color:#fff;margin-top:2px">
-            Configurador de Elección Comercial, Equipamiento y Liquidación del Contrato
+          <h2 style="font-size:18px;font-weight:900;color:#fff;margin-top:2px">
+            Datos del Desarrollador, Fecha, Identidad Visual y Configuración del Contrato
           </h2>
-          <p style="font-size:12.5px;color:var(--muted);margin-top:2px">
-            Marca aquí lo que el cliente ha elegido (Plan de Software, con o sin Página Web, qué equipos específicos ya posee y cuáles encargará comprar, y el pago realizado). El <strong>Documento de Contrato Final</strong> se actualiza automáticamente al instante.
+          <p style="font-size:12px;color:var(--muted);margin-top:2px">
+            Completa aquí tus datos de Desarrollador, la fecha y los datos del Cliente (o haz clic directamente sobre cualquier texto subrayado en el documento). Todo queda guardado automáticamente.
           </p>
         </div>
-        <button type="button" class="btn btn-emerald" onclick="printCurrentMode('contrato')">
-          🖨️ Imprimir / Guardar Contrato Final en PDF
-        </button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input type="file" id="devLogoFileInput" accept="image/*" style="display:none" onchange="handleDevLogoUpload(event)" />
+          <button type="button" class="btn" onclick="document.getElementById('devLogoFileInput').click()" title="Si deseas usar un logo propio en lugar del Sello de Ingeniería de Software, súbelo aquí">
+            🖼️ Subir Mi Logo (Opcional)
+          </button>
+          <button type="button" class="btn" id="btnResetDevLogo" style="display:none" onclick="resetDevLogo()" title="Volver al Sello Oficial de Ingeniería de Software">
+            🔄 Usar Sello Oficial &lt;/&gt;
+          </button>
+          <button type="button" class="btn btn-emerald" onclick="downloadLivePdf('contrato')">
+            📥 Descargar Contrato en PDF
+          </button>
+        </div>
       </div>
 
-      <!-- PASO 1: DATOS DE LAS PARTES -->
-      <div class="cfg-step-title">👤 PASO 1: Datos del Gimnasio, Propietario y Desarrollador</div>
+      <!-- PASO 1 (SIEMPRE VISIBLE): DATOS DEL DESARROLLADOR, FECHA Y CLIENTE -->
+      <div class="cfg-step-title">👨‍💻 PASO 1: Tus Datos de Desarrollador, Fecha del Documento y Datos del Gimnasio Cliente</div>
       <div class="cfg-grid-4">
-        <div class="cfg-field">
-          <label>Nombre Comercial del Gimnasio</label>
-          <input type="text" id="cfgGymName" value="RD FITNESS CLUB" oninput="updateContractLive()" />
-        </div>
-        <div class="cfg-field">
-          <label>Nombre Completo del Titular / Propietario</label>
-          <input type="text" id="cfgClientName" placeholder="Ej. Juan Pérez..." oninput="updateContractLive()" />
-        </div>
-        <div class="cfg-field">
-          <label>DNI / RUC del Titular</label>
-          <input type="text" id="cfgClientDni" placeholder="Ej. 29456789 / 10294567891" oninput="updateContractLive()" />
-        </div>
-        <div class="cfg-field">
-          <label>Dirección / Sede del Gimnasio</label>
-          <input type="text" id="cfgClientAddress" value="Chivay — Caylloma, Arequipa" oninput="updateContractLive()" />
-        </div>
         <div class="cfg-field">
           <label>Tu Nombre Completo (Desarrollador)</label>
           <input type="text" id="cfgDevName" placeholder="Escribe tu nombre y apellidos..." oninput="updateContractLive()" />
         </div>
         <div class="cfg-field">
           <label>Tu DNI / RUC (Desarrollador)</label>
-          <input type="text" id="cfgDevDni" placeholder="Tu DNI o RUC..." oninput="updateContractLive()" />
+          <input type="text" id="cfgDevDni" placeholder="Tu N° de DNI o RUC..." oninput="updateContractLive()" />
         </div>
         <div class="cfg-field">
-          <label>Tu Celular / WhatsApp</label>
-          <input type="text" id="cfgDevPhone" placeholder="Tu número de celular..." oninput="updateContractLive()" />
+          <label>Tu Celular / WhatsApp (Desarrollador)</label>
+          <input type="text" id="cfgDevPhone" placeholder="Ej. 958 000 000" oninput="updateContractLive()" />
         </div>
         <div class="cfg-field">
-          <label>Fecha de Suscripción del Contrato</label>
-          <input type="text" id="cfgContractDate" value="" placeholder="DD/MM/2026" oninput="updateContractLive()" />
+          <label>Fecha del Documento / Contrato (Calendario o Texto)</label>
+          <div style="display:flex;gap:6px">
+            <input type="date" id="cfgDatePicker" style="width:44%;padding:7px 6px" onchange="syncDateFromPicker()" title="Seleccionar fecha en calendario" />
+            <input type="text" id="cfgContractDate" style="width:56%" placeholder="DD/MM/2026" oninput="updateContractLive()" title="Escribe cualquier fecha (ej. 09/11/2026)" />
+          </div>
+        </div>
+        <div class="cfg-field">
+          <label>Nombre Comercial del Gimnasio</label>
+          <input type="text" id="cfgGymName" value="RD FITNESS CLUB" oninput="updateContractLive()" />
+        </div>
+        <div class="cfg-field">
+          <label>Nombre Completo del Titular / Propietario</label>
+          <input type="text" id="cfgClientName" placeholder="Nombre y apellidos del dueño..." oninput="updateContractLive()" />
+        </div>
+        <div class="cfg-field">
+          <label>DNI / RUC del Titular del Gimnasio</label>
+          <input type="text" id="cfgClientDni" placeholder="DNI o RUC del dueño..." oninput="updateContractLive()" />
+        </div>
+        <div class="cfg-field">
+          <label>Dirección / Sede del Gimnasio</label>
+          <input type="text" id="cfgClientAddress" value="Chivay — Caylloma, Arequipa" oninput="updateContractLive()" />
         </div>
       </div>
 
-      <!-- PASO 2: ELECCIÓN DEL PLAN DE SOFTWARE PRINCIPAL -->
-      <div class="cfg-step-title">💻 PASO 2: Elección del Plan de Licencia del Software Principal</div>
-      <div class="cfg-grid-3">
-        <label class="cfg-card-option" id="cardPlanMensual">
-          <input type="radio" name="cfgPlan" value="mensual" onchange="updateContractLive()" />
-          <div>
-            <div style="font-weight:800;font-size:13.5px;color:#fff">Plan Mensual (Mínimo 6 Meses)</div>
-            <div style="font-size:12px;color:var(--emerald);font-weight:800;margin:2px 0">S/ 89.00 / mes + S/ 250.00 instalación única</div>
-            <div style="font-size:11.5px;color:var(--muted)">Pago inicial hoy (Instalación + 1er mes): <strong>S/ 339.00</strong>. Compromiso mínimo obligatorio de 6 meses.</div>
-          </div>
-        </label>
+      <!-- PASOS 2 AL 5: ELECCIÓN COMERCIAL, WEB, EQUIPOS Y LIQUIDACIÓN -->
+      <div id="cfgAdvancedSteps">
+        <!-- PASO 2: ELECCIÓN DEL PLAN DE SOFTWARE PRINCIPAL -->
+        <div class="cfg-step-title">💻 PASO 2: Elección del Plan de Licencia del Software Principal</div>
+        <div class="cfg-grid-3">
+          <label class="cfg-card-option" id="cardPlanMensual">
+            <input type="radio" name="cfgPlan" value="mensual" onchange="updateContractLive()" />
+            <div>
+              <div style="font-weight:800;font-size:13.5px;color:#fff">Plan Mensual (Mínimo 6 Meses)</div>
+              <div style="font-size:12px;color:var(--emerald);font-weight:800;margin:2px 0">S/ 89.00 / mes + S/ 250.00 instalación única</div>
+              <div style="font-size:11.5px;color:var(--muted)">Pago inicial hoy (Instalación + 1er mes): <strong>S/ 339.00</strong>. Compromiso mínimo obligatorio de 6 meses.</div>
+            </div>
+          </label>
 
-        <label class="cfg-card-option" id="cardPlanAnual">
-          <input type="radio" name="cfgPlan" value="anual" onchange="updateContractLive()" />
-          <div>
-            <div style="font-weight:800;font-size:13.5px;color:#fff">Plan Anual (12 Meses)</div>
-            <div style="font-size:12px;color:var(--cyan);font-weight:800;margin:2px 0">S/ 890.00 / año + S/ 150.00 instalación única</div>
-            <div style="font-size:11.5px;color:var(--muted)">Total por 1 año completo: <strong>S/ 1,040.00</strong> (Ahorro equivalente a 2 meses de suscripción).</div>
-          </div>
-        </label>
+          <label class="cfg-card-option" id="cardPlanAnual">
+            <input type="radio" name="cfgPlan" value="anual" onchange="updateContractLive()" />
+            <div>
+              <div style="font-weight:800;font-size:13.5px;color:#fff">Plan Anual (12 Meses)</div>
+              <div style="font-size:12px;color:var(--cyan);font-weight:800;margin:2px 0">S/ 890.00 / año + S/ 150.00 instalación única</div>
+              <div style="font-size:11.5px;color:var(--muted)">Total por 1 año completo: <strong>S/ 1,040.00</strong> (Ahorro equivalente a 2 meses de suscripción).</div>
+            </div>
+          </label>
 
-        <label class="cfg-card-option selected" id="cardPlanVitalicio">
-          <input type="radio" name="cfgPlan" value="vitalicio" checked onchange="updateContractLive()" />
-          <div>
-            <div style="font-weight:800;font-size:13.5px;color:#fff">⭐ Licencia Vitalicia (Pago Único Definitivo)</div>
-            <div style="font-size:12px;color:var(--gold);font-weight:800;margin:2px 0">S/ 1,450.00 (Pago único total · Instalación incluida)</div>
-            <div style="font-size:11.5px;color:var(--muted)">Licencia perpetua sin pagos mensuales ni anuales por el sistema de gestión y control QR.</div>
-          </div>
-        </label>
-      </div>
-
-      <!-- PASO 3: ELECCIÓN DE PÁGINA WEB PÚBLICA MULTIMEDIA -->
-      <div class="cfg-step-title">🌐 PASO 3: Elección de Plataforma Web Pública Multimedia y Dominio</div>
-      <div class="cfg-grid-3">
-        <label class="cfg-card-option selected" id="cardWebNo">
-          <input type="radio" name="cfgWeb" value="no_web" checked onchange="updateContractLive()" />
-          <div>
-            <div style="font-weight:800;font-size:13px;color:#fff">Sin Página Web Pública por ahora (S/ 0.00)</div>
-            <div style="font-size:11.5px;color:var(--muted);margin-top:3px">Opera con el Panel Administrativo, Control QR, Caja, App de Socios e integración con WhatsApp.</div>
-          </div>
-        </label>
-
-        <label class="cfg-card-option" id="cardWebFull">
-          <input type="radio" name="cfgWeb" value="web_full" onchange="updateContractLive()" />
-          <div>
-            <div style="font-weight:800;font-size:13px;color:#fff">Con Plataforma Web Multimedia Completa (S/ 1,050.00)</div>
-            <div style="font-size:11.5px;color:var(--muted);margin-top:3px">Incluye Desarrollo Web Multimedia (S/ 750) + Dominio .com/.pe (S/ 130) + Hosting Cloud SSL 1 año (S/ 170).</div>
-          </div>
-        </label>
-
-        <label class="cfg-card-option" id="cardWebDevOnly">
-          <input type="radio" name="cfgWeb" value="web_dev" onchange="updateContractLive()" />
-          <div>
-            <div style="font-weight:800;font-size:13px;color:#fff">Solo Desarrollo Web Multimedia (S/ 750.00)</div>
-            <div style="font-size:11.5px;color:var(--muted);margin-top:3px">El cliente asume por su cuenta su propio dominio y servidor de alojamiento.</div>
-          </div>
-        </label>
-      </div>
-
-      <!-- PASO 4: SELECCIÓN INDIVIDUAL DE EQUIPOS FÍSICOS DE RECEPCIÓN -->
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
-        <div class="cfg-step-title" style="margin-bottom:0">🛠️ PASO 4: Situación Exacta de los 4 Equipos Físicos de Recepción</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button type="button" class="btn" style="padding:5px 10px;font-size:11.5px" onclick="setAllHardware('own')">💻 Cliente ya tiene todos sus equipos (S/ 0.00)</button>
-          <button type="button" class="btn" style="padding:5px 10px;font-size:11.5px" onclick="setAllHardware('buy')">🛒 Encargar los 4 equipos al Desarrollador (S/ 3,250.00)</button>
+          <label class="cfg-card-option selected" id="cardPlanVitalicio">
+            <input type="radio" name="cfgPlan" value="vitalicio" checked onchange="updateContractLive()" />
+            <div>
+              <div style="font-weight:800;font-size:13.5px;color:#fff">⭐ Licencia Vitalicia (Pago Único Definitivo)</div>
+              <div style="font-size:12px;color:var(--gold);font-weight:800;margin:2px 0">S/ 1,450.00 (Pago único total · Instalación incluida)</div>
+              <div style="font-size:11.5px;color:var(--muted)">Licencia perpetua sin pagos mensuales ni anuales por el sistema de gestión y control QR.</div>
+            </div>
+          </label>
         </div>
-      </div>
 
-      <div style="margin-bottom:16px">
-        <div class="cfg-hw-row">
-          <div>
-            <strong style="color:#fff;font-size:13px">1. Laptop Operativa Estándar 15.6" (o PC de Recepción)</strong>
-            <div style="font-size:11.5px;color:var(--muted)">HP / Lenovo / Acer — Core i3/i5 o Ryzen 3/5, 8–16GB RAM, SSD</div>
+        <!-- PASO 3: ELECCIÓN DE PÁGINA WEB PÚBLICA MULTIMEDIA -->
+        <div class="cfg-step-title">🌐 PASO 3: Elección de Plataforma Web Pública Multimedia y Dominio</div>
+        <div class="cfg-grid-3">
+          <label class="cfg-card-option selected" id="cardWebNo">
+            <input type="radio" name="cfgWeb" value="no_web" checked onchange="updateContractLive()" />
+            <div>
+              <div style="font-weight:800;font-size:13px;color:#fff">Sin Página Web Pública por ahora (S/ 0.00)</div>
+              <div style="font-size:11.5px;color:var(--muted);margin-top:3px">Opera con el Panel Administrativo, Control QR, Caja, App de Socios e integración con WhatsApp.</div>
+            </div>
+          </label>
+
+          <label class="cfg-card-option" id="cardWebFull">
+            <input type="radio" name="cfgWeb" value="web_full" onchange="updateContractLive()" />
+            <div>
+              <div style="font-weight:800;font-size:13px;color:#fff">Con Plataforma Web Multimedia Completa (S/ 1,050.00)</div>
+              <div style="font-size:11.5px;color:var(--muted);margin-top:3px">Incluye Desarrollo Web Multimedia (S/ 750) + Dominio .com/.pe (S/ 130) + Hosting Cloud SSL 1 año (S/ 170).</div>
+            </div>
+          </label>
+
+          <label class="cfg-card-option" id="cardWebDevOnly">
+            <input type="radio" name="cfgWeb" value="web_dev" onchange="updateContractLive()" />
+            <div>
+              <div style="font-weight:800;font-size:13px;color:#fff">Solo Desarrollo Web Multimedia (S/ 750.00)</div>
+              <div style="font-size:11.5px;color:var(--muted);margin-top:3px">El cliente asume por su cuenta su propio dominio y servidor de alojamiento.</div>
+            </div>
+          </label>
+        </div>
+
+        <!-- PASO 4: SELECCIÓN INDIVIDUAL DE EQUIPOS FÍSICOS DE RECEPCIÓN -->
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+          <div class="cfg-step-title" style="margin-bottom:0">🛠️ PASO 4: Situación Exacta de los 4 Equipos Físicos de Recepción</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button type="button" class="btn" style="padding:5px 10px;font-size:11.5px" onclick="setAllHardware('own')">💻 Cliente ya tiene todos sus equipos (S/ 0.00)</button>
+            <button type="button" class="btn" style="padding:5px 10px;font-size:11.5px" onclick="setAllHardware('buy')">🛒 Encargar los 4 equipos al Desarrollador (S/ 3,250.00)</button>
           </div>
+        </div>
+
+        <div style="margin-bottom:14px">
+          <div class="cfg-hw-row">
+            <div>
+              <strong style="color:#fff;font-size:13px">1. Laptop Operativa Estándar 15.6" (o PC de Recepción)</strong>
+              <div style="font-size:11.5px;color:var(--muted)">HP / Lenovo / Acer — Core i3/i5 o Ryzen 3/5, 8–16GB RAM, SSD</div>
+            </div>
+            <div class="cfg-field">
+              <select id="hwStatusLaptop" onchange="updateContractLive()">
+                <option value="own">✔ El Gimnasio ya cuenta con equipo propio (No suministrado por el Desarrollador — S/ 0.00)</option>
+                <option value="buy">🛒 Encarga compra e instalación al Desarrollador (Pago 100% adelantado)</option>
+                <option value="none">➖ No requerido / Lo adquirirá el cliente por su cuenta (S/ 0.00)</option>
+              </select>
+            </div>
+            <div class="cfg-field">
+              <input type="number" id="hwPriceLaptop" value="1950" min="0" step="10" oninput="updateContractLive()" title="Precio en Soles si se encarga al Desarrollador" />
+            </div>
+          </div>
+
+          <div class="cfg-hw-row">
+            <div>
+              <strong style="color:#fff;font-size:13px">2. Monitor de Recepción 21.5" / 22" Full HD + Cable HDMI</strong>
+              <div style="font-size:11.5px;color:var(--muted)">Pantalla secundaria de mostrador orientada al socio para bienvenidas y QR</div>
+            </div>
+            <div class="cfg-field">
+              <select id="hwStatusMonitor" onchange="updateContractLive()">
+                <option value="own">✔ El Gimnasio ya cuenta con monitor propio (No suministrado por el Desarrollador — S/ 0.00)</option>
+                <option value="buy">🛒 Encarga compra e instalación al Desarrollador (Pago 100% adelantado)</option>
+                <option value="none">➖ No requerido / Lo adquirirá el cliente por su cuenta (S/ 0.00)</option>
+              </select>
+            </div>
+            <div class="cfg-field">
+              <input type="number" id="hwPriceMonitor" value="420" min="0" step="10" oninput="updateContractLive()" />
+            </div>
+          </div>
+
+          <div class="cfg-hw-row">
+            <div>
+              <strong style="color:#fff;font-size:13px">3. Lector Óptico QR 2D Manos Libres</strong>
+              <div style="font-size:11.5px;color:var(--muted)">Escáner omnidireccional 2D de sobremesa (lee pantallas de celular y carnés físicos)</div>
+            </div>
+            <div class="cfg-field">
+              <select id="hwStatusScanner" onchange="updateContractLive()">
+                <option value="own">✔ El Gimnasio ya cuenta con lector propio (No suministrado por el Desarrollador — S/ 0.00)</option>
+                <option value="buy">🛒 Encarga compra e instalación al Desarrollador (Pago 100% adelantado)</option>
+                <option value="none">➖ No requerido / Lo adquirirá el cliente por su cuenta (S/ 0.00)</option>
+              </select>
+            </div>
+            <div class="cfg-field">
+              <input type="number" id="hwPriceScanner" value="420" min="0" step="10" oninput="updateContractLive()" />
+            </div>
+          </div>
+
+          <div class="cfg-hw-row">
+            <div>
+              <strong style="color:#fff;font-size:13px">4. Impresora Térmica de Tickets 80mm con Autocorte</strong>
+              <div style="font-size:11.5px;color:var(--muted)">Emisión de constancias físicas internas de inscripción en mostrador</div>
+            </div>
+            <div class="cfg-field">
+              <select id="hwStatusPrinter" onchange="updateContractLive()">
+                <option value="own">✔ El Gimnasio ya cuenta con impresora propia (No suministrado por el Desarrollador — S/ 0.00)</option>
+                <option value="buy">🛒 Encarga compra e instalación al Desarrollador (Pago 100% adelantado)</option>
+                <option value="none">➖ No requerido / Lo adquirirá el cliente por su cuenta (S/ 0.00)</option>
+              </select>
+            </div>
+            <div class="cfg-field">
+              <input type="number" id="hwPricePrinter" value="460" min="0" step="10" oninput="updateContractLive()" />
+            </div>
+          </div>
+        </div>
+
+        <!-- PASO 5: REGISTRO DE PAGO EFECTUADO Y SALDO -->
+        <div class="cfg-step-title">💳 PASO 5: Estado del Pago Efectuado a la Firma y Medio de Pago</div>
+        <div class="cfg-grid-4">
           <div class="cfg-field">
-            <select id="hwStatusLaptop" onchange="updateContractLive()">
-              <option value="own">✔ El Gimnasio ya cuenta con equipo propio (No suministrado por el Desarrollador — S/ 0.00)</option>
-              <option value="buy">🛒 Encarga compra e instalación al Desarrollador (Pago 100% adelantado)</option>
-              <option value="none">➖ No requerido / Lo adquirirá el cliente por su cuenta (S/ 0.00)</option>
+            <label>Estado del Pago a la Firma</label>
+            <select id="cfgPayState" onchange="onPayStateChange()">
+              <option value="total">✔ Cancelado al 100% a la firma del contrato</option>
+              <option value="parcial">⏳ Adelanto / Pago Parcial (Con saldo pendiente)</option>
+              <option value="pendiente">📌 Pendiente de abono contra entrega inmediata</option>
             </select>
           </div>
           <div class="cfg-field">
-            <input type="number" id="hwPriceLaptop" value="1950" min="0" step="10" oninput="updateContractLive()" title="Precio en Soles si se encarga al Desarrollador" />
-          </div>
-        </div>
-
-        <div class="cfg-hw-row">
-          <div>
-            <strong style="color:#fff;font-size:13px">2. Monitor de Recepción 21.5" / 22" Full HD + Cable HDMI</strong>
-            <div style="font-size:11.5px;color:var(--muted)">Pantalla secundaria de mostrador orientada al socio para bienvenidas y QR</div>
+            <label>Monto Abonado a la Firma (S/)</label>
+            <input type="number" id="cfgPaidAmount" value="1450" min="0" step="10" oninput="updateContractLive(true)" />
           </div>
           <div class="cfg-field">
-            <select id="hwStatusMonitor" onchange="updateContractLive()">
-              <option value="own">✔ El Gimnasio ya cuenta con monitor propio (No suministrado por el Desarrollador — S/ 0.00)</option>
-              <option value="buy">🛒 Encarga compra e instalación al Desarrollador (Pago 100% adelantado)</option>
-              <option value="none">➖ No requerido / Lo adquirirá el cliente por su cuenta (S/ 0.00)</option>
+            <label>Medio de Pago Utilizado</label>
+            <select id="cfgPayMethod" onchange="updateContractLive()">
+              <option value="Efectivo">Efectivo</option>
+              <option value="Yape / Plin">Yape / Plin</option>
+              <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+              <option value="Pago Mixto (Efectivo + Yape/Plin)">Pago Mixto (Efectivo + Yape/Plin)</option>
             </select>
           </div>
           <div class="cfg-field">
-            <input type="number" id="hwPriceMonitor" value="420" min="0" step="10" oninput="updateContractLive()" />
+            <label>N° Operación / Observación Adicional</label>
+            <input type="text" id="cfgPayNote" placeholder="Ej. Cancelado conforme / Op. Yape..." oninput="updateContractLive()" />
           </div>
-        </div>
-
-        <div class="cfg-hw-row">
-          <div>
-            <strong style="color:#fff;font-size:13px">3. Lector Óptico QR 2D Manos Libres</strong>
-            <div style="font-size:11.5px;color:var(--muted)">Escáner omnidireccional 2D de sobremesa (lee pantallas de celular y carnés físicos)</div>
-          </div>
-          <div class="cfg-field">
-            <select id="hwStatusScanner" onchange="updateContractLive()">
-              <option value="own">✔ El Gimnasio ya cuenta con lector propio (No suministrado por el Desarrollador — S/ 0.00)</option>
-              <option value="buy">🛒 Encarga compra e instalación al Desarrollador (Pago 100% adelantado)</option>
-              <option value="none">➖ No requerido / Lo adquirirá el cliente por su cuenta (S/ 0.00)</option>
-            </select>
-          </div>
-          <div class="cfg-field">
-            <input type="number" id="hwPriceScanner" value="420" min="0" step="10" oninput="updateContractLive()" />
-          </div>
-        </div>
-
-        <div class="cfg-hw-row">
-          <div>
-            <strong style="color:#fff;font-size:13px">4. Impresora Térmica de Tickets 80mm con Autocorte</strong>
-            <div style="font-size:11.5px;color:var(--muted)">Emisión de constancias físicas internas de inscripción en mostrador</div>
-          </div>
-          <div class="cfg-field">
-            <select id="hwStatusPrinter" onchange="updateContractLive()">
-              <option value="own">✔ El Gimnasio ya cuenta con impresora propia (No suministrado por el Desarrollador — S/ 0.00)</option>
-              <option value="buy">🛒 Encarga compra e instalación al Desarrollador (Pago 100% adelantado)</option>
-              <option value="none">➖ No requerido / Lo adquirirá el cliente por su cuenta (S/ 0.00)</option>
-            </select>
-          </div>
-          <div class="cfg-field">
-            <input type="number" id="hwPricePrinter" value="460" min="0" step="10" oninput="updateContractLive()" />
-          </div>
-        </div>
-      </div>
-
-      <!-- PASO 5: REGISTRO DE PAGO EFECTUADO Y SALDO -->
-      <div class="cfg-step-title">💳 PASO 5: Estado del Pago Efectuado a la Firma y Medio de Pago</div>
-      <div class="cfg-grid-4">
-        <div class="cfg-field">
-          <label>Estado del Pago a la Firma</label>
-          <select id="cfgPayState" onchange="onPayStateChange()">
-            <option value="total">✔ Cancelado al 100% a la firma del contrato</option>
-            <option value="parcial">⏳ Adelanto / Pago Parcial (Con saldo pendiente)</option>
-            <option value="pendiente">📌 Pendiente de abono contra entrega inmediata</option>
-          </select>
-        </div>
-        <div class="cfg-field">
-          <label>Monto Abonado a la Firma (S/)</label>
-          <input type="number" id="cfgPaidAmount" value="1450" min="0" step="10" oninput="updateContractLive(true)" />
-        </div>
-        <div class="cfg-field">
-          <label>Medio de Pago Utilizado</label>
-          <select id="cfgPayMethod" onchange="updateContractLive()">
-            <option value="Efectivo">Efectivo</option>
-            <option value="Yape / Plin">Yape / Plin</option>
-            <option value="Transferencia Bancaria">Transferencia Bancaria</option>
-            <option value="Pago Mixto (Efectivo + Yape/Plin)">Pago Mixto (Efectivo + Yape/Plin)</option>
-          </select>
-        </div>
-        <div class="cfg-field">
-          <label>N° Operación / Observación Adicional</label>
-          <input type="text" id="cfgPayNote" placeholder="Ej. Cancelado conforme / Op. Yape..." oninput="updateContractLive()" />
         </div>
       </div>
 
       <div class="cfg-summary-bar">
         <div>
-          <div style="font-size:11.5px;color:#cbd5e1">RESUMEN AUTOMÁTICO DE LA ELECCIÓN DEL CLIENTE:</div>
-          <div style="font-size:15px;font-weight:900;color:#fff;margin-top:2px" id="cfgLiveSummaryTxt">
+          <div style="font-size:11.5px;color:#cbd5e1">RESUMEN EN VIVO DE LA ELECCIÓN DEL CLIENTE:</div>
+          <div style="font-size:14.5px;font-weight:900;color:#fff;margin-top:2px" id="cfgLiveSummaryTxt">
             Licencia Vitalicia (S/ 1,450.00) · Sin Web (S/ 0.00) · Equipos Propios del Cliente (S/ 0.00)
           </div>
         </div>
         <div style="text-align:right">
           <div style="font-size:11px;color:var(--emerald);font-weight:800">TOTAL ACORDADO EN CONTRATO</div>
-          <div style="font-size:22px;font-weight:900;color:#fff" id="cfgLiveTotalTxt">S/ 1,450.00</div>
+          <div style="font-size:21px;font-weight:900;color:#fff" id="cfgLiveTotalTxt">S/ 1,450.00</div>
         </div>
       </div>
     </section>
 
     <!-- ======================================================================================== -->
-    <!-- DOCUMENTO 1: DOSSIER INFORMATIVO Y PROPUESTA TÉCNICA-COMERCIAL (ESTRICTO FIN INFORMATIVO) -->
+    <!-- DOCUMENTO 1: DOSSIER INFORMATIVO Y PROPUESTA TÉCNICA-COMERCIAL                           -->
     <!-- ======================================================================================== -->
     <div id="docDossier">
-      <!-- SECCIÓN 0: PORTADA EJECUTIVA Y PRESENTACIÓN DEL DESARROLLADOR -->
+      <!-- SECCIÓN 0: PORTADA EJECUTIVA BILATERAL (EMBLEMA DEL DESARROLLADOR + LOGO DEL GIMNASIO) -->
       <section class="hero">
-        <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:10px">
-          <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:82px;width:auto;object-fit:contain;background:transparent !important;filter:drop-shadow(0 4px 12px rgba(220,38,38,0.4))" />
-          <div style="flex:1;min-width:260px">
-            <div class="hero-tag">Dossier Informativo de Propuesta Técnica y Comercial · Chivay, Arequipa</div>
-            <h1 style="margin:0">Sistema Integral de Gestión, Control de Accesos QR, Caja por Turnos y App de Socios para <span class="gym-name">RD FITNESS CLUB</span></h1>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:280px">
+            <!-- EMBLEMA OFICIAL DEL DESARROLLADOR -->
+            <div class="dev-emblem-box" title="Sello Oficial — Desarrollador de Software y Sistemas Digitales">
+              <div class="dev-logo-slot">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <polygon points="32,4 58,18 58,46 32,60 6,46 6,18" stroke="#06b6d4" stroke-width="3" fill="rgba(6,182,212,0.12)" />
+                  <path d="M23 24L14 32L23 40" stroke="#38bdf8" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M41 24L50 32L41 40" stroke="#38bdf8" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M35 20L29 44" stroke="#ef4444" stroke-width="3.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="dev-emblem-sub">DEV · SYS</div>
+            </div>
+            <!-- LOGO DEL GIMNASIO CLIENTE -->
+            <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:64px;width:auto;object-fit:contain;background:transparent !important" />
+            <div style="flex:1;min-width:220px">
+              <div class="hero-tag">Dossier Informativo de Propuesta Técnica y Comercial · <span class="ctr-date-txt" contenteditable="true" data-sync="cfgContractDate">09/11/2026</span></div>
+              <h1 style="margin:0">Sistema Integral de Gestión, Control de Accesos QR, Caja por Turnos y App de Socios para <span class="gym-name">RD FITNESS CLUB</span></h1>
+            </div>
           </div>
         </div>
-        <p style="margin-bottom:14px">
+        <p style="margin-bottom:10px">
           Plataforma tecnológica diseñada a medida para la gestión integral del gimnasio: automatiza el control de ingreso por código QR, registra inscripciones nuevas y membresías en curso, administra la caja diaria por turnos en <strong>Efectivo, Yape y Plin</strong>, entrega una aplicación móvil a los socios y proyecta bienvenidas en tiempo real en el monitor de recepción.
         </p>
 
-        <!-- FICHA DE PRESENTACIÓN PROFESIONAL -->
-        <div class="box" style="background:rgba(15,23,42,0.75);border:1.5px solid var(--gold);padding:14px 16px">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
-            <div style="flex:1;min-width:280px">
-              <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:0.8px;color:var(--gold);margin-bottom:3px">
-                👨‍💻 PRESENTACIÓN DEL RESPONSABLE DEL PROYECTO
+        <!-- ENCABEZADO BILATERAL: AUTOR DE LA PROPUESTA (DESARROLLADOR) Y ESTABLECIMIENTO DESTINATARIO -->
+        <div class="bilateral-bar">
+          <div class="party-card dev-party">
+            <div class="dev-emblem-box" style="width:46px;height:46px">
+              <div class="dev-logo-slot">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <polygon points="32,4 58,18 58,46 32,60 6,46 6,18" stroke="#06b6d4" stroke-width="3.2" fill="rgba(6,182,212,0.15)" />
+                  <path d="M23 24L14 32L23 40" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M41 24L50 32L41 40" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M35 20L29 44" stroke="#ef4444" stroke-width="3.8" stroke-linecap="round"/>
+                </svg>
               </div>
-              <div style="font-size:14.5px;font-weight:900;color:#fff;margin-bottom:4px">
-                Desarrollador de Software y Sistemas Digitales
-              </div>
-              <p style="font-size:12px;color:#cbd5e1;margin:0;line-height:1.45">
-                Desarrollador especializado en el diseño e implementación de sistemas web a medida, aplicaciones móviles instalables (PWA), automatización de accesos mediante lectura óptica QR y arquitecturas de respaldo continuo en la nube orientadas a la modernización y eficiencia operativa de negocios.
-              </p>
+              <div class="dev-emblem-sub">ING · SW</div>
             </div>
-            <div style="min-width:250px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:12px">
-              <div><strong style="color:var(--gold)">Desarrollador:</strong> <span class="dev-name-txt">_________________________________</span></div>
-              <div style="margin-top:4px"><strong style="color:var(--gold)">Cargo:</strong> Desarrollador de Software y Sistemas Digitales</div>
-              <div style="margin-top:4px"><strong style="color:var(--gold)">DNI / RUC:</strong> <span class="dev-dni-txt">____________________</span> · <strong style="color:var(--gold)">Cel/WhatsApp:</strong> <span class="dev-phone-txt">____________________</span></div>
+            <div style="font-size:11.5px;line-height:1.38;flex:1">
+              <div style="font-size:10px;font-weight:900;color:var(--cyan);text-transform:uppercase;letter-spacing:0.6px">👨‍💻 AUTOR Y PROVEEDOR TECNOLÓGICO (EL DESARROLLADOR)</div>
+              <div style="font-weight:900;color:#fff;font-size:12.5px">Desarrollador de Software y Sistemas Digitales</div>
+              <div style="color:#cbd5e1;font-size:11px;margin-top:2px">
+                <strong>Nombre:</strong> <span class="dev-name-txt" contenteditable="true" data-sync="cfgDevName">_________________________________</span> ·
+                <strong>DNI/RUC:</strong> <span class="dev-dni-txt" contenteditable="true" data-sync="cfgDevDni">____________________</span> ·
+                <strong>Cel/WhatsApp:</strong> <span class="dev-phone-txt" contenteditable="true" data-sync="cfgDevPhone">____________________</span>
+              </div>
+              <div style="color:var(--muted);font-size:10.5px;margin-top:2px">
+                Especialista en desarrollo de sistemas web a medida, aplicaciones móviles instalables (PWA), control óptico QR y arquitecturas de respaldo en la nube para negocios.
+              </div>
+            </div>
+          </div>
+
+          <div class="party-card gym-party">
+            <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:44px;width:auto;object-fit:contain;flex-shrink:0" />
+            <div style="font-size:11.5px;line-height:1.38;flex:1">
+              <div style="font-size:10px;font-weight:900;color:var(--gold);text-transform:uppercase;letter-spacing:0.6px">🏋️ ESTABLECIMIENTO DESTINATARIO (EL CLIENTE)</div>
+              <div style="font-weight:900;color:#fff;font-size:12.5px" class="gym-name">RD FITNESS CLUB</div>
+              <div style="color:#cbd5e1;font-size:11px;margin-top:2px">
+                <strong>Titular / Propietario:</strong> <span class="ctr-client-name" contenteditable="true" data-sync="cfgClientName">______________________________________</span> ·
+                <strong>DNI/RUC:</strong> <span class="ctr-client-dni" contenteditable="true" data-sync="cfgClientDni">____________________</span>
+              </div>
+              <div style="color:var(--muted);font-size:10.5px;margin-top:2px">
+                <strong>Sede Comercial:</strong> <span class="ctr-address-txt" contenteditable="true" data-sync="cfgClientAddress">Chivay — Caylloma, Arequipa</span> ·
+                <strong>Fecha de Propuesta:</strong> <span class="ctr-date-txt" contenteditable="true" data-sync="cfgContractDate">09/11/2026</span>
+              </div>
             </div>
           </div>
         </div>
@@ -892,11 +1101,11 @@
           </div>
 
           <div class="box">
-            <h3>1.3. Padrón de Socios, Uso Estricto de Datos y Membresías en Curso (/members)</h3>
+            <h3>1.3. Padrón de Socios, Membresías en Curso y Carnets QR (/members)</h3>
             <ul class="feature-list">
-              <li><strong>Uso Estricto de los 3 Datos Esenciales (Nombre, DNI y Teléfono):</strong> Se solicita únicamente <strong>Nombre Completo, DNI y Teléfono / WhatsApp</strong>, destinados <strong>exclusivamente a la generación de su cuenta de usuario, código QR único, control de vigencia y avisos internos</strong>, sin implicar jamás un mal uso de su información.</li>
-              <li><strong>Cifrado Visual en Pantalla y PIN del Propietario:</strong> Visualización normal con DNI y teléfonos parcialmente cifrados (<code>•••458</code>) contra capturas en recepción, con opción de visualización completa mediante el <strong>PIN Especial del Propietario</strong>.</li>
-              <li><strong>Modo de Migración para Socios con Plan en Curso:</strong> Incorpora a los socios antiguos que ya tienen una membresía vigente pagada con anterioridad, respetando sus días restantes <strong>sin sumar cobros duplicados a la caja del día</strong>.</li>
+              <li><strong>Registro Ágil con los 3 Datos Esenciales:</strong> Solicita únicamente <strong>Nombre Completo, DNI y Teléfono / WhatsApp</strong> para crear su perfil, generar su credencial QR y controlar sus días de vigencia.</li>
+              <li><strong>Modo de Migración para Socios con Plan en Curso:</strong> Incorpora a los miembros antiguos que ya tienen una membresía vigente pagada con anterioridad, respetando sus días restantes <strong>sin sumar cobros duplicados a la caja del día</strong>.</li>
+              <li><strong>Exportación de Tarjetas QR en PDF e Imagen PNG:</strong> Permite guardar las credenciales individuales o por lotes en PDF A4 o imagen PNG para enviarlas por WhatsApp o imprimirlas externamente.</li>
             </ul>
           </div>
 
@@ -935,19 +1144,18 @@
           </div>
 
           <div class="box">
-            <h3>1.8. Centro de Reportes y Sincronización Google Sheets (/reports)</h3>
+            <h3>1.8. Centro de Reportes Ejecutivos y Libro Cloud Sheets (/reports)</h3>
             <ul class="feature-list">
-              <li><strong>Exportación Ejecutiva Protegida con PIN (.xlsx, CSV y PDF A4):</strong> Generación de reportes estructurados de ingresos, gastos, asistencias y socios, protegida con el <strong>PIN Especial del Propietario</strong> y notificación automática de descarga.</li>
-              <li><strong>Hoja Maestra Cloud Sheets (19 Hojas) con Cifrado Visual:</strong> Sincronización en vivo con enmascaramiento por defecto de DNI/teléfonos, marca de agua anti-capturas y desbloqueo completo mediante PIN.</li>
+              <li><strong>Reportes Estructurados (.xlsx, CSV y PDF A4):</strong> Exportación ordenada de ingresos, gastos, cierres de caja, asistencias y padrón de socios por rango de fechas, mes o año.</li>
+              <li><strong>Sincronización en Vivo con Google Sheets (19 Hojas):</strong> Respaldo tabular automático en la nube organizado en 19 hojas temáticas con indicadores y balance mensual.</li>
             </ul>
           </div>
 
           <div class="box">
-            <h3>1.9. Sistema Entrelazado de Avisos y Publicaciones: App + Web + WhatsApp (/announcements)</h3>
+            <h3>1.9. Publicación Multimedia y Difusión Omnicanal (/announcements)</h3>
             <ul class="feature-list">
-              <li><strong>Soporte Multimedia y Documentos:</strong> Publicación de comunicados, avisos y promociones con <strong>imágenes en alta definición, videos (MP4/YouTube/Reels), documentos PDF descargables (horarios, guías, reglamentos) y enlaces externos</strong>.</li>
-              <li><strong>Selección Individual, Combinada o General desde el Panel Admin:</strong> Permite elegir dónde difundir cada publicación: <strong>Solo en App de Socios</strong>, <strong>Solo en Página Web</strong>, <strong>Solo en WhatsApp</strong>, combinaciones dobles o <strong>General en los 3 canales a la vez</strong>.</li>
-              <li><strong>Uso Obligatorio de WhatsApp Exclusivo del Negocio en Recepción:</strong> Dado que la PC/laptop del gimnasio es operada tanto por el dueño como por sus trabajadores (quienes atienden consultas, leen mensajes y publican avisos), el WhatsApp vinculado en recepción debe ser una <strong>cuenta exclusiva del negocio</strong> y nunca el WhatsApp personal del propietario.</li>
+              <li><strong>Soporte Multimedia y Documentos:</strong> Publicación de comunicados, avisos y promociones con <strong>imágenes HD, videos (MP4/YouTube/Reels), documentos PDF descargables (horarios, reglamentos, guías) y enlaces</strong>.</li>
+              <li><strong>Selección Individual, Combinada o General en 1 Clic:</strong> Permite elegir en el Panel Admin dónde difundir cada publicación: <strong>Solo en App de Socios</strong>, <strong>Solo en Página Web</strong>, <strong>Solo en WhatsApp</strong>, combinaciones o <strong>General en los 3 canales</strong>.</li>
             </ul>
           </div>
 
@@ -1024,7 +1232,7 @@
 
       <!-- SECCIÓN 4: SITIO WEB PÚBLICO MULTIMEDIA Y SISTEMA ENTRELAZADO OMNICANAL -->
       <section class="section">
-        <div class="section-title">🌐 4. Módulo de Expansión: Plataforma Web Multimedia y Sistema Entrelazado (App + Web + WhatsApp)</div>
+        <div class="section-title">🌐 4. Módulo de Expansión: Plataforma Web Multimedia y Entrelazado con WhatsApp</div>
         <div class="section-sub">
           Presencia oficial en internet con centro multimedia y difusión entrelazada administrable al 100% desde el mismo Panel de Control del gimnasio:
         </div>
@@ -1033,24 +1241,22 @@
           <div class="box">
             <h3>4.1. Diseño Web Editorial de Alta Elegancia y Soporte Multimedia Completo</h3>
             <ul class="feature-list">
-              <li><strong>Publicación de Todo Tipo de Multimedia y Documentos:</strong> Permite publicar y actualizar en vivo <strong>videos promocionales (MP4 / YouTube / Reels), afiches en alta definición, documentos PDF descargables (horarios, reglamentos, planes nutricionales), galerías y enlaces externos</strong>.</li>
-              <li><strong>Distribución Visual Fina y No Invasiva:</strong> Estructura moderna organizada en <strong>Muro de Comunicados y Documentos Descargables (Izquierda)</strong>, <strong>Portal Central de Identidad y Tarifas en Vivo</strong>, y <strong>Vitrina / Slider Multimedia Interactivo (Derecha)</strong>.</li>
-              <li><strong>Spotlight de Portada con Efecto Cristal (Excepcional):</strong> Para lanzamientos o comunicados de máxima prioridad, despliega al ingresar una ventana central estilizada (*glassmorphism*) con soporte de video/imagen, barra de autocierre temporizado y botón <strong>✕</strong> de cierre inmediato.</li>
+              <li><strong>Publicación de Todo Tipo de Multimedia y Documentos:</strong> Permite publicar en vivo <strong>videos promocionales (MP4 / YouTube / Reels), afiches HD, documentos PDF descargables (horarios, reglamentos, guías nutricionales), galerías y enlaces externos</strong>.</li>
+              <li><strong>Distribución Visual Fina de 3 Zonas + Spotlight:</strong> Organizada en <strong>Muro de Comunicados y Descargas (Izquierda)</strong>, <strong>Portal Central de Identidad y Tarifas</strong>, <strong>Slider Multimedia Interactivo (Derecha)</strong> y ventana <strong>Spotlight de Cristal</strong> con autocierre para lanzamientos prioritarios.</li>
             </ul>
           </div>
 
           <div class="box">
-            <h3>4.2. Entrelazado Automatizado (Web + App + WhatsApp Corporativo del Negocio)</h3>
+            <h3>4.2. Integración al Grupo/Comunidad de WhatsApp y Cuenta Exclusiva del Negocio</h3>
             <ul class="feature-list">
-              <li><strong>Integración al WhatsApp del Gimnasio (Cero Bloqueos):</strong> El sistema se vincula directamente con el grupo o comunidad de WhatsApp del gimnasio (creado y administrado por el propietario), permitiendo difundir comunicados, promociones, videos y documentos desde el Panel Administrativo sin riesgo de bloqueo por spam.</li>
-              <li><strong>Privacidad del Propietario (Cuenta de WhatsApp Exclusiva del Gimnasio):</strong> Debido a que los trabajadores de recepción también utilizan la computadora del gimnasio para atender consultas por mensajes y enviar notificaciones laborales, se debe vincular una <strong>cuenta de WhatsApp exclusiva del negocio</strong> y no la cuenta personal del dueño, resguardando su privacidad.</li>
-              <li><strong>Control de Destinos Individual, Combinado o General en 1 Clic:</strong> Selección directa en el Panel Admin para difundir en <strong>Solo App</strong>, <strong>Solo Web</strong>, <strong>Solo WhatsApp</strong>, combinaciones o <strong>General en los 3 canales</strong>.</li>
+              <li><strong>Enlace al Grupo o Comunidad del Gimnasio (Cero Bloqueos):</strong> El sistema se vincula directamente con el grupo o comunidad de WhatsApp administrado por el propietario para difundir comunicados, promociones, videos y documentos sin riesgo de bloqueo por spam.</li>
+              <li><strong>Uso Obligatorio de Cuenta de WhatsApp Exclusiva del Gimnasio:</strong> Debido a que la PC/laptop de recepción es operada tanto por el dueño como por sus trabajadores (quienes leen mensajes, atienden consultas y publican avisos laborales), se debe vincular una <strong>cuenta de WhatsApp exclusiva del negocio</strong> y nunca la cuenta personal del propietario, protegiendo así su privacidad.</li>
             </ul>
           </div>
         </div>
 
         <!-- TABLA DE COSTOS DIRECTOS DE LA PLATAFORMA WEB MULTIMEDIA -->
-        <table style="margin-top:12px">
+        <table style="margin-top:10px">
           <thead>
             <tr>
               <th>Componente de la Plataforma Web Multimedia + Entrelazado Omnicanal</th>
@@ -1081,7 +1287,7 @@
             </tr>
           </tbody>
         </table>
-        <div style="font-size:11px;color:var(--muted);margin-top:5px">
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">
           <em>* Nota: El desarrollo de la plataforma web (S/ 750.00) es un pago único. A partir del segundo año, únicamente se abona la renovación anual de Dominio + Hosting Cloud (S/ 300.00 anual).</em>
         </div>
       </section>
@@ -1090,7 +1296,7 @@
       <section class="section">
         <div class="section-title">🛡️ 5. Arquitectura de Ciberseguridad, Copias de Seguridad, PIN de Datos y Responsabilidad Operativa</div>
         <div class="section-sub">
-          Detalle integral de los sistemas de defensa anti-hacks, respaldos automáticos contra caídas, cifrado visual contra extracción de datos y delimitación de responsabilidades ante manipulación en recepción:
+          Detalle integral de los sistemas de defensa anti-hacks, respaldos automáticos contra caídas, cifrado visual contra extracción de datos y delimitación de responsabilidades en recepción:
         </div>
 
         <div class="grid-2">
@@ -1114,15 +1320,15 @@
           <div class="box">
             <h3>5.3. Cifrado Visual, PIN Especial del Dueño y Alerta de Descargas</h3>
             <ul class="feature-list">
-              <li><strong>Visualización Normal Cifrada y Desbloqueo con PIN:</strong> En recepción y en Cloud Sheets, los DNI (<code>•••458</code>) y teléfonos (<code>982•••043</code>) se muestran cifrados por defecto. Su visualización completa y la descarga de cualquier archivo confidencial exigen el <strong>PIN Especial del Propietario</strong>.</li>
-              <li><strong>Marca de Agua Anti-Capturas y Notificación de Descargas al Dueño:</strong> Sello forense diagonal en pantalla con el nombre del operador, rol y fecha/hora contra capturas o fotos de celular, más registro inmutable y alerta directa al WhatsApp del propietario cada vez que se descarga un archivo o reporte.</li>
+              <li><strong>Visualización Normal Cifrada y Desbloqueo con PIN:</strong> En recepción y en Cloud Sheets, los DNI (<code>•••458</code>) y teléfonos (<code>982•••043</code>) se muestran cifrados por defecto. Su visualización completa y la descarga de cualquier reporte o archivo confidencial exigen el <strong>PIN Especial del Propietario</strong>.</li>
+              <li><strong>Marca de Agua Anti-Capturas y Notificación de Descargas al Dueño:</strong> Sello forense diagonal en pantalla con el nombre del operador, rol y fecha/hora contra capturas o fotos de celular, más registro inmutable y alerta directa al WhatsApp del propietario cada vez que se descarga un archivo.</li>
             </ul>
           </div>
 
           <div class="box">
-            <h3>5.4. Uso Estricto de Datos y Exclusión por Mala Manipulación de Trabajadores</h3>
+            <h3>5.4. Finalidad Estricta de Datos y Exclusión por Mala Manipulación</h3>
             <ul class="feature-list">
-              <li><strong>Uso Exclusivo de Datos (Nombre, DNI y Teléfono):</strong> Los datos de los socios se emplean <strong>únicamente para generar sus cuentas, códigos QR y control de vigencia</strong>, sin implicar jamás un mal uso de los mismos.</li>
+              <li><strong>Uso Exclusivo de Datos (Nombre, DNI y Teléfono):</strong> Los datos de los socios se emplean <strong>estrictamente para generar sus cuentas de usuario, códigos QR y control de vigencia</strong>, sin implicar jamás un mal uso de su información.</li>
               <li><strong>Deslinde por Mala Manipulación o Sabotaje de Trabajadores:</strong> Si el sistema sufre caídas, alteraciones o fallos ocasionados por <strong>manipulación indebida, negligente o malintencionada por parte de un trabajador o tercero en el gimnasio</strong>, ello compete exclusivamente al propietario del negocio y <strong>no está cubierto por la garantía ni bajo responsabilidad del Desarrollador</strong>.</li>
             </ul>
           </div>
@@ -1179,9 +1385,9 @@
           </tbody>
         </table>
 
-        <div class="diagram-card" style="margin-top:10px">
+        <div class="diagram-card">
           <div style="font-weight:800;font-size:12px;color:var(--gold);margin-bottom:3px">💡 Libertad de Elección sobre los 4 Equipos de Recepción:</div>
-          <p style="font-size:11.5px;color:#cbd5e1;margin:0;line-height:1.45">
+          <p style="font-size:11.5px;color:#cbd5e1;margin:0;line-height:1.42">
             • <strong>Uso de Equipos Propios del Gimnasio (S/ 0.00):</strong> Si el propietario ya cuenta con todos sus equipos (Laptop/PC, Monitor HDMI, Lector QR e Impresora Térmica) o decide adquirirlos por su cuenta, solo contrata el software.<br>
             • <strong>Encargo Parcial o Completo y Opción de Segunda Mano:</strong> El cliente puede encargar únicamente los periféricos específicos que le falten (según los precios unitarios de la tabla superior) o acordar la implementación en una laptop o PC económica de segunda mano en buen estado operativo.
           </p>
@@ -1195,16 +1401,16 @@
           Planes de inversión del software y condiciones operativas de implementación y garantía:
         </div>
 
-        <div class="grid-2" style="margin-bottom:12px">
+        <div class="grid-2" style="margin-bottom:10px">
           <!-- MODALIDAD A: SOLO SOFTWARE (EL CLIENTE ASUME TODOS SUS EQUIPOS) -->
           <div class="price-box">
             <div>
               <span class="badge-info" style="margin-bottom:6px;display:inline-block">MODALIDAD A: SOLO SISTEMA DE SOFTWARE (S/ 0.00 EN EQUIPOS)</span>
               <h3>Implementación Exclusiva del Software (El Gimnasio Asume Todos sus Equipos)</h3>
-              <p style="font-size:12px;color:#cbd5e1;margin-bottom:10px">
+              <p style="font-size:12px;color:#cbd5e1;margin-bottom:8px">
                 Aplica cuando el gimnasio ya dispone de <strong>todos sus equipos propios</strong> o los adquiere por su cuenta (<strong>Laptop/PC, Monitor HDMI, Lector QR 2D e Impresora Térmica 80mm</strong>). Esta modalidad cubre únicamente el software y no incluye la entrega de ningún equipo físico.
               </p>
-              <ul class="feature-list" style="margin-bottom:12px">
+              <ul class="feature-list" style="margin-bottom:10px">
                 <li><strong>Exclusivamente Software (Sin Hardware Incluido):</strong> Todos los equipos físicos de recepción (computadora/laptop, monitor HDMI, lector QR e impresora térmica) corren íntegra y exclusivamente por cuenta del gimnasio.</li>
                 <li><strong>Instalación Inmediata y Carga de Socios en Curso (24 a 72 h):</strong> Configuración inmediata del sistema; el registro de los miembros antiguos en curso y activación de sus cuentas se completa en un plazo de 24 a 72 horas según el volumen de socios activos.</li>
                 <li><strong>Permanencia Mínima en Plan Mensual:</strong> La modalidad de suscripción mensual requiere un <strong>compromiso mínimo de contratación de seis (6) meses</strong>.</li>
@@ -1235,10 +1441,10 @@
             <div>
               <span class="badge-gold" style="margin-bottom:6px;display:inline-block">⭐ MODALIDAD B: SOFTWARE + ENCARGO DE EQUIPOS</span>
               <h3>Sistema + Gestión de Compra e Instalación de los Equipos Seleccionados</h3>
-              <p style="font-size:12px;color:#cbd5e1;margin-bottom:10px">
+              <p style="font-size:12px;color:#cbd5e1;margin-bottom:8px">
                 Implementación del software más la adquisición por encargo, traslado y conexión de los equipos físicos específicos que el propietario solicite comprar.
               </p>
-              <ul class="feature-list" style="margin-bottom:12px">
+              <ul class="feature-list" style="margin-bottom:10px">
                 <li><strong>Selección por Equipo o Kit Completo:</strong> El propietario elige en el Contrato Final si encarga el Kit Completo de 4 equipos (S/ 3,250.00) o únicamente los equipos específicos que requiera de la Sección 6.</li>
                 <li><strong>Adelanto del 100% para Compra de Equipos:</strong> Todo equipo físico encargado al Desarrollador requiere el <strong>abono del 100% de su valor por adelantado</strong> a la firma del contrato para proceder con su compra e instalación.</li>
                 <li><strong>Entrega Conectada y Operativa:</strong> Los equipos encargados se entregan instalados y configurados en el mostrador del gimnasio.</li>
@@ -1267,12 +1473,12 @@
 
         <!-- CONDICIONES DE GARANTÍA DE 6 MESES Y ALCANCE DE CAMBIOS POSTERIORES -->
         <div class="diagram-card">
-          <div style="font-weight:800;font-size:12.5px;color:var(--gold);margin-bottom:4px">🛡️ Condiciones de Garantía Técnica (6 Meses), Equipos y Solicitudes Adicionales:</div>
-          <ul class="feature-list" style="font-size:11.5px">
-            <li><strong>1. Garantía Técnica del Software (6 Meses) y Exclusión por Mala Manipulación:</strong> El software cuenta con <strong>seis (6) meses de garantía técnica</strong> sobre el correcto funcionamiento de sus módulos. Quedan expresamente excluidos de garantía los fallos, desconfiguraciones, caídas o alteraciones provocados por <strong>mala manipulación, negligencia o actos malintencionados de trabajadores o terceros en el gimnasio</strong>, cuya supervisión compete exclusivamente al propietario.</li>
-            <li><strong>2. Cambios Posteriores o Nuevas Funciones Tienen Costo Adicional:</strong> Cualquier requerimiento posterior de nuevas funciones, módulos adicionales, rediseños o modificaciones personalizadas fuera del alcance entregado constituye un servicio adicional independiente y se cotiza por separado.</li>
-            <li><strong>3. Garantía de Equipos Físicos (Según Tienda Comercial):</strong> La garantía de los equipos nuevos adquiridos por encargo se rige directamente por la póliza oficial de la tienda comercial proveedora (entregándose al cliente sus comprobantes de compra). No cubre daños físicos por golpes, líquidos, variaciones eléctricas, manipulación por terceros ni cortes de internet.</li>
-            <li><strong>4. Formalización Mediante Contrato Oficial Independiente:</strong> El presente Dossier cumple fines estrictamente informativos sobre el alcance del proyecto. La contratación formal, el detalle exacto de los planes y equipos elegidos, la liquidación de pagos y las cláusulas legales se suscriben en el <strong>Documento Oficial de Contrato de Implementación y Conformidad</strong>.</li>
+          <div style="font-weight:800;font-size:12px;color:var(--gold);margin-bottom:4px">🛡️ Resumen de Garantía Técnica (6 Meses) y Formalización Contractual:</div>
+          <ul class="feature-list" style="font-size:11.4px">
+            <li><strong>1. Garantía Técnica del Software (6 Meses):</strong> Cubre el correcto funcionamiento de los módulos entregados por <strong>seis (6) meses</strong> (conforme a las exclusiones por mala manipulación de terceros detalladas en la Sección 5.4).</li>
+            <li><strong>2. Nuevas Funciones Posteriores:</strong> Todo requerimiento posterior de módulos adicionales o modificaciones fuera del alcance entregado se cotiza por separado.</li>
+            <li><strong>3. Garantía de Equipos Físicos:</strong> Sujeta a la póliza oficial de la tienda comercial proveedora (se entregan comprobantes de compra).</li>
+            <li><strong>4. Formalización en Contrato Oficial:</strong> El presente Dossier es informativo; la elección específica de planes, equipos, pagos y firmas se suscribe en el <strong>Contrato Oficial de Implementación</strong>.</li>
           </ul>
         </div>
       </section>
@@ -1282,30 +1488,77 @@
     <!-- DOCUMENTO 2: CONTRATO OFICIAL PERSONALIZADO DE SERVICIOS, ELECCIÓN, PAGOS Y FIRMAS       -->
     <!-- ======================================================================================== -->
     <div id="docContrato" class="hidden-doc">
-      <!-- ENCABEZADO OFICIAL DEL CONTRATO -->
-      <section class="hero" style="padding:20px 24px;margin-bottom:14px">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:8px">
-          <div style="display:flex;align-items:center;gap:14px">
-            <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:66px;width:auto;object-fit:contain;background:transparent !important" />
+      <!-- ENCABEZADO OFICIAL BILATERAL DEL CONTRATO (SELLO DEL DESARROLLADOR + LOGO DEL GIMNASIO) -->
+      <section class="hero" style="padding:18px 22px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:280px">
+            <!-- SELLO / LOGO DEL DESARROLLADOR -->
+            <div class="dev-emblem-box" title="Sello Oficial — Desarrollador de Software y Sistemas Digitales">
+              <div class="dev-logo-slot">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <polygon points="32,4 58,18 58,46 32,60 6,46 6,18" stroke="#06b6d4" stroke-width="3" fill="rgba(6,182,212,0.12)" />
+                  <path d="M23 24L14 32L23 40" stroke="#38bdf8" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M41 24L50 32L41 40" stroke="#38bdf8" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M35 20L29 44" stroke="#ef4444" stroke-width="3.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="dev-emblem-sub">DEV · SYS</div>
+            </div>
+            <!-- LOGO DEL GIMNASIO CLIENTE -->
+            <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:58px;width:auto;object-fit:contain;background:transparent !important" />
             <div>
-              <div class="hero-tag" style="margin-bottom:4px">Documento Legal Vinculante · Código Civil Peruano (Arts. 1351°, 1361° y 1764°)</div>
-              <h1 style="font-size:21px;margin:0">CONTRATO DE IMPLEMENTACIÓN DE SOFTWARE, LIQUIDACIÓN DE ELECCIÓN Y CONFORMIDAD LEGAL</h1>
+              <div class="hero-tag" style="margin-bottom:3px">Documento Legal Bilateral Vinculante · Código Civil Peruano (Arts. 1351°, 1361° y 1764°)</div>
+              <h1 style="font-size:19.5px;margin:0">CONTRATO DE IMPLEMENTACIÓN DE SOFTWARE, LIQUIDACIÓN DE ELECCIÓN Y CONFORMIDAD LEGAL</h1>
             </div>
           </div>
-          <div style="text-align:right;font-size:12px;background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:8px 12px;border-radius:8px">
-            <div><strong style="color:var(--gold)">FECHA DE ACUERDO:</strong> <span class="ctr-date-txt">____/____/2026</span></div>
-            <div><strong style="color:var(--gold)">SEDE:</strong> <span class="ctr-address-txt">Chivay — Caylloma, Arequipa</span></div>
+          <div style="text-align:right;font-size:11.5px;background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:7px 11px;border-radius:8px">
+            <div><strong style="color:var(--gold)">FECHA DE ACUERDO:</strong> <span class="ctr-date-txt" contenteditable="true" data-sync="cfgContractDate">09/11/2026</span></div>
+            <div><strong style="color:var(--gold)">SEDE:</strong> <span class="ctr-address-txt" contenteditable="true" data-sync="cfgClientAddress">Chivay — Caylloma, Arequipa</span></div>
           </div>
         </div>
-        <p style="font-size:12px;margin-bottom:0;line-height:1.45">
-          Conste por el presente documento el <strong>Contrato Privado de Implementación de Sistema de Software, Liquidación de Equipamiento y Conformidad Operativa</strong> que celebran, de una parte, en calidad de <strong>EL DESARROLLADOR</strong>: <strong class="dev-name-txt" style="color:#fff">_________________________________</strong>, identificado con DNI/RUC N° <strong class="dev-dni-txt" style="color:#fff">____________________</strong> y Celular/WhatsApp <strong class="dev-phone-txt" style="color:#fff">____________________</strong>; y de la otra parte, en calidad de <strong>EL CLIENTE / PROPIETARIO DEL GIMNASIO</strong> (<strong class="gym-name" style="color:var(--gold)">RD FITNESS CLUB</strong>): <strong class="ctr-client-name" style="color:#fff">______________________________________</strong>, identificado con DNI/RUC N° <strong class="ctr-client-dni" style="color:#fff">____________________</strong>, con domicilio comercial en <span class="ctr-address-txt">Chivay — Caylloma, Arequipa</span>; en los términos, elecciones específicas y cláusulas siguientes:
-        </p>
+
+        <!-- IDENTIFICACIÓN BILATERAL DE LAS PARTES CONTRATANTES -->
+        <div class="bilateral-bar" style="margin-top:6px;padding-top:8px">
+          <div class="party-card dev-party">
+            <div class="dev-emblem-box" style="width:42px;height:42px">
+              <div class="dev-logo-slot">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <polygon points="32,4 58,18 58,46 32,60 6,46 6,18" stroke="#06b6d4" stroke-width="3.2" fill="rgba(6,182,212,0.15)" />
+                  <path d="M23 24L14 32L23 40" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M41 24L50 32L41 40" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M35 20L29 44" stroke="#ef4444" stroke-width="3.8" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="dev-emblem-sub">ING · SW</div>
+            </div>
+            <div style="font-size:11px;line-height:1.35;flex:1">
+              <div style="font-size:9.5px;font-weight:900;color:var(--cyan);text-transform:uppercase">PARTE 1: EL DESARROLLADOR (PROVEEDOR TECNOLÓGICO)</div>
+              <div style="font-weight:800;color:#fff">Nombre: <span class="dev-name-txt" contenteditable="true" data-sync="cfgDevName">_________________________________</span></div>
+              <div style="color:#cbd5e1">
+                <strong>DNI / RUC:</strong> <span class="dev-dni-txt" contenteditable="true" data-sync="cfgDevDni">____________________</span> ·
+                <strong>Cel/WhatsApp:</strong> <span class="dev-phone-txt" contenteditable="true" data-sync="cfgDevPhone">____________________</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="party-card gym-party">
+            <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:40px;width:auto;object-fit:contain;flex-shrink:0" />
+            <div style="font-size:11px;line-height:1.35;flex:1">
+              <div style="font-size:9.5px;font-weight:900;color:var(--gold);text-transform:uppercase">PARTE 2: EL CLIENTE (<span class="gym-name">RD FITNESS CLUB</span>)</div>
+              <div style="font-weight:800;color:#fff">Titular: <span class="ctr-client-name" contenteditable="true" data-sync="cfgClientName">______________________________________</span></div>
+              <div style="color:#cbd5e1">
+                <strong>DNI / RUC:</strong> <span class="ctr-client-dni" contenteditable="true" data-sync="cfgClientDni">____________________</span> ·
+                <strong>Sede:</strong> <span class="ctr-address-txt" contenteditable="true" data-sync="cfgClientAddress">Chivay — Caylloma, Arequipa</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- SECCIÓN I DEL CONTRATO: DETALLE EXACTO DE LA ELECCIÓN DEL CLIENTE (SOFTWARE + WEB) -->
-      <section class="section" style="padding:16px 20px;margin-bottom:14px">
-        <div class="section-title" style="font-size:15.5px">📋 I. Determinación Exacta de los Servicios de Software Contratados</div>
-        <div class="section-sub" style="margin-bottom:8px;font-size:11.8px">
+      <section class="section" style="padding:14px 18px;margin-bottom:12px">
+        <div class="section-title" style="font-size:15px">📋 I. Determinación Exacta de los Servicios de Software Contratados</div>
+        <div class="section-sub" style="margin-bottom:6px;font-size:11.5px">
           El Cliente declara haber revisado el Dossier Informativo del proyecto y selecciona expresamente la siguiente configuración de software para su establecimiento:
         </div>
 
@@ -1319,29 +1572,29 @@
           </thead>
           <tbody>
             <tr>
-              <td><strong>1. Licencia del Sistema Principal</strong><br><span style="font-size:11px;color:var(--muted)">(Panel Admin, Control QR, Caja por Turnos, Tienda, App de Socios, Monitor HDMI, Reportes y Nube)</span></td>
+              <td><strong>1. Licencia del Sistema Principal</strong><br><span style="font-size:10.8px;color:var(--muted)">(Panel Admin, Control QR, Caja por Turnos, Tienda, App de Socios, Monitor HDMI, Reportes y Nube)</span></td>
               <td id="ctrPlanDescCell">
                 <strong>⭐ LICENCIA VITALICIA DEL SISTEMA (Pago Único Definitivo)</strong><br>
                 <span>Incluye instalación inmediata del sistema, configuración integral, migración de socios activos en curso (24 a 72 h) y 6 meses de garantía técnica de software, sin pagos mensuales ni anuales por el sistema.</span>
               </td>
-              <td style="text-align:right;font-weight:900;font-size:13.5px" id="ctrPlanPriceCell">S/ 1,450.00</td>
+              <td style="text-align:right;font-weight:900;font-size:13px" id="ctrPlanPriceCell">S/ 1,450.00</td>
             </tr>
             <tr>
-              <td><strong>2. Plataforma Web Pública Multimedia y Dominio</strong><br><span style="font-size:11px;color:var(--muted)">(Sección 4 del Dossier Informativo)</span></td>
+              <td><strong>2. Plataforma Web Pública Multimedia y Dominio</strong><br><span style="font-size:10.8px;color:var(--muted)">(Sección 4 del Dossier Informativo)</span></td>
               <td id="ctrWebDescCell">
                 <strong>NO INCLUYE PÁGINA WEB PÚBLICA EN ESTA ETAPA (S/ 0.00)</strong><br>
                 <span>El Cliente contrata únicamente el sistema administrativo interno, App de Socios e integración con el grupo/comunidad de WhatsApp del gimnasio. La plataforma web pública podrá ser contratada posteriormente si el Cliente lo solicita.</span>
               </td>
-              <td style="text-align:right;font-weight:900;font-size:13.5px" id="ctrWebPriceCell">S/ 0.00</td>
+              <td style="text-align:right;font-weight:900;font-size:13px" id="ctrWebPriceCell">S/ 0.00</td>
             </tr>
           </tbody>
         </table>
       </section>
 
       <!-- SECCIÓN II DEL CONTRATO: INVENTARIO Y DESLINDE EXACTO DE LOS 4 EQUIPOS DE RECEPCIÓN -->
-      <section class="section" style="padding:16px 20px;margin-bottom:14px">
-        <div class="section-title" style="font-size:15.5px">🛠️ II. Situación Exacta del Equipamiento Físico de Recepción (Deslinde de Equipos)</div>
-        <div class="section-sub" style="margin-bottom:8px;font-size:11.8px">
+      <section class="section" style="padding:14px 18px;margin-bottom:12px">
+        <div class="section-title" style="font-size:15px">🛠️ II. Situación Exacta del Equipamiento Físico de Recepción (Deslinde de Equipos)</div>
+        <div class="section-sub" style="margin-bottom:6px;font-size:11.5px">
           Ambas partes dejan constancia expresa de qué equipos físicos ya posee el Gimnasio por cuenta propia (los cuales <strong>NO</strong> son suministrados ni entregados por el Desarrollador) y cuáles han sido encargados comprar e instalar:
         </div>
 
@@ -1360,9 +1613,9 @@
       </section>
 
       <!-- SECCIÓN III DEL CONTRATO: LIQUIDACIÓN ECONÓMICA TOTAL, PAGOS EFECTUADOS Y SALDO -->
-      <section class="section" style="padding:16px 20px;margin-bottom:14px">
-        <div class="section-title" style="font-size:15.5px">💳 III. Liquidación Económica Total, Pago Efectuado a la Firma y Saldo</div>
-        <div class="section-sub" style="margin-bottom:8px;font-size:11.8px">
+      <section class="section" style="padding:14px 18px;margin-bottom:12px">
+        <div class="section-title" style="font-size:15px">💳 III. Liquidación Económica Total, Pago Efectuado a la Firma y Saldo</div>
+        <div class="section-sub" style="margin-bottom:6px;font-size:11.5px">
           Resumen económico vinculante de la contratación, abonos recibidos a la suscripción del presente contrato y saldos:
         </div>
 
@@ -1388,135 +1641,135 @@
             <tr style="background:rgba(255,255,255,0.03)">
               <td><strong style="color:var(--gold)">MONTO TOTAL ACORDADO DEL CONTRATO</strong></td>
               <td><strong>Suma total de los servicios y equipos seleccionados por el Cliente</strong></td>
-              <td style="text-align:right;font-weight:900;font-size:14px;color:var(--gold)" id="ctrTotalContractAmount">S/ 1,450.00</td>
+              <td style="text-align:right;font-weight:900;font-size:13.5px;color:var(--gold)" id="ctrTotalContractAmount">S/ 1,450.00</td>
             </tr>
             <tr>
               <td><strong style="color:var(--emerald)">MONTO PAGADO / ABONADO A LA FIRMA</strong></td>
               <td id="ctrPaidDetailCell"><strong>Estado:</strong> Cancelado al 100% a la firma · <strong>Medio de Pago:</strong> Efectivo</td>
-              <td style="text-align:right;font-weight:900;font-size:13.5px;color:var(--emerald)" id="ctrPaidAmountCell">S/ 1,450.00</td>
+              <td style="text-align:right;font-weight:900;font-size:13px;color:var(--emerald)" id="ctrPaidAmountCell">S/ 1,450.00</td>
             </tr>
             <tr>
               <td><strong>SALDO PENDIENTE DE PAGO</strong></td>
               <td id="ctrBalanceDetailCell">Sin saldo pendiente por la implementación contratada (S/ 0.00)</td>
-              <td style="text-align:right;font-weight:900;font-size:13.5px" id="ctrBalanceAmountCell">S/ 0.00</td>
+              <td style="text-align:right;font-weight:900;font-size:13px" id="ctrBalanceAmountCell">S/ 0.00</td>
             </tr>
           </tbody>
         </table>
       </section>
 
       <!-- SECCIÓN IV DEL CONTRATO: LAS 6 CLÁUSULAS CONTRACTUALES DE RESPALDO LEGAL INTEGRAL -->
-      <section class="section" style="padding:16px 20px;margin-bottom:14px">
-        <div class="section-title" style="font-size:15.5px">⚖️ IV. Cláusulas Contractuales de Garantía, Permanencia y Delimitación de Responsabilidades</div>
-        <div class="section-sub" style="margin-bottom:10px;font-size:11.8px">
+      <section class="section" style="padding:14px 18px;margin-bottom:12px">
+        <div class="section-title" style="font-size:15px">⚖️ IV. Cláusulas Contractuales de Garantía, Permanencia y Delimitación de Responsabilidades</div>
+        <div class="section-sub" style="margin-bottom:8px;font-size:11.5px">
           El presente contrato se rige por las siguientes seis (6) cláusulas obligatorias conforme al Código Civil Peruano (Arts. 1351°, 1361° y 1764°):
         </div>
 
         <div class="grid-2">
           <div class="box">
             <h3>Cláusula Primera: Objeto y Naturaleza Interna del Sistema</h3>
-            <p style="font-size:11px;color:#cbd5e1;line-height:1.42;margin:0">
-              El Desarrollador provee al Gimnasio una plataforma informática destinada exclusivamente a la <strong>organización administrativa interna del local</strong>: control de asistencia mediante código QR, registro de membresías, seguimiento de rutinas y control interno de turnos de recepción. Las constancias o tickets generados por el programa son documentos de control interno para los socios y no constituyen comprobantes de pago electrónicos (CPE) ni facturación tributaria.
+            <p style="font-size:10.8px;color:#cbd5e1;line-height:1.4;margin:0">
+              El Desarrollador provee al Gimnasio una plataforma informática destinada exclusivamente a la <strong>organización administrativa interna del local</strong>: control de asistencia QR, registro de membresías, seguimiento de rutinas y control interno de turnos de recepción. Las constancias o tickets generados son recibos de control interno para los socios y no constituyen comprobantes de pago electrónicos (CPE) ni facturación tributaria.
             </p>
           </div>
 
           <div class="box">
             <h3>Cláusula Segunda: Autonomía Administrativa y Tributaria del Gimnasio</h3>
-            <p style="font-size:11px;color:#cbd5e1;line-height:1.42;margin:0">
-              Ambas partes reconocen que la gestión empresarial, contable, tributaria, municipal y laboral del gimnasio (incluyendo inscripción en el RUC, elección de régimen tributario, declaración de ingresos en Efectivo/Yape/Plin y emisión oficial de Boletas o Facturas Electrónicas ante la <strong>SUNAT</strong> mediante Portal SUNAT SOL o facturador autorizado) corresponde de manera exclusiva e independiente a los propietarios y administración del gimnasio.
+            <p style="font-size:10.8px;color:#cbd5e1;line-height:1.4;margin:0">
+              La gestión empresarial, contable, tributaria, municipal y laboral del gimnasio (inscripción en el RUC, régimen tributario, declaración de ingresos en Efectivo/Yape/Plin y emisión oficial de Boletas o Facturas Electrónicas ante la <strong>SUNAT</strong> mediante Portal SUNAT SOL o facturador autorizado) corresponde de manera exclusiva e independiente a los propietarios del gimnasio.
             </p>
           </div>
 
           <div class="box">
             <h3>Cláusula Tercera: Indemnidad Legal del Desarrollador</h3>
-            <p style="font-size:11px;color:#cbd5e1;line-height:1.42;margin:0">
-              En virtud de que la labor del Desarrollador se circunscribe estrictamente al ámbito técnico e informático del software entregado, el Propietario y/o Socio Comercial mantienen al Desarrollador libre y exento de cualquier responsabilidad civil, tributaria, administrativa, laboral o judicial derivada del giro comercial del negocio, fiscalizaciones de <strong>SUNAT, Municipalidad / Defensa Civil (ITSE), INDECOPI o SUNAFIL</strong>, o del manejo tributario y contable propio del establecimiento.
+            <p style="font-size:10.8px;color:#cbd5e1;line-height:1.4;margin:0">
+              Dado que la labor del Desarrollador se circunscribe estrictamente al ámbito técnico del software entregado, el Propietario y/o Socio Comercial mantienen al Desarrollador libre y exento de cualquier responsabilidad civil, tributaria, administrativa o laboral derivada del giro comercial del negocio o de fiscalizaciones de <strong>SUNAT, Municipalidad / Defensa Civil (ITSE), INDECOPI o SUNAFIL</strong>.
             </p>
           </div>
 
           <div class="box">
-            <h3>Cláusula Cuarta: Propiedad Intelectual, Permanencia (6 Meses) y Nuevas Funciones</h3>
-            <p style="font-size:11px;color:#cbd5e1;line-height:1.42;margin:0">
-              El software provisto es de autoría intelectual del Desarrollador, otorgándose al Gimnasio la licencia de uso conforme a la modalidad elegida en la Sección I (en caso de Plan Mensual, rige una <strong>permanencia mínima obligatoria de 6 meses</strong>). Toda solicitud posterior de nuevas funciones, módulos adicionales o cambios fuera del alcance entregado constituye un servicio adicional independiente y se cotiza por separado.
+            <h3>Cláusula Cuarta: Propiedad Intelectual, Permanencia (6m) y Adicionales</h3>
+            <p style="font-size:10.8px;color:#cbd5e1;line-height:1.4;margin:0">
+              El software es de autoría intelectual del Desarrollador, otorgándose al Gimnasio la licencia de uso conforme a la modalidad elegida en la Sección I (en Plan Mensual rige una <strong>permanencia mínima obligatoria de 6 meses</strong>). Toda solicitud posterior de nuevas funciones o cambios fuera del alcance entregado se cotiza por separado.
             </p>
           </div>
 
           <div class="box">
             <h3>Cláusula Quinta: Carga (24–72 h), Ciberseguridad, Garantía (6m) y Exclusiones</h3>
-            <p style="font-size:11px;color:#cbd5e1;line-height:1.42;margin:0">
-              La instalación es inmediata y el empadronamiento inicial de socios en curso se realiza en <strong>24 a 72 horas</strong>. El sistema incluye blindaje anti-SQLi, anti-fuerza bruta, filtro anti-ejecutables, cifrado Bcrypt/HMAC-SHA256 y respaldo quíntuple (SQLite WAL, JSON, Cloud Vault, Cloud Sheets y Modo Local PC), con <strong>6 meses de garantía técnica</strong>. <strong>Exclusión expresa:</strong> Las caídas, errores o daños causados por <strong>mala manipulación, negligencia o actos malintencionados de trabajadores o terceros</strong> son de exclusiva responsabilidad de EL CLIENTE y no están cubiertos por la garantía ni generan responsabilidad para EL DESARROLLADOR.
+            <p style="font-size:10.8px;color:#cbd5e1;line-height:1.4;margin:0">
+              La instalación es inmediata y el registro inicial de socios en curso se completa en <strong>24 a 72 horas</strong>. El sistema cuenta con blindaje anti-SQLi, anti-fuerza bruta, filtro anti-ejecutables, cifrado Bcrypt/HMAC-SHA256, respaldo quíntuple y <strong>6 meses de garantía técnica</strong>. <strong>Exclusión expresa:</strong> Los fallos, caídas o alteraciones causados por <strong>mala manipulación, negligencia o actos malintencionados de trabajadores o terceros</strong> competen exclusivamente a EL CLIENTE y no están cubiertos por la garantía.
             </p>
           </div>
 
           <div class="box">
-            <h3>Cláusula Sexta: Uso Estricto de Datos, PIN del Dueño, WhatsApp Corporativo y Validez</h3>
-            <p style="font-size:11px;color:#cbd5e1;line-height:1.42;margin:0">
-              Los datos de los socios (<strong>Nombre, DNI y Teléfono</strong>) se utilizan <strong>estrictamente para generar sus cuentas, códigos QR y control de vigencia</strong>. El sistema protege esta información mediante cifrado visual en pantalla, marca de agua anti-capturas, <strong>PIN Especial del Propietario</strong> para visualización completa y descargas, y alertas de exportación. Asimismo, EL CLIENTE se compromete a vincular en la PC de recepción una <strong>cuenta de WhatsApp exclusiva del negocio</strong> (y no su cuenta personal), dado que sus trabajadores operan dicho equipo. El presente contrato tiene plena validez legal conforme a los Arts. 1351° y 1361° del Código Civil Peruano.
+            <h3>Cláusula Sexta: Uso Estricto de Datos, PIN del Dueño y WhatsApp del Negocio</h3>
+            <p style="font-size:10.8px;color:#cbd5e1;line-height:1.4;margin:0">
+              Los datos de los socios (<strong>Nombre, DNI y Teléfono</strong>) se usan <strong>estrictamente para generar sus cuentas, códigos QR y vigencia</strong>, protegidos con cifrado visual en pantalla, marca de agua anti-capturas, <strong>PIN Especial del Propietario</strong> y alertas de descarga. Asimismo, EL CLIENTE vinculará en recepción una <strong>cuenta de WhatsApp exclusiva del negocio</strong> (y nunca su cuenta personal), dado que sus trabajadores operan dicho equipo.
             </p>
           </div>
         </div>
 
         <!-- SECCIÓN V DEL CONTRATO: DECLARACIÓN FORMAL DE CONFORMIDAD Y 4 BLOQUES DE FIRMA -->
-        <div class="box" style="margin-top:10px;background:var(--card-2);border:1.5px solid var(--border);padding:13px">
-          <div style="font-weight:900;font-size:12px;color:var(--gold);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">
+        <div class="box" style="margin-top:8px;background:var(--card-2);border:1.5px solid var(--border);padding:12px">
+          <div style="font-weight:900;font-size:11.5px;color:var(--gold);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">
             ✍️ V. Declaración Expresa de Conformidad Comercial, Operativa y Suscripción de las Partes
           </div>
-          <p style="font-size:10.8px;color:#cbd5e1;margin-bottom:10px;line-height:1.4">
-            Al suscribir el presente contrato, las partes ratifican su total conformidad con la elección de software detallada en la Sección I, el deslinde de equipamiento físico de la Sección II, la liquidación de pagos de la Sección III y las seis (6) cláusulas legales de la Sección IV, reconociendo la calidad profesional del sistema implementado.
+          <p style="font-size:10.5px;color:#cbd5e1;margin-bottom:8px;line-height:1.38">
+            Al suscribir el presente contrato, las partes ratifican su total conformidad con la elección de software detallada en la Sección I, el deslinde de equipamiento físico de la Sección II, la liquidación de pagos de la Sección III y las seis (6) cláusulas legales de la Sección IV.
           </p>
 
-          <div class="grid-2" style="gap:10px">
+          <div class="grid-2" style="gap:8px">
             <!-- FIRMA 1: DESARROLLADOR -->
-            <div style="border:1px solid var(--border);border-radius:8px;padding:10px;background:rgba(255,255,255,0.02)">
-              <div style="font-size:9.5px;font-weight:800;color:var(--cyan);text-transform:uppercase;margin-bottom:22px">
-                (1) FIRMA DEL RESPONSABLE TECNOLÓGICO
+            <div style="border:1px solid var(--border);border-radius:8px;padding:9px;background:rgba(255,255,255,0.02)">
+              <div style="font-size:9px;font-weight:800;color:var(--cyan);text-transform:uppercase;margin-bottom:20px">
+                (1) FIRMA Y SELLO DEL RESPONSABLE TECNOLÓGICO
               </div>
-              <div style="border-top:1.5px solid #64748b;padding-top:4px;font-weight:900;font-size:10.8px;color:#fff">
+              <div style="border-top:1.5px solid #64748b;padding-top:4px;font-weight:900;font-size:10.5px;color:#fff">
                 DESARROLLADOR DE SOFTWARE Y SISTEMAS DIGITALES
               </div>
-              <div style="font-size:10.2px;color:#cbd5e1;margin-top:3px">
-                <strong>Nombre:</strong> <span class="dev-name-txt">______________________________________</span><br>
-                <strong>DNI / RUC:</strong> <span class="dev-dni-txt">____________________</span> · <strong>Cel:</strong> <span class="dev-phone-txt">_________________</span>
+              <div style="font-size:10px;color:#cbd5e1;margin-top:2px">
+                <strong>Nombre:</strong> <span class="dev-name-txt" contenteditable="true" data-sync="cfgDevName">______________________________________</span><br>
+                <strong>DNI / RUC:</strong> <span class="dev-dni-txt" contenteditable="true" data-sync="cfgDevDni">____________________</span> · <strong>Cel:</strong> <span class="dev-phone-txt" contenteditable="true" data-sync="cfgDevPhone">_________________</span>
               </div>
             </div>
 
             <!-- FIRMA 2: TITULAR / PROPIETARIO PRINCIPAL -->
-            <div style="border:1px solid var(--border);border-radius:8px;padding:10px;background:rgba(255,255,255,0.02)">
-              <div style="font-size:9.5px;font-weight:800;color:var(--emerald);text-transform:uppercase;margin-bottom:22px">
+            <div style="border:1px solid var(--border);border-radius:8px;padding:9px;background:rgba(255,255,255,0.02)">
+              <div style="font-size:9px;font-weight:800;color:var(--emerald);text-transform:uppercase;margin-bottom:20px">
                 (2) ACEPTACIÓN Y CONFORMIDAD — TITULAR / PROPIETARIO PRINCIPAL
               </div>
-              <div style="border-top:1.5px solid #64748b;padding-top:4px;font-weight:900;font-size:10.8px;color:#fff">
+              <div style="border-top:1.5px solid #64748b;padding-top:4px;font-weight:900;font-size:10.5px;color:#fff">
                 PROPIETARIO PRINCIPAL — <span class="gym-name">RD FITNESS CLUB</span>
               </div>
-              <div style="font-size:10.2px;color:#cbd5e1;margin-top:3px">
-                <strong>Nombre:</strong> <span class="ctr-client-name">______________________________________</span><br>
-                <strong>DNI / RUC:</strong> <span class="ctr-client-dni">____________________</span> · <strong>Fecha:</strong> <span class="ctr-date-txt">____/____/2026</span>
+              <div style="font-size:10px;color:#cbd5e1;margin-top:2px">
+                <strong>Nombre:</strong> <span class="ctr-client-name" contenteditable="true" data-sync="cfgClientName">______________________________________</span><br>
+                <strong>DNI / RUC:</strong> <span class="ctr-client-dni" contenteditable="true" data-sync="cfgClientDni">____________________</span> · <strong>Fecha:</strong> <span class="ctr-date-txt" contenteditable="true" data-sync="cfgContractDate">09/11/2026</span>
               </div>
             </div>
 
             <!-- FIRMA 3: CO-PROPIETARIO / SOCIO COMERCIAL -->
-            <div style="border:1px dashed var(--border);border-radius:8px;padding:10px;background:rgba(255,255,255,0.02)">
-              <div style="font-size:9.5px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:22px">
+            <div style="border:1px dashed var(--border);border-radius:8px;padding:9px;background:rgba(255,255,255,0.02)">
+              <div style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:20px">
                 (3) ACEPTACIÓN MANCOMUNADA — CO-PROPIETARIO / SOCIO COMERCIAL
               </div>
-              <div style="border-top:1.5px solid #64748b;padding-top:4px;font-weight:900;font-size:10.8px;color:#fff">
+              <div style="border-top:1.5px solid #64748b;padding-top:4px;font-weight:900;font-size:10.5px;color:#fff">
                 CO-TITULAR / SOCIO COMERCIAL — <span class="gym-name">RD FITNESS CLUB</span>
               </div>
-              <div style="font-size:10.2px;color:#cbd5e1;margin-top:3px">
-                <strong>Nombre:</strong> ______________________________________<br>
-                <strong>DNI:</strong> ____________________ · <strong>Fecha:</strong> <span class="ctr-date-txt">____/____/2026</span>
+              <div style="font-size:10px;color:#cbd5e1;margin-top:2px">
+                <strong>Nombre:</strong> <span contenteditable="true">______________________________________</span><br>
+                <strong>DNI:</strong> <span contenteditable="true">____________________</span> · <strong>Fecha:</strong> <span class="ctr-date-txt" contenteditable="true" data-sync="cfgContractDate">09/11/2026</span>
               </div>
             </div>
 
             <!-- FIRMA 4: CONSTANCIA DE RECEPCIÓN Y PUESTA EN MARCHA -->
-            <div style="border:1.5px solid var(--gold);border-radius:8px;padding:10px;background:rgba(245, 180, 0,0.05)">
-              <div style="font-size:9.5px;font-weight:800;color:var(--gold);text-transform:uppercase;margin-bottom:22px">
+            <div style="border:1.5px solid var(--gold);border-radius:8px;padding:9px;background:rgba(245, 180, 0,0.05)">
+              <div style="font-size:9px;font-weight:800;color:var(--gold);text-transform:uppercase;margin-bottom:20px">
                 (4) ACTA DE RECEPCIÓN OPERATIVA Y RATIFICACIÓN CONTRACTUAL
               </div>
-              <div style="border-top:1.5px solid #64748b;padding-top:4px;font-weight:900;font-size:10.8px;color:#fff">
+              <div style="border-top:1.5px solid #64748b;padding-top:4px;font-weight:900;font-size:10.5px;color:#fff">
                 CONFORMIDAD DE INSTALACIÓN Y VIGENCIA DE CLÁUSULAS
               </div>
-              <div style="font-size:10px;color:#cbd5e1;margin-top:3px;line-height:1.35">
-                <em>Se deja constancia de haber recibido el sistema operativo conforme a la elección detallada en las Secciones I, II y III, ratificando la plena vigencia de las seis (6) cláusulas legales.</em><br>
+              <div style="font-size:9.8px;color:#cbd5e1;margin-top:2px;line-height:1.32">
+                <em>Se deja constancia de haber recibido el sistema operativo conforme a la elección detallada en las Secciones I, II y III, ratificando las seis (6) cláusulas legales.</em><br>
                 <strong>Resumen Elegido:</strong> <span id="ctrSignSummaryBadge" style="font-weight:800;color:#fff">Licencia Vitalicia · Equipos Propios</span>
               </div>
             </div>
@@ -1528,6 +1781,14 @@
 
   <script>
     const DEFAULT_GYM_NAME = 'RD FITNESS CLUB';
+    const STORAGE_KEY = 'rd_doc_config_v3_' + DEFAULT_GYM_NAME.replace(/\s+/g, '_');
+    const DEFAULT_DEV_SVG = `
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="32,4 58,18 58,46 32,60 6,46 6,18" stroke="#06b6d4" stroke-width="3" fill="rgba(6,182,212,0.12)" />
+        <path d="M23 24L14 32L23 40" stroke="#38bdf8" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M41 24L50 32L41 40" stroke="#38bdf8" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M35 20L29 44" stroke="#ef4444" stroke-width="3.5" stroke-linecap="round"/>
+      </svg>`;
 
     function fmtMoney(n) {
       return 'S/ ' + Number(n || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1536,14 +1797,12 @@
     function switchDocMode(mode) {
       const doss = document.getElementById('docDossier');
       const ctr = document.getElementById('docContrato');
-      const cfg = document.getElementById('cfgPanel');
       const tabD = document.getElementById('tabBtnDossier');
       const tabC = document.getElementById('tabBtnContrato');
 
       if (mode === 'contrato') {
         doss.classList.add('hidden-doc');
         ctr.classList.remove('hidden-doc');
-        cfg.classList.remove('hidden-doc');
         tabD.classList.remove('active');
         tabC.classList.add('active');
       } else {
@@ -1554,18 +1813,118 @@
       }
     }
 
-    function toggleConfiguratorPanel() {
-      const cfg = document.getElementById('cfgPanel');
-      cfg.classList.toggle('hidden-doc');
-      if (!cfg.classList.contains('hidden-doc')) {
-        switchDocMode('contrato');
-        cfg.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    function toggleConfiguratorSteps() {
+      const adv = document.getElementById('cfgAdvancedSteps');
+      if (!adv) return;
+      adv.classList.toggle('hidden-doc');
+    }
+
+    function syncDateFromPicker() {
+      const picker = document.getElementById('cfgDatePicker');
+      const txt = document.getElementById('cfgContractDate');
+      if (picker && picker.value && txt) {
+        const parts = picker.value.split('-');
+        if (parts.length === 3) {
+          txt.value = `${parts[2]}/${parts[1]}/${parts[0]}`;
+          updateContractLive();
+        }
       }
+    }
+
+    function applyDevLogo(dataUrl) {
+      const slots = document.querySelectorAll('.dev-logo-slot');
+      const resetBtn = document.getElementById('btnResetDevLogo');
+      slots.forEach(slot => {
+        if (dataUrl) {
+          slot.innerHTML = `<img src="${dataUrl}" alt="Logo Desarrollador" />`;
+        } else {
+          slot.innerHTML = DEFAULT_DEV_SVG;
+        }
+      });
+      if (resetBtn) resetBtn.style.display = dataUrl ? 'inline-flex' : 'none';
+    }
+
+    function handleDevLogoUpload(ev) {
+      const file = ev.target?.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const res = e.target?.result;
+        if (typeof res === 'string') {
+          localStorage.setItem('rd_dev_custom_logo', res);
+          applyDevLogo(res);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function resetDevLogo() {
+      localStorage.removeItem('rd_dev_custom_logo');
+      applyDevLogo(null);
     }
 
     function printCurrentMode(mode) {
       switchDocMode(mode);
       setTimeout(() => window.print(), 120);
+    }
+
+    async function downloadLivePdf(mode) {
+      switchDocMode(mode);
+      const targetEl = mode === 'contrato' ? document.getElementById('docContrato') : document.getElementById('docDossier');
+      const btn = mode === 'contrato' ? document.getElementById('btnDlContratoPdf') : document.getElementById('btnDlDossierPdf');
+      const origLabel = btn ? btn.innerHTML : '';
+
+      const gymSlug = (document.getElementById('cfgGymName')?.value || DEFAULT_GYM_NAME)
+        .trim()
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, '_')
+        .replace(/^_|_$/g, '');
+      const filename = mode === 'contrato'
+        ? `CONTRATO_OFICIAL_${gymSlug}.pdf`
+        : `DOSSIER_PROPUESTA_${gymSlug}.pdf`;
+
+      if (typeof window.html2pdf !== 'function') {
+        window.print();
+        return;
+      }
+
+      try {
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = '⏳ Generando PDF A4...';
+        }
+        targetEl.classList.add('pdf-export-sheet');
+        await new Promise(r => setTimeout(r, 150));
+
+        const opt = {
+          margin: [5, 5, 5, 5],
+          filename: filename,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff',
+            logging: false,
+            scrollY: 0
+          },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        await window.html2pdf().set(opt).from(targetEl).save();
+        if (btn) btn.innerHTML = '✔ PDF Descargado';
+      } catch (err) {
+        console.error('Error generando PDF directo, abriendo impresión nativa:', err);
+        window.print();
+      } finally {
+        targetEl.classList.remove('pdf-export-sheet');
+        setTimeout(() => {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = origLabel;
+          }
+        }, 1400);
+      }
     }
 
     function setAllHardware(status) {
@@ -1580,7 +1939,82 @@
       updateContractLive(false);
     }
 
-    function updateContractLive(manualPaidEdit) {
+    function saveConfigState() {
+      try {
+        const state = {
+          gymName: document.getElementById('cfgGymName')?.value || '',
+          clientName: document.getElementById('cfgClientName')?.value || '',
+          clientDni: document.getElementById('cfgClientDni')?.value || '',
+          clientAddr: document.getElementById('cfgClientAddress')?.value || '',
+          devName: document.getElementById('cfgDevName')?.value || '',
+          devDni: document.getElementById('cfgDevDni')?.value || '',
+          devPhone: document.getElementById('cfgDevPhone')?.value || '',
+          contractDate: document.getElementById('cfgContractDate')?.value || '',
+          datePicker: document.getElementById('cfgDatePicker')?.value || '',
+          plan: document.querySelector('input[name="cfgPlan"]:checked')?.value || 'vitalicio',
+          web: document.querySelector('input[name="cfgWeb"]:checked')?.value || 'no_web',
+          hwStatusLaptop: document.getElementById('hwStatusLaptop')?.value || 'own',
+          hwPriceLaptop: document.getElementById('hwPriceLaptop')?.value || '1950',
+          hwStatusMonitor: document.getElementById('hwStatusMonitor')?.value || 'own',
+          hwPriceMonitor: document.getElementById('hwPriceMonitor')?.value || '420',
+          hwStatusScanner: document.getElementById('hwStatusScanner')?.value || 'own',
+          hwPriceScanner: document.getElementById('hwPriceScanner')?.value || '420',
+          hwStatusPrinter: document.getElementById('hwStatusPrinter')?.value || 'own',
+          hwPricePrinter: document.getElementById('hwPricePrinter')?.value || '460',
+          payState: document.getElementById('cfgPayState')?.value || 'total',
+          paidAmount: document.getElementById('cfgPaidAmount')?.value || '1450',
+          payMethod: document.getElementById('cfgPayMethod')?.value || 'Efectivo',
+          payNote: document.getElementById('cfgPayNote')?.value || ''
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {}
+    }
+
+    function loadConfigState() {
+      try {
+        const customLogo = localStorage.getItem('rd_dev_custom_logo');
+        if (customLogo) applyDevLogo(customLogo);
+
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return false;
+        const s = JSON.parse(raw);
+        if (s.gymName) document.getElementById('cfgGymName').value = s.gymName;
+        if (s.clientName !== undefined) document.getElementById('cfgClientName').value = s.clientName;
+        if (s.clientDni !== undefined) document.getElementById('cfgClientDni').value = s.clientDni;
+        if (s.clientAddr) document.getElementById('cfgClientAddress').value = s.clientAddr;
+        if (s.devName !== undefined) document.getElementById('cfgDevName').value = s.devName;
+        if (s.devDni !== undefined) document.getElementById('cfgDevDni').value = s.devDni;
+        if (s.devPhone !== undefined) document.getElementById('cfgDevPhone').value = s.devPhone;
+        if (s.contractDate) document.getElementById('cfgContractDate').value = s.contractDate;
+        if (s.datePicker) document.getElementById('cfgDatePicker').value = s.datePicker;
+
+        if (s.plan) {
+          const r = document.querySelector(`input[name="cfgPlan"][value="${s.plan}"]`);
+          if (r) r.checked = true;
+        }
+        if (s.web) {
+          const w = document.querySelector(`input[name="cfgWeb"][value="${s.web}"]`);
+          if (w) w.checked = true;
+        }
+        if (s.hwStatusLaptop) document.getElementById('hwStatusLaptop').value = s.hwStatusLaptop;
+        if (s.hwPriceLaptop !== undefined) document.getElementById('hwPriceLaptop').value = s.hwPriceLaptop;
+        if (s.hwStatusMonitor) document.getElementById('hwStatusMonitor').value = s.hwStatusMonitor;
+        if (s.hwPriceMonitor !== undefined) document.getElementById('hwPriceMonitor').value = s.hwPriceMonitor;
+        if (s.hwStatusScanner) document.getElementById('hwStatusScanner').value = s.hwStatusScanner;
+        if (s.hwPriceScanner !== undefined) document.getElementById('hwPriceScanner').value = s.hwPriceScanner;
+        if (s.hwStatusPrinter) document.getElementById('hwStatusPrinter').value = s.hwStatusPrinter;
+        if (s.hwPricePrinter !== undefined) document.getElementById('hwPricePrinter').value = s.hwPricePrinter;
+        if (s.payState) document.getElementById('cfgPayState').value = s.payState;
+        if (s.paidAmount !== undefined) document.getElementById('cfgPaidAmount').value = s.paidAmount;
+        if (s.payMethod) document.getElementById('cfgPayMethod').value = s.payMethod;
+        if (s.payNote !== undefined) document.getElementById('cfgPayNote').value = s.payNote;
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function updateContractLive(manualPaidEdit, skipDomTextSync) {
       const gymName = (document.getElementById('cfgGymName')?.value || '').trim() || DEFAULT_GYM_NAME;
       const clientName = (document.getElementById('cfgClientName')?.value || '').trim() || '______________________________________';
       const clientDni = (document.getElementById('cfgClientDni')?.value || '').trim() || '____________________';
@@ -1590,14 +2024,16 @@
       const devPhone = (document.getElementById('cfgDevPhone')?.value || '').trim() || '____________________';
       const contractDate = (document.getElementById('cfgContractDate')?.value || '').trim() || '____/____/2026';
 
-      document.querySelectorAll('.gym-name').forEach(el => { el.textContent = gymName; });
-      document.querySelectorAll('.ctr-client-name').forEach(el => { el.textContent = clientName; });
-      document.querySelectorAll('.ctr-client-dni').forEach(el => { el.textContent = clientDni; });
-      document.querySelectorAll('.ctr-address-txt').forEach(el => { el.textContent = clientAddr; });
-      document.querySelectorAll('.dev-name-txt').forEach(el => { el.textContent = devName; });
-      document.querySelectorAll('.dev-dni-txt').forEach(el => { el.textContent = devDni; });
-      document.querySelectorAll('.dev-phone-txt').forEach(el => { el.textContent = devPhone; });
-      document.querySelectorAll('.ctr-date-txt').forEach(el => { el.textContent = contractDate; });
+      if (!skipDomTextSync) {
+        document.querySelectorAll('.gym-name').forEach(el => { el.textContent = gymName; });
+        document.querySelectorAll('.ctr-client-name').forEach(el => { el.textContent = clientName; });
+        document.querySelectorAll('.ctr-client-dni').forEach(el => { el.textContent = clientDni; });
+        document.querySelectorAll('.ctr-address-txt').forEach(el => { el.textContent = clientAddr; });
+        document.querySelectorAll('.dev-name-txt').forEach(el => { el.textContent = devName; });
+        document.querySelectorAll('.dev-dni-txt').forEach(el => { el.textContent = devDni; });
+        document.querySelectorAll('.dev-phone-txt').forEach(el => { el.textContent = devPhone; });
+        document.querySelectorAll('.ctr-date-txt').forEach(el => { el.textContent = contractDate; });
+      }
 
       // Plan de software
       const planVal = document.querySelector('input[name="cfgPlan"]:checked')?.value || 'vitalicio';
@@ -1764,6 +2200,24 @@
       document.getElementById('cfgLiveSummaryTxt').textContent = `${planShort} (${fmtMoney(planInitialCost)}) · ${webShort} (${fmtMoney(webCost)}) · ${hwSummaryShort}`;
       document.getElementById('cfgLiveTotalTxt').textContent = fmtMoney(grandTotal);
       document.getElementById('ctrSignSummaryBadge').textContent = `${planShort} · ${webShort} · ${hwSummaryShort} · Total: ${fmtMoney(grandTotal)}`;
+
+      saveConfigState();
+    }
+
+    function bindInlineEditables() {
+      document.querySelectorAll('[contenteditable="true"][data-sync]').forEach(el => {
+        el.addEventListener('input', () => {
+          const targetId = el.getAttribute('data-sync');
+          const inp = document.getElementById(targetId);
+          const val = (el.textContent || '').replace(/_+/g, '').trim();
+          if (inp) inp.value = val;
+          // Sincronizar todos los demás spans del mismo campo sin perder el cursor del elemento actual
+          document.querySelectorAll(`[data-sync="${targetId}"]`).forEach(peer => {
+            if (peer !== el) peer.textContent = val || '____________________';
+          });
+          updateContractLive(true, true);
+        });
+      });
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -1771,14 +2225,20 @@
       const dd = String(now.getDate()).padStart(2, '0');
       const mm = String(now.getMonth() + 1).padStart(2, '0');
       const yyyy = now.getFullYear();
+
+      const loaded = loadConfigState();
       const dateInp = document.getElementById('cfgContractDate');
+      const pickerInp = document.getElementById('cfgDatePicker');
       if (dateInp && !dateInp.value) dateInp.value = `${dd}/${mm}/${yyyy}`;
+      if (pickerInp && !pickerInp.value) pickerInp.value = `${yyyy}-${mm}-${dd}`;
+
+      bindInlineEditables();
 
       const params = new URLSearchParams(window.location.search);
       if (params.get('modo') === 'contrato' || window.location.hash === '#contrato') {
         switchDocMode('contrato');
       }
-      updateContractLive(false);
+      updateContractLive(loaded);
     });
   </script>
 </body>
