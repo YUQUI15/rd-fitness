@@ -34,7 +34,7 @@
     theme: attr('theme', 'auto'),
     variant: attr('variant', 'glass'),
     position: attr('position', 'bottom-left'),
-    subtitle: attr('subtitle', 'Ecosistemas Digitales · Arequipa'),
+    subtitle: attr('subtitle', 'Ecosistemas Digitales · Software a Medida'),
     offsetLeft: attr('offset-left', ''),
     offsetBottom: attr('offset-bottom', ''),
     noAuto: curScript?.hasAttribute?.('data-no-auto') || gCfg.noAuto === true
