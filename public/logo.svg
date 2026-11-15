@@ -1,14 +1,220 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#e09a00"/></linearGradient>
+    <!-- Filtros de sombra y profundidad -->
+    <filter id="rd-drop-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000000" flood-opacity="0.6" />
+    </filter>
+    <filter id="rd-intense-shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000000" flood-opacity="0.75" />
+    </filter>
+
+    <!-- Gradientes Metálicos Oro Maestro -->
+    <linearGradient id="rd-gold-main" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF9C4" />
+      <stop offset="25%" stop-color="#F5B400" />
+      <stop offset="65%" stop-color="#D97706" />
+      <stop offset="100%" stop-color="#8D4803" />
+    </linearGradient>
+
+    <linearGradient id="rd-gold-light" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#D97706" />
+      <stop offset="45%" stop-color="#FCD34D" />
+      <stop offset="100%" stop-color="#FFFFFF" />
+    </linearGradient>
+
+    <linearGradient id="rd-gold-dark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#B45309" />
+      <stop offset="50%" stop-color="#78350F" />
+      <stop offset="100%" stop-color="#451A03" />
+    </linearGradient>
+
+    <!-- Gradientes Carmesí Atlético -->
+    <linearGradient id="rd-red-main" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F87171" />
+      <stop offset="20%" stop-color="#EF4444" />
+      <stop offset="70%" stop-color="#DC2626" />
+      <stop offset="100%" stop-color="#881337" />
+    </linearGradient>
+
+    <linearGradient id="rd-red-dark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#991B1B" />
+      <stop offset="100%" stop-color="#450A0A" />
+    </linearGradient>
+
+    <!-- Gradientes Acero y Pesas Olímpicas -->
+    <linearGradient id="rd-steel" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="35%" stop-color="#E2E8F0" />
+      <stop offset="70%" stop-color="#64748B" />
+      <stop offset="100%" stop-color="#334155" />
+    </linearGradient>
+
+    <linearGradient id="rd-plate" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#384252" />
+      <stop offset="50%" stop-color="#1E2633" />
+      <stop offset="100%" stop-color="#0F141C" />
+    </linearGradient>
+
+    <!-- Fondo Escudo Obsidiana de Lujo -->
+    <radialGradient id="rd-shield-bg" cx="50%" cy="38%" r="68%">
+      <stop offset="0%" stop-color="#282E3E" />
+      <stop offset="55%" stop-color="#131722" />
+      <stop offset="100%" stop-color="#080A0F" />
+    </radialGradient>
   </defs>
-  <!-- mancuernas laterales -->
-  <g fill="url(#g)">
-    <rect x="18" y="95" width="22" height="90" rx="5"/><rect x="44" y="75" width="26" height="130" rx="6"/>
-    <rect x="330" y="95" width="22" height="90" rx="5" transform="translate(30 0)"/><rect x="330" y="75" width="26" height="130" rx="6"/>
+
+  <!-- ==================== ALAS ATLÉTICAS GEOMÉTRICAS ==================== -->
+  <g id="rd-wings" filter="url(#rd-drop-shadow)">
+    <!-- Ala Izquierda -->
+    <path d="M 145 175 L 30 135 L 45 170 L 135 210 Z" fill="url(#rd-gold-dark)" opacity="0.85" />
+    <path d="M 135 195 L 15 165 L 30 200 L 130 238 Z" fill="url(#rd-gold-main)" opacity="0.9" />
+    <path d="M 130 225 L 25 205 L 42 238 L 125 268 Z" fill="url(#rd-gold-light)" />
+    <path d="M 125 255 L 50 245 L 65 275 L 128 298 Z" fill="url(#rd-gold-main)" />
+    <path d="M 128 288 L 75 285 L 90 312 L 138 326 Z" fill="url(#rd-gold-dark)" />
+
+    <!-- Ala Derecha (Simetría Perfecta) -->
+    <path d="M 355 175 L 470 135 L 455 170 L 365 210 Z" fill="url(#rd-gold-dark)" opacity="0.85" />
+    <path d="M 365 195 L 485 165 L 470 200 L 370 238 Z" fill="url(#rd-gold-main)" opacity="0.9" />
+    <path d="M 370 225 L 475 205 L 458 238 L 375 268 Z" fill="url(#rd-gold-light)" />
+    <path d="M 375 255 L 450 245 L 435 275 L 372 298 Z" fill="url(#rd-gold-main)" />
+    <path d="M 372 288 L 425 285 L 410 312 L 362 326 Z" fill="url(#rd-gold-dark)" />
   </g>
-  <!-- escudo -->
-  <path d="M95 35 H305 L335 60 V205 L200 270 L65 205 V60 Z" fill="#0b0b0d" stroke="url(#g)" stroke-width="12" stroke-linejoin="round"/>
-  <path d="M120 60 H280" stroke="url(#g)" stroke-width="10" stroke-linecap="round"/>
-  <text x="200" y="195" text-anchor="middle" font-family="Impact,Haettenschweiler,'Arial Black',sans-serif" font-size="140" font-weight="900" fill="url(#g)">RD</text>
+
+  <!-- ==================== BARRA OLÍMPICA Y DISCOS DE ACERO ==================== -->
+  <g id="rd-barbell" filter="url(#rd-drop-shadow)">
+    <!-- Barra Central Cromada -->
+    <rect x="46" y="218" width="408" height="18" rx="4" fill="url(#rd-steel)" stroke="#1E293B" stroke-width="1.5" />
+    <line x1="120" y1="218" x2="120" y2="236" stroke="#64748B" stroke-width="3" />
+    <line x1="380" y1="218" x2="380" y2="236" stroke="#64748B" stroke-width="3" />
+
+    <!-- Discos Izquierda (20KG Calibrados) -->
+    <rect x="52" y="152" width="16" height="150" rx="4" fill="url(#rd-plate)" stroke="url(#rd-gold-main)" stroke-width="2.5" />
+    <line x1="60" y1="160" x2="60" y2="294" stroke="#475569" stroke-width="1.5" />
+    <rect x="72" y="166" width="15" height="122" rx="4" fill="url(#rd-plate)" stroke="url(#rd-gold-main)" stroke-width="2" />
+    <rect x="91" y="180" width="13" height="94" rx="3" fill="url(#rd-plate)" stroke="url(#rd-gold-main)" stroke-width="2" />
+    <!-- Collar de Bloqueo Olímpico -->
+    <rect x="107" y="210" width="12" height="34" rx="2.5" fill="url(#rd-gold-light)" stroke="#8D4803" stroke-width="1.5" />
+
+    <!-- Discos Derecha (20KG Calibrados Simétricos) -->
+    <rect x="432" y="152" width="16" height="150" rx="4" fill="url(#rd-plate)" stroke="url(#rd-gold-main)" stroke-width="2.5" />
+    <line x1="440" y1="160" x2="440" y2="294" stroke="#475569" stroke-width="1.5" />
+    <rect x="413" y="166" width="15" height="122" rx="4" fill="url(#rd-plate)" stroke="url(#rd-gold-main)" stroke-width="2" />
+    <rect x="396" y="180" width="13" height="94" rx="3" fill="url(#rd-plate)" stroke="url(#rd-gold-main)" stroke-width="2" />
+    <!-- Collar de Bloqueo Olímpico -->
+    <rect x="381" y="210" width="12" height="34" rx="2.5" fill="url(#rd-gold-light)" stroke="#8D4803" stroke-width="1.5" />
+  </g>
+
+  <!-- ==================== ESCUDO PRINCIPAL (BODY CREST) ==================== -->
+  <g id="rd-crest" filter="url(#rd-intense-shadow)">
+    <!-- Bisel Exterior Dorado Macizo -->
+    <path d="M 250 20 L 398 72 L 392 270 L 250 445 L 108 270 L 102 72 Z"
+          fill="url(#rd-gold-dark)" stroke="url(#rd-gold-main)" stroke-width="4.5" stroke-linejoin="round" />
+
+    <!-- Capa Carmesí Atlético -->
+    <path d="M 250 32 L 385 79 L 380 263 L 250 428 L 120 263 L 115 79 Z"
+          fill="url(#rd-red-main)" stroke="url(#rd-red-dark)" stroke-width="2" stroke-linejoin="round" />
+
+    <!-- Borde Interior Dorado Reflector -->
+    <path d="M 250 43 L 373 86 L 368 257 L 250 412 L 132 257 L 127 86 Z"
+          fill="url(#rd-gold-main)" stroke="#FFFBEB" stroke-width="1" stroke-linejoin="round" />
+
+    <!-- Núcleo Obsidiana / Carbón -->
+    <path d="M 250 53 L 362 93 L 357 251 L 250 396 L 143 251 L 138 93 Z"
+          fill="url(#rd-shield-bg)" stroke="#11141C" stroke-width="2" stroke-linejoin="round" />
+
+    <!-- Faceta de Luz & Sombra 3D -->
+    <path d="M 250 53 L 138 93 L 143 251 L 250 396 Z" fill="#000000" opacity="0.22" />
+    <line x1="250" y1="53" x2="250" y2="396" stroke="url(#rd-gold-light)" stroke-width="2" opacity="0.65" />
+  </g>
+
+  <!-- ==================== CORONA Y 3 ESTRELLAS OLÍMPICAS ==================== -->
+  <g id="rd-stars" fill="url(#rd-gold-light)" stroke="#78350F" stroke-width="0.8">
+    <!-- Estrella Central Grande -->
+    <polygon points="250,66 254,78 266,78 256,86 260,98 250,91 240,98 244,86 234,78 246,78" />
+    <!-- Estrella Izquierda -->
+    <polygon points="214,75 217,85 227,85 219,92 222,102 214,96 206,102 209,92 201,85 211,85" />
+    <!-- Estrella Derecha -->
+    <polygon points="286,75 289,85 299,85 291,92 294,102 286,96 278,102 281,92 273,85 283,85" />
+  </g>
+
+  <!-- ==================== MONOGRAMA ATLÉTICO ESCULPIDO "RD" ==================== -->
+  <g id="rd-monogram" filter="url(#rd-drop-shadow)">
+    <!-- ================= LETRA R ================= -->
+    <!-- Sombra 3D de R -->
+    <path d="M 148 127 L 222 127 C 244 127 254 142 254 160 C 254 177 245 188 228 192 L 254 250 L 222 250 L 198 198 L 180 198 L 180 250 L 148 250 Z"
+          fill="url(#rd-gold-dark)" />
+
+    <!-- Cara Frontal de R -->
+    <path d="M 148 125 L 222 125 C 244 125 252 139 252 158 C 252 176 244 186 226 190 L 250 248 L 220 248 L 198 196 L 180 196 L 180 248 L 148 248 Z"
+          fill="url(#rd-gold-main)" stroke="#FFFBEB" stroke-width="1.2" />
+
+    <!-- Ojo / Hueco Interior de R -->
+    <path d="M 180 148 L 216 148 C 226 148 230 153 230 161 C 230 169 226 174 216 174 L 180 174 Z"
+          fill="url(#rd-shield-bg)" stroke="url(#rd-gold-dark)" stroke-width="1.5" />
+
+    <!-- Bisel de Luz en R -->
+    <polygon points="148,125 180,148 180,174 148,196" fill="url(#rd-gold-light)" opacity="0.65" />
+    <polygon points="198,196 226,190 250,248 220,248" fill="url(#rd-gold-light)" opacity="0.4" />
+
+    <!-- ================= LETRA D ================= -->
+    <!-- Sombra 3D de D -->
+    <path d="M 256 127 L 298 127 C 334 127 354 150 354 188.5 C 354 227 334 250 298 250 L 256 250 Z"
+          fill="url(#rd-gold-dark)" />
+
+    <!-- Cara Frontal de D -->
+    <path d="M 256 125 L 298 125 C 332 125 352 148 352 186.5 C 352 225 332 248 298 248 L 256 248 Z"
+          fill="url(#rd-gold-light)" stroke="#FFFBEB" stroke-width="1.2" />
+
+    <!-- Hueco Interior de D -->
+    <path d="M 288 150 L 296 150 C 316 150 324 164 324 186.5 C 324 209 316 223 296 223 L 288 223 Z"
+          fill="url(#rd-shield-bg)" stroke="url(#rd-gold-dark)" stroke-width="1.5" />
+
+    <!-- Bisel de Luz en D -->
+    <path d="M 298 125 C 332 125 352 148 352 186.5 L 344 186.5 C 344 152 328 133 298 133 Z" fill="#FFFFFF" opacity="0.65" />
+    <polygon points="256,125 288,150 288,223 256,248" fill="url(#rd-gold-main)" opacity="0.5" />
+  </g>
+
+  <!-- ==================== CINTA ONDULANTE "FITNESS CLUB" ==================== -->
+  <g id="rd-ribbon" filter="url(#rd-drop-shadow)">
+    <!-- Pliegues Traseros Izquierda -->
+    <polygon points="68,326 112,294 112,348 68,368 84,346" fill="url(#rd-red-dark)" stroke="#8D4803" stroke-width="2" />
+    <!-- Pliegues Traseros Derecha -->
+    <polygon points="432,326 388,294 388,348 432,368 416,346" fill="url(#rd-red-dark)" stroke="#8D4803" stroke-width="2" />
+
+    <!-- Cuerpo Frontal de la Cinta Curvada -->
+    <path d="M 90 288 L 410 288 L 394 346 L 250 364 L 106 346 Z"
+          fill="url(#rd-red-main)" stroke="url(#rd-gold-main)" stroke-width="4" stroke-linejoin="round" />
+
+    <!-- Filetes Dorados Superior e Inferior -->
+    <path d="M 90 288 L 410 288" stroke="url(#rd-gold-light)" stroke-width="2.5" />
+    <path d="M 106 346 L 250 364 L 394 346" stroke="url(#rd-gold-dark)" stroke-width="2" />
+
+    <!-- TEXTO ESCULPIDO: FITNESS CLUB -->
+    <text x="250" y="328"
+          text-anchor="middle"
+          font-family="'Montserrat', 'Arial Black', -apple-system, sans-serif"
+          font-size="29"
+          font-weight="900"
+          letter-spacing="5.5"
+          fill="url(#rd-gold-light)"
+          stroke="#450A0A"
+          stroke-width="1.2">FITNESS CLUB</text>
+  </g>
+
+  <!-- ==================== PLACA DE HONOR INFERIOR ==================== -->
+  <g id="rd-badge-bottom">
+    <polygon points="190,372 310,372 328,394 250,418 172,394"
+             fill="url(#rd-gold-dark)" stroke="url(#rd-gold-main)" stroke-width="2" />
+    <polygon points="195,375 305,375 320,392 250,411 180,392"
+             fill="#080A0F" />
+
+    <!-- Lema de Marca -->
+    <text x="250" y="394"
+          text-anchor="middle"
+          font-family="'Montserrat', 'Arial', sans-serif"
+          font-size="10.5"
+          font-weight="800"
+          letter-spacing="3"
+          fill="url(#rd-gold-light)">STRENGTH</text>
+  </g>
 </svg>
