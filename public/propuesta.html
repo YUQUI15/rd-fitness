@@ -249,20 +249,24 @@
       gap: 10px;
     }
     .dev-emblem-box {
-      width: 58px;
-      height: 58px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      border: 2px solid var(--cyan);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      box-shadow: 0 4px 14px rgba(6, 182, 212, 0.25);
-      flex-shrink: 0;
-      overflow: hidden;
-      padding: 3px;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 0 !important;
+      width: auto !important;
+      height: auto !important;
+    }
+    .zaphyrel-logo-img {
+      background: transparent !important;
+      object-fit: contain !important;
+      display: block !important;
+      filter: drop-shadow(0 2px 8px rgba(46, 144, 250, 0.28));
+    }
+    [data-theme="light"] .zaphyrel-logo-img {
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.12));
     }
     .dev-emblem-box .dev-logo-slot {
       display: flex;
@@ -563,7 +567,7 @@
     .pdf-export-sheet .grid-3 > * { flex: 0 0 calc(33.333% - 3.5px) !important; max-width: calc(33.333% - 3.5px) !important; box-sizing: border-box !important; margin-bottom: 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
     .pdf-export-sheet .bilateral-bar { display: block !important; margin-top: 5px !important; padding-top: 5px !important; border-top: 1px solid #cbd5e1 !important; }
     .pdf-export-sheet .bilateral-bar > * { width: 100% !important; background: #f8fafc !important; border: 1px solid #cbd5e1 !important; padding: 5px 8px !important; }
-    .pdf-export-sheet .dev-emblem-box { background: #0f172a !important; border-color: #0284c7 !important; width: 44px !important; height: 44px !important; padding: 3px !important; box-shadow: none !important; }
+    .pdf-export-sheet .dev-emblem-box { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; width: auto !important; height: auto !important; }
     .pdf-export-sheet .dev-emblem-box svg { width: 22px !important; height: 22px !important; }
     .pdf-export-sheet .dev-emblem-sub { color: #38bdf8 !important; font-size: 5.5pt !important; white-space: nowrap !important; }
     .pdf-export-sheet .hero, .pdf-export-sheet .section {
@@ -620,7 +624,8 @@
       .bilateral-bar { display: block !important; margin-top: 4px !important; padding-top: 4px !important; border-top: 1px solid #cbd5e1 !important; }
       .bilateral-bar > * { width: 100% !important; background: #f8fafc !important; border: 1px solid #cbd5e1 !important; padding: 4px 8px !important; }
       .party-card.dev-party { border-left: 3px solid #0284c7 !important; }
-      .dev-emblem-box { background: #0f172a !important; border: 1.5px solid #0284c7 !important; width: 42px !important; height: 42px !important; padding: 3px !important; box-shadow: none !important; }
+      .dev-emblem-box { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; width: auto !important; height: auto !important; }
+      .zaphyrel-logo-img { background: transparent !important; filter: none !important; }
       .dev-emblem-box svg { width: 22px !important; height: 22px !important; }
       .dev-emblem-sub { color: #38bdf8 !important; font-size: 5.5pt !important; white-space: nowrap !important; }
       .hero, .section {
@@ -735,9 +740,9 @@
   <header class="topbar no-print">
     <div class="brand-pill">
       <a href="https://zaphyrel-site.vercel.app/" target="_blank" title="Visitar ZAPHYREL Software" style="display:inline-flex;align-items:center;text-decoration:none">
-        <img src="zaphyrel-logo.svg" alt="ZAPHYREL" style="height:32px;width:32px;object-fit:contain;border-radius:7px;filter:drop-shadow(0 2px 6px rgba(129,189,248,0.35))" />
+        <img src="zaphyrel-logo.svg" alt="ZAPHYREL" class="zaphyrel-logo-img" style="height:36px;width:36px;object-fit:contain;background:transparent !important;display:block" />
       </a>
-      <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:38px;width:auto;object-fit:contain;background:transparent !important;filter:drop-shadow(0 2px 6px rgba(220,38,38,0.35))" />
+      <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:38px;width:auto;object-fit:contain;background:transparent !important;display:block;filter:drop-shadow(0 2px 6px rgba(220,38,38,0.35))" />
       <span class="brand-badge">RD FITNESS 360°</span>
       <span>Dossier y Contrato Oficial — <strong class="gym-name" style="color:var(--gold)">RD FITNESS CLUB</strong></span>
     </div>
@@ -1042,14 +1047,9 @@
       <section class="hero">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:8px">
           <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:280px">
-            <!-- EMBLEMA Y MARCA OFICIAL: ZAPHYREL -->
-            <a href="https://zaphyrel-site.vercel.app/" target="_blank" style="text-decoration:none" title="ZAPHYREL — Software a Medida, Automatización Interna y Motores 3D / 360°">
-              <div class="dev-emblem-box" title="ZAPHYREL">
-                <div class="dev-logo-slot">
-                  <img src="zaphyrel-logo.svg" alt="ZAPHYREL" style="width:100%;height:100%;object-fit:contain" />
-                </div>
-                <div class="dev-emblem-sub">ZAPHYREL</div>
-              </div>
+            <!-- LOGO OFICIAL ZAPHYREL (SIN FONDO, 100% CENTRADO) -->
+            <a href="https://zaphyrel-site.vercel.app/" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center" title="ZAPHYREL — Software a Medida, Automatización Interna y Motores 3D / 360°">
+              <img src="zaphyrel-logo.svg" alt="ZAPHYREL" class="zaphyrel-logo-img" style="height:64px;width:auto;object-fit:contain;background:transparent !important;display:block" />
             </a>
             <!-- LOGO DEL GIMNASIO CLIENTE -->
             <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:64px;width:auto;object-fit:contain;background:transparent !important" />
@@ -1066,14 +1066,9 @@
         <!-- TARJETA DE PRESENTACIÓN PROFESIONAL: ZAPHYREL -->
         <div class="bilateral-bar">
           <div class="party-card dev-party">
-            <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:280px">
-              <a href="https://zaphyrel-site.vercel.app/" target="_blank" style="text-decoration:none" title="Visitar zaphyrel-site.vercel.app">
-                <div class="dev-emblem-box" style="width:46px;height:46px" title="ZAPHYREL">
-                  <div class="dev-logo-slot">
-                    <img src="zaphyrel-logo.svg" alt="ZAPHYREL" style="width:100%;height:100%;object-fit:contain" />
-                  </div>
-                  <div class="dev-emblem-sub">ZAPHYREL</div>
-                </div>
+            <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:280px">
+              <a href="https://zaphyrel-site.vercel.app/" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0" title="Visitar zaphyrel-site.vercel.app">
+                <img src="zaphyrel-logo.svg" alt="ZAPHYREL" class="zaphyrel-logo-img" style="height:52px;width:52px;object-fit:contain;background:transparent !important;display:block" />
               </a>
               <div style="font-size:11.5px;line-height:1.36;flex:1">
                 <div style="font-size:10px;font-weight:900;color:var(--cyan);text-transform:uppercase;letter-spacing:0.6px">👨‍💻 ESTUDIO DE SOFTWARE &amp; AUTOMATIZACIÓN</div>
@@ -1516,14 +1511,9 @@
       <section class="hero" style="padding:18px 22px;margin-bottom:12px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:8px">
           <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:280px">
-            <!-- SELLO / LOGO ZAPHYREL -->
-            <a href="https://zaphyrel-site.vercel.app/" target="_blank" style="text-decoration:none" title="ZAPHYREL — Software a Medida, Automatización Interna y Motores 3D / 360°">
-              <div class="dev-emblem-box" title="ZAPHYREL">
-                <div class="dev-logo-slot">
-                  <img src="zaphyrel-logo.svg" alt="ZAPHYREL" style="width:100%;height:100%;object-fit:contain" />
-                </div>
-                <div class="dev-emblem-sub">ZAPHYREL</div>
-              </div>
+            <!-- LOGO OFICIAL ZAPHYREL (SIN FONDO, 100% CENTRADO) -->
+            <a href="https://zaphyrel-site.vercel.app/" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center" title="ZAPHYREL — Software a Medida, Automatización Interna y Motores 3D / 360°">
+              <img src="zaphyrel-logo.svg" alt="ZAPHYREL" class="zaphyrel-logo-img" style="height:58px;width:auto;object-fit:contain;background:transparent !important;display:block" />
             </a>
             <!-- LOGO DEL GIMNASIO CLIENTE -->
             <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:58px;width:auto;object-fit:contain;background:transparent !important" />
@@ -1541,14 +1531,9 @@
         <!-- TARJETA DEL PROVEEDOR TECNOLÓGICO: ZAPHYREL -->
         <div class="bilateral-bar" style="margin-top:6px;padding-top:8px">
           <div class="party-card dev-party">
-            <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:280px">
-              <a href="https://zaphyrel-site.vercel.app/" target="_blank" style="text-decoration:none" title="Visitar zaphyrel-site.vercel.app">
-                <div class="dev-emblem-box" style="width:42px;height:42px" title="ZAPHYREL">
-                  <div class="dev-logo-slot">
-                    <img src="zaphyrel-logo.svg" alt="ZAPHYREL" style="width:100%;height:100%;object-fit:contain" />
-                  </div>
-                  <div class="dev-emblem-sub">ZAPHYREL</div>
-                </div>
+            <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:280px">
+              <a href="https://zaphyrel-site.vercel.app/" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0" title="Visitar zaphyrel-site.vercel.app">
+                <img src="zaphyrel-logo.svg" alt="ZAPHYREL" class="zaphyrel-logo-img" style="height:48px;width:48px;object-fit:contain;background:transparent !important;display:block" />
               </a>
               <div style="font-size:11px;line-height:1.35;flex:1">
                 <div style="font-size:9.5px;font-weight:900;color:var(--cyan);text-transform:uppercase">👨‍💻 PROVEEDOR TECNOLÓGICO: ZAPHYREL</div>
@@ -1729,8 +1714,11 @@
           <div class="grid-2" style="gap:8px">
             <!-- FIRMA 1: PROVEEDOR TECNOLÓGICO ZAPHYREL -->
             <div style="border:1px solid var(--border);border-radius:8px;padding:9px;background:rgba(255,255,255,0.02)">
-              <div style="font-size:9px;font-weight:800;color:var(--cyan);text-transform:uppercase;margin-bottom:18px">
-                (1) POR EL PROVEEDOR TECNOLÓGICO: ZAPHYREL
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:14px">
+                <img src="zaphyrel-logo.svg" alt="ZAPHYREL" class="zaphyrel-logo-img" style="height:22px;width:22px;object-fit:contain;background:transparent !important" />
+                <div style="font-size:9px;font-weight:800;color:var(--cyan);text-transform:uppercase">
+                  (1) POR EL PROVEEDOR TECNOLÓGICO: ZAPHYREL
+                </div>
               </div>
               <div style="border-top:1.5px solid #64748b;padding-top:4px;font-weight:900;font-size:10.5px;color:#fff">
                 ZAPHYREL — SOFTWARE A MEDIDA &amp; AUTOMATIZACIÓN INTERNA
@@ -1841,14 +1829,10 @@
     }
 
     function applyDevLogo(dataUrl) {
-      const slots = document.querySelectorAll('.dev-logo-slot');
+      const imgs = document.querySelectorAll('.zaphyrel-logo-img');
       const resetBtn = document.getElementById('btnResetDevLogo');
-      slots.forEach(slot => {
-        if (dataUrl) {
-          slot.innerHTML = `<img src="${dataUrl}" alt="Logo Desarrollador" />`;
-        } else {
-          slot.innerHTML = DEFAULT_DEV_SVG;
-        }
+      imgs.forEach(img => {
+        img.src = dataUrl || 'zaphyrel-logo.svg';
       });
       if (resetBtn) resetBtn.style.display = dataUrl ? 'inline-flex' : 'none';
     }

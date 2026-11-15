@@ -1,23 +1,62 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-4.25 0 120 120" width="512" height="512" fill="none">
+  <title>Zaphyrel — Isotipo Oficial Prisma (Sin Fondo, Centrado)</title>
   <defs>
     <linearGradient id="pAll" x1="12" y1="12" x2="108" y2="108" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#81BDF8"/>
-      <stop offset="50%" stop-color="#D5BEFF"/>
-      <stop offset="100%" stop-color="#FF9AFF"/>
+      <stop offset="0%" stop-color="#2E90FA"/>
+      <stop offset="25%" stop-color="#5EB8FF"/>
+      <stop offset="50%" stop-color="#A87FFB"/>
+      <stop offset="75%" stop-color="#FF7AF0"/>
+      <stop offset="100%" stop-color="#FF38DC"/>
+    </linearGradient>
+    <linearGradient id="fBlue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#68C2FF"/>
+      <stop offset="100%" stop-color="#2578F0"/>
+    </linearGradient>
+    <linearGradient id="fLav" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#C49BFF"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="fPink" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF85F2"/>
+      <stop offset="100%" stop-color="#E62CE0"/>
+    </linearGradient>
+    <linearGradient id="zWingA" x1="36" y1="36" x2="84" y2="62" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#06070B"/>
+      <stop offset="65%" stop-color="#1A2238"/>
+      <stop offset="100%" stop-color="#2E90FA"/>
     </linearGradient>
     <linearGradient id="zWingB" x1="36" y1="58" x2="84" y2="86" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#81BDF8"/>
-      <stop offset="50%" stop-color="#D5BEFF"/>
-      <stop offset="100%" stop-color="#FF9AFF"/>
+      <stop offset="0%" stop-color="#2E90FA"/>
+      <stop offset="45%" stop-color="#9E7BFF"/>
+      <stop offset="78%" stop-color="#FF5CE8"/>
+      <stop offset="100%" stop-color="#FF2ED1"/>
+    </linearGradient>
+    <linearGradient id="windG" x1="4" y1="56" x2="32" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2E90FA"/>
+      <stop offset="55%" stop-color="#5EB8FF"/>
+      <stop offset="100%" stop-color="#A87FFB"/>
     </linearGradient>
   </defs>
-  <rect x="4" y="4" width="112" height="112" rx="26" fill="#080A10" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
-  <polygon points="19,51 57,13 57.5,25.5 25.5,57.5" fill="#81BDF8"/>
-  <polygon points="63,13 107,57 94.5,57.5 62.5,25.5" fill="#D5BEFF"/>
-  <polygon points="107,63 63,107 62.5,94.5 94.5,62.5" fill="#FF9AFF"/>
-  <polygon points="57.5,25.5 62.5,25.5 94.5,57.5 94.5,62.5 62.5,94.5 57.5,94.5 25.5,62.5 25.5,57.5" fill="#0E121D" stroke="url(#pAll)" stroke-width="2"/>
-  <path d="M 10 52.5 H 25.5 L 22.4 55.6 H 10 Z M 4.5 59.4 H 28 L 24.2 63.2 H 4.5 Z M 11.5 66.8 H 30.5 L 27.1 70.1 H 11.5 Z" fill="#A9DCFF"/>
-  <path d="M 41 37.5 H 82.8 L 61.7 58.6 H 51.9 L 67.5 43 H 36.2 Z" fill="#FFFFFF"/>
-  <path d="M 79 82.5 H 37.2 L 58.3 61.4 H 68.1 L 52.5 77 H 83.8 Z" fill="url(#zWingB)"/>
-  <line x1="47.5" y1="60" x2="72.5" y2="60" stroke="#A9DCFF" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Orbit arcs -->
+  <path d="M 28 22 A 49 49 0 0 1 92 22 M 98 86 A 49 49 0 0 1 38 103" stroke="url(#pAll)" stroke-width="1.35" stroke-linecap="round" opacity="0.92"/>
+  <!-- Facets -->
+  <polygon points="19,51 57,13 57.5,25.5 25.5,57.5" fill="url(#fBlue)" stroke="#FFFFFF" stroke-width="1"/>
+  <polygon points="57,13 63,13 62.5,25.5 57.5,25.5" fill="#74C8FF" stroke="#FFFFFF" stroke-width="0.9"/>
+  <polygon points="63,13 107,57 94.5,57.5 62.5,25.5" fill="url(#fLav)" stroke="#FFFFFF" stroke-width="1"/>
+  <polygon points="107,57 107,63 94.5,62.5 94.5,57.5" fill="#F472F8" stroke="#FFFFFF" stroke-width="1"/>
+  <polygon points="107,63 63,107 62.5,94.5 94.5,62.5" fill="url(#fPink)" stroke="#FFFFFF" stroke-width="1"/>
+  <polygon points="63,107 57,107 57.5,94.5 62.5,94.5" fill="#9E7BFF" stroke="#FFFFFF" stroke-width="1"/>
+  <polygon points="57,107 40.5,90.5 49,82 57.5,94.5" fill="url(#fBlue)" stroke="#FFFFFF" stroke-width="1"/>
+  <!-- Outline of jewel -->
+  <path d="M 19 51 L 57 13 L 63 13 L 107 57 L 107 63 L 63 107 L 57 107 L 40.5 90.5" stroke="#090B10" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Inner Shield -->
+  <polygon points="57.5,25.5 62.5,25.5 94.5,57.5 94.5,62.5 62.5,94.5 57.5,94.5 25.5,62.5 25.5,57.5" fill="#F4F8FF" stroke="#090B10" stroke-width="1.4"/>
+  <polygon points="58.4,30.5 61.6,30.5 89.5,58.4 89.5,61.6 61.6,89.5 58.4,89.5 30.5,61.6 30.5,58.4" fill="url(#pAll)" fill-opacity="0.32" stroke="url(#pAll)" stroke-width="1.25"/>
+  <!-- Left wind speed lines -->
+  <path d="M 10 52.5 H 25.5 L 22.4 55.6 H 10 Z M 4.5 59.4 H 28 L 24.2 63.2 H 4.5 Z M 11.5 66.8 H 30.5 L 27.1 70.1 H 11.5 Z" fill="url(#windG)"/>
+  <!-- Z split-blade lettermark -->
+  <path d="M 41 37.5 H 82.8 L 61.7 58.6 H 51.9 L 67.5 43 H 36.2 Z" fill="url(#zWingA)"/>
+  <path d="M 79 82.5 H 37.2 L 58.3 61.4 H 68.1 L 52.5 77 H 83.8 Z" fill="url(#zWingB)" stroke="#090B10" stroke-width="0.7"/>
+  <!-- Bridge line -->
+  <line x1="47.5" y1="60" x2="72.5" y2="60" stroke="#2E90FA" stroke-width="1.8" stroke-linecap="round"/>
 </svg>
