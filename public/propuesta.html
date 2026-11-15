@@ -734,11 +734,15 @@
   <!-- BARRA SUPERIOR DE ACCIONES RÁPIDAS Y DESCARGA PDF EN VIVO -->
   <header class="topbar no-print">
     <div class="brand-pill">
-      <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:40px;width:auto;object-fit:contain;background:transparent !important;filter:drop-shadow(0 2px 6px rgba(220,38,38,0.35))" />
+      <a href="https://zaphyrel-site.vercel.app/" target="_blank" title="Visitar ZAPHYREL Software" style="display:inline-flex;align-items:center;text-decoration:none">
+        <img src="zaphyrel-logo.svg" alt="ZAPHYREL" style="height:32px;width:32px;object-fit:contain;border-radius:7px;filter:drop-shadow(0 2px 6px rgba(129,189,248,0.35))" />
+      </a>
+      <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:38px;width:auto;object-fit:contain;background:transparent !important;filter:drop-shadow(0 2px 6px rgba(220,38,38,0.35))" />
       <span class="brand-badge">RD FITNESS 360°</span>
       <span>Dossier y Contrato Oficial — <strong class="gym-name" style="color:var(--gold)">RD FITNESS CLUB</strong></span>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <a class="btn" href="https://zaphyrel-site.vercel.app/" target="_blank" title="Ver Plataforma Oficial de Zaphyrel">🌐 Zaphyrel Web</a>
       <a class="btn" href="anatomy3d/index.html" target="_blank" title="Ver Arquitectura 3D Interactiva">🧬 Máquina 3D</a>
       <a class="btn" href="display.html" target="_blank" title="Ver Monitor de Recepción HDMI">🖥️ Monitor HDMI</a>
       <button type="button" class="btn btn-gold" id="btnDlDossierPdf" onclick="downloadLivePdf('dossier')" title="Descarga el PDF del Dossier con tus datos actuales">
@@ -794,10 +798,10 @@
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <input type="file" id="devLogoFileInput" accept="image/*" style="display:none" onchange="handleDevLogoUpload(event)" />
           <button type="button" class="btn" onclick="document.getElementById('devLogoFileInput').click()" title="Si deseas usar un logo propio en lugar del Sello de Ingeniería de Software, súbelo aquí">
-            🖼️ Subir Mi Logo (Opcional)
+            🖼️ Cambiar Logo (Opcional)
           </button>
           <button type="button" class="btn" id="btnResetDevLogo" style="display:none" onclick="resetDevLogo()" title="Volver al Sello Oficial de Ingeniería de Software">
-            🔄 Usar Sello Oficial &lt;/&gt;
+            🔄 Restablecer Logo ZAPHYREL
           </button>
           <button type="button" class="btn btn-emerald" onclick="downloadLivePdf('contrato')">
             📥 Descargar Contrato en PDF
@@ -1038,18 +1042,15 @@
       <section class="hero">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:8px">
           <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:280px">
-            <!-- EMBLEMA OFICIAL DEL DESARROLLADOR -->
-            <div class="dev-emblem-box" title="Sello Oficial — Desarrollador de Software y Sistemas Digitales">
-              <div class="dev-logo-slot">
-                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <polygon points="32,4 58,18 58,46 32,60 6,46 6,18" stroke="#06b6d4" stroke-width="3" fill="rgba(6,182,212,0.12)" />
-                  <path d="M23 24L14 32L23 40" stroke="#38bdf8" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M41 24L50 32L41 40" stroke="#38bdf8" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M35 20L29 44" stroke="#ef4444" stroke-width="3.5" stroke-linecap="round"/>
-                </svg>
+            <!-- EMBLEMA Y MARCA OFICIAL: ZAPHYREL -->
+            <a href="https://zaphyrel-site.vercel.app/" target="_blank" style="text-decoration:none" title="ZAPHYREL — Software a Medida, Automatización Interna y Motores 3D / 360°">
+              <div class="dev-emblem-box" title="ZAPHYREL">
+                <div class="dev-logo-slot">
+                  <img src="zaphyrel-logo.svg" alt="ZAPHYREL" style="width:100%;height:100%;object-fit:contain" />
+                </div>
+                <div class="dev-emblem-sub">ZAPHYREL</div>
               </div>
-              <div class="dev-emblem-sub">DEV · SYS</div>
-            </div>
+            </a>
             <!-- LOGO DEL GIMNASIO CLIENTE -->
             <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:64px;width:auto;object-fit:contain;background:transparent !important" />
             <div style="flex:1;min-width:220px">
@@ -1059,35 +1060,35 @@
           </div>
         </div>
         <p style="margin-bottom:10px">
-          Plataforma tecnológica diseñada a medida para la gestión integral del gimnasio: automatiza el control de ingreso por código QR, registra inscripciones nuevas y membresías en curso, administra la caja diaria por turnos, entrega una aplicación móvil a los socios y proyecta bienvenidas en tiempo real en el monitor de recepción.
+          Plataforma tecnológica diseñada a medida por <strong>ZAPHYREL</strong> para la gestión integral del gimnasio: automatiza el control de ingreso por código QR, registra inscripciones nuevas y membresías en curso, administra la caja diaria por turnos, entrega una aplicación móvil a los socios y proyecta bienvenidas en tiempo real en el monitor de recepción.
         </p>
 
-        <!-- TARJETA DE PRESENTACIÓN PROFESIONAL DEL DESARROLLADOR (SOLO NOMBRE Y CELULAR) -->
+        <!-- TARJETA DE PRESENTACIÓN PROFESIONAL: ZAPHYREL -->
         <div class="bilateral-bar">
           <div class="party-card dev-party">
             <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:280px">
-              <div class="dev-emblem-box" style="width:46px;height:46px">
-                <div class="dev-logo-slot">
-                  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <polygon points="32,4 58,18 58,46 32,60 6,46 6,18" stroke="#06b6d4" stroke-width="3.2" fill="rgba(6,182,212,0.15)" />
-                    <path d="M23 24L14 32L23 40" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M41 24L50 32L41 40" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M35 20L29 44" stroke="#ef4444" stroke-width="3.8" stroke-linecap="round"/>
-                  </svg>
+              <a href="https://zaphyrel-site.vercel.app/" target="_blank" style="text-decoration:none" title="Visitar zaphyrel-site.vercel.app">
+                <div class="dev-emblem-box" style="width:46px;height:46px" title="ZAPHYREL">
+                  <div class="dev-logo-slot">
+                    <img src="zaphyrel-logo.svg" alt="ZAPHYREL" style="width:100%;height:100%;object-fit:contain" />
+                  </div>
+                  <div class="dev-emblem-sub">ZAPHYREL</div>
                 </div>
-                <div class="dev-emblem-sub">ING · SW</div>
-              </div>
-              <div style="font-size:11.5px;line-height:1.38;flex:1">
-                <div style="font-size:10px;font-weight:900;color:var(--cyan);text-transform:uppercase;letter-spacing:0.6px">👨‍💻 PRESENTACIÓN DEL RESPONSABLE DEL PROYECTO</div>
-                <div style="font-weight:900;color:#fff;font-size:13px">Desarrollador de Software y Sistemas Digitales</div>
-                <div style="color:var(--muted);font-size:10.8px;margin-top:1px">
-                  Especialista en diseño e implementación de sistemas web a medida, aplicaciones móviles instalables (PWA), automatización de accesos QR y arquitecturas de respaldo continuo en la nube para negocios.
+              </a>
+              <div style="font-size:11.5px;line-height:1.36;flex:1">
+                <div style="font-size:10px;font-weight:900;color:var(--cyan);text-transform:uppercase;letter-spacing:0.6px">👨‍💻 ESTUDIO DE SOFTWARE &amp; AUTOMATIZACIÓN</div>
+                <div style="font-weight:900;color:#fff;font-size:13.5px;letter-spacing:0.3px">
+                  ZAPHYREL <span style="font-size:11px;font-weight:700;color:var(--cyan)">— Software a Medida &amp; Automatización Interna</span>
+                </div>
+                <div style="color:var(--muted);font-size:10.5px;margin-top:1px">
+                  Ecosistemas digitales integrales, automatización operativa, control de accesos QR y plataformas web sincronizadas para empresas e instituciones.
                 </div>
               </div>
             </div>
-            <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:11.5px;min-width:250px">
+            <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:11.5px;min-width:260px">
               <div><strong style="color:var(--cyan)">Desarrollador:</strong> <span class="dev-name-txt" contenteditable="true" data-sync="cfgDevName">_________________________________</span></div>
               <div style="margin-top:3px"><strong style="color:var(--cyan)">Celular / WhatsApp:</strong> <span class="dev-phone-txt" contenteditable="true" data-sync="cfgDevPhone">____________________</span></div>
+              <div style="margin-top:3px;font-size:10.5px"><strong style="color:var(--cyan)">Web Oficial:</strong> <a href="https://zaphyrel-site.vercel.app/" target="_blank" style="color:var(--text);text-decoration:none;font-weight:700">zaphyrel-site.vercel.app</a></div>
             </div>
           </div>
         </div>
@@ -1501,8 +1502,8 @@
           </ul>
         </div>
         <div class="doc-footer-brand">
-          <span><strong>&lt;/&gt;</strong> Desarrollado por <strong>Ingeniería de Software y Sistemas Digitales</strong> · <span class="dev-name-txt">_________________________________</span></span>
-          <span>Propuesta Técnica y Comercial · <span class="gym-name">RD FITNESS CLUB</span></span>
+          <span><strong>ZAPHYREL</strong> — Software a Medida, Automatización Interna y Motores 3D / 360° · <a href="https://zaphyrel-site.vercel.app/" target="_blank" style="color:inherit;text-decoration:none">zaphyrel-site.vercel.app</a></span>
+          <span>Dossier Técnico-Comercial · <span class="gym-name">RD FITNESS CLUB</span> · <span class="ctr-date-txt" data-sync="cfgContractDate">09/11/2026</span></span>
         </div>
       </section>
     </div>
@@ -1515,18 +1516,15 @@
       <section class="hero" style="padding:18px 22px;margin-bottom:12px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:8px">
           <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:280px">
-            <!-- SELLO / LOGO DEL DESARROLLADOR -->
-            <div class="dev-emblem-box" title="Sello Oficial — Desarrollador de Software y Sistemas Digitales">
-              <div class="dev-logo-slot">
-                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <polygon points="32,4 58,18 58,46 32,60 6,46 6,18" stroke="#06b6d4" stroke-width="3" fill="rgba(6,182,212,0.12)" />
-                  <path d="M23 24L14 32L23 40" stroke="#38bdf8" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M41 24L50 32L41 40" stroke="#38bdf8" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M35 20L29 44" stroke="#ef4444" stroke-width="3.5" stroke-linecap="round"/>
-                </svg>
+            <!-- SELLO / LOGO ZAPHYREL -->
+            <a href="https://zaphyrel-site.vercel.app/" target="_blank" style="text-decoration:none" title="ZAPHYREL — Software a Medida, Automatización Interna y Motores 3D / 360°">
+              <div class="dev-emblem-box" title="ZAPHYREL">
+                <div class="dev-logo-slot">
+                  <img src="zaphyrel-logo.svg" alt="ZAPHYREL" style="width:100%;height:100%;object-fit:contain" />
+                </div>
+                <div class="dev-emblem-sub">ZAPHYREL</div>
               </div>
-              <div class="dev-emblem-sub">DEV · SYS</div>
-            </div>
+            </a>
             <!-- LOGO DEL GIMNASIO CLIENTE -->
             <img src="logo.svg?v=6.6" alt="RD FITNESS CLUB" style="height:58px;width:auto;object-fit:contain;background:transparent !important" />
             <div>
@@ -1540,29 +1538,27 @@
           </div>
         </div>
 
-        <!-- TARJETA DEL DESARROLLADOR (SOLO NOMBRE Y CELULAR; LOS DATOS DE FIRMA VAN EN LA SECCIÓN V) -->
+        <!-- TARJETA DEL PROVEEDOR TECNOLÓGICO: ZAPHYREL -->
         <div class="bilateral-bar" style="margin-top:6px;padding-top:8px">
           <div class="party-card dev-party">
-            <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:260px">
-              <div class="dev-emblem-box" style="width:42px;height:42px">
-                <div class="dev-logo-slot">
-                  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <polygon points="32,4 58,18 58,46 32,60 6,46 6,18" stroke="#06b6d4" stroke-width="3.2" fill="rgba(6,182,212,0.15)" />
-                    <path d="M23 24L14 32L23 40" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M41 24L50 32L41 40" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M35 20L29 44" stroke="#ef4444" stroke-width="3.8" stroke-linecap="round"/>
-                  </svg>
+            <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:280px">
+              <a href="https://zaphyrel-site.vercel.app/" target="_blank" style="text-decoration:none" title="Visitar zaphyrel-site.vercel.app">
+                <div class="dev-emblem-box" style="width:42px;height:42px" title="ZAPHYREL">
+                  <div class="dev-logo-slot">
+                    <img src="zaphyrel-logo.svg" alt="ZAPHYREL" style="width:100%;height:100%;object-fit:contain" />
+                  </div>
+                  <div class="dev-emblem-sub">ZAPHYREL</div>
                 </div>
-                <div class="dev-emblem-sub">ING · SW</div>
-              </div>
+              </a>
               <div style="font-size:11px;line-height:1.35;flex:1">
-                <div style="font-size:9.5px;font-weight:900;color:var(--cyan);text-transform:uppercase">👨‍💻 RESPONSABLE TECNOLÓGICO DEL PROYECTO (EL DESARROLLADOR)</div>
-                <div style="font-weight:900;color:#fff;font-size:12px">Desarrollador de Software y Sistemas Digitales</div>
+                <div style="font-size:9.5px;font-weight:900;color:var(--cyan);text-transform:uppercase">👨‍💻 PROVEEDOR TECNOLÓGICO: ZAPHYREL</div>
+                <div style="font-weight:900;color:#fff;font-size:12.5px">ZAPHYREL <span style="font-weight:700;color:var(--cyan);font-size:11px">— Software a Medida &amp; Automatización</span></div>
               </div>
             </div>
             <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11px">
-              <strong>Nombre:</strong> <span class="dev-name-txt" contenteditable="true" data-sync="cfgDevName">_________________________________</span> ·
-              <strong>Celular / WhatsApp:</strong> <span class="dev-phone-txt" contenteditable="true" data-sync="cfgDevPhone">____________________</span>
+              <strong>Desarrollador:</strong> <span class="dev-name-txt" contenteditable="true" data-sync="cfgDevName">_________________________________</span> ·
+              <strong>Cel / WA:</strong> <span class="dev-phone-txt" contenteditable="true" data-sync="cfgDevPhone">____________________</span> ·
+              <strong>Web:</strong> <a href="https://zaphyrel-site.vercel.app/" target="_blank" style="color:var(--cyan);text-decoration:none;font-weight:700">zaphyrel-site.vercel.app</a>
             </div>
           </div>
         </div>
@@ -1702,7 +1698,7 @@
           <div class="box">
             <h3>Cláusula Cuarta: Propiedad Intelectual, Permanencia (6m) y Adicionales</h3>
             <p style="font-size:10.8px;color:#cbd5e1;line-height:1.4;margin:0">
-              El software es de autoría intelectual del Desarrollador, otorgándose al Gimnasio la licencia de uso conforme a la modalidad elegida en la Sección I (en Plan Mensual rige una <strong>permanencia mínima obligatoria de 6 meses</strong>). Toda solicitud posterior de nuevas funciones o cambios fuera del alcance entregado se cotiza por separado.
+              El software ha sido diseñado e implementado por el Desarrollador bajo la autoría intelectual de su firma <strong>ZAPHYREL</strong>, otorgándose al Gimnasio la licencia de uso conforme a la modalidad elegida en la Sección I (en Plan Mensual rige una <strong>permanencia mínima obligatoria de 6 meses</strong>). Toda solicitud posterior de nuevas funciones o cambios fuera del alcance entregado se cotiza por separado.
             </p>
           </div>
 
@@ -1731,17 +1727,17 @@
           </p>
 
           <div class="grid-2" style="gap:8px">
-            <!-- FIRMA 1: DESARROLLADOR -->
+            <!-- FIRMA 1: PROVEEDOR TECNOLÓGICO ZAPHYREL -->
             <div style="border:1px solid var(--border);border-radius:8px;padding:9px;background:rgba(255,255,255,0.02)">
-              <div style="font-size:9px;font-weight:800;color:var(--cyan);text-transform:uppercase;margin-bottom:20px">
-                (1) FIRMA Y SELLO DEL RESPONSABLE TECNOLÓGICO
+              <div style="font-size:9px;font-weight:800;color:var(--cyan);text-transform:uppercase;margin-bottom:18px">
+                (1) POR EL PROVEEDOR TECNOLÓGICO: ZAPHYREL
               </div>
               <div style="border-top:1.5px solid #64748b;padding-top:4px;font-weight:900;font-size:10.5px;color:#fff">
-                DESARROLLADOR DE SOFTWARE Y SISTEMAS DIGITALES
+                ZAPHYREL — SOFTWARE A MEDIDA &amp; AUTOMATIZACIÓN INTERNA
               </div>
-              <div style="font-size:10px;color:#cbd5e1;margin-top:2px">
-                <strong>Nombre:</strong> <span class="dev-name-txt" contenteditable="true" data-sync="cfgDevName">______________________________________</span><br>
-                <strong>DNI / RUC:</strong> <span class="dev-dni-txt" contenteditable="true" data-sync="cfgDevDni">____________________</span> · <strong>Cel:</strong> <span class="dev-phone-txt" contenteditable="true" data-sync="cfgDevPhone">_________________</span>
+              <div style="font-size:9.8px;color:#cbd5e1;margin-top:2px;line-height:1.36">
+                <strong>Desarrollador:</strong> <span class="dev-name-txt" contenteditable="true" data-sync="cfgDevName">______________________________________</span><br>
+                <strong>DNI / RUC:</strong> <span class="dev-dni-txt" contenteditable="true" data-sync="cfgDevDni">____________________</span> · <strong>Cel:</strong> <span class="dev-phone-txt" contenteditable="true" data-sync="cfgDevPhone">_________________</span> · <strong>Web:</strong> zaphyrel-site.vercel.app
               </div>
             </div>
 
@@ -1789,25 +1785,19 @@
           </div>
         </div>
         <div class="doc-footer-brand">
-          <span><strong>&lt;/&gt;</strong> Desarrollado por <strong>Ingeniería de Software y Sistemas Digitales</strong> · <span class="dev-name-txt">_________________________________</span></span>
-          <span>Contrato Oficial de Implementación · <span class="gym-name">RD FITNESS CLUB</span></span>
+          <span><strong>ZAPHYREL</strong> — Software a Medida, Automatización Interna y Motores 3D / 360° · <a href="https://zaphyrel-site.vercel.app/" target="_blank" style="color:inherit;text-decoration:none">zaphyrel-site.vercel.app</a></span>
+          <span>Contrato Oficial de Servicios de Software · <span class="gym-name">RD FITNESS CLUB</span> · <span class="ctr-date-txt" data-sync="cfgContractDate">09/11/2026</span></span>
         </div>
       </section>
     </div>
   </main>
 
-  <script src="/js/zaphyrel-badge.js?v=5.9" defer></script>
+  <script src="/js/zaphyrel-badge.js?v=6.9" defer></script>
 
   <script>
     const DEFAULT_GYM_NAME = 'RD FITNESS CLUB';
     const STORAGE_KEY = 'rd_doc_config_v3_' + DEFAULT_GYM_NAME.replace(/\s+/g, '_');
-    const DEFAULT_DEV_SVG = `
-      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <polygon points="32,4 58,18 58,46 32,60 6,46 6,18" stroke="#06b6d4" stroke-width="3" fill="rgba(6,182,212,0.12)" />
-        <path d="M23 24L14 32L23 40" stroke="#38bdf8" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M41 24L50 32L41 40" stroke="#38bdf8" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M35 20L29 44" stroke="#ef4444" stroke-width="3.5" stroke-linecap="round"/>
-      </svg>`;
+    const DEFAULT_DEV_SVG = `<img src="zaphyrel-logo.svg" alt="ZAPHYREL" style="width:100%;height:100%;object-fit:contain" />`;
 
     function fmtMoney(n) {
       return 'S/ ' + Number(n || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

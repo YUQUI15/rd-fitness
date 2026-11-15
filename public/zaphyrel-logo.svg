@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" fill="none">
+  <defs>
+    <linearGradient id="pAll" x1="12" y1="12" x2="108" y2="108" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#81BDF8"/>
+      <stop offset="50%" stop-color="#D5BEFF"/>
+      <stop offset="100%" stop-color="#FF9AFF"/>
+    </linearGradient>
+    <linearGradient id="zWingB" x1="36" y1="58" x2="84" y2="86" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#81BDF8"/>
+      <stop offset="50%" stop-color="#D5BEFF"/>
+      <stop offset="100%" stop-color="#FF9AFF"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="112" height="112" rx="26" fill="#080A10" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+  <polygon points="19,51 57,13 57.5,25.5 25.5,57.5" fill="#81BDF8"/>
+  <polygon points="63,13 107,57 94.5,57.5 62.5,25.5" fill="#D5BEFF"/>
+  <polygon points="107,63 63,107 62.5,94.5 94.5,62.5" fill="#FF9AFF"/>
+  <polygon points="57.5,25.5 62.5,25.5 94.5,57.5 94.5,62.5 62.5,94.5 57.5,94.5 25.5,62.5 25.5,57.5" fill="#0E121D" stroke="url(#pAll)" stroke-width="2"/>
+  <path d="M 10 52.5 H 25.5 L 22.4 55.6 H 10 Z M 4.5 59.4 H 28 L 24.2 63.2 H 4.5 Z M 11.5 66.8 H 30.5 L 27.1 70.1 H 11.5 Z" fill="#A9DCFF"/>
+  <path d="M 41 37.5 H 82.8 L 61.7 58.6 H 51.9 L 67.5 43 H 36.2 Z" fill="#FFFFFF"/>
+  <path d="M 79 82.5 H 37.2 L 58.3 61.4 H 68.1 L 52.5 77 H 83.8 Z" fill="url(#zWingB)"/>
+  <line x1="47.5" y1="60" x2="72.5" y2="60" stroke="#A9DCFF" stroke-width="1.8" stroke-linecap="round"/>
+</svg>
